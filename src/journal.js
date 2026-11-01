@@ -1,24 +1,12 @@
 /* A tiny, dependency-free rich-text notebook for the offline prototype.
  * Persist only an allowlisted subset of HTML. Production replacement: Tiptap JSON in Supabase.
  */
+import { validDateKey, todayKey, dateKey } from './dates.js';
+import { markStorageIssue, isStorageWriteBlocked } from './storage.js';
 const KEY='orbit.v5.journal';
-const validDateKey=s=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(s||''))return false;
-  const [y,m,d]=s.split('-').map(Number),dt=new Date(Date.UTC(y,m-1,d));
-  return dt.getUTCFullYear()===y&&dt.getUTCMonth()===m-1&&dt.getUTCDate()===d;
-};
-const todayKey=()=>{
-  const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Jakarta',day:'2-digit',month:'2-digit',year:'numeric'}).formatToParts(new Date());
-  const o=Object.fromEntries(parts.map(p=>[p.type,p.value]));return `${o.year}-${o.month}-${o.day}`;
-};
-const dateKey=value=>{
-  const str=String(value||'');if(validDateKey(str))return str;
-  if(!Number.isFinite(Date.parse(str)))return todayKey();
-  const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Jakarta',day:'2-digit',month:'2-digit',year:'numeric'}).formatToParts(new Date(str));
-  const o=Object.fromEntries(parts.map(p=>[p.type,p.value]));return `${o.year}-${o.month}-${o.day}`;
-};
 const MAX_ENTRIES=600;
 const allowed=new Set(['P','DIV','BR','STRONG','B','EM','I','U','H2','H3','UL','OL','LI','BLOCKQUOTE','A']);
-const safeHref=url=>{try{const u=new URL(url,location.href);return ['https:','http:'].includes(u.protocol)?u.href:'';}catch{return '';}};
+const safeHref=url=>{if(typeof url!=='string'||!url.trim())return '';try{const u=new URL(url,location.href);return ['https:','http:'].includes(u.protocol)?u.href:'';}catch{return '';}};
 export function sanitizeJournal(html){
   const doc=new DOMParser().parseFromString(String(html||'').slice(0,140000),'text/html');
   const parent=document.createElement('div');
@@ -49,8 +37,21 @@ export function normalizeEntries(input){
   }
   return entries.length?entries:[empty()];
 }
-const save=(entries)=>{try{localStorage.setItem(KEY,JSON.stringify(entries));return true;}catch{return false;}};
-function load(){try{return normalizeEntries(JSON.parse(localStorage.getItem(KEY)||'null'));}catch{return [empty()];}}
+const save=(entries)=>{try{if(isStorageWriteBlocked(KEY))return false;localStorage.setItem(KEY,JSON.stringify(entries));return true;}catch{return false;}};
+function load(){
+  try{
+    const raw=localStorage.getItem(KEY);
+    if(raw===null)return {entries:[empty()],saved:false};
+    const value=JSON.parse(raw),seen=new Set();
+    const valid=Array.isArray(value)&&value.length<=MAX_ENTRIES&&value.every(e=>{
+      if(!e||typeof e.id!=='string'||!e.id||e.id.length>=100||seen.has(e.id)||typeof e.html!=='string'||e.html.length>140000||typeof e.title!=='string'||e.title.length>120)return false;
+      if(!validDateKey(e.date)&&!(typeof e.date==='string'&&/^\d{4}-\d{2}-\d{2}T/.test(e.date)&&validDateKey(e.date.slice(0,10))&&Number.isFinite(Date.parse(e.date))))return false;
+      seen.add(e.id);return true;
+    });
+    if(!valid)markStorageIssue(KEY,'Journal needs recovery. Original saved data is protected.',raw);
+    return {entries:normalizeEntries(value),saved:valid};
+  }catch{markStorageIssue(KEY,'Journal cannot be read. Original saved data is protected.');return {entries:[empty()],saved:false};}
+}
 const fmtDate=s=>new Intl.DateTimeFormat('en-US',{year:'numeric',month:'long',day:'numeric',timeZone:'UTC'}).format(new Date(`${dateKey(s)}T12:00:00Z`));
 function toMarkdown(html){
   const doc=new DOMParser().parseFromString(sanitizeJournal(html),'text/html');
@@ -76,13 +77,15 @@ function toMarkdown(html){
 }
 export class Journal {
   constructor({notify,onEntriesChange}={}){
-    this.notify=notify||(()=>{});this.onEntriesChange=onEntriesChange||(()=>{});this.entries=load();this.index=this.entries.length-1;
+    this.notify=notify||(()=>{});this.onEntriesChange=onEntriesChange||(()=>{});const loaded=load();this.entries=loaded.entries;this.saved=loaded.saved;this.index=this.entries.length-1;
     this.title=document.getElementById('journal-entry-title');this.editor=document.getElementById('journal-editor');
     this.dateInput=document.getElementById('journal-entry-date');
     this.saveIndicator=document.getElementById('journal-save-state');this.timer=0;
     this.title.addEventListener('input',()=>this.queueSave());this.editor.addEventListener('input',()=>this.queueSave());
     this.dateInput.addEventListener('change',()=>{this.commit();});
-    this.editor.addEventListener('paste',()=>this.handlePaste());
+    this.editor.addEventListener('paste',e=>this.handlePaste(e));
+    document.addEventListener('visibilitychange',()=>{if(document.hidden)this.commit();});
+    window.addEventListener('pagehide',()=>this.commit());
     this.editor.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='s'){e.preventDefault();this.commit();}});
     document.getElementById('journal-new').addEventListener('click',()=>this.newPage());
     document.getElementById('journal-prev').addEventListener('click',()=>this.go(-1));
@@ -96,16 +99,18 @@ export class Journal {
     this.render();
   }
   getEntries(){this.commit();return structuredClone(this.entries);}
-  replaceEntries(input){this.entries=normalizeEntries(input);this.index=this.entries.length-1;save(this.entries);this.render();this.onEntriesChange(this.entries);}
+  replaceEntries(input,{persist=true}={}){clearTimeout(this.timer);this.entries=normalizeEntries(input);this.index=this.entries.length-1;this.saved=persist?save(this.entries):true;this.render();this.onEntriesChange(this.entries);return this.saved;}
   updateCount(){const text=this.editor.textContent?.trim()||'';document.getElementById('journal-wordcount').textContent=`${text?text.split(/\s+/).length:0} words`;}
-  queueSave(){this.saveIndicator.textContent='writing…';this.updateCount();clearTimeout(this.timer);this.timer=setTimeout(()=>this.commit(),500);}
+  queueSave(){this.saved=false;this.saveIndicator.textContent='writing…';this.updateCount();clearTimeout(this.timer);this.timer=setTimeout(()=>this.commit(),500);}
   commit(){clearTimeout(this.timer);const entry=this.entries[this.index];if(!entry)return;
     const beforeDate=entry.date,beforeTitle=entry.title,beforeHtml=entry.html;
     entry.title=this.title.value.trim().slice(0,120);
     entry.date=validDateKey(this.dateInput.value)?this.dateInput.value:beforeDate;
     entry.html=sanitizeJournal(this.editor.innerHTML);entry.updatedAt=new Date().toISOString();
-    const ok=save(this.entries);this.saveIndicator.textContent=ok?'saved on this device':'not saved — export a backup';
+    this.saved=save(this.entries);this.saveIndicator.textContent=this.saved?'saved on this device':'not saved — export a backup';
+    document.getElementById('journal-date-label').textContent=fmtDate(entry.date).toUpperCase();
     if(beforeDate!==entry.date||beforeTitle!==entry.title||beforeHtml!==entry.html)this.onEntriesChange(this.entries);
+    return this.saved;
   }
   render(){const entry=this.entries[this.index];if(!entry)return;
     this.title.value=entry.title;this.editor.innerHTML=sanitizeJournal(entry.html);
@@ -115,10 +120,10 @@ export class Journal {
     document.getElementById('journal-page-label').textContent=`Page ${this.index+1} of ${this.entries.length}`;
     document.getElementById('journal-prev').disabled=this.index===0;
     document.getElementById('journal-next').disabled=this.index===this.entries.length-1;
-    this.saveIndicator.textContent='saved on this device';this.updateCount();
+    this.saveIndicator.textContent=this.saved?'saved on this device':'not saved — export a backup';this.updateCount();
   }
   newPage(date=todayKey()){this.commit();if(this.entries.length>=MAX_ENTRIES){this.notify('Journal page limit reached. Export a backup before adding more.');return;}
-    this.entries.push(empty(date));this.index=this.entries.length-1;save(this.entries);this.render();this.onEntriesChange(this.entries);this.title.focus();}
+    this.entries.push(empty(date));this.index=this.entries.length-1;this.saved=save(this.entries);this.render();this.onEntriesChange(this.entries);this.title.focus();}
   openEntry(entryId){const index=this.entries.findIndex(e=>e.id===entryId);if(index<0)return false;
     this.commit();this.index=index;this.render();return true;}
   go(step){const next=this.index+step;if(next<0||next>=this.entries.length)return;
@@ -132,14 +137,31 @@ export class Journal {
     if(kind==='list')document.execCommand('insertUnorderedList',false);
     this.queueSave();
   }
-  handlePaste(){requestAnimationFrame(()=>{this.editor.innerHTML=sanitizeJournal(this.editor.innerHTML);this.queueSave();});}
+  handlePaste(event){
+    // Never let untrusted clipboard HTML enter the live DOM before sanitizing.
+    event.preventDefault();
+    const clipboard=event.clipboardData;if(!clipboard)return;
+    const html=clipboard.getData('text/html'),text=clipboard.getData('text/plain');
+    this.editor.focus();
+    const selection=window.getSelection();let range=selection.rangeCount?selection.getRangeAt(0):null;
+    if(!range||!this.editor.contains(range.commonAncestorContainer)){
+      range=document.createRange();range.selectNodeContents(this.editor);range.collapse(false);
+    }
+    const fragment=html?range.createContextualFragment(sanitizeJournal(html)):document.createTextNode(text.slice(0,80000));
+    const last=fragment.lastChild||fragment;range.deleteContents();range.insertNode(fragment);
+    if(last.parentNode){range.setStartAfter(last);range.collapse(true);selection.removeAllRanges();selection.addRange(range);}
+    this.queueSave();
+  }
   deletePage(){
-    this.commit();const removed=this.entries[this.index],oldIndex=this.index;
+    this.commit();const removed=this.entries[this.index],oldIndex=this.index,wasLast=this.entries.length===1;
     this.entries.splice(oldIndex,1);
     if(!this.entries.length)this.entries.push(empty());
-    this.index=Math.min(oldIndex,this.entries.length-1);save(this.entries);this.render();this.onEntriesChange(this.entries);
-    this.notify('Page removed. You can undo.',6500,{label:'Undo',run:()=>{
-      this.entries.splice(oldIndex,0,removed);this.index=oldIndex;save(this.entries);this.render();this.onEntriesChange(this.entries);this.notify('Page restored.');
+    const replacementId=wasLast?this.entries[0].id:null;
+    this.index=Math.min(oldIndex,this.entries.length-1);this.saved=save(this.entries);this.render();this.onEntriesChange(this.entries);
+    this.notify(this.saved?'Page removed. You can undo.':'Page removed for this session; not saved. Export a backup.',6500,{label:'Undo',run:()=>{
+      this.commit();
+      if(this.entries.length===1&&this.entries[0].id===replacementId&&!this.entries[0].title&&!this.entries[0].html)this.entries=[];
+      this.entries.splice(oldIndex,0,removed);this.index=oldIndex;this.saved=save(this.entries);this.render();this.onEntriesChange(this.entries);this.notify(this.saved?'Page restored.':'Page restored for this session; not saved. Export a backup.');
     }});
   }
   exportPage(){this.commit();const entry=this.entries[this.index];const title=entry.title||'Untitled';

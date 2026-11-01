@@ -1,5 +1,12 @@
 # 15 — Architecture decision record and skill utilization
 
+## M1 decisions
+
+- D-016: Keep the original V6 SHA manifest immutable and verify its Git blobs at commit 06f8039. A separate reviewed M1 source inventory admits intentional changes and rejects unexpected changes. CI needs full history. After source diff review, `npm run record:source -- --reviewed` refreshes existing approved entries; new paths/reasons require explicit manifest review. Never rewrite the V6 manifest.
+- D-017: Retain current localStorage keys and V5/V6 backups. Malformed values remain protected/exportable; complete restore validates before mutation and writes recoverable originals first. This does not provide transactions or cross-tab concurrency.
+- D-018: No new frontend runtime dependencies, editor/framework migration or cloud integration. Shared Jakarta civil dates preserve the journal's existing convention. Automatic Vercel Git deployment is disabled pending separate target/protection/deployment approval.
+
+
 ## Accepted and held design choices
 
 | ID | Decision | Evidence / rationale | Change process |

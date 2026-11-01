@@ -1,5 +1,10 @@
 # 02 — Evidence-based feature audit (V6)
 
+## M1 update (1 November 2026)
+
+The historical audit below describes original V6. M1 adds guarded storage recovery, validated/recoverable imports, truthful save feedback, pre-insertion paste sanitization, six-window keyboard movement/focus recovery, milestone Remove/Undo and consistent Jakarta dates. Existing frontend flows pass actual-origin tests at five viewports. Auth/cloud rows remain missing. See [M1 evidence](decisions/M1-IMPLEMENTATION.md).
+
+
 **Status key:** `FULLY FUNCTIONAL` means exercised in the offline prototype only, not production-grade. `FRONTEND-ONLY FUNCTIONAL` means it works in browser but has no cloud/state integration. `SIMULATED/MOCK` means illustrative/test data or a presentation without live external sources. `INCOMPLETE` means partially supported with a known gap. `MISSING` means no implementation. Source references below are actual files and entry points, not inferred API endpoints.
 
 | Capability / trigger | Current status | Source evidence | Production gap |

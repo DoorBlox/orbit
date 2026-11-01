@@ -1,12 +1,18 @@
 # ORBIT V6 → production: Codex handoff
 
+## Current handoff: M1 completed locally
+
+M0 and owner-approved M1 are complete. See [M1 implementation and commands](docs/decisions/M1-IMPLEMENTATION.md), [security review](docs/decisions/M1-SECURITY-REVIEW.md) and [protected-preview checklist](docs/decisions/M1-PREVIEW-CHECKLIST.md). The original V6 Git blobs/manifest remain verifiable; current intentional source changes use a separate reviewed M1 inventory. Runtime is still static/native modules and localStorage, with no Auth/Supabase connection. Automatic Vercel Git deployment is disabled. Next action is owner PR review; M2/local DB and deployment remain separately gated.
+
+The remaining sections preserve the original handoff context except where explicitly updated below.
+
 **Document status:** prepared repository handoff; NO app redeployment, NO database execution, NO actual cloud connection. Use with `AGENTS.md` and `docs/14-CODEX-IMPLEMENTATION-ROADMAP.md`.
 
 ## 1. The product
 ORBIT is a single-user personal spatial scrapbook with an arbitrarily deep radial constellation, actionable tasks, Premiere-like timeline and milestones, floating rearrangeable glass widgets, and a dated paper-like journal. One continuous 2D space contains **six movable/resizable widgets**: `timeline`, `constellation`, `active`, `completed`, `space`, `journal`. Responsive mobile, drag/resize, glass effects, task colors, completed-task history, CSV/JSON backup, editable journal dates, timeline journal markers and Markdown exports are already implemented in the **browser-only prototype**.
 
 ## 2. Source of truth and repository
-- `index.html`, `src/{app,board,constellation,csv,data,journal,layout,model,storage,widgets}.js`, `src/styles.css`, `assets/orbit.svg`: original V6, intentionally preserved and checksum-recorded in `docs/reference/V6_SOURCE_MANIFEST.json`.
+- Original index, JS/CSS and SVG are checksum-recorded in `docs/reference/V6_SOURCE_MANIFEST.json` and preserved in Git commit `06f8039`. Current M1 sources, including new dates/backup helpers, are recorded in `docs/reference/M1_SOURCE_MANIFEST.json`.
 - `ORBIT_Offline_Preview.html`: original self-contained local preview; **not** deployed. `scripts_build_preview.py` can regenerate it.
 - `tests/test_csv.mjs` and `tests/qa_v6.py`: inherited baseline checks. `tests/cloud_mappers.test.mjs`: handoff adapter tests. `src/cloud/*`: isolated future cloud utilities **not wired** to runtime.
 - `package*.json`, `scripts/*`, `vercel.json`, `.github/workflows/quality.yml`: static build and CI preparation. `npm run build` copies public original sources/assets to `dist`; no compilation/framework migration.
@@ -42,4 +48,4 @@ See every milestone's scope, dependencies, files, commands, acceptance and rollb
 - License is unspecified, therefore no LICENSE file was invented. Keep repository private.
 
 ## 7. Next safe action
-Follow `CODEX_FIRST_TASK.md` exactly. Then show the human owner the baseline report and wait for approval to start backend migration/design changes. No automatic pushes or cloud writes.
+Review the M1 PR and evidence. Keep the deployment hold. Authorize the local-only M2 foundation separately when ready; no live database or deployment action is implicit.

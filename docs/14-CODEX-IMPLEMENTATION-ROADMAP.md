@@ -1,5 +1,10 @@
 # 14 — Codex implementation roadmap (incremental, reviewable)
 
+## Current delivery state
+
+M0 is complete. Owner-authorized M1 engineering implementation and simulated acceptance are complete with [command, visual and risk evidence](decisions/M1-IMPLEMENTATION.md). Physical-device/full assistive-technology follow-up remains open before release. M2 and all deployment/database gates remain separate; no production readiness or cloud integration is implied.
+
+
 **Rule:** Complete one milestone at a time; capture commands, outputs, screenshots, and diff evidence in PRs. Update this roadmap and `docs/15-DECISIONS-AND-ASSUMPTIONS.md` when an assumption changes. **Never silently deploy or migrate a real remote database.**
 
 ## Dependency graph

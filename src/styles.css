@@ -673,6 +673,9 @@ body.map-immersive .world-header{display:none}
 .spatial-world>.space-widget{display:flex;flex-direction:column;min-height:210px;height:auto}
 .space-heading{padding:0 0 12px!important;min-height:38px;margin:-4px 0 6px}
 .space-heading .eyebrow{font-size:11px!important;align-self:center}
+.space-heading .widget-grip{margin-right:8px}
+/* A visible editing focus is essential on the paper surface and scrollable timeline. */
+.journal-editor:focus-visible,.timeline-scroll:focus-visible{outline:2px solid var(--focus);outline-offset:-3px}
 .widget-resizer{position:absolute;z-index:55;right:4px;bottom:4px;width:37px;height:37px;display:flex;align-items:end;justify-content:flex-end;
   padding:0 10px 7px 0;touch-action:none;user-select:none;cursor:nwse-resize;border:0;border-radius:12px;
   color:#657FA3;background:linear-gradient(135deg,transparent 35%,rgba(255,255,255,.61));
@@ -751,3 +754,7 @@ body.map-immersive .world-header{display:none}
 .spatial-world>.timeline-widget .timeline-tick-label{top:-20px}
 
 .spatial-world>.timeline-widget .timeline-milestone:not(.is-condensed){max-width:205px}
+/* Small paper labels must remain readable against the existing warm paper surface. */
+.journal-paper{--journal-muted:#735B4A}
+.journal-save-state,.journal-page-footer,.journal-page-number,.journal-date-label,.journal-date-edit-label,.journal-tool,
+.journal-entry-title::placeholder,.journal-editor:empty::before{color:var(--journal-muted)}

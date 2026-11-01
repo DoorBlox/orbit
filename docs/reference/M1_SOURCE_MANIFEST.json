@@ -1,0 +1,79 @@
+{
+  "baselineCommit": "06f8039c724dd653a4bb8b84f7384d86d1ad90eb",
+  "milestone": "M1",
+  "review": "Intentional frontend stabilization; see docs/decisions/M1-IMPLEMENTATION.md. Update only after reviewing the source diff.",
+  "files": {
+    "assets/orbit.svg": {
+      "sha256": "97eb19dd4e0773d0b6489b1f49d794ffd272fb3bc2d42af4faffd6a1adca78c3",
+      "reason": "Unchanged from V6/handoff; retained and integrity checked."
+    },
+    "index.html": {
+      "sha256": "6e8b0e86c620c99c936776449d8829590f0e94cd47b9d8594bb90a52f3e7240b",
+      "reason": "Add missing keyboard move grip using existing widget control."
+    },
+    "src/app.js": {
+      "sha256": "8178653c057e6431fb5637ed185cbc184d27e5806474fd1c35f2a7c1a5b92a4b",
+      "reason": "Coordinate guarded writes, recovery/import hydration and truthful toast actions."
+    },
+    "src/backup.js": {
+      "sha256": "f03df9680e644d694f998182907f5c37ce5c5d342ec6c9359a561640619fa02a",
+      "reason": "New validated recoverable V5/V6 snapshot persistence and startup rollback."
+    },
+    "src/board.js": {
+      "sha256": "cdf8ba22729f9f0b379a265f3a575b5a21023fc7cfadeba2eec3e14145a7feee",
+      "reason": "Keyboard visibility, landscape focus and guarded layout persistence."
+    },
+    "src/cloud/README.md": {
+      "sha256": "2fa23ecebff7de9fa7e5463f3c77031e97850cf192398ea0da66c2f6cd19a4af",
+      "reason": "Unchanged from V6/handoff; retained and integrity checked."
+    },
+    "src/cloud/client-config.js": {
+      "sha256": "0df0678fb34c632bcc53755cda5929e9122522a619481ece8268fcc3f57d606c",
+      "reason": "Unchanged from V6/handoff; retained and integrity checked."
+    },
+    "src/cloud/mappers.js": {
+      "sha256": "21e3e285c08af6aa17d89acaf8e270aaaae1a78ccfcfa35e2e96500468ca5ee1",
+      "reason": "Unchanged from V6/handoff; retained and integrity checked."
+    },
+    "src/constellation.js": {
+      "sha256": "48fe3bd3f5140ef163b2c970131eade827dc8853a16051d7a73e118c39307e5a",
+      "reason": "Retain focus and label generated editors without changing graph behavior."
+    },
+    "src/csv.js": {
+      "sha256": "43bd69daa75c06e88a42cd71d34f4847068997562219db25d5f2ee4d728be109",
+      "reason": "Validate headers/rows/URLs and neutralize spreadsheet formula prefixes."
+    },
+    "src/data.js": {
+      "sha256": "c745dae0abebfc54ee7497ed50889680940e2df5da16b72489cd9ad6257bade9",
+      "reason": "Use shared Jakarta civil days for relative sample dates."
+    },
+    "src/dates.js": {
+      "sha256": "8c32e8c4fc62b0a06584fe0df7f6726d9c47871f3c99eb756c6637bc235a7218",
+      "reason": "New small civil-day helper preserving existing Asia/Jakarta convention."
+    },
+    "src/journal.js": {
+      "sha256": "ca44adfb2f240c4dcaac4b90a650a632d5520f73e824559f3e2a4edc13608ae8",
+      "reason": "Retain unsaved/recoverable drafts, sanitize before paste, reuse civil dates."
+    },
+    "src/layout.js": {
+      "sha256": "1293793393eef61b6ab69bb74ad586040fbb066da4b85af877b92551415b14f3",
+      "reason": "Unchanged from V6/handoff; retained and integrity checked."
+    },
+    "src/model.js": {
+      "sha256": "b18a313f200439b5f7f9d0eb11c12e970a0a844ff804091c3bc0a1959e1eb352",
+      "reason": "Use consistent Jakarta deadline arithmetic and civil labels."
+    },
+    "src/storage.js": {
+      "sha256": "86d0f51446dea4259aba54b00a2171a7d49e65606661ad7fe79f75169788c1e1",
+      "reason": "Protect malformed raw values and recover valid records without seeding demos."
+    },
+    "src/styles.css": {
+      "sha256": "307246eed8a17d1cd6f996107b9a76da212c528d9ebf1ad544d8b7fac0a80a07",
+      "reason": "Existing-style sixth grip, focus visibility and brown paper-label contrast."
+    },
+    "src/widgets.js": {
+      "sha256": "aee68a4ce8a37edbb2de2fa1b0a2fc4589fcaf28a00603db2b148c6875a8ec58",
+      "reason": "Explicit milestone removal/Undo and consistent timeline civil days."
+    }
+  }
+}

@@ -110,3 +110,11 @@ Provision a separate development project or local Supabase stack. `supabase/migr
 For exact executed checks and known blockers, read [validation report](VALIDATION_REPORT.md).
 
 **Privacy first:** prototype sample data may be used for smoke testing; real journal entries require Auth+owner RLS and verified secure syncing before cloud exposure.
+
+## M1 verification and review
+
+M1 retains static native modules and the spatial scrapbook. See [M1 evidence](docs/decisions/M1-IMPLEMENTATION.md).
+Run `npm ci && npm run check` with Node 22 and full Git history (original provenance commit required).
+For browser QA: `python -m pip install -r tests/requirements-browser.txt`, `python -m playwright install chromium`,
+`npm run build && npm run test:browser`. System Chromium is used when present; set `ORBIT_BROWSER_BUNDLED=1` to use Playwright's installed browser.
+Automatic Vercel Git deployments are disabled pending separate approval/protection verification. No application credentials are required locally.

@@ -1,5 +1,14 @@
 # 05 — Existing UI/UX design system and limited audit
 
+## M1 scoped accessibility fixes
+
+Diagnosed bugs: Your space lacked a keyboard move grip; graph rerenders discarded focus; dynamic branch fields lacked labels; short landscape viewports cropped focused journal controls. M1 adds the missing existing-style grip, labels/focus recovery, a visible paper/timeline focus outline and camera reveal of focused controls. Stored spatial coordinates and touch gestures are retained.
+
+Small paper text was below 4.5:1 against #F8F1DD: saved-state #987F6D measured 3.33:1, footer #9B846E 3.15:1 and empty editor #B29E86 2.29:1. These labels now use the existing brown family through --journal-muted #735B4A (above 4.5:1 against the paper base). This is a nominal token measurement; full moving-glass contrast remains a separate audit.
+
+Five-viewports/keyboard/reduced-motion/high-contrast and representative 200% text enlargement pass; physical Safari/Android/VoiceOver and full WCAG/text-zoom testing remain open. The spatial world, pastel/glass atmosphere, unboxed glowing tasks and paper journal are preserved. Before/after images and scope limits: [M1 report](decisions/M1-IMPLEMENTATION.md).
+
+
 ## Visual identity (source, not redesign)
 
 Source: `src/styles.css:1-20`, `index.html`, V6 QA screenshots `qa/v6-clean-overview.png` and `qa/v6-clean-journal.png`. ORBIT is **light, atmospheric, spatial, glass-like**, not a card-heavy dashboard. Its signature is a continuous scrapbook with six independent windows. Typography/shape carry hierarchy; high-contrast readable content sits over a slow pastel wash.

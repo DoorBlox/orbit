@@ -1,5 +1,12 @@
 # 13 — Security and test plan with honest execution status
 
+## M1 verified local results
+
+`npm ci`, `npm run check` (49 Node results), static build, HTTP/origin checks, inherited five-viewport QA, new actual-origin `tests/qa_m1.py`, integrity tampering tests and limited signature scan pass. Changed pure data/recovery modules measure 95.69% line and 85.17% branch coverage; DOM and whole-app coverage are not claimed. Local CSP disallows external connections, eval and executable inline scripts; inline styles support existing spatial positioning. Automatic Vercel Git deployments are disabled pending separate approval.
+
+See [actual commands and limits](decisions/M1-IMPLEMENTATION.md) and [targeted security review](decisions/M1-SECURITY-REVIEW.md). SQL/RLS/Auth/cloud, hosted protection, physical devices and full XSS/WCAG audits remain unverified. The following table is the **historical handoff authoring record**, superseded for local M0/M1 results by their evidence reports.
+
+
 ## What is tested so far
 
 | Verification | Actual command/result | Scope/limitations |

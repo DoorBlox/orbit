@@ -181,6 +181,10 @@ export class Constellation {
     }
   }
   render(){
+    const active=document.activeElement;
+    const activeTask=active?.closest('.task-row'),activeNode=active?.closest('.graph-node');
+    const focusId=this.nodesEl.contains(active)?{task:activeTask?.dataset.taskId,branch:activeNode?.dataset.id,
+      action:active?.getAttribute('aria-label'),button:active?.textContent}:null;
     this.nodesEl.replaceChildren();this.edgesEl.replaceChildren();this.domNodes.clear();this.domStacks.clear();this.edgeEntries=[];
     // Allocate SVG proportional to the real hierarchy, not a 24,000-pixel
     // graphic on every phone. Paths retain world-coordinate units.
@@ -203,6 +207,12 @@ export class Constellation {
     this.applyOffsets();this.applySelectedStyles();this.applyCamera();
     if(this.matchIds)this.highlightTasks([...this.matchIds]);
     this.renderOverviewLabels();
+    if(focusId){
+      const owner=focusId.task?[...this.nodesEl.querySelectorAll('.task-row')].find(row=>row.dataset.taskId===focusId.task):this.domNodes.get(focusId.branch);
+      const action=owner&&[...owner.querySelectorAll('button')].find(button=>
+        focusId.action?button.getAttribute('aria-label')===focusId.action:button.textContent===focusId.button);
+      (action||owner||this.domNodes.get(this.focusedNode)||this.domNodes.get('root'))?.focus({preventScroll:true});
+    }
   }
   renderOverviewLabels(){
     this.labelLayer.replaceChildren();this.overviewLabels.clear();
@@ -235,9 +245,9 @@ export class Constellation {
     el.setAttribute('aria-label',item.id==='root'?`Hisyam, center of the constellation; focus`:`${branchPath(item.id,this.branches)}; focus, edit or add a branch`);
     el.addEventListener('keydown',e=>{
       if(e.target!==el)return;
-      if(e.key==='Enter'||e.key===' '){e.preventDefault();this.focusNode(item.id);this.onBranchSelected?.(item.id);}
-      if(e.key==='F2'&&item.id!=='root'){e.preventDefault();this.focusNode(item.id);this.openBranchEditor(el,item,'rename');}
-      if(e.key==='Insert'){e.preventDefault();this.focusNode(item.id);this.openBranchEditor(el,item,'add');}
+      if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();this.focusNode(item.id);this.onBranchSelected?.(item.id);}
+      if(e.key==='F2'&&item.id!=='root'){e.preventDefault();e.stopPropagation();this.focusNode(item.id);this.openBranchEditor(el,item,'rename');}
+      if(e.key==='Insert'){e.preventDefault();e.stopPropagation();this.focusNode(item.id);this.openBranchEditor(el,item,'add');}
     });
     el.addEventListener('focus',()=>{if(el.matches(':focus-visible')&&this.camera.scale<.62)this.focusNode(item.id,{instant:true});});
     if(item.id==='root'){
@@ -265,7 +275,7 @@ export class Constellation {
     const div=node('div','node-inline-editor');
     div.addEventListener('pointerdown',e=>e.stopPropagation());div.addEventListener('click',e=>e.stopPropagation());
     const heading=node('span','node-inline-title',mode==='add'?'NEW BRANCH':mode==='rename'?'RENAME':'MOVE BRANCH');div.append(heading);
-    const cancel=()=>div.remove();
+    const cancel=()=>{div.remove();this.domNodes.get(item.id)?.focus({preventScroll:true});};
     let input;
     if(mode==='move'){
       input=node('select','node-inline-input');
@@ -274,6 +284,7 @@ export class Constellation {
       for(const b of entries){if(forbidden.has(b.id))continue;const opt=node('option','',b.id==='root'?b.label:branchPath(b.id,this.branches));opt.value=b.id;input.append(opt);}
       input.value=item.parentId;
     }else{input=node('input','node-inline-input');input.type='text';input.maxLength=72;input.value=mode==='rename'?item.label:'';input.placeholder='Name this branch…';}
+    input.setAttribute('aria-label',mode==='move'?'Parent branch':mode==='add'?'New branch name':'Branch name');
     div.append(input);
     const buttons=node('div','node-inline-actions');
     const yes=node('button','node-mini-primary',mode==='move'?'Move':'Save');yes.type='button';
@@ -286,7 +297,7 @@ export class Constellation {
       cancel();
     };
     yes.addEventListener('click',submit);no.addEventListener('click',cancel);buttons.append(yes,no);div.append(buttons);
-    input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();submit();}if(e.key==='Escape'){e.preventDefault();cancel();el.focus();}});
+    input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.stopPropagation();submit();}if(e.key==='Escape'){e.preventDefault();e.stopPropagation();cancel();}});
     el.append(div);input.focus({preventScroll:true});if(input instanceof HTMLInputElement)input.select();
   }
   buildStack(stack){
@@ -364,8 +375,9 @@ export class Constellation {
     const statusWrap=node('label','inline-field');statusWrap.append(node('span','inline-field-title','Status'));const status=node('select','inline-input');status.name='status';for(const s of STATUS){const opt=node('option','',STATUS_LABEL[s]);opt.value=s;status.append(opt);}status.value=task.status;statusWrap.append(status);pair2.append(statusWrap);form.append(pair2);
     field('Supporting link','resourceUrl');
     const actions=node('div','editor-actions');const save=node('button','node-mini-primary','Save changes');save.type='submit';const cancel=node('button','node-mini-secondary','Cancel');cancel.type='button';actions.append(save,cancel);form.append(actions);
-    const dismiss=()=>{form.remove();view.hidden=false;};
+    const dismiss=()=>{form.remove();view.hidden=false;row.focus({preventScroll:true});};
     cancel.addEventListener('click',e=>{e.stopPropagation();dismiss();});
+    form.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();dismiss();}});
     form.addEventListener('click',e=>e.stopPropagation());form.addEventListener('pointerdown',e=>e.stopPropagation());
     form.addEventListener('submit',e=>{e.preventDefault();e.stopPropagation();const data=new FormData(form);const patch=Object.fromEntries(data.entries());
       patch.urgency=Number(patch.urgency)||1;patch.effortMinutes=Number(patch.effortMinutes)||0;
