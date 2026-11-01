@@ -396,4 +396,6 @@ export class Constellation {
     for(const r of this.nodesEl.querySelectorAll('.task-row'))r.classList.toggle('is-selected',r.dataset.taskId===this.selectedTaskId);
     for(const e of this.edgeEntries)e.path.classList.toggle('is-selected',e.to===this.focusedNode);
   }
+  dispose(){this.observer.disconnect();cancelAnimationFrame(this.cameraAnimation);cancelAnimationFrame(this.springAnimation);this.nodesEl.replaceChildren();this.edgesEl.replaceChildren();this.domNodes.clear();this.domStacks.clear();}
+
 }

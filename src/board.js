@@ -41,10 +41,11 @@ function readPositions(){try{
 }catch{markStorageIssue(KEY,'Saved positions need recovery.');return structuredClone(DEFAULT);}}
 const iconList={constellation:'✳',timeline:'─',active:'◉',completed:'✓',journal:'✎',space:'·'};
 export class SpatialBoard {
-  constructor({notify=()=>{}}={}){
+  constructor({notify=()=>{},initialLayout,readOnly=false,persistLocally=true,onLayoutChange=()=>{}}={}){
+    this.readOnly=readOnly;this.persistLocally=persistLocally;this.onLayoutChange=onLayoutChange;this.events=new AbortController();
     this.notify=notify;
     this.viewport=document.getElementById('spatial-viewport');this.world=document.getElementById('spatial-world');
-    this.positions=readPositions();this.sizes=readSizes();this.scale=1;this.pan={x:0,y:0};this.gesture=null;this.pointers=new Map();this.raf=0;
+    this.positions=initialLayout?structuredClone(DEFAULT):readPositions();this.sizes=initialLayout?{}:readSizes();this.scale=1;this.pan={x:0,y:0};this.gesture=null;this.pointers=new Map();this.raf=0;
     this.widgets=new Map();this.nav=document.getElementById('space-nav-map');
     this.navContainer=this.nav.closest('.space-navigator');this.navToggle=document.getElementById('space-nav-toggle');
     this.navToggle?.addEventListener('click',()=>{
@@ -67,7 +68,7 @@ export class SpatialBoard {
       resizer.setAttribute('aria-label',`Resize ${id} widget. Arrow keys change width or height.`);
       resizer.title='Drag corner to resize · Arrow keys resize';
       resizer.innerHTML='<span aria-hidden="true">╱</span>';
-      widget.append(resizer);
+      widget.append(resizer);if(readOnly){resizer.disabled=true;if(grip)grip.disabled=true;}
       resizer.addEventListener('pointerdown',e=>this.resizeStart(e,id,resizer));
       resizer.addEventListener('keydown',e=>this.resizeViaKeyboard(e,id));
     }
@@ -84,7 +85,8 @@ export class SpatialBoard {
     document.getElementById('board-zoom-in').addEventListener('click',()=>this.zoomBy(1.23));
     document.getElementById('board-zoom-out').addEventListener('click',()=>this.zoomBy(1/1.23));
     document.getElementById('board-home').addEventListener('click',()=>this.fitAll());
-    window.addEventListener('resize',()=>this.render());
+    window.addEventListener('resize',()=>this.render(),{signal:this.events.signal});
+    if(initialLayout)this.setLayout(initialLayout,{persist:false});
     this.render();
     // Open near the constellation and leave adjacent glass objects discoverable by drifting sideways.
     requestAnimationFrame(()=>this.focus('constellation',{initial:true}));
@@ -102,7 +104,7 @@ export class SpatialBoard {
     for(const id of this.widgets.keys()){this.position(id);this.applySize(id);}
     if(persist)this.save();this.render();this.buildNavigator();
   }
-  save(){try{if(isStorageWriteBlocked(KEY)||isStorageWriteBlocked(SIZE_KEY))throw Error();localStorage.setItem(KEY,JSON.stringify(this.positions));localStorage.setItem(SIZE_KEY,JSON.stringify(this.sizes));return true;}
+  save(){if(this.readOnly)return false;if(!this.persistLocally){this.onLayoutChange(this.getLayout());return false;}try{if(isStorageWriteBlocked(KEY)||isStorageWriteBlocked(SIZE_KEY))throw Error();localStorage.setItem(KEY,JSON.stringify(this.positions));localStorage.setItem(SIZE_KEY,JSON.stringify(this.sizes));return true;}
     catch{this.notify('Layout not saved on this device. Export a backup to keep your changes.');return false;}}
   applySize(id){const item=this.widgets.get(id),s=this.sizes[id];if(!item)return;
     if(!s){item.style.removeProperty('width');item.style.removeProperty('height');return;}
@@ -186,7 +188,7 @@ export class SpatialBoard {
     if(e.ctrlKey||e.metaKey){this.zoomBy(Math.exp(-e.deltaY*.0018),e.clientX-rect.left,e.clientY-rect.top);return;}
     this.pan.x-=e.deltaX;this.pan.y-=e.deltaY;this.render();
   }
-  dragStart(e,id,handle){
+  dragStart(e,id,handle){if(this.readOnly)return;
     if(e.button!==0&&e.pointerType!=='touch')return;e.preventDefault();e.stopPropagation();cancelAnimationFrame(this.raf);
     const p=this.positions[id];this.drag={id,handle,pointer:e.pointerId,startX:e.clientX,startY:e.clientY,origin:{...p}};
     handle.setPointerCapture?.(e.pointerId);handle.classList.add('dragging');
@@ -198,7 +200,7 @@ export class SpatialBoard {
       handle.classList.remove('dragging');this.drag=null;this.save();this.buildNavigator();};
     handle.addEventListener('pointermove',move);handle.addEventListener('pointerup',end);handle.addEventListener('pointercancel',end);
   }
-  resizeStart(e,id,handle){
+  resizeStart(e,id,handle){if(this.readOnly)return;
     if(e.button!==0&&e.pointerType!=='touch')return;
     e.preventDefault();e.stopPropagation();cancelAnimationFrame(this.raf);
     const lim=LIMITS[id],size=this.widgetSize(id);if(!lim)return;
@@ -215,12 +217,12 @@ export class SpatialBoard {
     };
     handle.addEventListener('pointermove',move);handle.addEventListener('pointerup',end);handle.addEventListener('pointercancel',end);
   }
-  resizeViaKeyboard(e,id){const d={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(!d)return;
+  resizeViaKeyboard(e,id){if(this.readOnly)return;const d={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(!d)return;
     e.preventDefault();e.stopPropagation();const lim=LIMITS[id],size=this.widgetSize(id),step=e.shiftKey?100:24;
     this.sizes[id]={w:clamp(size.w+d[0]*step,lim.minW,lim.maxW),h:clamp(size.h+d[1]*step,lim.minH,lim.maxH)};
     this.applySize(id);this.save();this.buildNavigator();this.onWidgetResize?.(id);
   }
-  moveViaKeyboard(e,id){const d={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(!d)return;
+  moveViaKeyboard(e,id){if(this.readOnly)return;const d={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(!d)return;
     e.preventDefault();e.stopPropagation();const n=e.shiftKey?100:24;
     this.positions[id].x+=d[0]*n;this.positions[id].y+=d[1]*n;this.position(id);this.save();this.buildNavigator();
   }
@@ -243,4 +245,6 @@ export class SpatialBoard {
     const {w,h}=this.viewportSize(),wx=(w/2-this.pan.x)/this.scale,wy=(h/2-this.pan.y)/this.scale,{x0,x1,y0,y1}=this.navBounds;
     el.style.left=`${clamp((wx-x0)/(x1-x0)*100,0,100)}%`;el.style.top=`${clamp((wy-y0)/(y1-y0)*100,0,100)}%`;
   }
+  dispose(){cancelAnimationFrame(this.raf);this.events.abort();this.pointers.clear();this.widgets.clear();}
+
 }

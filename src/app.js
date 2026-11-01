@@ -9,17 +9,21 @@ import { validateBackup,persistBackup,recoverInterruptedRestore,RESTORE_RECOVERY
 import { validDateKey } from './dates.js';
 import { Journal,sanitizeJournal } from './journal.js';
 
+/** Mount the same spatial scrapbook over either local or authenticated owner state. */
+export function mountOrbit({initialSnapshot=null,readOnly=false,persistLocally=true,onSnapshotChange=()=>{}}={}){
+let disposed=false,hydrating=true,cloudStatus={state:'saved',hasPending:false};
+const events=new AbortController();
 const $=id=>document.getElementById(id);
 // Recover interrupted imports before any view reads its independent keys.
 let restoreRecovery;
-try{restoreRecovery=recoverInterruptedRestore();}catch{restoreRecovery={ok:false};}
+try{restoreRecovery=persistLocally?recoverInterruptedRestore():{ok:true};}catch{restoreRecovery={ok:false};}
 if(!restoreRecovery.ok)for(const key of Object.values(STORAGE_KEYS))markStorageIssue(key,'Interrupted restore needs recovery.');
-const state={branches:readBranches(),tasks:readTasks(),preferences:readPreferences(),selectedBranchId:'inbox',
+const state={branches:initialSnapshot?structuredClone(initialSnapshot.branches):readBranches(),tasks:initialSnapshot?structuredClone(initialSnapshot.tasks):readTasks(),preferences:initialSnapshot?structuredClone(initialSnapshot.preferences):readPreferences(),profile:structuredClone(initialSnapshot?.profile||{displayName:'HISYAM'}),selectedBranchId:'inbox',
   selectedTaskId:'',captureMode:'capture',captureDraft:'',searchDraft:''};
 const capture=$('capture-form'),input=$('capture-name'),target=$('capture-target');
 const milestoneKey='orbit-v4-milestones';
-let milestones=[];
-try{
+let milestones=structuredClone(initialSnapshot?.milestones||[]);
+if(!initialSnapshot)try{
   const raw=localStorage.getItem(milestoneKey),stored=JSON.parse(raw||'[]');
   if(!Array.isArray(stored)||stored.length>500)throw Error();
   milestones=stored.filter(x=>x&&typeof x.id==='string'&&typeof x.title==='string'&&validDateKey(x.date));
@@ -31,18 +35,18 @@ const pendingWrites=new Set();
 const scene=new Constellation({viewport:$('map-viewport'),world:$('map-world'),edgesEl:$('connections'),
   nodesEl:$('node-layer'),decorEl:$('world-decor'),
   onBranchSelected(id){if(id!=='root')setBranch(id);},
-  onBranchAdd(parentId,label){
+  onBranchAdd(parentId,label){if(readOnly||disposed)return false;
     try{
       const next=createBranch(label,parentId,state.branches);
       state.branches.push(next);sync();setBranch(next.id);scene.focusNode(next.id);
       message(`Added “${next.label}”. You can keep branching from here.`);
     }catch(err){message(err.message);}
   },
-  onBranchRename(id,label){
+  onBranchRename(id,label){if(readOnly||disposed)return false;
     const b=state.branches.find(b=>b.id===id);if(!b)return;
     const before=b.label;b.label=label.slice(0,72);sync();message(`Renamed “${before}” to “${b.label}”.`);
   },
-  onBranchMove(id,parentId){
+  onBranchMove(id,parentId){if(readOnly||disposed)return false;
     const b=state.branches.find(b=>b.id===id);if(!b)return;
     if(id===parentId||descendantsOf(id,state.branches).has(parentId)){message('A branch cannot move into itself.');return;}
     if(parentId!=='root'&&!state.branches.some(x=>x.id===parentId)){message('Choose a valid parent.');return;}
@@ -51,7 +55,7 @@ const scene=new Constellation({viewport:$('map-viewport'),world:$('map-world'),e
   onTaskSelected(id){
     state.selectedTaskId=id;const task=state.tasks.find(t=>t.id===id);if(task)setBranch(task.projectId);
   },
-  onTaskUpdate(id,patch){
+  onTaskUpdate(id,patch){if(readOnly||disposed)return false;
     const index=state.tasks.findIndex(t=>t.id===id);if(index<0)return;
     const prev=state.tasks[index];
     try{
@@ -63,7 +67,7 @@ const scene=new Constellation({viewport:$('map-viewport'),world:$('map-world'),e
       else message('Saved.');
     }catch(err){message(`Could not update: ${err.message}`);}
   },
-  onTaskDelete(id){
+  onTaskDelete(id){if(readOnly||disposed)return false;
     const index=state.tasks.findIndex(t=>t.id===id);if(index<0)return;
     const deleted=state.tasks.splice(index,1)[0];
     if(scene.expandedTaskId===id)scene.expandedTaskId='';sync();
@@ -80,16 +84,17 @@ const widgets=new ScrapWidgets({
     scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'),state.preferences.colorMode);
     scene.focusTask(task);
   },
-  onComplete(id){const t=state.tasks.find(x=>x.id===id);if(!t)return;
+  onComplete(id){if(readOnly||disposed)return false;const t=state.tasks.find(x=>x.id===id);if(!t)return;
     t.status='completed';t.completedAt=new Date().toISOString();
     if(scene.expandedTaskId===id)scene.expandedTaskId='';sync();message('Moved to Already done.');
   },
-  onRestore(id){const t=state.tasks.find(x=>x.id===id);if(!t)return;
+  onRestore(id){if(readOnly||disposed)return false;const t=state.tasks.find(x=>x.id===id);if(!t)return;
     t.status='ready';t.completedAt='';sync();message('Back on the constellation.');
   },
   onOpenJournal(entryId){if(journal.openEntry(entryId))board.focus('journal');},
-  onChangeMilestones(next){
+  onChangeMilestones(next){if(readOnly||disposed)return false;
     milestones=next.slice(0,500);let ok=false;
+    if(!persistLocally){widgets.setData(state.branches,state.tasks,state.preferences.colorMode,milestones);emitChange();return false;}
     try{if(!isStorageWriteBlocked(milestoneKey)){localStorage.setItem(milestoneKey,JSON.stringify(milestones));ok=true;}}catch{}
     if(ok)pendingWrites.delete(milestoneKey);else pendingWrites.add(milestoneKey);
     if(!ok)message('Milestone not saved. Export a backup to keep this session.',6500);
@@ -97,18 +102,21 @@ const widgets=new ScrapWidgets({
   }
 });
 
-const board=new SpatialBoard({notify:(...args)=>message(...args)});
+const board=new SpatialBoard({notify:(...args)=>message(...args),initialLayout:initialSnapshot?.spatialLayout,readOnly,persistLocally,onLayoutChange:()=>emitChange()});
 board.onWidgetResize=id=>{if(id==='constellation')requestAnimationFrame(()=>scene.onResize());};
-const journal=new Journal({notify:(s,...args)=>message(s,...args),onEntriesChange:entries=>widgets.setJournalEntries(entries)});
+const journal=new Journal({initialEntries:initialSnapshot?.journalEntries,readOnly,persistLocally,notify:(s,...args)=>message(s,...args),onEntriesChange:entries=>{widgets.setJournalEntries(entries);emitChange();}});
 widgets.setJournalEntries(journal.entries);
 
 // Previously saved task IDs are never discarded. An orphaned assignment is
 // placed into Unsorted, but its content and all other fields remain intact.
 if(!state.branches.some(b=>b.id==='inbox'))state.branches.push({id:'inbox',parentId:'root',label:'Unsorted'});
-const known=new Set(state.branches.map(b=>b.id));for(const t of state.tasks)if(!known.has(t.projectId)){markStorageIssue(STORAGE_KEYS.tasks,'Some task assignments need recovery.');t.projectId='inbox';}
+if(!state.branches.some(b=>b.id==='just-because'))state.branches.push({id:'just-because',parentId:'root',label:'Just Because'});
+const known=new Set(state.branches.map(b=>b.id));for(const t of state.tasks)if(!known.has(t.projectId)){if(persistLocally)markStorageIssue(STORAGE_KEYS.tasks,'Some task assignments need recovery.');t.projectId='inbox';}
 
 function message(text,duration=2700,action=null){
-  if(!lastSaveOk||pendingWrites.size||getStorageStatus().recoveryRequired){text=text.replace(/^Saved\./,'Changes kept for this session.');text+=' Changes not saved on this device. Export a backup.';duration=Math.max(duration,6500);}
+  if(disposed)return;
+  if(!persistLocally&&cloudStatus.hasPending){text=text.replace(/^Saved\./,'Saving…');text+=' Changes are waiting to sync.';}
+  if(persistLocally&&(!lastSaveOk||pendingWrites.size||getStorageStatus().recoveryRequired)){text=text.replace(/^Saved\./,'Changes kept for this session.');text+=' Changes not saved on this device. Export a backup.';duration=Math.max(duration,6500);}
   const focusAction=action&&document.activeElement?.matches(':focus-visible');
   const toast=$('toast');clearTimeout(toastTimer);toast.replaceChildren(document.createTextNode(text));
   toast.classList.toggle('has-action',Boolean(action));
@@ -149,7 +157,7 @@ function switchCaptureMode(mode){
   scene.highlightTasks(null);updateCaptureTarget();input.focus();
 }
 function sync({persist=true}={}){
-  if(persist){
+  if(persist&&persistLocally&&!readOnly){
     const tasksOk=saveTasks(state.tasks),branchesOk=saveBranches(state.branches);lastSaveOk=tasksOk&&branchesOk;
     for(const [key,ok] of [[STORAGE_KEYS.tasks,tasksOk],[STORAGE_KEYS.branches,branchesOk]]){if(ok)pendingWrites.delete(key);else pendingWrites.add(key);}
   }
@@ -161,10 +169,12 @@ function sync({persist=true}={}){
   $('mode-label').textContent=state.preferences.colorMode;
   $('color-mode').setAttribute('aria-label',`Task colors and sorting show ${state.preferences.colorMode}. Switch mode.`);
   updateCaptureTarget();
+  if(persist&&!persistLocally)emitChange();
+  if(readOnly)for(const button of document.querySelectorAll('.node-actions button,.task-actions button,.rail-check,.reopen-button'))button.disabled=true;
   return lastSaveOk;
 }
 function quickCapture(e){
-  e.preventDefault();
+  e.preventDefault();if(readOnly||disposed)return;
   if(state.captureMode==='find'){
     const t=matches()[0];if(!t){message('No matching task yet.');return;}
     input.blur();if(t.status==='completed'){board.focus('completed');message('Found in Already done.');return;}
@@ -177,16 +187,19 @@ function quickCapture(e){
   message(`Added to ${currentBranch()?.label||'Unsorted'}.`);
 }
 function backupJson(){
-  const backup={format:'orbit-backup',version:6,exportedAt:new Date().toISOString(),branches:state.branches,tasks:state.tasks,preferences:state.preferences,milestones,spatialLayout:board.getLayout(),journalEntries:journal.getEntries()};
-  if(getStorageStatus().recoveryRequired){backup.recoveryData=getRecoveryData();try{backup.restoreRecovery=localStorage.getItem(RESTORE_RECOVERY_KEY);}catch{}}
+  journal.commit();
+  const backup={format:'orbit-backup',version:6,exportedAt:new Date().toISOString(),branches:state.branches,tasks:state.tasks,preferences:state.preferences,profile:state.profile,milestones,spatialLayout:board.getLayout(),journalEntries:journal.getEntries()};
+  if(persistLocally&&getStorageStatus().recoveryRequired){backup.recoveryData=getRecoveryData();try{backup.restoreRecovery=localStorage.getItem(RESTORE_RECOVERY_KEY);}catch{}}
   download(JSON.stringify(backup,null,2),`orbit-complete-backup-${new Date().toISOString().slice(0,10)}.json`,'application/json');
   message('Complete backup: tasks, branches, journal pages, milestones and widget positions.');
 }
 function download(contents,filename,type){const blob=new Blob([contents],{type});const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1800);}
 function restoreBackup(contents){
+  if(readOnly||disposed)return;
   const snapshot=validateBackup(contents,{sanitizeHtml:sanitizeJournal});
   journal.commit();
+  if(!persistLocally){applySnapshot(snapshot);emitChange();message('Import is pending cloud save. Existing local backup remains unchanged.');return;}
   const result=persistBackup(snapshot);
   if(!result.ok){
     if(!result.rollbackComplete)for(const key of Object.values(STORAGE_KEYS))markStorageIssue(key,'Interrupted restore needs recovery.',result.recoveryData?.[key]);
@@ -204,7 +217,7 @@ function initTools(){
   $('capture-mode').addEventListener('click',()=>switchCaptureMode(state.captureMode==='capture'?'find':'capture'));
   input.addEventListener('input',()=>{if(state.captureMode==='find'){state.searchDraft=input.value;updateSearch();}else state.captureDraft=input.value;});
   input.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.captureMode==='find'){e.preventDefault();switchCaptureMode('capture');}});
-  $('color-mode').addEventListener('click',()=>{state.preferences.colorMode=state.preferences.colorMode==='deadline'?'urgency':'deadline';const preferencesOk=savePreferences(state.preferences);sync();lastSaveOk=lastSaveOk&&preferencesOk;if(preferencesOk)pendingWrites.delete(STORAGE_KEYS.preferences);else pendingWrites.add(STORAGE_KEYS.preferences);message(`Sorted and colored by ${state.preferences.colorMode}.`);});
+  $('color-mode').addEventListener('click',()=>{state.preferences.colorMode=state.preferences.colorMode==='deadline'?'urgency':'deadline';const preferencesOk=readOnly||!persistLocally?true:savePreferences(state.preferences);sync();lastSaveOk=lastSaveOk&&preferencesOk;if(preferencesOk)pendingWrites.delete(STORAGE_KEYS.preferences);else pendingWrites.add(STORAGE_KEYS.preferences);message(`Sorted and colored by ${state.preferences.colorMode}.`);});
   $('map-fullscreen').addEventListener('click',()=>{document.body.classList.toggle('map-immersive');
     const open=document.body.classList.contains('map-immersive');
     const el=$('constellation-widget');
@@ -218,7 +231,7 @@ function initTools(){
   $('fit-all').addEventListener('click',()=>scene.fitAll());
   $('import-csv').addEventListener('click',()=>$('csv-file').click());
   $('backup-json').addEventListener('click',backupJson);
-  $('clear-demo').addEventListener('click',()=>{
+  $('clear-demo').addEventListener('click',()=>{if(readOnly||disposed)return;
     const count=state.tasks.filter(t=>t.id.startsWith('demo-')).length;
     if(!count){message('There are no sample tasks left.');return;}
     if(!clearDemoPrimed){clearDemoPrimed=true;message(`Click SAMPLE CONTENT again to remove ${count} sample tasks.`,4300);clearTimeout(clearDemoTimer);clearDemoTimer=setTimeout(()=>clearDemoPrimed=false,4700);return;}
@@ -231,7 +244,7 @@ function initTools(){
     message(`Exported ${state.tasks.length} tasks as CSV.`);
   });
   $('csv-file').addEventListener('change',async e=>{
-    const file=e.target.files?.[0];if(!file)return;
+    const file=e.target.files?.[0];if(!file||readOnly||disposed)return;
     try{
       if(file.size>6_000_000)throw Error('File is too large (limit: 6 MB).');
       const contents=await file.text();
@@ -242,7 +255,8 @@ function initTools(){
       }else{
         const r=importCsv(contents);const valid=new Set(state.branches.map(b=>b.id));let moved=0;
         for(const t of r.tasks)if(!valid.has(t.projectId)){t.projectId='inbox';moved++;}
-        const known=new Set(state.tasks.map(t=>`${t.title.toLowerCase()}|${t.projectId}|${t.dueDate}`));
+        if(!state.branches.some(b=>b.id==='just-because'))state.branches.push({id:'just-because',parentId:'root',label:'Just Because'});
+const known=new Set(state.tasks.map(t=>`${t.title.toLowerCase()}|${t.projectId}|${t.dueDate}`));
         const unique=r.tasks.filter(t=>{const k=`${t.title.toLowerCase()}|${t.projectId}|${t.dueDate}`;if(known.has(k))return false;known.add(k);return true;});
         state.tasks.push(...unique);sync();message(`Imported ${unique.length} tasks${r.omitted?`; skipped ${r.omitted} invalid`:''}${moved?`; ${moved} unknown branches → Unsorted`:''}.`,6000);
       }
@@ -251,7 +265,7 @@ function initTools(){
 }
 function initKeyboard(){
   document.addEventListener('keydown',e=>{
-    if(e.defaultPrevented)return;
+    if(disposed||e.defaultPrevented)return;
     const isField=e.target instanceof HTMLElement&&(e.target.matches('input,textarea,select')||e.target.isContentEditable);
     if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='f'){e.preventDefault();switchCaptureMode('find');input.focus();return;}
     if((e.metaKey||e.ctrlKey)&&e.shiftKey&&e.key.toLowerCase()==='s'){e.preventDefault();backupJson();return;}
@@ -270,13 +284,38 @@ function initKeyboard(){
       case 'ArrowUp':scene.atOverview=false;scene.camera.y+=48;scene.applyCamera();break;
       case 'ArrowDown':scene.atOverview=false;scene.camera.y-=48;scene.applyCamera();break;
     }
-  });
+  },{signal:events.signal});
 }
 function showClock(){
   $('clock').textContent=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Jakarta',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date());
 }
 initTools();initKeyboard();sync({persist:false});
-if(getStorageStatus().recoveryRequired)message('Saved data needs recovery. Use Backup to export the original data before restoring a valid backup.',15000);
-showClock();setInterval(showClock,30000);
+if(persistLocally&&getStorageStatus().recoveryRequired)message('Saved data needs recovery. Use Backup to export the original data before restoring a valid backup.',15000);
+showClock();const clockTimer=setInterval(showClock,30000);
+hydrating=false;
+$('app').dataset.readOnly=String(readOnly);
+if(readOnly){for(const id of ['capture-name','capture-mode','capture-submit','import-csv','clear-demo','csv-file'])$(id).disabled=true;}
 window.orbitDebug={get state(){return {tasks:state.tasks.length,branches:state.branches.length,selectedBranchId:state.selectedBranchId,camera:scene.getCamera(),boardScale:board.scale,boardPan:{...board.pan},mode:state.preferences.colorMode,milestones:milestones.length,journalPages:journal.entries.length,widgetSizes:structuredClone(board.sizes)};},fit:()=>scene.fitAll(),focusWidget:id=>board.focus(id),board,scene,journal};
 // SpatialBoard establishes the initial camera position.
+
+function getSnapshot(){return {
+  format:'orbit-backup',version:6,branches:structuredClone(state.branches),tasks:structuredClone(state.tasks),
+  preferences:structuredClone(state.preferences),profile:structuredClone(state.profile),milestones:structuredClone(milestones),
+  journalEntries:structuredClone(journal.entries),spatialLayout:board.getLayout(),
+};}
+function emitChange(){if(disposed||hydrating||persistLocally||readOnly)return;onSnapshotChange(getSnapshot());}
+function applySnapshot(snapshot){
+  if(disposed)return;hydrating=true;
+  state.branches=structuredClone(snapshot.branches);state.tasks=structuredClone(snapshot.tasks);
+  state.preferences=structuredClone(snapshot.preferences);state.profile=structuredClone(snapshot.profile||state.profile);
+  milestones=structuredClone(snapshot.milestones||[]);
+  board.setLayout(snapshot.spatialLayout||{},{persist:false});
+  journal.replaceEntries(snapshot.journalEntries||[],{persist:false});
+  if(!state.branches.some(b=>b.id==='inbox'))state.branches.push({id:'inbox',parentId:'root',label:'Unsorted'});
+  if(!state.branches.some(b=>b.id==='just-because'))state.branches.push({id:'just-because',parentId:'root',label:'Just Because'});
+  sync({persist:false});hydrating=false;
+}
+function setCloudStatus(status){cloudStatus=status;journal.setCloudStatus(status);}
+function dispose(){if(disposed)return;disposed=true;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);board.dispose();journal.dispose();scene.dispose();window.orbitDebug=null;}
+return {getSnapshot,applySnapshot,setCloudStatus,dispose,exportBackup:backupJson};
+}

@@ -76,16 +76,17 @@ function toMarkdown(html){
   return blocks(doc.body).replace(/\n{3,}/g,'\n\n').trim();
 }
 export class Journal {
-  constructor({notify,onEntriesChange}={}){
-    this.notify=notify||(()=>{});this.onEntriesChange=onEntriesChange||(()=>{});const loaded=load();this.entries=loaded.entries;this.saved=loaded.saved;this.index=this.entries.length-1;
+  constructor({notify,onEntriesChange,initialEntries,readOnly=false,persistLocally=true}={}){
+    this.readOnly=readOnly;this.persistLocally=persistLocally;this.disposed=false;this.events=new AbortController();
+    this.notify=notify||(()=>{});this.onEntriesChange=onEntriesChange||(()=>{});const loaded=initialEntries!==undefined?{entries:normalizeEntries(initialEntries),saved:true}:load();this.entries=loaded.entries;this.saved=loaded.saved;this.index=this.entries.length-1;
     this.title=document.getElementById('journal-entry-title');this.editor=document.getElementById('journal-editor');
     this.dateInput=document.getElementById('journal-entry-date');
     this.saveIndicator=document.getElementById('journal-save-state');this.timer=0;
     this.title.addEventListener('input',()=>this.queueSave());this.editor.addEventListener('input',()=>this.queueSave());
     this.dateInput.addEventListener('change',()=>{this.commit();});
     this.editor.addEventListener('paste',e=>this.handlePaste(e));
-    document.addEventListener('visibilitychange',()=>{if(document.hidden)this.commit();});
-    window.addEventListener('pagehide',()=>this.commit());
+    document.addEventListener('visibilitychange',()=>{if(document.hidden)this.commit();},{signal:this.events.signal});
+    window.addEventListener('pagehide',()=>this.commit(),{signal:this.events.signal});
     this.editor.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='s'){e.preventDefault();this.commit();}});
     document.getElementById('journal-new').addEventListener('click',()=>this.newPage());
     document.getElementById('journal-prev').addEventListener('click',()=>this.go(-1));
@@ -97,17 +98,18 @@ export class Journal {
       tool.addEventListener('click',()=>this.format(tool.dataset.format));
     }
     this.render();
+    if(readOnly){this.title.readOnly=true;this.dateInput.disabled=true;this.editor.contentEditable='false';for(const tool of document.querySelectorAll('[data-format],#journal-new,#journal-delete'))tool.disabled=true;}
   }
   getEntries(){this.commit();return structuredClone(this.entries);}
-  replaceEntries(input,{persist=true}={}){clearTimeout(this.timer);this.entries=normalizeEntries(input);this.index=this.entries.length-1;this.saved=persist?save(this.entries):true;this.render();this.onEntriesChange(this.entries);return this.saved;}
+  replaceEntries(input,{persist=true}={}){clearTimeout(this.timer);this.entries=normalizeEntries(input);this.index=this.entries.length-1;this.saved=persist&&this.persistLocally?save(this.entries):true;this.render();this.onEntriesChange(this.entries);return this.saved;}
   updateCount(){const text=this.editor.textContent?.trim()||'';document.getElementById('journal-wordcount').textContent=`${text?text.split(/\s+/).length:0} words`;}
   queueSave(){this.saved=false;this.saveIndicator.textContent='writing…';this.updateCount();clearTimeout(this.timer);this.timer=setTimeout(()=>this.commit(),500);}
-  commit(){clearTimeout(this.timer);const entry=this.entries[this.index];if(!entry)return;
+  commit(){if(this.disposed||this.readOnly)return true;clearTimeout(this.timer);const entry=this.entries[this.index];if(!entry)return;
     const beforeDate=entry.date,beforeTitle=entry.title,beforeHtml=entry.html;
     entry.title=this.title.value.trim().slice(0,120);
     entry.date=validDateKey(this.dateInput.value)?this.dateInput.value:beforeDate;
     entry.html=sanitizeJournal(this.editor.innerHTML);entry.updatedAt=new Date().toISOString();
-    this.saved=save(this.entries);this.saveIndicator.textContent=this.saved?'saved on this device':'not saved — export a backup';
+    this.saved=this.persistLocally?save(this.entries):false;this.saveIndicator.textContent=this.readOnly?'published content':this.persistLocally?(this.saved?'saved on this device':'not saved — export a backup'):(this.saved?'saved to cloud':'waiting to sync');
     document.getElementById('journal-date-label').textContent=fmtDate(entry.date).toUpperCase();
     if(beforeDate!==entry.date||beforeTitle!==entry.title||beforeHtml!==entry.html)this.onEntriesChange(this.entries);
     return this.saved;
@@ -120,15 +122,15 @@ export class Journal {
     document.getElementById('journal-page-label').textContent=`Page ${this.index+1} of ${this.entries.length}`;
     document.getElementById('journal-prev').disabled=this.index===0;
     document.getElementById('journal-next').disabled=this.index===this.entries.length-1;
-    this.saveIndicator.textContent=this.saved?'saved on this device':'not saved — export a backup';this.updateCount();
+    this.saveIndicator.textContent=this.readOnly?'published content':this.persistLocally?(this.saved?'saved on this device':'not saved — export a backup'):(this.saved?'saved to cloud':'waiting to sync');this.updateCount();
   }
-  newPage(date=todayKey()){this.commit();if(this.entries.length>=MAX_ENTRIES){this.notify('Journal page limit reached. Export a backup before adding more.');return;}
-    this.entries.push(empty(date));this.index=this.entries.length-1;this.saved=save(this.entries);this.render();this.onEntriesChange(this.entries);this.title.focus();}
+  newPage(date=todayKey()){if(this.readOnly||this.disposed)return;this.commit();if(this.entries.length>=MAX_ENTRIES){this.notify('Journal page limit reached. Export a backup before adding more.');return;}
+    this.entries.push(empty(date));this.index=this.entries.length-1;this.saved=this.persistLocally?save(this.entries):false;this.render();this.onEntriesChange(this.entries);this.title.focus();}
   openEntry(entryId){const index=this.entries.findIndex(e=>e.id===entryId);if(index<0)return false;
     this.commit();this.index=index;this.render();return true;}
   go(step){const next=this.index+step;if(next<0||next>=this.entries.length)return;
     this.commit();this.index=next;this.render();}
-  format(kind){this.editor.focus();
+  format(kind){if(this.readOnly||this.disposed)return;this.editor.focus();
     // For the offline prototype, legacy editing commands supply clean native selection behavior.
     // The saved result is sanitized. Migrate to a structured editor (Tiptap) for production.
     if(kind==='bold')document.execCommand('bold',false);
@@ -138,6 +140,7 @@ export class Journal {
     this.queueSave();
   }
   handlePaste(event){
+    if(this.readOnly||this.disposed){event.preventDefault();return;}
     // Never let untrusted clipboard HTML enter the live DOM before sanitizing.
     event.preventDefault();
     const clipboard=event.clipboardData;if(!clipboard)return;
@@ -153,15 +156,15 @@ export class Journal {
     this.queueSave();
   }
   deletePage(){
-    this.commit();const removed=this.entries[this.index],oldIndex=this.index,wasLast=this.entries.length===1;
+    if(this.readOnly||this.disposed)return;this.commit();const removed=this.entries[this.index],oldIndex=this.index,wasLast=this.entries.length===1;
     this.entries.splice(oldIndex,1);
     if(!this.entries.length)this.entries.push(empty());
     const replacementId=wasLast?this.entries[0].id:null;
-    this.index=Math.min(oldIndex,this.entries.length-1);this.saved=save(this.entries);this.render();this.onEntriesChange(this.entries);
+    this.index=Math.min(oldIndex,this.entries.length-1);this.saved=this.persistLocally?save(this.entries):false;this.render();this.onEntriesChange(this.entries);
     this.notify(this.saved?'Page removed. You can undo.':'Page removed for this session; not saved. Export a backup.',6500,{label:'Undo',run:()=>{
       this.commit();
       if(this.entries.length===1&&this.entries[0].id===replacementId&&!this.entries[0].title&&!this.entries[0].html)this.entries=[];
-      this.entries.splice(oldIndex,0,removed);this.index=oldIndex;this.saved=save(this.entries);this.render();this.onEntriesChange(this.entries);this.notify(this.saved?'Page restored.':'Page restored for this session; not saved. Export a backup.');
+      this.entries.splice(oldIndex,0,removed);this.index=oldIndex;this.saved=this.persistLocally?save(this.entries):false;this.render();this.onEntriesChange(this.entries);this.notify(this.saved?'Page restored.':'Page restored for this session; not saved. Export a backup.');
     }});
   }
   exportPage(){this.commit();const entry=this.entries[this.index];const title=entry.title||'Untitled';
@@ -171,4 +174,7 @@ export class Journal {
     document.body.append(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),1800);
     this.notify('Journal page exported as Markdown.');
   }
+  setCloudStatus(status){if(this.persistLocally||this.disposed)return;this.saved=status.state==='saved';const labels={saved:'saved to cloud',saving:'saving…',pending:'waiting to sync',offline:'offline — export your draft',conflict:'conflict — export your draft',error:'not saved — retry or export'};this.saveIndicator.textContent=labels[status.state]||'not saved';}
+  dispose(){this.disposed=true;clearTimeout(this.timer);this.events.abort();this.entries=[];this.editor.replaceChildren();this.title.value='';}
+
 }
