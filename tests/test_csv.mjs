@@ -1,0 +1,28 @@
+import assert from 'node:assert/strict';
+import {parseCsv,exportCsv,importCsv} from '../src/csv.js';
+import {cleanTask,daysUntil,sortedProjectTasks,taskColor} from '../src/model.js';
+import {createLayout,getDisplayBounds} from '../src/layout.js';
+import {DEFAULT_BRANCHES,getSampleTasks,descendantsOf,createBranch} from '../src/data.js';
+const rows=parseCsv('title,description\r\n"a, b","multiline\ntext"\r\n"quoted ""value""",x\r\n');
+assert.equal(rows.length,3);assert.equal(rows[1][0],'a, b');assert.equal(rows[1][1],'multiline\ntext');
+const task=cleanTask({title:'Draft mail',projectId:'communications',status:'ready',urgency:4});
+const csv=exportCsv([task]);const imported=importCsv(csv);
+assert.equal(imported.tasks.length,1);assert.equal(imported.tasks[0].title,'Draft mail');
+const layout=createLayout(DEFAULT_BRANCHES,getSampleTasks());
+assert.ok(layout.nodes.length>25);
+assert.ok(layout.stacks.length>8);
+assert.ok(getDisplayBounds(layout).halfWidth>500);
+const rad=layout.stacks.map(s=>Math.hypot(s.attachX,s.attachY));
+assert.ok(layout.stacks.filter(s=>s.upper).every(s=>Math.abs(s.y+s.estimatedHeight-s.attachY)<.01),'upper stacks grow away from parent');
+assert.ok(Math.max(...rad)-Math.min(...rad)<1,'terminal stacks share one horizon');
+assert.equal(daysUntil('no'),null);
+const two=[{id:'a',projectId:'physics',title:'Soon',urgency:1,dueDate:'2026-11-02',status:'ready'},
+  {id:'b',projectId:'physics',title:'Urgent',urgency:5,dueDate:'2026-12-02',status:'ready'}];
+assert.equal(sortedProjectTasks(two,'physics','urgency')[0].title,'Urgent');
+assert.equal(sortedProjectTasks(two,'physics','deadline')[0].title,'Soon');
+assert.notEqual(taskColor(two[0],'urgency'),taskColor(two[1],'urgency'));
+const deep=createBranch('Another level','electromagnetism',DEFAULT_BRANCHES);
+const grown=createLayout([...DEFAULT_BRANCHES,deep],getSampleTasks());
+assert.ok(grown.nodes.length>layout.nodes.length);
+assert.ok(descendantsOf('learning',[...DEFAULT_BRANCHES,deep]).has(deep.id));
+console.log('ORBIT V5: arbitrary-depth layout, collision-safe upper lists, common radial anchors, CSV, sorting, colors passed');

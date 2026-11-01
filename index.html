@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/><meta name="color-scheme" content="light"/><meta name="theme-color" content="#EAF0FC"/><meta name="description" content="ORBIT, a boundless spatial scrapbook with your constellation, timeline, tasks, and private journal."/><title>ORBIT — your living space</title><link rel="icon" type="image/svg+xml" href="./assets/orbit.svg"/><link rel="stylesheet" href="./src/styles.css"/><script type="module" src="./src/app.js" defer></script></head><body>
+<svg aria-hidden="true" class="icon-definitions" xmlns="http://www.w3.org/2000/svg">
+<symbol id="i-plus" viewbox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></symbol>
+<symbol id="i-minus" viewbox="0 0 24 24"><path d="M5 12h14"></path></symbol>
+<symbol id="i-maximize" viewbox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3"></path><path d="M9 9l-3-3m9 3 3-3M9 15l-3 3m9-3 3 3"></path></symbol>
+<symbol id="i-upload" viewbox="0 0 24 24"><path d="M12 16V3m0 0L7 8m5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"></path></symbol>
+<symbol id="i-download" viewbox="0 0 24 24"><path d="M12 3v13m0 0 5-5m-5 5-5-5M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"></path></symbol>
+<symbol id="i-close" viewbox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"></path></symbol>
+<symbol id="i-check" viewbox="0 0 24 24"><path d="m5 12 4 4L19 6"></path></symbol>
+<symbol id="i-compass" viewbox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="m15 9-6 2 2 4 4-6Z"></path></symbol>
+<symbol id="i-clock" viewbox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></symbol>
+<symbol id="i-chevron" viewbox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></symbol>
+<symbol id="i-trash" viewbox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M5 6l1 14h12l1-14M10 10v6m4-6v6"></path></symbol>
+<symbol id="i-link" viewbox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1 0l2.3-2.3a5 5 0 0 0-7.1-7.1L11 5m2 6a5 5 0 0 0-7.1 0l-2.3 2.3a5 5 0 0 0 7.1 7.1L13 19"></path></symbol>
+<symbol id="i-spark" viewbox="0 0 24 24"><path d="m12 2 1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8L12 2Zm7 14 .8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16Z"></path></symbol>
+<symbol id="i-circle" viewbox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle></symbol>
+<symbol id="i-keyboard" viewbox="0 0 24 24"><rect height="14" rx="2" width="20" x="2" y="5"></rect><path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M7 16h10"></path></symbol>
+<symbol id="i-search" viewbox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.6"></circle><path d="m16 16 5 5"></path></symbol>
+<symbol id="i-home" viewbox="0 0 24 24"><path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1z"></path></symbol>
+<symbol id="i-feather" viewbox="0 0 24 24"><path d="M21 3c-6 0-13 2-15 10-1 4-1 8-3 9 4-2 6-6 9-9 3-3 6-7 9-10Z"></path><path d="M4 20c5-8 10-11 16-16"></path></symbol>
+<symbol id="i-grip" viewbox="0 0 24 24"><circle cx="8" cy="6" r="1"></circle><circle cx="16" cy="6" r="1"></circle><circle cx="8" cy="12" r="1"></circle><circle cx="16" cy="12" r="1"></circle><circle cx="8" cy="18" r="1"></circle><circle cx="16" cy="18" r="1"></circle></symbol>
+<symbol id="i-arrow" viewbox="0 0 24 24"><path d="M12 19V5m-7 7 7-7 7 7"></path></symbol></svg><div aria-hidden="true" class="ambient-stage">
+<div class="ambient-orb orb-lilac"></div><div class="ambient-orb orb-coral"></div>
+<div class="ambient-orb orb-cyan"></div><div class="ambient-orb orb-gold"></div>
+<div class="ambient-wash"></div>
+</div>
+<div id="app" class="app-shell">
+  <header class="world-header"><div class="brand"><span class="brand-emblem" aria-hidden="true"><span class="emblem-dot"></span></span><span class="brand-wordmark">orbit<span class="brand-period">.</span></span><span class="world-header-note">your own little universe</span></div><div class="header-right"><span class="private-caption">LOCAL PROTOTYPE</span><span class="clock-container"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg><time id="clock">--:--</time><span class="time-zone">WIB</span></span></div></header>
+  <main class="spatial-viewport" id="spatial-viewport" aria-label="Infinite-feeling scrapbook. Drag empty space to travel between movable widgets; use the spatial navigator to jump to one.">
+    <div class="spatial-world" id="spatial-world">
+<section aria-label="Timeline widget, draggable" aria-labelledby="continuum-title" class="glass-widget timeline-widget spatial-item" data-widget="timeline" id="timeline-widget">
+<header class="widget-heading timeline-heading"><button aria-label="Move The continuum . widget" class="widget-grip" title="Drag to move. Arrow keys also work." type="button"><svg aria-hidden="true" class="icon"><use href="#i-grip"></use></svg></button>
+<div><span class="eyebrow">TIME, IN CONTEXT</span><h2 id="continuum-title">The continuum<span class="heading-period">.</span></h2>
+<p class="widget-subtitle">Milestones, deadlines, and the days in between.</p></div>
+<div class="timeline-tools"><button class="glass-button small" id="timeline-add" type="button">+ milestone</button>
+<button aria-label="Show more time" class="round-button" id="timeline-zoom-out" title="Zoom out" type="button"><svg class="icon"><use href="#i-minus"></use></svg></button>
+<button class="glass-button small" id="timeline-today" type="button">today</button>
+<button aria-label="Show less time" class="round-button" id="timeline-zoom-in" title="Zoom in" type="button"><svg class="icon"><use href="#i-plus"></use></svg></button></div>
+</header>
+<form autocomplete="off" class="milestone-form" hidden="" id="milestone-form">
+<label class="visually-hidden" for="milestone-title">Milestone</label><input id="milestone-title" maxlength="110" placeholder="Something worth remembering…" required=""/>
+<label class="visually-hidden" for="milestone-date">Date</label><input id="milestone-date" required="" type="date"/>
+<button class="glass-button" type="submit">Add marker</button><button class="glass-button subtle" id="milestone-cancel" type="button">Cancel</button>
+</form>
+<div aria-label="Horizontally scrollable timeline with deadlines and milestones" class="timeline-scroll" id="timeline-scroll" tabindex="0">
+<div class="timeline-surface" id="timeline-surface"></div>
+</div>
+<footer class="timeline-footnote"><span class="legend-item"><i class="legend-dot" style="--legend:#ED826B"></i> Deadlines</span><span class="legend-item"><i class="legend-dot" style="--legend:#6578C4"></i> Milestones</span><span class="legend-item"><i class="legend-dot" style="--legend:#A47795"></i> Journal pages</span><span class="timeline-hint">drag sideways · zoom with + / −</span></footer>
+</section><article aria-labelledby="constellation-title" class="glass-widget constellation-widget spatial-item" data-widget="constellation" id="constellation-widget">
+<header class="widget-heading constellation-heading"><button aria-label="Move The constellation . widget" class="widget-grip" title="Drag to move. Arrow keys also work." type="button"><svg aria-hidden="true" class="icon"><use href="#i-grip"></use></svg></button>
+<div><span class="eyebrow">ALL THE BRANCHES OF YOU</span><h2 id="constellation-title">The constellation<span class="heading-period">.</span></h2></div>
+<div aria-label="Constellation controls" class="utility-bar" role="toolbar">
+<button aria-label="Colors show deadline proximity. Click to show urgency." class="mode-chip" id="color-mode" title="Switch task color and sort order: deadline or urgency" type="button">
+<span aria-hidden="true" class="spectrum-indicator"></span><span id="mode-label">deadline</span><svg aria-hidden="true" class="icon small"><use href="#i-chevron"></use></svg></button>
+<span aria-hidden="true" class="utility-separator"></span>
+<button aria-label="Zoom out" class="icon-button" id="zoom-out" title="Zoom out" type="button"><svg class="icon"><use href="#i-minus"></use></svg></button>
+<button aria-label="Fit complete constellation" class="icon-button" id="fit-all" title="Fit all" type="button"><svg class="icon"><use href="#i-compass"></use></svg></button>
+<button aria-label="Zoom in" class="icon-button" id="zoom-in" title="Zoom in" type="button"><svg class="icon"><use href="#i-plus"></use></svg></button>
+<button aria-label="Expand constellation" class="icon-button fullscreen-toggle" id="map-fullscreen" title="Expand constellation" type="button"><svg class="icon"><use href="#i-maximize"></use></svg></button>
+</div>
+</header>
+<div aria-label="Zoomable radial constellation. Use touch, mouse or keyboard to explore branches and tasks." class="map-viewport" id="map-viewport" role="region">
+
+<div aria-hidden="true" class="canvas-grid"></div>
+<div class="map-float" id="map-float">
+<div class="map-world" id="map-world">
+<div aria-hidden="true" id="world-decor"></div>
+<svg aria-hidden="true" class="connection-layer" height="2960" id="connections" viewbox="-1480 -1480 2960 2960" width="2960"></svg>
+<div id="node-layer"></div>
+</div>
+</div>
+
+</div>
+<footer class="constellation-footer">
+<form aria-label="Quick capture a task" autocomplete="off" class="capture-form" id="capture-form">
+<button aria-label="Switch to find tasks" class="capture-spark capture-mode-switch" id="capture-mode" title="Capture or find" type="button"><svg aria-hidden="true" class="icon"><use href="#i-spark"></use></svg></button>
+<label class="visually-hidden" for="capture-name">Name of task</label>
+<input aria-describedby="capture-target" id="capture-name" maxlength="180" name="title" placeholder="A thought, a task, a possibility…"/>
+<span aria-live="polite" class="capture-target" id="capture-target" role="status">to Unsorted</span>
+<button aria-label="Add task" class="capture-submit" id="capture-submit" type="submit"><svg class="icon"><use href="#i-plus"></use></svg></button>
+</form>
+</footer>
+</article><section aria-labelledby="active-title" class="glass-widget list-widget spatial-item" data-widget="active" id="active-widget">
+<header class="widget-heading rail-heading"><button aria-label="Move Things to do . widget" class="widget-grip" title="Drag to move. Arrow keys also work." type="button"><svg aria-hidden="true" class="icon"><use href="#i-grip"></use></svg></button><div><span class="eyebrow">WITHIN REACH</span><h2 id="active-title">Things to do<span class="heading-period">.</span></h2></div><span class="count-number" id="active-count">0</span></header>
+<p class="rail-caption">A clear list, without losing its place in the map.</p>
+<div aria-live="polite" class="rail-task-list" id="active-task-list"></div>
+</section><section aria-labelledby="completed-title" class="glass-widget list-widget completed-widget spatial-item" data-widget="completed" id="completed-widget">
+<header class="widget-heading rail-heading"><button aria-label="Move Already done . widget" class="widget-grip" title="Drag to move. Arrow keys also work." type="button"><svg aria-hidden="true" class="icon"><use href="#i-grip"></use></svg></button><div><span class="eyebrow">A LITTLE PROOF OF PROGRESS</span><h2 id="completed-title">Already done<span class="heading-period">.</span></h2></div><span class="count-number" id="completed-count">0</span></header>
+<p class="rail-caption">Finished tasks live here, not on your constellation.</p>
+<div class="rail-task-list completed-task-list" id="completed-task-list"></div>
+</section><section aria-label="Space and backup" class="glass-widget space-widget spatial-item" data-widget="space" id="space-widget">
+<header class="widget-heading space-heading"><span class="eyebrow">YOUR SPACE</span></header>
+<p class="summary-text" id="task-summary">Everything accounted for.</p>
+<div class="space-actions">
+<button class="glass-button" id="backup-json" type="button">Backup</button>
+<button class="glass-button" id="import-csv" type="button">Import</button>
+<button class="glass-button" id="export-csv" type="button">Export CSV</button>
+<button class="glass-button subtle" id="clear-demo" type="button">Remove samples</button>
+</div>
+</section>
+      <article id="journal-widget" class="spatial-item journal-widget" data-widget="journal" aria-label="Personal journal">
+        <div class="journal-outer-glass">
+          <header class="widget-heading journal-heading">
+            <button type="button" class="widget-grip" aria-label="Move journal widget" title="Drag to move"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></button>
+            <div><span class="eyebrow">WORDS THAT BELONG TO YOU</span><h2 id="journal-title">The journal<span class="heading-period">.</span></h2></div>
+            <button type="button" class="glass-button small" id="journal-new">+ new page</button>
+          </header>
+          <div class="journal-book">
+            <div class="book-spine" aria-hidden="true"></div>
+            <div class="journal-paper" id="journal-paper">
+              <div class="journal-page-top"><div class="journal-date-group"><span id="journal-date-label" class="journal-date-label">NOVEMBER 1, 2026</span><label for="journal-entry-date" class="journal-date-edit-label">Change date</label><input id="journal-entry-date" class="journal-date-input" type="date" aria-label="Date of this journal page" /></div><span class="journal-page-number" id="journal-page-number">01</span></div>
+              <label class="visually-hidden" for="journal-entry-title">Entry title</label>
+              <input id="journal-entry-title" class="journal-entry-title" maxlength="120" placeholder="A page in your life" />
+              <div class="journal-formatbar" role="toolbar" aria-label="Journal formatting">
+                <button type="button" class="journal-tool" data-format="bold" aria-label="Bold" title="Bold (Ctrl/⌘ B)"><b>B</b></button>
+                <button type="button" class="journal-tool italic" data-format="italic" aria-label="Italic" title="Italic (Ctrl/⌘ I)">I</button>
+                <button type="button" class="journal-tool" data-format="heading" aria-label="Heading">H</button>
+                <button type="button" class="journal-tool" data-format="list" aria-label="Bullet list">≡</button>
+                <span class="format-divider"></span><span class="journal-save-state" id="journal-save-state" aria-live="polite">All thoughts stay here</span>
+              </div>
+              <div id="journal-editor" class="journal-editor" contenteditable="true" role="textbox" aria-label="Journal entry" aria-multiline="true" data-placeholder="Write whatever comes to mind…"></div>
+              <footer class="journal-page-footer"><span id="journal-wordcount">0 words</span><div class="journal-page-nav"><button id="journal-prev" type="button" aria-label="Previous journal page">←</button><span id="journal-page-label">Page 1 of 1</span><button id="journal-next" type="button" aria-label="Next journal page">→</button></div><button id="journal-delete" type="button" class="journal-export journal-delete" title="Delete this page (Undo available)">delete page</button><button id="journal-export" type="button" class="journal-export" title="Save this page as Markdown">export .md</button></footer>
+              <svg class="journal-quill" viewBox="0 0 120 120" aria-hidden="true"><path d="M101 8C50 17 17 50 22 108 46 84 79 50 101 8Z" fill="#C0A47C" fill-opacity=".13" stroke="#9C785E" stroke-opacity=".34" stroke-width="1.2"/><path d="M23 106Q55 53 101 8" fill="none" stroke="#8C6F57" stroke-opacity=".47" stroke-width="1.5"/></svg>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </main>
+  <div class="world-nav" aria-label="Spatial navigation">
+    <button type="button" id="board-zoom-out" aria-label="Zoom scrapbook out" title="Zoom out"><svg class="icon"><use href="#i-minus"/></svg></button>
+    <button type="button" id="board-home" aria-label="See all widgets" title="See all widgets"><svg class="icon"><use href="#i-compass"/></svg></button>
+    <button type="button" id="board-zoom-in" aria-label="Zoom scrapbook in" title="Zoom in"><svg class="icon"><use href="#i-plus"/></svg></button>
+  </div>
+  <nav class="space-navigator glass-widget" aria-label="Places in your scrapbook"><button type="button" class="space-nav-toggle" id="space-nav-toggle" aria-label="Open places map" aria-expanded="false" title="Places"><svg class="icon" aria-hidden="true"><use href="#i-compass"></use></svg></button><div class="space-nav-top"><span>YOUR SPACE</span><span id="board-scale-label">100%</span></div><div id="space-nav-map" class="space-nav-map" aria-label="Map of widgets"></div><div class="space-nav-caption" id="space-nav-caption">tap a place to visit</div></nav>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <input type="file" id="csv-file" accept=".csv,text/csv,.json,application/json" class="visually-hidden" />
+</div></body></html>

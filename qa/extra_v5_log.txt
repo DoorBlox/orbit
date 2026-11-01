@@ -1,0 +1,2 @@
+world widgets [{'id': 'timeline-widget', 'x': 445, 'y': 105, 'w': 1400, 'h': 525}, {'id': 'constellation-widget', 'x': 410, 'y': 670, 'w': 1370, 'h': 905}, {'id': 'active-widget', 'x': 1895, 'y': 760, 'w': 386, 'h': 480}, {'id': 'completed-widget', 'x': 1980, 'y': 1370, 'w': 386, 'h': 325}, {'id': 'space-widget', 'x': 280, 'y': 1725, 'w': 370, 'h': 210}, {'id': 'journal-widget', 'x': 930, 'y': 1780, 'w': 840, 'h': 735}] overlaps []
+RESTORE + SANITIZATION PASS

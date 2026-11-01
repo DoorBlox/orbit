@@ -1,0 +1,39 @@
+{
+  "original_source": "ORBIT_Spatial_Scrapbook_V6_Project.zip",
+  "hashes": {
+    "index.html": "7f126b3bd83333078770aea5578f7026fe3dd89065b448e1ec3fcdab57c518b6",
+    "vercel.json": "8f5bdfb7d45e6f00e8334ce3757477f6b227bbed2dec3d23d03e0fb37f93b8f5",
+    "AGENTS.md": "a6e8d01922c9718e6994c0e16c3b527cf769b41cc264e6fdda7bc38c2c2fe4fd",
+    "src/app.js": "506a71ffb2cb0f6b3f21d7cec944753b9776a324d2b4f9705e0c14800ca18baa",
+    "src/board.js": "6e3f28beabe6849f6346fc6ae2eed8c855c8cae60cd5f332c01d106f7b9d1554",
+    "src/constellation.js": "001884e55de85d3e98a099d407fea5a55b337c756f50837c922e520265165d8b",
+    "src/csv.js": "4980a368ffeed149f2024d44f1ddae0dec76881632bc091dab2b7fb6e1e8921a",
+    "src/data.js": "dc3d7bf1f3959b5326687f547a0946ffd9eddd5ae673c2f668bf0ab359021c4e",
+    "src/journal.js": "ab391626ab5cc73ab16f26710347cad960a477200e6f8e5c51eeeb74a7d15c3c",
+    "src/layout.js": "1293793393eef61b6ab69bb74ad586040fbb066da4b85af877b92551415b14f3",
+    "src/model.js": "c6a875b3b5747ec8a6b07be1bc0b40bab6f93e57d4b98c035ca02c30b9369445",
+    "src/storage.js": "c3eff590b673b9deeccfe0b6d329f2406e97ea61c50c78ccee5ca6d4429bf442",
+    "src/styles.css": "6a80041213852441a43a9a1ae2abe5775d56962118bce2ffd5e7be3a74b4d005",
+    "src/widgets.js": "d92b0fcdd021d88b6deabebf26a16db1bfe8861019754b15d1d1143158e10c78",
+    "assets/orbit.svg": "97eb19dd4e0773d0b6489b1f49d794ffd272fb3bc2d42af4faffd6a1adca78c3"
+  },
+  "preserved_unchanged": [
+    "index.html",
+    "src/app.js",
+    "src/board.js",
+    "src/constellation.js",
+    "src/csv.js",
+    "src/data.js",
+    "src/journal.js",
+    "src/layout.js",
+    "src/model.js",
+    "src/storage.js",
+    "src/styles.css",
+    "src/widgets.js",
+    "assets/orbit.svg"
+  ],
+  "modified_for_handoff": [
+    "vercel.json",
+    "AGENTS.md"
+  ]
+}
