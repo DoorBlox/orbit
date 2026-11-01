@@ -1,5 +1,10 @@
 # 12 — Vercel deployment preparation (NOT DEPLOYED)
 
+## M1 deployment hold
+
+The locally verified static artifact is prepared for a future protected preview, not deployed. `vercel.json` now sets `git.deploymentEnabled: false` to prevent review pushes/PRs from launching automatic deployments. No project settings changed. Review [the protected-preview checklist](decisions/M1-PREVIEW-CHECKLIST.md) before separately authorizing any deployment; do not remove the hold as part of routine source review. CSP is local-only until future Auth/cloud allowlists are explicitly reviewed.
+
+
 ## Confirmed stack configuration
 
 - Framework preset: **Other** (static HTML/JS, no React/Next).

@@ -1,3 +1,5 @@
+import { todayKey, addCivilDays } from './dates.js';
+
 // ORBIT V3 — a tree of named branches, never a fixed domain/role/project schema.
 // Keep legacy IDs: existing Phase 1 / V2 task assignments continue to resolve.
 export const DISPLAY_NAME = 'HISYAM';
@@ -65,8 +67,7 @@ export function createBranch(label,parentId,branches){
 }
 
 function dueIn(days) {
-  const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+days);
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  return addCivilDays(todayKey(),days);
 }
 const demo=(id,title,projectId,days,urgency,criteria,effortMinutes=30,status='ready',description='')=>({
   id,title,projectId,dueDate:days===null?'':dueIn(days),urgency,criteria,

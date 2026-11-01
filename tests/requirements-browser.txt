@@ -1,0 +1,2 @@
+# Browser-only development tooling; no application runtime dependencies.
+playwright==1.62.0

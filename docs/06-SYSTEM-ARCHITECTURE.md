@@ -1,5 +1,10 @@
 # 06 — Production system architecture (proposed, not yet activated)
 
+## M1 current local runtime
+
+M1 retains this native-module architecture. New dates.js centralizes Jakarta civil dates; backup.js validates snapshots and uses write-ahead originals for recoverable multi-key restoration. Storage corruption blocks ordinary overwrite; journal/layout still have their existing independent keys, with coordinated import persistence before view hydration. Cloud adapters remain inactive. See [M1 evidence](decisions/M1-IMPLEMENTATION.md).
+
+
 ## Architectural decision: retain vanilla ES modules
 
 `index.html` imports `src/app.js` and `src/styles.css`; modules use browser DOM APIs, CSS, and local model utilities. There is **no Next.js/React/Vite dependency**. Vercel can host the app as static assets. Migration to another framework would rewrite the spatial camera/graph/editor integration and introduce avoidable regression and bundle weight. **No framework migration is approved**; evaluate only if direct performance/integration evidence requires it (ADR required).

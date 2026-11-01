@@ -1,11 +1,12 @@
 import { daysUntil, dueLabel, taskColor } from './model.js';
 import { branchPath } from './data.js';
+import { civilTimestamp, todayKey, dateLabel, DAY_MS } from './dates.js';
 
 const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;};
-const monthLabel=(value)=>new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric'}).format(value);
-const UTC_DAY=86400000;
-const midnight=(d)=>Date.UTC(d.getFullYear(),d.getMonth(),d.getDate());
-const utcDate=(s)=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(s||''))return NaN;const [y,m,d]=s.split('-').map(Number);const t=Date.UTC(y,m-1,d);const dt=new Date(t);return dt.getUTCFullYear()===y&&dt.getUTCMonth()===m-1&&dt.getUTCDate()===d?t:NaN;};
+const monthLabel=value=>dateLabel(value.toISOString().slice(0,10),{month:'short',day:'numeric'});
+const UTC_DAY=DAY_MS;
+const midnight=d=>civilTimestamp(todayKey(d));
+const utcDate=civilTimestamp;
 const byMode=(tasks,mode)=>[...tasks].sort((a,b)=>{
   const ua=Number(a.urgency)||1,ub=Number(b.urgency)||1;
   const da=daysUntil(a.dueDate),db=daysUntil(b.dueDate);
@@ -15,8 +16,9 @@ const byMode=(tasks,mode)=>[...tasks].sort((a,b)=>{
 const addButton=(text,fn,css='')=>{const b=el('button',css,text);b.type='button';b.addEventListener('click',e=>{e.stopPropagation();fn();});return b;};
 
 export class ScrapWidgets {
-  constructor({onFocus,onComplete,onRestore,onChangeMilestones,onOpenJournal}){
+  constructor({onFocus,onComplete,onRestore,onChangeMilestones,onOpenJournal,notify=()=>{}}){
     Object.assign(this,{onFocus,onComplete,onRestore,onChangeMilestones,onOpenJournal});
+    this.notify=notify;
     this.activeEl=document.getElementById('active-task-list');
     this.completedEl=document.getElementById('completed-task-list');
     this.scroll=document.getElementById('timeline-scroll');
@@ -66,7 +68,7 @@ export class ScrapWidgets {
     document.getElementById('timeline-zoom-out').addEventListener('click',()=>this.adjustZoom(1/1.55));
     document.getElementById('timeline-today').addEventListener('click',()=>this.centerToday(true));
     const form=document.getElementById('milestone-form');
-    document.getElementById('timeline-add').addEventListener('click',()=>{form.hidden=!form.hidden;if(!form.hidden){document.getElementById('milestone-date').value=new Date().toISOString().slice(0,10);document.getElementById('milestone-title').focus();}});
+    document.getElementById('timeline-add').addEventListener('click',()=>{form.hidden=!form.hidden;if(!form.hidden){document.getElementById('milestone-date').value=todayKey();document.getElementById('milestone-title').focus();}});
     document.getElementById('milestone-cancel').addEventListener('click',()=>{form.hidden=true;});
     form.addEventListener('submit',e=>{e.preventDefault();
       const title=document.getElementById('milestone-title').value.trim().slice(0,110);
@@ -135,14 +137,9 @@ export class ScrapWidgets {
       const marker=el('button','timeline-milestone',miniMilestones?'◆':entry.title);marker.type='button';
       marker.style.left=`${x}px`;marker.style.top=`${203+lane*29}px`;
       if(miniMilestones)marker.classList.add('is-condensed');
-      marker.title=`Milestone: ${entry.title}, ${entry.date}. Click twice to remove.`;
+      marker.title=`Milestone: ${entry.title}, ${entry.date}. Activate for removal options.`;
       marker.setAttribute('aria-label',marker.title);
-      let armed=false,timer=0;
-      marker.addEventListener('click',()=>{
-        if(armed){clearTimeout(timer);this.onChangeMilestones(this.milestones.filter(x=>x.id!==entry.id));return;}
-        armed=true;marker.classList.add('is-armed');marker.textContent='Remove marker?';
-        timer=setTimeout(()=>{armed=false;marker.classList.remove('is-armed');marker.textContent=miniMilestones?'◆':entry.title;},3500);
-      });
+      marker.addEventListener('click',()=>this.confirmMilestoneRemoval(entry));
       this.surface.append(marker);
     }
     // One visible page marker per date. Multiple pages on the same date are
@@ -170,5 +167,20 @@ export class ScrapWidgets {
     }
     if(offsetChange){this.scroll.scrollLeft+=offsetChange;}
     if(!this.scrolledInitially){this.scrolledInitially=true;requestAnimationFrame(()=>this.centerToday());}
+  }
+
+  confirmMilestoneRemoval(entry){
+    this.notify(`Remove milestone “${entry.title}”?`,10000,{label:'Remove',run:()=>{
+      const index=this.milestones.findIndex(item=>item.id===entry.id);
+      if(index<0)return;
+      const saved=this.onChangeMilestones(this.milestones.filter(item=>item.id!==entry.id));
+      this.notify(saved===false?'Milestone removed for this session; not saved.':'Milestone removed. You can undo.',10000,
+        {label:'Undo',run:()=>{
+          if(this.milestones.some(item=>item.id===entry.id))return;
+          const restored=[...this.milestones];restored.splice(Math.min(index,restored.length),0,entry);
+          const undoSaved=this.onChangeMilestones(restored);
+          this.notify(undoSaved===false?'Milestone restored for this session; not saved.':'Milestone restored.');
+        }});
+    }});
   }
 }

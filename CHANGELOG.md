@@ -1,3 +1,12 @@
+## M1 — 2026-11-01
+
+- Protect corrupt local records, retain recoverable originals and surface failed saves.
+- Validate and recover V5/V6 imports; harden CSV, clipboard HTML and static CSP.
+- Fix six-window keyboard movement/focus, paper-label contrast and landscape reachability.
+- Add milestone Remove/Undo and shared Asia/Jakarta civil dates.
+- Add actual-origin regression tests, dual original/current source integrity and browser CI.
+- Preserve vanilla spatial scrapbook UX; disable automatic Git deployment pending approval.
+
 # Changelog
 
 ## 0.5.0 — 2026-11-01

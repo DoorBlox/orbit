@@ -24,9 +24,9 @@ for name in ['package.json','package-lock.json','vercel.json',
              'docs/reference/V6_SOURCE_MANIFEST.json']:
  json.loads((ROOT/name).read_text())
 tomllib.loads((ROOT/'supabase/config.toml').read_text())
-manifest=json.loads((ROOT/'docs/reference/V6_SOURCE_MANIFEST.json').read_text())
-for filename in manifest['preserved_unchanged']:
- assert hashlib.sha256((ROOT/filename).read_bytes()).hexdigest()==manifest['hashes'][filename],filename
+# One shared gate validates both historical Git provenance and reviewed current bytes.
+import subprocess
+subprocess.run(['node','scripts/verify-source.mjs'],cwd=ROOT,check=True)
 # Verify clickable relative Markdown paths in root/handoff docs (ignore inline code/wildcards).
 missing=[]
 for file in [ROOT/'README.md',ROOT/'CODEX_HANDOFF.md',ROOT/'CODEX_FIRST_TASK.md',
@@ -47,5 +47,5 @@ for table in ('profiles','branches','tasks','journal_entries','milestones','widg
  for verb in ('select','insert','update','delete'):
   assert f'"{table}_{verb}_own"' in sql,(table,verb)
 assert 'service_role' not in sql
-print(f'PASS: {len(REQUIRED_DOCS)} handoff docs, relative Markdown links, 13 original source hashes, JSON/TOML, 7 tables/RLS policy declarations')
+print(f'PASS: {len(REQUIRED_DOCS)} handoff docs, relative Markdown links, original Git provenance and reviewed M1 hashes, JSON/TOML, 7 tables/RLS policy declarations')
 print('CAUTION: SQL syntax execution and real RLS/authorization behavior NOT tested by this script.')

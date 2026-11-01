@@ -1,3 +1,4 @@
+import { markStorageIssue,isStorageWriteBlocked } from './storage.js';
 /* The spatial scrapbook is one coordinate space. Widgets are positions, never page sections. */
 const KEY='orbit.v5.spatial-layout';
 const SIZE_KEY='orbit.v6.spatial-sizes';
@@ -22,21 +23,26 @@ const LIMITS={
 };
 function readSizes(){try{
   const data=JSON.parse(localStorage.getItem(SIZE_KEY)||'{}');const output={};
+  if(!data||typeof data!=='object'||Array.isArray(data))throw Error();
+  for(const [id,size] of Object.entries(data))if(!LIMITS[id]||!Number.isFinite(size?.w)||!Number.isFinite(size?.h))markStorageIssue(SIZE_KEY,'Some saved sizes need recovery.');
   for(const [id,lim] of Object.entries(LIMITS))if(Number.isFinite(data[id]?.w)&&Number.isFinite(data[id]?.h)){
     output[id]={w:clamp(data[id].w,lim.minW,lim.maxW),h:clamp(data[id].h,lim.minH,lim.maxH)};
   }
   return output;
-}catch{return {};}}
+}catch{markStorageIssue(SIZE_KEY,'Saved sizes need recovery.');return {};}}
 
 const prefersReduce=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 function readPositions(){try{
   const data=JSON.parse(localStorage.getItem(KEY)||'{}');const next=structuredClone(DEFAULT);
+  if(!data||typeof data!=='object'||Array.isArray(data))throw Error();
+  for(const [id,pos] of Object.entries(data))if(!Object.hasOwn(DEFAULT,id)||!Number.isFinite(pos?.x)||!Number.isFinite(pos?.y))markStorageIssue(KEY,'Some saved positions need recovery.');
   for(const id of Object.keys(DEFAULT))if(data[id]&&Number.isFinite(data[id].x)&&Number.isFinite(data[id].y))next[id]={x:clamp(data[id].x,-5000,7500),y:clamp(data[id].y,-5000,7500)};
   return next;
-}catch{return structuredClone(DEFAULT);}}
+}catch{markStorageIssue(KEY,'Saved positions need recovery.');return structuredClone(DEFAULT);}}
 const iconList={constellation:'✳',timeline:'─',active:'◉',completed:'✓',journal:'✎',space:'·'};
 export class SpatialBoard {
-  constructor(){
+  constructor({notify=()=>{}}={}){
+    this.notify=notify;
     this.viewport=document.getElementById('spatial-viewport');this.world=document.getElementById('spatial-world');
     this.positions=readPositions();this.sizes=readSizes();this.scale=1;this.pan={x:0,y:0};this.gesture=null;this.pointers=new Map();this.raf=0;
     this.widgets=new Map();this.nav=document.getElementById('space-nav-map');
@@ -71,6 +77,10 @@ export class SpatialBoard {
     this.viewport.addEventListener('pointerup',e=>this.onPointerEnd(e));
     this.viewport.addEventListener('pointercancel',e=>this.onPointerEnd(e));
     this.viewport.addEventListener('wheel',e=>this.onWheel(e),{passive:false});
+    // CSS transforms do not bring offscreen controls into view when Tab focuses them.
+    this.viewport.addEventListener('focusin',e=>{
+      if(e.target.matches(':focus-visible'))this.ensureVisible(e.target);
+    });
     document.getElementById('board-zoom-in').addEventListener('click',()=>this.zoomBy(1.23));
     document.getElementById('board-zoom-out').addEventListener('click',()=>this.zoomBy(1/1.23));
     document.getElementById('board-home').addEventListener('click',()=>this.fitAll());
@@ -80,7 +90,7 @@ export class SpatialBoard {
     requestAnimationFrame(()=>this.focus('constellation',{initial:true}));
   }
   getLayout(){const out=structuredClone(this.positions);for(const [id,size] of Object.entries(this.sizes))out[id]={...out[id],width:size.w,height:size.h};return out;}
-  setLayout(value){
+  setLayout(value,{persist=true}={}){
     const safe={};for(const [id,pos] of Object.entries(DEFAULT)){
       const given=value?.[id];safe[id]={x:Number.isFinite(given?.x)?clamp(given.x,-5000,7500):pos.x,y:Number.isFinite(given?.y)?clamp(given.y,-5000,7500):pos.y};
     }
@@ -90,9 +100,10 @@ export class SpatialBoard {
         this.sizes[id]={w:clamp(obj.width,lim.minW,lim.maxW),h:clamp(obj.height,lim.minH,lim.maxH)};
     }
     for(const id of this.widgets.keys()){this.position(id);this.applySize(id);}
-    this.save();this.render();this.buildNavigator();
+    if(persist)this.save();this.render();this.buildNavigator();
   }
-  save(){try{localStorage.setItem(KEY,JSON.stringify(this.positions));localStorage.setItem(SIZE_KEY,JSON.stringify(this.sizes));return true;}catch{return false;}}
+  save(){try{if(isStorageWriteBlocked(KEY)||isStorageWriteBlocked(SIZE_KEY))throw Error();localStorage.setItem(KEY,JSON.stringify(this.positions));localStorage.setItem(SIZE_KEY,JSON.stringify(this.sizes));return true;}
+    catch{this.notify('Layout not saved on this device. Export a backup to keep your changes.');return false;}}
   applySize(id){const item=this.widgets.get(id),s=this.sizes[id];if(!item)return;
     if(!s){item.style.removeProperty('width');item.style.removeProperty('height');return;}
     item.style.setProperty('width',`${s.w}px`,'important');item.style.setProperty('height',`${s.h}px`,'important');
@@ -115,7 +126,19 @@ export class SpatialBoard {
     // On a phone, zoom the map itself so tasks are legible. The spatial navigator still provides a global overview.
     const cx=p.x+sw/2,cy=p.y+sh/2;
     const target={scale,x:w/2-cx*scale,y:h/2-cy*scale};
+    // Keep the heading reachable in short landscape windows without shrinking text.
+    // Tab and spatial panning reveal the lower controls; saved coordinates stay intact.
+    if(id!=='constellation'&&sh*scale>h-104)target.y=80-p.y*scale;
     this.animate(target,initial?0:520);
+  }
+  ensureVisible(control){
+    const rect=control.getBoundingClientRect(),view=this.viewport.getBoundingClientRect();
+    const {w,h}=this.viewportSize(),left=view.left+24,right=view.left+w-24;
+    const top=view.top+80,bottom=view.top+h-24;
+    const dx=rect.left<left?left-rect.left:rect.right>right?right-rect.right:0;
+    const dy=rect.top<top?top-rect.top:rect.bottom>bottom?bottom-rect.bottom:0;
+    if(!dx&&!dy)return;
+    cancelAnimationFrame(this.raf);this.pan.x+=dx;this.pan.y+=dy;this.render();
   }
   fitAll(){const pad=65,{w,h}=this.viewportSize();let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
     for(const [id,item] of this.widgets){const p=this.positions[id];x0=Math.min(x0,p.x);y0=Math.min(y0,p.y);x1=Math.max(x1,p.x+item.offsetWidth);y1=Math.max(y1,p.y+item.offsetHeight);}

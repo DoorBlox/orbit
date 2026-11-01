@@ -14,7 +14,9 @@
     "verify:structure": "node scripts/verify-structure.mjs",
     "check": "npm run lint && npm test && npm run verify:source && npm run build && npm run verify:structure",
     "build:offline": "python scripts_build_preview.py",
-    "verify:source": "node scripts/verify-source.mjs"
+    "verify:source": "node scripts/verify-source.mjs",
+    "record:source": "node scripts/record-source.mjs",
+    "test:browser": "python tests/qa_m1.py"
   },
   "engines": {
     "node": ">=22 <25"
