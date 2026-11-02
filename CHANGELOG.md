@@ -1,3 +1,9 @@
+## M2 Email OTP patch — 2026-11-02
+
+- Use existing-user Email OTP as the visible sign-in method; retain Google OAuth for future configuration.
+- Preserve server UUID ownership/RLS and add cooldown, generic failures and stale verification cleanup.
+- Document administrator enrollment, Magic Link Token template and hosted SMTP acceptance.
+
 ## M1 — 2026-11-01
 
 - Protect corrupt local records, retain recoverable originals and surface failed saves.

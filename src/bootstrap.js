@@ -35,7 +35,9 @@ export async function bootstrapOrbit(config=runtimeConfig) {
   },{signal:lifecycle.signal});
   const publicRelease=config?.publicRelease===true;
   const shell=createAuthShell({publicRelease,
-    onSignIn:()=>auth?.signInWithGoogle(),
+    onRequestOtp:email=>auth?.requestEmailOtp(email),
+    onVerifyOtp:token=>auth?.verifyEmailOtp(token),
+    onCancelOtp:()=>auth?.cancelEmailOtp(),
     onSignOut:async()=>{
       // Commit the in-memory editor into the snapshot before checking pending state.
       app?.flushEditor();
@@ -79,6 +81,7 @@ export async function bootstrapOrbit(config=runtimeConfig) {
       }catch(error){if(version===viewVersion&&error?.code!=='ABORTED')shell.showError('Published content could not be loaded. Try again later.');}
     }
     auth=new AuthController({client,redirectUrl:config.siteUrl,currentOrigin:location.origin,
+      onOtpState:state=>shell.setOtpState(state),
       clearPrivate,cancelPendingWrites:()=>sync?.dispose(),
       onState:state=>{
         shell.setState(state);

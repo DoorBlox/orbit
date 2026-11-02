@@ -2,6 +2,10 @@
 
 Execution record: 2 November 2026 (Asia/Jakarta). PR #2, `codex/m2-protected-cloud`; M1 base `846ad7d`, recovery checkpoint `b57c444`. M2.5 is Motion Polish; M3 is the official ORBIT 1.0.0 release. M2 remains incomplete until hosted Google/owner and deployed browser acceptance pass.
 
+## Minimal Email OTP follow-up
+
+The visible default is now existing-user Email OTP; Google implementation remains available but hidden. No schema, RLS, owner UUID, public-read or production resource changes. [Exact Supabase setup and acceptance](M2-EMAIL-OTP.md) supersedes the Google-only manual steps below for current acceptance.
+
 ## Implemented and verified
 
 Vanilla V6 spatial interactions remain. Added Google PKCE entry, verified-user session lifecycle, server UUID allowlist, private owner snapshot repository, serialized revision-checked saves, polling across sessions, conflict/export/retry/offline feedback, logout cleanup and an unload warning for unsaved drafts. Cloud mode never reads legacy local data automatically. Local imports require explicit review and upload/replacement confirmation. Supported task/branch/milestone/journal publication copies only reviewed title, excerpt and date into a separate six-column representation; all new sources remain private. Development builds prohibit public release.

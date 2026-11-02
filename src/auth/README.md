@@ -5,7 +5,7 @@ DOM mounting and the cloud repository; this module never reads the local V6 diar
 hydrates demo records, stores provider tokens, or decides ownership using an email
 or a public client-side owner UUID.
 
-The supplied client must use **Google OAuth with PKCE**, `detectSessionInUrl: true`
+The visible default is **Email OTP for existing users only**, using `requestEmailOtp(email)` and `verifyEmailOtp(token)`. See [administrator setup and acceptance](../../docs/decisions/M2-EMAIL-OTP.md). Google OAuth remains available through `signInWithGoogle()` without a visible button. The supplied client retains PKCE, `detectSessionInUrl: true`
 and the project's exact configured redirect. The controller requests only
 `openid email profile` scopes and rejects a redirect on a different current origin,
 credentials in URLs, query/fragment redirects, and non-HTTPS production URLs.
@@ -59,3 +59,5 @@ Verification: `node --test --experimental-test-coverage tests/auth.test.mjs` use
 injected SDK fakes to exercise restoration, owner denial, OAuth arguments, expiry,
 refresh, logout, cleanup, generic errors and lifecycle races. It is not a live
 Google, Supabase RLS or browser persistence test.
+
+OTP callbacks expose generic status/cooldown fields only, never an email, token or raw SDK error. The owner UUID remains administratively configured; successful OTP verification alone grants no owner authority.

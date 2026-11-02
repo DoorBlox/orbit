@@ -14,7 +14,7 @@ const syncText = {
 };
 
 /** Small native shell around the unchanged spatial app; no user HTML is interpolated. */
-export function createAuthShell({ publicRelease, onSignIn, onSignOut, onExport, onRetry, onReload } = {}) {
+export function createAuthShell({ publicRelease, onRequestOtp, onVerifyOtp, onCancelOtp, onSignOut, onExport, onRetry, onReload } = {}) {
   document.getElementById('cloud-shell')?.remove();
   const root=document.createElement('section');root.id='cloud-shell';root.className='cloud-shell';
   root.setAttribute('aria-label','Cloud access and saving');
@@ -31,7 +31,39 @@ export function createAuthShell({ publicRelease, onSignIn, onSignOut, onExport, 
     const element=document.createElement('button');element.type='button';element.className='glass-button';element.textContent=label;
     element.addEventListener('click',()=>{void handler?.();});parent.append(element);return element;
   }
-  const signIn=button('Sign in with Google',onSignIn,gate);
+  const login=document.createElement('form');login.className='cloud-email-login';gate.append(login);
+  function field(label,id){const wrapper=document.createElement('label');wrapper.textContent=label;const input=document.createElement('input');input.id=id;wrapper.append(input);login.append(wrapper);return input;}
+  const email=field('Email address','login-email');email.type='email';email.autocomplete='email';email.maxLength=254;email.required=true;
+  const send=button('Send login code',()=>{if(email.reportValidity())void onRequestOtp?.(email.value);},login);
+  const token=field('Six-digit login code','login-code');token.type='text';token.inputMode='numeric';token.autocomplete='one-time-code';token.maxLength=6;token.pattern='[0-9]{6}';token.setAttribute('aria-describedby','login-feedback');
+  const verify=button('Verify and sign in',null,login);verify.type='submit';
+  const resend=button('Resend code',()=>{void onRequestOtp?.(email.value);},login);
+  const changeEmail=button('Use another email',()=>{onCancelOtp?.();email.focus();},login);
+  const feedback=document.createElement('p');feedback.id='login-feedback';feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');login.append(feedback);
+  login.addEventListener('submit',async event=>{event.preventDefault();if(!otp.hasChallenge){if(email.reportValidity())void onRequestOtp?.(email.value);return;}if(!token.reportValidity())return;const code=token.value;token.value='';await onVerifyOtp?.(code);});
+  let otp={status:'idle',busy:false,hasChallenge:false,resendAt:0,verifyAt:0};
+  function setOtpState(next){
+    const wasChallenge=otp.hasChallenge,wasBusy=otp.busy;otp=next;
+    const messages={sending:'Requesting a login code…',sent:'If this address is eligible, a login code has been sent. Check your inbox.',verifying:'Verifying your code…',verified:'Sign-in verified. Owner authorization is still required.'};
+    const failures={INVALID_EMAIL:'Enter a valid email address.',INVALID_CODE:'The code is invalid or expired. Try again or request a new code.',RATE_LIMITED:'Too many attempts. Wait before trying again.',UNAVAILABLE:'Sign-in could not be completed. Check your connection or email setup and try again.'};
+    feedback.textContent=next.status==='error'?(failures[next.code]||failures.UNAVAILABLE):(messages[next.status]||'');
+    login.setAttribute('aria-busy',String(next.busy));email.readOnly=next.hasChallenge||next.busy;
+    token.disabled=!next.hasChallenge||next.busy;token.required=next.hasChallenge;
+    send.hidden=next.hasChallenge;resend.hidden=!next.hasChallenge;changeEmail.hidden=!next.hasChallenge;
+    changeEmail.disabled=next.busy;
+    if(!next.hasChallenge)token.value='';
+    updateCooldown();
+    if(next.hasChallenge&&!next.busy&&(!wasChallenge||wasBusy))token.focus();
+  }
+  function updateCooldown(){
+    const seconds=Math.max(0,Math.ceil((otp.resendAt-Date.now())/1000));
+    const locked=['idle','restoring','signing-in','owner','disposed'].includes(state.status);
+    send.disabled=resend.disabled=otp.busy||locked||seconds>0;
+    resend.textContent=seconds?`Resend code (${seconds}s)`:'Resend code';
+    send.textContent=seconds&&!otp.hasChallenge?`Send login code (${seconds}s)`:'Send login code';
+    verify.disabled=otp.busy||locked||!otp.hasChallenge||Date.now()<otp.verifyAt;
+  }
+  const cooldownTimer=setInterval(updateCooldown,1000);
   const gateSignOut=button('Sign out',onSignOut,gate);gateSignOut.hidden=true;
   const retryGate=button('Try again',onRetry,gate);retryGate.hidden=true;
   gate.prepend(title,description,release);
@@ -39,7 +71,7 @@ export function createAuthShell({ publicRelease, onSignIn, onSignOut, onExport, 
   const retry=button('Retry save',onRetry);
   const reload=button('Reload cloud version',onReload);
   const signOut=button('Sign out',onSignOut);
-  const visitorSignIn=button('Owner sign-in',onSignIn);
+  const visitorSignIn=button('Owner sign-in',()=>{gate.hidden=false;email.focus();});
   const ownerTools=document.createElement('div');ownerTools.id='cloud-owner-tools';ownerTools.hidden=true;
   controls.append(ownerTools);toolbar.append(mode,status,controls);root.append(gate,toolbar);document.body.append(root);
   const measure=()=>{
@@ -51,8 +83,9 @@ export function createAuthShell({ publicRelease, onSignIn, onSignOut, onExport, 
   let state={status:'idle'};
   function setState(next) {
     state=next;description.textContent=textByState[next.status]||textByState.error;
-    signIn.disabled=['restoring','signing-in'].includes(next.status);
-    signIn.hidden=next.status==='owner';
+    login.hidden=next.status==='owner';
+    if(['owner','signed-out','expired','disposed'].includes(next.status)){email.value='';token.value='';}
+    updateCooldown();
     gateSignOut.hidden=next.status!=='unauthorized';
     retryGate.hidden=next.status!=='error';
     if(next.status!=='owner'){gate.hidden=false;toolbar.hidden=true;ownerTools.hidden=true;measure();}
@@ -73,8 +106,9 @@ export function createAuthShell({ publicRelease, onSignIn, onSignOut, onExport, 
     if(next.errorCode==='AUTH_REQUIRED')status.textContent='Session verification required — this draft is not saved';
   }
   function showError(message='Cloud setup is unavailable. Your private space remains closed.') {
-    setState({status:'error'});description.textContent=message;
+    setState({status:'error'});login.hidden=true;description.textContent=message;
   }
   setState(state);
-  return {setState,showApp,setSyncStatus,showError,ownerTools,dispose:()=>{resizeObserver.disconnect();root.remove();document.body.classList.remove('cloud-connected');document.documentElement.style.removeProperty('--cloud-dock-height');}};
+  setOtpState(otp);
+  return {setState,setOtpState,showApp,setSyncStatus,showError,ownerTools,dispose:()=>{clearInterval(cooldownTimer);resizeObserver.disconnect();root.remove();document.body.classList.remove('cloud-connected');document.documentElement.style.removeProperty('--cloud-dock-height');}};
 }

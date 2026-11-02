@@ -5,7 +5,7 @@
 export class AuthController {
   constructor({ client, redirectUrl, currentOrigin = globalThis.location?.origin,
     ownerRpc = 'orbit_owner_access', onState = () => {}, onOwner = () => {},
-    clearPrivate = () => {}, cancelPendingWrites = () => {} } = {}) {
+    clearPrivate = () => {}, cancelPendingWrites = () => {}, onOtpState = () => {} } = {}) {
     if (!client?.auth?.getUser || !client.auth.onAuthStateChange || !client.rpc) {
       throw new Error('An authentication client is required.');
     }
@@ -27,6 +27,9 @@ export class AuthController {
     this.subscription = null;
     this.started = false;
     this.signingOut = false;
+    this.onOtpState=onOtpState;
+    this.otpEpoch=0;this.otpPending=null;this.otpEmail='';this.resendAt=0;this.verifyAt=0;
+    this.otpStatus='idle';this.otpCode=null;
   }
 
   getState() { return this.state; }
@@ -67,7 +70,11 @@ export class AuthController {
   handleEvent(event, session) {
     if (this.disposed || event === 'INITIAL_SESSION') return;
     if (this.signingOut && event !== 'SIGNED_OUT') return;
+    // verifyOtp emits SIGNED_IN before its promise resolves. Only its current
+    // operation may initiate verification; late events after logout are ignored.
+    if (this.otpPending?.kind==='verify' && event !== 'SIGNED_OUT') return;
     if (event === 'SIGNED_OUT' || !session?.user?.id) {
+      this.cancelEmailOtp();
       const expired = !this.signingOut && this.state.status === 'owner';
       this.revoke(expired ? 'expired' : 'signed-out');
       return;
@@ -128,8 +135,68 @@ export class AuthController {
     }
   }
 
+  getOtpState() {
+    return {status:this.otpStatus,code:this.otpCode,hasChallenge:!!this.otpEmail,
+      busy:!!this.otpPending,resendAt:this.resendAt,verifyAt:this.verifyAt};
+  }
+
+  otpState(status,code=null) {
+    this.otpStatus=status;this.otpCode=code;this.onOtpState(this.getOtpState());
+  }
+
+  cancelEmailOtp() {
+    ++this.otpEpoch;this.otpEmail='';this.otpState('idle');
+  }
+
+  async requestEmailOtp(email) {
+    if(this.disposed||this.signingOut||this.otpPending||this.state.status==='owner'||Date.now()<this.resendAt)return false;
+    const address=typeof email==='string'?email.trim():'';
+    if(address.length>254||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)){this.otpState('error','INVALID_EMAIL');return false;}
+    const operation={epoch:++this.otpEpoch,kind:'send'};this.otpPending=operation;
+    this.otpEmail='';this.resendAt=Date.now()+60000;this.otpState('sending');
+    try{
+      const result=await this.client.auth.signInWithOtp({email:address,options:{shouldCreateUser:false}});
+      if(this.disposed||operation.epoch!==this.otpEpoch)return false;
+      if(result?.error)throw result.error;
+      this.otpEmail=address;this.otpState('sent');return true;
+    }catch(error){
+      if(!this.disposed&&operation.epoch===this.otpEpoch)this.otpState('error',error?.status===429?'RATE_LIMITED':'UNAVAILABLE');
+      return false;
+    }finally{
+      this.otpPending=null;
+      if(!this.disposed)this.onOtpState(this.getOtpState());
+    }
+  }
+
+  async verifyEmailOtp(token) {
+    if(this.disposed||this.signingOut||this.otpPending||!this.otpEmail||Date.now()<this.verifyAt)return false;
+    if(typeof token!=='string'||!/^\d{6}$/.test(token)){this.otpState('error','INVALID_CODE');return false;}
+    const operation={epoch:this.otpEpoch,kind:'verify'};this.otpPending=operation;this.otpState('verifying');
+    try{
+      const result=await this.client.auth.verifyOtp({email:this.otpEmail,token,type:'email'});
+      if(this.disposed||operation.epoch!==this.otpEpoch){
+        // A cancelled SDK verification can still have stored a session internally.
+        // New sign-ins stay blocked until this cleanup completes.
+        await this.client.auth.signOut({scope:'local'});return false;
+      }
+      if(result?.error)throw result.error;
+      this.otpEmail='';this.otpState('verified');
+      await this.refresh(false);return this.state.status==='owner';
+    }catch(error){
+      if(!this.disposed&&operation.epoch===this.otpEpoch){
+        const rate=error?.status===429;
+        if(rate)this.verifyAt=Date.now()+60000;
+        this.otpState('error',rate?'RATE_LIMITED':error?.code==='otp_expired'||error?.code==='otp_disabled'?'INVALID_CODE':'UNAVAILABLE');
+      }
+      return false;
+    }finally{
+      this.otpPending=null;
+      if(!this.disposed)this.onOtpState(this.getOtpState());
+    }
+  }
+
   async signInWithGoogle() {
-    if (this.disposed || this.signingOut) return false;
+    if (this.disposed || this.signingOut || this.otpPending) return false;
     const generation = ++this.generation;
     if (!this.clear()) { this.publish('error', null, 'PRIVATE_CLEANUP_FAILED'); return false; }
     this.publish('signing-in');
@@ -147,6 +214,7 @@ export class AuthController {
 
   async signOut() {
     if (this.disposed) return false;
+    this.cancelEmailOtp();
     this.signingOut = true;
     this.revoke('signed-out');
     try {
@@ -163,6 +231,7 @@ export class AuthController {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    this.cancelEmailOtp();
     this.generation++;
     this.subscription?.unsubscribe();
     this.subscription = null;

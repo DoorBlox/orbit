@@ -16,15 +16,15 @@
       "reason": "Mount/dispose existing scrapbook over local or authenticated owner snapshots; guard visitor writes."
     },
     "src/auth/README.md": {
-      "sha256": "6cd49510795166c47eac108dcb2c7e8423070259a8feb1ded189de958eeafcbe",
+      "sha256": "643913ed4ad714eb65ecff9d2dab783e0f985c9a390b07f003cc46f63bec535d",
       "reason": "Document owner/session gate and private lifecycle invariants."
     },
     "src/auth/controller.js": {
-      "sha256": "e210306c0d327ccaba47fb6c82d8447700b738fc4a42bd93b42c8c89db7c4d9a",
+      "sha256": "5ef67b091d98e07252e659a6985676f97c4978b7b9bb9ee2159f49c7590806f9",
       "reason": "Verify server owner authorization and clear private state on session revocation."
     },
     "src/auth/shell.js": {
-      "sha256": "3b3057ba1f99ce470358078524ab4ab707943669a571a9d48e414c69c3192ba4",
+      "sha256": "423926698a363d39eb36a0294382bcef5241d37f08271922113d80104056eed0",
       "reason": "Accessible owner sign-in/status shell without exposing scrapbook data."
     },
     "src/backup.js": {
@@ -36,7 +36,7 @@
       "reason": "Support injected layout and read-only/disposable cloud lifecycle."
     },
     "src/bootstrap.js": {
-      "sha256": "0d18d1d84b75704d413fed4315e41f0f124d78b340e106f9720b4859e160b326",
+      "sha256": "32c8648d3fd4101ca829712291a198629990dbaff1a3b42ef16e6e3479e1cea6",
       "reason": "Gate private mounting on verified owner authentication; public release stays disabled."
     },
     "src/cloud/README.md": {
@@ -104,7 +104,7 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "src/styles.css": {
-      "sha256": "c1a2a9da5acd0ebc947e506a580240c4449b9fc3785488d8a420a745b525f9bb",
+      "sha256": "a874c4eac3d14fb9cc29a8f02829cf244c22d3333663e6beb7b94550a6259116",
       "reason": "Minimal authentication/status controls retaining spatial scrapbook identity."
     },
     "src/widgets.js": {

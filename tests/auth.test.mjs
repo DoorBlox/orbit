@@ -268,3 +268,86 @@ test('auth callback does not await SDK calls under the listener lock',async () =
   await pause();
   assert.equal(f.controller.getState().status,'owner');
 });
+
+test('email OTP requests existing users only and never authorizes on delivery',async()=>{
+  const f=setup({auth:{signInWithOtp:async options=>{f.calls.push(options);return {error:null};}}});
+  assert.equal(await f.controller.requestEmailOtp(' owner@example.invalid '),true);
+  assert.deepEqual(f.calls[0],{email:'owner@example.invalid',options:{shouldCreateUser:false}});
+  assert.equal(f.events.some(([event])=>event==='owner'),false);
+  assert.equal(f.controller.getOtpState().hasChallenge,true);
+  assert.equal(await f.controller.requestEmailOtp('owner@example.invalid'),false);
+  assert.equal(JSON.stringify(f.controller.getOtpState()).includes('owner@example.invalid'),false);
+});
+
+test('OTP verification uses email type then getUser and the UUID owner RPC',async()=>{
+  const f=setup({auth:{signInWithOtp:async()=>({error:null}),verifyOtp:async args=>{f.calls.push(args);return {error:null};}}});
+  await f.controller.requestEmailOtp('owner@example.invalid');
+  assert.equal(await f.controller.verifyEmailOtp('123456'),true);
+  assert.deepEqual(f.calls[0],{email:'owner@example.invalid',token:'123456',type:'email'});
+  assert.equal(f.controller.getState().status,'owner');
+  assert.ok(f.calls.includes('orbit_owner_access'));
+});
+
+test('verified email without allowlisted UUID cannot mount private data',async()=>{
+  const f=setup({rpc:async()=>({data:false,error:null}),auth:{signInWithOtp:async()=>({error:null}),verifyOtp:async()=>({error:null})}});
+  await f.controller.requestEmailOtp('owner@example.invalid');await f.controller.verifyEmailOtp('123456');
+  assert.equal(f.controller.getState().status,'unauthorized');
+  assert.equal(f.events.some(([event])=>event==='owner'),false);
+});
+
+for(const [error,code] of [[{code:'otp_expired'},'INVALID_CODE'],[{status:429},'RATE_LIMITED'],[{status:0},'UNAVAILABLE']]){
+  test(`OTP verification handles ${code} without leaking provider errors`,async()=>{
+    const f=setup({auth:{signInWithOtp:async()=>({error:null}),verifyOtp:async()=>({error:{...error,message:'sensitive token'}})}});
+    await f.controller.requestEmailOtp('owner@example.invalid');assert.equal(await f.controller.verifyEmailOtp('123456'),false);
+    assert.equal(f.controller.getOtpState().code,code);assert.equal(JSON.stringify(f.controller.getOtpState()).includes('sensitive'),false);
+    assert.equal(f.events.some(([event])=>event==='owner'),false);
+  });
+}
+
+for(const error of [{code:'email_address_not_authorized'},{code:'email_provider_disabled'},new TypeError('private mail'),{status:429}]){
+  test(`OTP delivery failure stays closed (${error.code||error.status||error.name})`,async()=>{
+    const f=setup({auth:{signInWithOtp:async()=>({error})}});
+    assert.equal(await f.controller.requestEmailOtp('owner@example.invalid'),false);
+    assert.equal(f.controller.getOtpState().hasChallenge,false);
+    assert.equal(f.events.some(([event])=>event==='owner'),false);
+  });
+}
+
+test('OTP rejects malformed input and duplicate submissions without extra SDK calls',async()=>{
+  const pending=deferred();let requests=0;
+  const f=setup({auth:{signInWithOtp:()=>{requests++;return pending.promise;},verifyOtp:async()=>{throw Error('must not run');}}});
+  assert.equal(await f.controller.requestEmailOtp('not an email'),false);
+  const sending=f.controller.requestEmailOtp('owner@example.invalid');
+  assert.equal(await f.controller.requestEmailOtp('owner@example.invalid'),false);
+  pending.resolve({error:null});await sending;
+  assert.equal(await f.controller.verifyEmailOtp('12x456'),false);assert.equal(requests,1);
+});
+
+test('OTP verification completing after logout cannot restore owner via SDK event or result',async()=>{
+  const pending=deferred();const f=setup({auth:{signInWithOtp:async()=>({error:null}),verifyOtp:()=>pending.promise}});
+  await f.controller.start();await f.controller.signOut();f.events.length=0;
+  await f.controller.requestEmailOtp('owner@example.invalid');const verifying=f.controller.verifyEmailOtp('123456');
+  await f.controller.signOut();f.emit('SIGNED_IN',{user});pending.resolve({error:null});await verifying;await pause();
+  assert.equal(f.controller.getState().status,'signed-out');assert.equal(f.events.some(([event])=>event==='owner'),false);
+});
+
+test('OTP resend works after cooldown without enabling signup',async()=>{
+  let count=0;const f=setup({auth:{signInWithOtp:async options=>{count++;assert.equal(options.options.shouldCreateUser,false);return {error:null};}}});
+  await f.controller.requestEmailOtp('owner@example.invalid');f.controller.resendAt=Date.now()-1;
+  assert.equal(await f.controller.requestEmailOtp('owner@example.invalid'),true);assert.equal(count,2);
+});
+
+test('duplicate verification and verification after disposal never call the SDK twice',async()=>{
+  const request=deferred();let calls=0;const f=setup({auth:{signInWithOtp:async()=>({error:null}),verifyOtp:()=>{calls++;return request.promise;}}});
+  await f.controller.requestEmailOtp('owner@example.invalid');const pending=f.controller.verifyEmailOtp('123456');
+  assert.equal(await f.controller.verifyEmailOtp('123456'),false);f.controller.dispose();request.resolve({error:null});
+  assert.equal(await pending,false);assert.equal(await f.controller.requestEmailOtp('owner@example.invalid'),false);
+  assert.equal(await f.controller.verifyEmailOtp('123456'),false);assert.equal(calls,1);
+  assert.equal(f.events.some(([event])=>event==='owner'),false);
+});
+
+test('pending delivery after logout cannot restore the challenge',async()=>{
+  const request=deferred();const f=setup({auth:{signInWithOtp:()=>request.promise}});
+  const pending=f.controller.requestEmailOtp('owner@example.invalid');await f.controller.signOut();request.resolve({error:null});await pending;
+  assert.equal(f.controller.getOtpState().hasChallenge,false);assert.equal(f.controller.getOtpState().status,'idle');
+});
