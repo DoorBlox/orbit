@@ -19,7 +19,10 @@ html=(root/'index.html').read_text(encoding='utf-8')
 css=(root/'src'/'styles.css').read_text(encoding='utf-8')
 html=re.sub(r'<link rel="icon"[^>]*>', '', html)
 html=re.sub(r'<link rel="stylesheet"[^>]*>', lambda m: '<style>\n'+css+'\n</style>', html)
-html=re.sub(r'<script type="module" src="./src/app.js" defer></script>',lambda m: '<script type="module" src="'+data_url('app.js')+'"></script>', html)
+# Offline preview explicitly mounts the local scrapbook; never initializes Auth/cloud.
+entry='import {mountOrbit} from '+repr(data_url('app.js'))+'; mountOrbit();'
+entry_url='data:text/javascript;base64,'+base64.b64encode(entry.encode('utf-8')).decode('ascii')
+html=re.sub(r'<script type="module" src="./src/(?:app|bootstrap)\.js" defer></script>',lambda m: '<script type="module" src="'+entry_url+'"></script>', html)
 output=root/'ORBIT_Offline_Preview.html'
 output.write_text(html,encoding='utf-8')
 print(output, len(html), 'bytes')

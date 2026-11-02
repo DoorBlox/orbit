@@ -26,14 +26,19 @@ export async function bootstrapOrbit(config=runtimeConfig) {
   const appElement=document.getElementById('app');
   if(!appElement)throw Error('The ORBIT app container is missing.');
   const pristine=appElement.cloneNode(true);
+  const lifecycle=new AbortController();
   appElement.hidden=true;appElement.inert=true;
   let app=null,sync=null,auth=null,ownerTools=null,readRequest=null,viewVersion=0;
+  window.addEventListener('beforeunload',event=>{
+    app?.flushEditor();
+    if(sync?.getState().hasPending){event.preventDefault();event.returnValue='';}
+  },{signal:lifecycle.signal});
   const publicRelease=config?.publicRelease===true;
   const shell=createAuthShell({publicRelease,
     onSignIn:()=>auth?.signInWithGoogle(),
     onSignOut:async()=>{
       // Commit the in-memory editor into the snapshot before checking pending state.
-      app?.getSnapshot();
+      app?.flushEditor();
       if(sync?.getState().hasPending&&!window.confirm('Some changes are not saved to the cloud. Cancel and export a backup to keep them, or sign out and discard this session draft.'))return;
       await auth?.signOut();
     },
@@ -100,10 +105,10 @@ export async function bootstrapOrbit(config=runtimeConfig) {
         app.setCloudStatus(sync.getState());shell.setSyncStatus(sync.getState());
       }});
     await auth.start();
-    return {dispose(){auth.dispose();shell.dispose();},auth};
+    return {dispose(){lifecycle.abort();auth.dispose();shell.dispose();},auth};
   }catch{
     clearPrivate();shell.showError();
-    return {dispose(){auth?.dispose();shell.dispose();}};
+    return {dispose(){lifecycle.abort();auth?.dispose();shell.dispose();}};
   }
 }
 

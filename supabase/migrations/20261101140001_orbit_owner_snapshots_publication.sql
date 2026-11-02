@@ -34,6 +34,29 @@ set search_path = '' as $$ select private.is_orbit_owner(); $$;
 revoke all on function public.orbit_owner_access() from public,anon;
 grant execute on function public.orbit_owner_access() to authenticated;
 
+-- A deferred parent FK permits arbitrary snapshot order. During BEFORE INSERT
+-- the new ID is not yet a row, so also check ancestor parent IDs for a cycle.
+create or replace function public.orbit_reject_branch_cycle() returns trigger language plpgsql security invoker
+set search_path = '' as $$
+begin
+  if new.parent_id is null then return new; end if;
+  if new.parent_id=new.id then raise exception 'Branch cannot be its own parent'; end if;
+  if exists(
+    with recursive ancestor_chain as (
+      select b.id,b.parent_id,array[b.id] as visited from public.branches b
+        where b.owner_id=new.owner_id and b.id=new.parent_id
+      union all
+      select b.id,b.parent_id,a.visited||b.id from public.branches b
+        join ancestor_chain a on a.parent_id=b.id
+        where b.owner_id=new.owner_id and not b.id=any(a.visited)
+    ) select 1 from ancestor_chain where id=new.id or parent_id=new.id
+  ) then raise exception 'A branch cannot move inside its descendants'; end if;
+  return new;
+end;
+$$;
+revoke all on function public.orbit_reject_branch_cycle() from public,anon;
+grant execute on function public.orbit_reject_branch_cycle() to authenticated;
+
 -- Restrictive policies AND the immutable original ownership policies apply.
 -- Thus neither a stranger's own rows nor forged owner IDs are accessible.
 do $$
@@ -241,17 +264,24 @@ $$;
 revoke all on function public.save_owner_snapshot(jsonb,bigint) from public,anon;
 grant execute on function public.save_owner_snapshot(jsonb,bigint) to authenticated;
 
-create function public.publish_content(p_kind text,p_source_id text,p_excerpt text default '',p_publication_date date default null)
+create function public.publish_content(p_kind text,p_source_id text,p_expected_title text,p_excerpt text default '',p_publication_date date default null)
 returns jsonb language plpgsql security invoker set search_path = '' as $$
 declare owner_uuid uuid:=auth.uid(); source_title text; publication uuid; result jsonb;
 begin
   if not private.is_orbit_owner() then raise exception using errcode='42501',message='Owner access required'; end if;
+  -- Serialize publication with source writes/deletion; the independent safe
+  -- projection must never outlive a concurrent committed source deletion.
+  insert into private.workspace_revisions(owner_id) values(owner_uuid) on conflict do nothing;
+  perform revision from private.workspace_revisions where owner_id=owner_uuid for update;
   if p_kind='task' then select title into source_title from public.tasks where owner_id=owner_uuid and id=p_source_id;
   elsif p_kind='branch' then select label into source_title from public.branches where owner_id=owner_uuid and id=p_source_id;
   elsif p_kind='journal' then select coalesce(nullif(title,''),'Untitled') into source_title from public.journal_entries where owner_id=owner_uuid and id=p_source_id;
   elsif p_kind='milestone' then select title into source_title from public.milestones where owner_id=owner_uuid and id=p_source_id;
   else raise exception using errcode='22023',message='Invalid publication kind'; end if;
   if source_title is null then raise exception using errcode='22023',message='Publication source not found'; end if;
+  if source_title is distinct from p_expected_title then
+    raise exception using errcode='40001',message='Publication title changed; review it again';
+  end if;
   if p_excerpt is null or p_excerpt ~ '[<>]' or char_length(p_excerpt)>2000 or source_title ~ '[<>]' then
     raise exception using errcode='22023',message='Publication must be plain text';
   end if;
@@ -270,8 +300,10 @@ create function public.unpublish_content(p_kind text,p_source_id text) returns v
 set search_path = '' as $$
 begin
   if not private.is_orbit_owner() then raise exception using errcode='42501',message='Owner access required'; end if;
+  insert into private.workspace_revisions(owner_id) values(auth.uid()) on conflict do nothing;
+  perform revision from private.workspace_revisions where owner_id=auth.uid() for update;
   delete from public.published_content where id in(select publication_id from private.publication_sources where kind=p_kind and source_id=p_source_id);
 end;
 $$;
-revoke all on function public.publish_content(text,text,text,date),public.unpublish_content(text,text) from public,anon;
-grant execute on function public.publish_content(text,text,text,date),public.unpublish_content(text,text) to authenticated;
+revoke all on function public.publish_content(text,text,text,text,date),public.unpublish_content(text,text) from public,anon;
+grant execute on function public.publish_content(text,text,text,text,date),public.unpublish_content(text,text) to authenticated;

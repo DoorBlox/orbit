@@ -103,12 +103,14 @@ export class Journal {
   getEntries(){this.commit();return structuredClone(this.entries);}
   replaceEntries(input,{persist=true}={}){clearTimeout(this.timer);this.entries=normalizeEntries(input);this.index=this.entries.length-1;this.saved=persist&&this.persistLocally?save(this.entries):true;this.render();this.onEntriesChange(this.entries);return this.saved;}
   updateCount(){const text=this.editor.textContent?.trim()||'';document.getElementById('journal-wordcount').textContent=`${text?text.split(/\s+/).length:0} words`;}
-  queueSave(){this.saved=false;this.saveIndicator.textContent='writing…';this.updateCount();clearTimeout(this.timer);this.timer=setTimeout(()=>this.commit(),500);}
+  queueSave(){if(this.readOnly||this.disposed)return;this.saved=false;this.saveIndicator.textContent='writing…';this.updateCount();clearTimeout(this.timer);if(!this.persistLocally){this.commit();return;}this.timer=setTimeout(()=>this.commit(),500);}
   commit(){if(this.disposed||this.readOnly)return true;clearTimeout(this.timer);const entry=this.entries[this.index];if(!entry)return;
     const beforeDate=entry.date,beforeTitle=entry.title,beforeHtml=entry.html;
     entry.title=this.title.value.trim().slice(0,120);
     entry.date=validDateKey(this.dateInput.value)?this.dateInput.value:beforeDate;
-    entry.html=sanitizeJournal(this.editor.innerHTML);entry.updatedAt=new Date().toISOString();
+    entry.html=sanitizeJournal(this.editor.innerHTML);
+    if(!this.persistLocally&&beforeDate===entry.date&&beforeTitle===entry.title&&beforeHtml===entry.html)return this.saved;
+    entry.updatedAt=new Date().toISOString();
     this.saved=this.persistLocally?save(this.entries):false;this.saveIndicator.textContent=this.readOnly?'published content':this.persistLocally?(this.saved?'saved on this device':'not saved — export a backup'):(this.saved?'saved to cloud':'waiting to sync');
     document.getElementById('journal-date-label').textContent=fmtDate(entry.date).toUpperCase();
     if(beforeDate!==entry.date||beforeTitle!==entry.title||beforeHtml!==entry.html)this.onEntriesChange(this.entries);

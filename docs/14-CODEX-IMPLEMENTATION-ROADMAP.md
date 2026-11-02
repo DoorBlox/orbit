@@ -1,6 +1,15 @@
 # 14 — Codex implementation roadmap (incremental, reviewable)
 
-## Current delivery state
+## Current approved delivery sequence
+
+- M0 baseline and M1 frontend stabilization: completed; M1 merged.
+- M2: protected Vercel development preview, Google OAuth, server-configured owner UUID, private-by-default persistence, explicit safe public projections, synchronization and security/browser acceptance. Implementation and actual gates are tracked in [M2 evidence](decisions/M2-IMPLEMENTATION.md) and PR #2. No public production release is authorized.
+- M2.5: Motion Polish, preserving the spatial scrapbook interaction model.
+- M3: official ORBIT 1.0.0 release, separately approved after privacy and release checks pass.
+
+The original plan below is retained as historical context. Its milestone numbering and local-only M2 boundary have been superseded by the explicit user authorization above.
+
+## Historical delivery state
 
 M0 is complete. Owner-authorized M1 engineering implementation and simulated acceptance are complete with [command, visual and risk evidence](decisions/M1-IMPLEMENTATION.md). Physical-device/full assistive-technology follow-up remains open before release. M2 and all deployment/database gates remain separate; no production readiness or cloud integration is implied.
 

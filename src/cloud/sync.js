@@ -72,7 +72,7 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
         if (!Number.isSafeInteger(result?.revision) || result.revision < revision) throw Object.assign(Error(),{code:'INVALID_RESPONSE'});
         const changed = result.revision > revision;
         if (changed) { revision = result.revision; onSnapshot(clone(result.snapshot)); }
-        status('saved');
+        if (!pending && !disposed) status('saved');
         return {ok:true,changed};
       } catch (error) {
         if (!disposed && changeVersion === requestVersion && !pending) failed(error);
@@ -90,9 +90,15 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
       if (disposed || changeVersion !== requestVersion || writePromise) return {ok:false,changed:false};
       if (!Number.isSafeInteger(result?.revision) || result.revision < revision) throw Object.assign(Error(),{code:'INVALID_RESPONSE'});
       // Keep the local draft until a replacement is actually available.
-      onSnapshot(clone(result.snapshot));
+      const oldPending = pending, oldRevision = revision;
       pending = null; revision = result.revision; ++changeVersion;
-      status('saved');
+      try { onSnapshot(clone(result.snapshot)); }
+      catch (error) {
+        // Preserve any newer edit queued by the consumer, including on failure.
+        if (!pending) { pending = oldPending; revision = oldRevision; }
+        throw error;
+      }
+      if (!pending && !disposed) status('saved');
       return {ok:true,changed:true};
     } catch (error) {
       if (!disposed && requestVersion === changeVersion) failed(error);

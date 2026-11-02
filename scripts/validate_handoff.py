@@ -47,5 +47,5 @@ for table in ('profiles','branches','tasks','journal_entries','milestones','widg
  for verb in ('select','insert','update','delete'):
   assert f'"{table}_{verb}_own"' in sql,(table,verb)
 assert 'service_role' not in sql
-print(f'PASS: {len(REQUIRED_DOCS)} handoff docs, relative Markdown links, original Git provenance and reviewed M1 hashes, JSON/TOML, 7 tables/RLS policy declarations')
+print(f'PASS: {len(REQUIRED_DOCS)} handoff docs, relative Markdown links, original Git provenance and reviewed M2 hashes, JSON/TOML, 7 tables/RLS policy declarations')
 print('CAUTION: SQL syntax execution and real RLS/authorization behavior NOT tested by this script.')

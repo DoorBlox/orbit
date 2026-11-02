@@ -22,7 +22,7 @@ export class CloudError extends Error {
 function cloudError(error) {
   if (error instanceof CloudError) return error;
   if (error?.name === 'AbortError') return new CloudError('ABORTED');
-  if (error?.code === '40001') return new CloudError('CONFLICT');
+  if (['40001','PT409'].includes(error?.code)) return new CloudError('CONFLICT');
   if (['PGRST301','PGRST302','PGRST303','401'].includes(String(error?.code)) || error?.status === 401) return new CloudError('AUTH_REQUIRED');
   if (error?.code === '42501' || error?.status === 403) return new CloudError('FORBIDDEN');
   if (['23503','23505','23514','22023','22P02'].includes(error?.code)) return new CloudError('VALIDATION');
@@ -115,6 +115,8 @@ export function createCloudRepository(client, { sanitizeHtml, ownerId } = {}) {
     },
     async publishContent(input, { signal } = {}) {
       const args = publicationArgs(input);
+      if(typeof input?.expectedTitle!=='string'||input.expectedTitle.length>180)throw new CloudError('VALIDATION');
+      args.p_expected_title=input.expectedTitle;
       await verifyOwner(signal);
       return publicProjection(await execute(() => client.rpc('publish_content',args),signal));
     },

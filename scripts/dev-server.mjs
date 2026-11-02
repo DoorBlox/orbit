@@ -4,6 +4,13 @@ import path from 'node:path';
 // Local-only development server. Serve only the browser-visible app, never .env/docs/supabase.
 const root = path.resolve(process.argv.includes('--dist') ? 'dist' : '.');
 const port = Number(process.env.PORT || 4173);
+// Only the build-validated public Supabase origin can extend the development CSP.
+let cloudOrigin = '';
+if (process.argv.includes('--dist')) {
+  const { runtimeConfig } = await import(new URL('../dist/src/runtime-config.js', import.meta.url));
+  if (runtimeConfig?.supabaseUrl) cloudOrigin = new URL(runtimeConfig.supabaseUrl).origin;
+}
+const connections = cloudOrigin ? `connect-src 'self' ${cloudOrigin}` : "connect-src 'none'";
 const mime = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8',
  '.css':'text/css; charset=utf-8','.svg':'image/svg+xml', '.json':'application/json; charset=utf-8',
  '.png':'image/png','.webp':'image/webp'};
@@ -24,7 +31,7 @@ const server = createServer(async (req,res)=>{
     if(!s.isFile()){res.writeHead(404).end();return;}
     res.writeHead(200,{'content-type':mime[path.extname(file)]||'application/octet-stream',
        'x-content-type-options':'nosniff','cache-control':'no-store',
-       'content-security-policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"});
+       'content-security-policy':`default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; ${connections}; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'`});
     if(req.method === 'HEAD'){res.end();return;}
     res.end(await readFile(file));
   } catch {res.writeHead(404).end('Not found');}

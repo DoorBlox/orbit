@@ -41,7 +41,13 @@ export function createAuthShell({ publicRelease, onSignIn, onSignOut, onExport, 
   const signOut=button('Sign out',onSignOut);
   const visitorSignIn=button('Owner sign-in',onSignIn);
   const ownerTools=document.createElement('div');ownerTools.id='cloud-owner-tools';ownerTools.hidden=true;
-  toolbar.append(mode,status,controls);root.append(gate,toolbar,ownerTools);document.body.append(root);
+  controls.append(ownerTools);toolbar.append(mode,status,controls);root.append(gate,toolbar);document.body.append(root);
+  const measure=()=>{
+    const height=toolbar.hidden?0:Math.ceil(toolbar.getBoundingClientRect().height+24);
+    document.documentElement.style.setProperty('--cloud-dock-height',`${height}px`);
+    document.body.classList.toggle('cloud-connected',height>0);
+  };
+  const resizeObserver=new ResizeObserver(measure);resizeObserver.observe(toolbar);
   let state={status:'idle'};
   function setState(next) {
     state=next;description.textContent=textByState[next.status]||textByState.error;
@@ -49,7 +55,7 @@ export function createAuthShell({ publicRelease, onSignIn, onSignOut, onExport, 
     signIn.hidden=next.status==='owner';
     gateSignOut.hidden=next.status!=='unauthorized';
     retryGate.hidden=next.status!=='error';
-    if(next.status!=='owner'){gate.hidden=false;toolbar.hidden=true;ownerTools.hidden=true;}
+    if(next.status!=='owner'){gate.hidden=false;toolbar.hidden=true;ownerTools.hidden=true;measure();}
   }
   function showApp(owner) {
     gate.hidden=true;toolbar.hidden=false;mode.textContent=owner?'Private owner space':'Published space · read only';
@@ -58,6 +64,7 @@ export function createAuthShell({ publicRelease, onSignIn, onSignOut, onExport, 
     visitorSignIn.hidden=owner;ownerTools.hidden=!owner;
     status.textContent=owner?'Cloud snapshot loaded':'Only explicitly published content is shown';
     retry.disabled=true;reload.hidden=true;
+    measure();
   }
   function setSyncStatus(next) {
     status.textContent=syncText[next.state]||syncText.error;
@@ -69,5 +76,5 @@ export function createAuthShell({ publicRelease, onSignIn, onSignOut, onExport, 
     setState({status:'error'});description.textContent=message;
   }
   setState(state);
-  return {setState,showApp,setSyncStatus,showError,ownerTools,dispose:()=>root.remove()};
+  return {setState,showApp,setSyncStatus,showError,ownerTools,dispose:()=>{resizeObserver.disconnect();root.remove();document.body.classList.remove('cloud-connected');document.documentElement.style.removeProperty('--cloud-dock-height');}};
 }

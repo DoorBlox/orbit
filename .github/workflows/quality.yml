@@ -40,6 +40,10 @@ jobs:
         env:
           ORBIT_BROWSER_BUNDLED: '1'
         run: python tests/qa_m1.py
+      - name: Cloud UI integration (mocked SDK)
+        env:
+          ORBIT_BROWSER_BUNDLED: '1'
+        run: python tests/qa_m2.py
       - name: Retain synthetic browser evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

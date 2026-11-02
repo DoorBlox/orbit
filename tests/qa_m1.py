@@ -57,6 +57,13 @@ def open_page(browser, size=(1440,900), seed=None, **options):
     return context,page,errors
 
 
+def reload_page(page):
+    # M2 mounts through an asynchronous bootstrap import; navigation completion
+    # alone no longer means the spatial app is constructed.
+    page.reload()
+    page.locator('#node-layer .graph-node').first.wait_for(state='attached')
+
+
 def saved(page):
     expect(page.locator('#journal-save-state')).to_have_text('saved on this device')
 
@@ -75,7 +82,7 @@ def viewport_flow(browser, label, size):
         saved(page)
         assert page.locator('.timeline-journal').count()==1
         page.screenshot(path=str(OUT/f'm1-{label}-journal.png'))
-        page.reload()
+        reload_page(page)
         expect(page.locator('#journal-entry-title')).to_have_value('M1 synthetic entry')
         expect(page.locator('#journal-editor')).to_contain_text('Synthetic M0 diagnostic entry.')
         focus(page,'journal')
@@ -102,7 +109,7 @@ def viewport_flow(browser, label, size):
             resize.focus();resize.press('ArrowRight')
             assert page.locator(f'#{name}-widget').evaluate('e=>e.offsetWidth')>=width
         layout=page.evaluate('window.orbitDebug.board.getLayout()')
-        page.reload()
+        reload_page(page)
         assert page.evaluate('window.orbitDebug.board.getLayout()')==layout
         assert not errors,errors
     except Exception:
@@ -134,7 +141,7 @@ def normal_flows(browser):
     focus(page,'completed')
     page.get_by_role('button',name='Reopen').last.focus()
     page.get_by_role('button',name='Reopen').last.press('Enter')
-    page.reload()
+    reload_page(page)
     assert page.locator(f'.task-row[data-task-id="{task_id}"]').count()==1
     focus(page,'constellation')
     page.locator('#color-mode').click()
@@ -177,7 +184,7 @@ def normal_flows(browser):
     expect(page.locator('.timeline-milestone')).to_have_count(0)
     expect(page.locator('#toast button')).to_have_text('Undo')
     page.locator('#toast button').press('Enter')
-    page.reload()
+    reload_page(page)
     expect(page.locator('.timeline-milestone')).to_have_count(1)
     # Export/restore UI path, including V6 dimensions and dated journal.
     with page.expect_download() as download: page.locator('#backup-json').evaluate('e=>e.click()')
@@ -246,7 +253,7 @@ def failure_security_flows(browser):
     }''')
     assert result['cancelled'] and '<strong>bold</strong>' in result['html']
     assert not any(x in result['html'] for x in ['onclick','onerror','javascript:','<svg','<img'])
-    saved(page);assert page.evaluate('window.__xss')==0;page.reload();assert page.evaluate('window.__xss||0')==0
+    saved(page);assert page.evaluate('window.__xss')==0;reload_page(page);assert page.evaluate('window.__xss||0')==0
     assert not errors,errors;context.close()
     # Inject a mid-restore write failure through the real UI; memory and disk remain prior.
     context,page,errors=open_page(browser)

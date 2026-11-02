@@ -131,6 +131,17 @@ export class SpatialBoard {
     // Keep the heading reachable in short landscape windows without shrinking text.
     // Tab and spatial panning reveal the lower controls; saved coordinates stay intact.
     if(id!=='constellation'&&sh*scale>h-104)target.y=80-p.y*scale;
+    // Cloud controls reserve viewport space. Keep quick capture reachable on
+    // short phones without shrinking the graph or changing saved coordinates.
+    if(id==='constellation'&&!this.persistLocally){
+      const capture=item.querySelector('.capture-form');
+      if(capture){
+        const widgetRect=item.getBoundingClientRect(),captureRect=capture.getBoundingClientRect();
+        const localBottom=(captureRect.bottom-widgetRect.top)/Math.max(this.scale,.001);
+        const bottom=target.y+(p.y+localBottom)*scale;
+        if(bottom>h-24)target.y-=bottom-(h-24);
+      }
+    }
     this.animate(target,initial?0:520);
   }
   ensureVisible(control){

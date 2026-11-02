@@ -71,3 +71,8 @@
 - Historical V6 docs under `docs/` remain as source context; numbered handoff docs and root AGENTS take precedence for future production implementation.
 - Official references: https://supabase.com/docs/guides/database/postgres/row-level-security ; https://supabase.com/docs/guides/local-development ; https://vercel.com/docs/builds/configure-a-build ; https://vercel.com/changelog/protect-production-deployments-for-free-on-every-plan .
 - Data examples in `supabase/seed.sql` are invented **synthetic development fixtures**, not claims about user's actual tasks or journal entries.
+
+
+## M2 approved scope (2 November 2026, Asia/Jakarta)
+
+The owner authorized a $0-only separate Supabase development project under doorblox's projects, protected Vercel previews, and cloud integration in M2. The app remains vanilla ES modules; the pinned Supabase SDK is isolated in one esbuild bundle. Authorization uses an administratively configured Auth UUID, independent of login provider. Google is the initial provider. Public viewing uses a separate explicit publication projection and is disabled in development. Local imports require explicit review and confirmation; journal data is never automatically uploaded. No production database, paid resource, public deployment, merge or release is authorized. M2.5 is Motion Polish; M3 is ORBIT 1.0.0.

@@ -102,9 +102,9 @@ const widgets=new ScrapWidgets({
   }
 });
 
-const board=new SpatialBoard({notify:(...args)=>message(...args),initialLayout:initialSnapshot?.spatialLayout,readOnly,persistLocally,onLayoutChange:()=>emitChange()});
+const board=new SpatialBoard({notify:(...args)=>message(...args),initialLayout:initialSnapshot?(initialSnapshot.spatialLayout||{}):undefined,readOnly,persistLocally,onLayoutChange:()=>emitChange()});
 board.onWidgetResize=id=>{if(id==='constellation')requestAnimationFrame(()=>scene.onResize());};
-const journal=new Journal({initialEntries:initialSnapshot?.journalEntries,readOnly,persistLocally,notify:(s,...args)=>message(s,...args),onEntriesChange:entries=>{widgets.setJournalEntries(entries);emitChange();}});
+const journal=new Journal({initialEntries:initialSnapshot?(initialSnapshot.journalEntries||[]):undefined,readOnly,persistLocally,notify:(s,...args)=>message(s,...args),onEntriesChange:entries=>{widgets.setJournalEntries(entries);emitChange();}});
 widgets.setJournalEntries(journal.entries);
 
 // Previously saved task IDs are never discarded. An orphaned assignment is
@@ -157,6 +157,7 @@ function switchCaptureMode(mode){
   scene.highlightTasks(null);updateCaptureTarget();input.focus();
 }
 function sync({persist=true}={}){
+  if(disposed)return false;
   if(persist&&persistLocally&&!readOnly){
     const tasksOk=saveTasks(state.tasks),branchesOk=saveBranches(state.branches);lastSaveOk=tasksOk&&branchesOk;
     for(const [key,ok] of [[STORAGE_KEYS.tasks,tasksOk],[STORAGE_KEYS.branches,branchesOk]]){if(ok)pendingWrites.delete(key);else pendingWrites.add(key);}
@@ -248,6 +249,7 @@ function initTools(){
     try{
       if(file.size>6_000_000)throw Error('File is too large (limit: 6 MB).');
       const contents=await file.text();
+      if(disposed||readOnly)return;
       if(file.name.toLowerCase().endsWith('.json')){
         const data=contents;
         message('Restore complete backup? This replaces current branches and tasks. Export a backup first.',10000,
@@ -317,5 +319,5 @@ function applySnapshot(snapshot){
 }
 function setCloudStatus(status){cloudStatus=status;journal.setCloudStatus(status);}
 function dispose(){if(disposed)return;disposed=true;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);board.dispose();journal.dispose();scene.dispose();window.orbitDebug=null;}
-return {getSnapshot,applySnapshot,setCloudStatus,dispose,exportBackup:backupJson};
+return {getSnapshot,applySnapshot,setCloudStatus,dispose,flushEditor:()=>journal.commit(),exportBackup:backupJson};
 }

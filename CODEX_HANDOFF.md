@@ -1,8 +1,12 @@
 # ORBIT V6 → production: Codex handoff
 
-## Current handoff: M1 completed locally
+## Current handoff: M2 implementation in PR #2
 
-M0 and owner-approved M1 are complete. See [M1 implementation and commands](docs/decisions/M1-IMPLEMENTATION.md), [security review](docs/decisions/M1-SECURITY-REVIEW.md) and [protected-preview checklist](docs/decisions/M1-PREVIEW-CHECKLIST.md). The original V6 Git blobs/manifest remain verifiable; current intentional source changes use a separate reviewed M1 inventory. Runtime is still static/native modules and localStorage, with no Auth/Supabase connection. Automatic Vercel Git deployment is disabled. Next action is owner PR review; M2/local DB and deployment remain separately gated.
+Continue branch `codex/m2-protected-cloud`, PR #2. M1 is merged. M2 introduces protected cloud Auth, UUID owner authorization, snapshot persistence, explicit publication projections, consent-based local import and conflict-aware synchronization. See [M2 execution evidence](docs/decisions/M2-IMPLEMENTATION.md) and [security review](docs/decisions/M2-SECURITY-REVIEW.md) for actual verification and remaining gates. Local mode and original V6/M1 provenance remain supported.
+
+The development migrations have been applied to `orbit-development` (`ixfgavgtwuzdgucjriec`). Owner UUID is deliberately unconfigured and public reads disabled. Vercel `orbit-personal-dev` has all-deployments protection. Real Google sign-in, owner provisioning and hosted browser acceptance remain required; do not declare M2 complete before those pass. No personal data was automatically imported.
+
+Current delivery numbering: **M2 protected cloud integration → M2.5 Motion Polish → M3 official ORBIT 1.0.0 release**. The older milestone numbering below is historical and superseded by the user's approved scope.
 
 The remaining sections preserve the original handoff context except where explicitly updated below.
 
