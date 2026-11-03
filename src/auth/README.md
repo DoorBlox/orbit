@@ -5,7 +5,7 @@ DOM mounting and the cloud repository; this module never reads the local V6 diar
 hydrates demo records, stores provider tokens, or decides ownership using an email
 or a public client-side owner UUID.
 
-The visible default is **Email OTP for existing users only**, using `requestEmailOtp(email)` and `verifyEmailOtp(token)`. See [administrator setup and acceptance](../../docs/decisions/M2-EMAIL-OTP.md). Google OAuth remains available through `signInWithGoogle()` without a visible button. The supplied client retains PKCE, `detectSessionInUrl: true`
+The visible default for no-domain M2 acceptance is **Email + Password** via `signInWithPassword(email,password)`; see [password close-out](../../docs/decisions/M2-PASSWORD-CLOSEOUT.md). Retained Email OTP for existing users only is optional, using `requestEmailOtp(email)` and `verifyEmailOtp(token)`. See [administrator setup and acceptance](../../docs/decisions/M2-EMAIL-OTP.md). Google OAuth remains available through `signInWithGoogle()` without a visible button. The supplied client retains PKCE, `detectSessionInUrl: true`
 and the project's exact configured redirect. The controller requests only
 `openid email profile` scopes and rejects a redirect on a different current origin,
 credentials in URLs, query/fragment redirects, and non-HTTPS production URLs.

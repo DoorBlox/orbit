@@ -70,9 +70,9 @@ export class AuthController {
   handleEvent(event, session) {
     if (this.disposed || event === 'INITIAL_SESSION') return;
     if (this.signingOut && event !== 'SIGNED_OUT') return;
-    // verifyOtp emits SIGNED_IN before its promise resolves. Only its current
+    // SDK sign-ins emit SIGNED_IN before their promises resolve. Only the current
     // operation may initiate verification; late events after logout are ignored.
-    if (this.otpPending?.kind==='verify' && event !== 'SIGNED_OUT') return;
+    if (['verify','password'].includes(this.otpPending?.kind) && event !== 'SIGNED_OUT') return;
     if (event === 'SIGNED_OUT' || !session?.user?.id) {
       this.cancelEmailOtp();
       const expired = !this.signingOut && this.state.status === 'owner';
@@ -193,6 +193,26 @@ export class AuthController {
       this.otpPending=null;
       if(!this.disposed)this.onOtpState(this.getOtpState());
     }
+  }
+
+  async signInWithPassword(email,password) {
+    if(this.disposed||this.signingOut||this.otpPending||this.state.status==='owner')return false;
+    const address=typeof email==='string'?email.trim():'';
+    if(address.length>254||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)||typeof password!=='string'||!password||password.length>4096){
+      this.publish('signed-out',null,'PASSWORD_SIGN_IN_FAILED');return false;
+    }
+    this.cancelEmailOtp();
+    const operation={epoch:this.otpEpoch,kind:'password'};this.otpPending=operation;
+    this.revoke('password-signing-in');
+    try{
+      const result=await this.client.auth.signInWithPassword({email:address,password});
+      if(this.disposed||operation.epoch!==this.otpEpoch){await this.client.auth.signOut({scope:'local'});return false;}
+      if(result?.error)throw result.error;
+      await this.refresh(false);return this.state.status==='owner';
+    }catch(error){
+      if(!this.disposed&&operation.epoch===this.otpEpoch)this.revoke('signed-out',error?.status===429?'PASSWORD_RATE_LIMITED':'PASSWORD_SIGN_IN_FAILED');
+      return false;
+    }finally{this.otpPending=null;if(!this.disposed)this.onOtpState(this.getOtpState());}
   }
 
   async signInWithGoogle() {

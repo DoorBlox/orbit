@@ -54,6 +54,7 @@ export async function createCloudClient(){
     auth:{
       async getUser(){fixture.calls.push({type:'getUser'});if(fixture.delayAuth)await new Promise(resolve=>setTimeout(resolve,fixture.delayAuth));return {data:{user:fixture.user},error:null};},
       onAuthStateChange(callback){fixture.listener=callback;return {data:{subscription:{unsubscribe(){fixture.unsubscribed=true;}}}};},
+      async signInWithPassword(){fixture.calls.push({type:'password-login'});if(fixture.passwordError)return {error:fixture.passwordError};fixture.user={id:'11111111-1111-4111-8111-111111111111'};fixture.listener('SIGNED_IN',{user:fixture.user});return {error:null};},
       async signInWithOtp(options){fixture.calls.push({type:'otp-request',existingOnly:options.options.shouldCreateUser===false});return {error:fixture.otpSendError||null};},
       async verifyOtp(options){fixture.calls.push({type:'otp-verify',emailType:options.type==='email'});if(fixture.otpVerifyError)return {error:fixture.otpVerifyError};fixture.user={id:'11111111-1111-4111-8111-111111111111'};fixture.listener('SIGNED_IN',{user:fixture.user});return {error:null};},
       async signInWithOAuth(options){fixture.calls.push({type:'oauth',options});return {data:{url:'https://mock.invalid'},error:null};},
@@ -190,17 +191,12 @@ def gate_case(browser,size,mode,source):
         screenshot=OUT/f'm2-{mode}-{size[0]}.png';page.screenshot(path=str(screenshot))
         assert page.get_by_role('button',name='Sign in with Google').count()==0
         page.get_by_label('Email address',exact=True).fill('synthetic@example.invalid')
-        page.get_by_role('button',name='Send login code',exact=True).click()
-        expect(page.locator('#login-feedback')).to_contain_text('If this address is eligible')
-        request=page.evaluate("window.__m2Fixture.calls.find(call=>call.type==='otp-request')")
-        assert request['existingOnly']
-        expect(page.get_by_role('button',name=re.compile('Resend code'))).to_be_disabled()
-        assert page.locator('#app').inner_text()==''
-        page.get_by_label('Six-digit login code',exact=True).fill('123456')
-        page.get_by_role('button',name='Verify and sign in',exact=True).click()
+        page.get_by_label('Password',exact=True).fill('synthetic-password')
+        page.get_by_role('button',name='Sign in with password',exact=True).click()
         expect(page.locator('.cloud-gate-message')).to_contain_text('cannot open the private space')
         assert page.locator('#app').inner_text()==''
-        assert page.evaluate("window.__m2Fixture.calls.find(call=>call.type==='otp-verify').emailType")
+        assert page.get_by_label('Password',exact=True).input_value()==''
+        assert page.evaluate("window.__m2Fixture.calls.some(call=>call.type==='password-login')")
         assert not errors,errors
     finally:close_context(ctx,page)
 
@@ -404,8 +400,9 @@ def local_compatibility(browser,source):
 def otp_flow_case(browser,source):
     ctx,page,errors=cloud_context(browser,(390,844),'signed-out',source=source)
     try:
+        page.get_by_text('Email code (requires configured email delivery)',exact=True).click()
         expect(page.get_by_role('button',name='Send login code',exact=True)).to_be_enabled()
-        page.get_by_label('Email address',exact=True).fill('synthetic@example.invalid')
+        page.get_by_label('Email address for email code',exact=True).fill('synthetic@example.invalid')
         page.get_by_role('button',name='Send login code',exact=True).click()
         expect(page.locator('#login-feedback')).to_contain_text('If this address is eligible')
         expect(page.get_by_label('Six-digit login code',exact=True)).to_be_focused()
@@ -421,7 +418,7 @@ def otp_flow_case(browser,source):
         assert page.locator('#login-code').input_value()==''
         page.locator('.cloud-toolbar').get_by_role('button',name='Sign out',exact=True).click()
         expect(page.locator('#app')).to_be_hidden()
-        assert page.get_by_label('Email address',exact=True).input_value()==''
+        assert page.get_by_label('Email address for email code',exact=True).input_value()==''
         page.screenshot(path=str(OUT/'m2-email-otp-390.png'))
         assert not errors,errors
     finally:close_context(ctx,page)
@@ -431,13 +428,35 @@ def otp_failure_case(browser,source):
     for error,message in [({'code':'email_address_not_authorized'},'could not be completed'),({'status':429},'Too many attempts'),({'code':'email_provider_disabled'},'could not be completed')]:
         ctx,page,errors=cloud_context(browser,(320,700),'signed-out',source=source)
         try:
+            page.get_by_text('Email code (requires configured email delivery)',exact=True).click()
             expect(page.get_by_role('button',name='Send login code',exact=True)).to_be_enabled()
             page.evaluate('(error)=>{window.__m2Fixture.otpSendError=error}',error)
-            page.get_by_label('Email address',exact=True).fill('synthetic@example.invalid')
+            page.get_by_label('Email address for email code',exact=True).fill('synthetic@example.invalid')
             page.get_by_role('button',name='Send login code',exact=True).click()
             expect(page.locator('#login-feedback')).to_contain_text(message)
             expect(page.get_by_role('button',name='Verify and sign in')).to_be_disabled()
             assert page.locator('#app').inner_text()==''
+            assert not errors,errors
+        finally:close_context(ctx,page)
+
+
+def password_case(browser,source):
+    for failure in [None,{'code':'invalid_credentials'},{'status':429}]:
+        ctx,page,errors=cloud_context(browser,(320,700),'signed-out',source=source)
+        try:
+            expect(page.get_by_role('button',name='Sign in with password',exact=True)).to_be_enabled()
+            page.evaluate('(error)=>{window.__m2Fixture.passwordError=error;window.__m2Fixture.allowed=true}',failure)
+            page.get_by_label('Email address',exact=True).fill('synthetic@example.invalid')
+            page.get_by_label('Password',exact=True).fill('synthetic-password')
+            page.get_by_role('button',name='Sign in with password',exact=True).click()
+            if failure:
+                expect(page.locator('.cloud-gate-message')).to_contain_text('Too many' if failure.get('status')==429 else 'Sign-in failed')
+                assert page.locator('#app').inner_text()==''
+            else:
+                expect(page.locator('.cloud-mode')).to_have_text('Private owner space')
+                page.locator('.cloud-toolbar').get_by_role('button',name='Sign out',exact=True).click()
+                expect(page.locator('#app')).to_be_hidden()
+            assert page.get_by_label('Password',exact=True).input_value()==''
             assert not errors,errors
         finally:close_context(ctx,page)
 
@@ -447,7 +466,7 @@ def main():
     OUT.mkdir(exist_ok=True);results=[]
     with server(args.source),sync_playwright() as p:
         browser=p.chromium.launch(headless=True,executable_path=os.environ.get('CHROMIUM_PATH') or shutil.which('chromium'),args=['--no-sandbox'])
-        cases=[('otp-flow',lambda:otp_flow_case(browser,args.source)),('otp-failures',lambda:otp_failure_case(browser,args.source)),('local-compatibility',lambda:local_compatibility(browser,args.source)),('journal-refresh-save-races',lambda:journal_races(browser,args.source)),('immediate-logout-draft',lambda:immediate_logout_draft(browser,args.source)),('owner-opt-in-tools',lambda:owner_tools_case(browser,args.source)),('owner-empty-expiry',lambda:owner_lifecycle_case(browser,args.source))]
+        cases=[('password-flow',lambda:password_case(browser,args.source)),('otp-flow',lambda:otp_flow_case(browser,args.source)),('otp-failures',lambda:otp_failure_case(browser,args.source)),('local-compatibility',lambda:local_compatibility(browser,args.source)),('journal-refresh-save-races',lambda:journal_races(browser,args.source)),('immediate-logout-draft',lambda:immediate_logout_draft(browser,args.source)),('owner-opt-in-tools',lambda:owner_tools_case(browser,args.source)),('owner-empty-expiry',lambda:owner_lifecycle_case(browser,args.source))]
         for label,size in [('desktop',(1440,900)),('tablet',(900,1100)),('phone',(390,844)),('small',(320,700))]:
             for mode in ['signed-out','nonowner']:
                 cases.append((f'{mode}-{label}',lambda s=size,m=mode:gate_case(browser,s,m,args.source)))

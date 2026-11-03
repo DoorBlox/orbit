@@ -1,6 +1,7 @@
 const textByState = {
   idle: 'Preparing your space…', restoring: 'Checking your private session…',
   'signing-in': 'Opening Google sign-in…',
+  'password-signing-in': 'Signing in and checking your access…',
   'signed-out': 'Sign in to open your private ORBIT space.',
   unauthorized: 'This account cannot open the private space.',
   expired: 'Your session ended. Sign in again to continue.',
@@ -14,7 +15,7 @@ const syncText = {
 };
 
 /** Small native shell around the unchanged spatial app; no user HTML is interpolated. */
-export function createAuthShell({ publicRelease, onRequestOtp, onVerifyOtp, onCancelOtp, onSignOut, onExport, onRetry, onReload } = {}) {
+export function createAuthShell({ publicRelease, onPasswordSignIn, onRequestOtp, onVerifyOtp, onCancelOtp, onSignOut, onExport, onRetry, onReload } = {}) {
   document.getElementById('cloud-shell')?.remove();
   const root=document.createElement('section');root.id='cloud-shell';root.className='cloud-shell';
   root.setAttribute('aria-label','Cloud access and saving');
@@ -31,9 +32,16 @@ export function createAuthShell({ publicRelease, onRequestOtp, onVerifyOtp, onCa
     const element=document.createElement('button');element.type='button';element.className='glass-button';element.textContent=label;
     element.addEventListener('click',()=>{void handler?.();});parent.append(element);return element;
   }
-  const login=document.createElement('form');login.className='cloud-email-login';gate.append(login);
+  const passwordLogin=document.createElement('form');passwordLogin.className='cloud-email-login';gate.append(passwordLogin);
+  function passwordField(label,id){const wrap=document.createElement('label');wrap.textContent=label;const input=document.createElement('input');input.id=id;wrap.append(input);passwordLogin.append(wrap);return input;}
+  const passwordEmail=passwordField('Email address','password-email');passwordEmail.type='email';passwordEmail.autocomplete='username';passwordEmail.maxLength=254;passwordEmail.required=true;
+  const password=passwordField('Password','login-password');password.type='password';password.autocomplete='current-password';password.maxLength=4096;password.required=true;
+  const passwordSubmit=button('Sign in with password',null,passwordLogin);passwordSubmit.type='submit';
+  passwordLogin.addEventListener('submit',async event=>{event.preventDefault();const secret=password.value;password.value='';await onPasswordSignIn?.(passwordEmail.value,secret);});
+  const otpDetails=document.createElement('details');const otpSummary=document.createElement('summary');otpSummary.textContent='Email code (requires configured email delivery)';otpDetails.append(otpSummary);gate.append(otpDetails);
+  const login=document.createElement('form');login.className='cloud-email-login';otpDetails.append(login);
   function field(label,id){const wrapper=document.createElement('label');wrapper.textContent=label;const input=document.createElement('input');input.id=id;wrapper.append(input);login.append(wrapper);return input;}
-  const email=field('Email address','login-email');email.type='email';email.autocomplete='email';email.maxLength=254;email.required=true;
+  const email=field('Email address for email code','login-email');email.type='email';email.autocomplete='email';email.maxLength=254;email.required=true;
   const send=button('Send login code',()=>{if(email.reportValidity())void onRequestOtp?.(email.value);},login);
   const token=field('Six-digit login code','login-code');token.type='text';token.inputMode='numeric';token.autocomplete='one-time-code';token.maxLength=6;token.pattern='[0-9]{6}';token.setAttribute('aria-describedby','login-feedback');
   const verify=button('Verify and sign in',null,login);verify.type='submit';
@@ -57,7 +65,9 @@ export function createAuthShell({ publicRelease, onRequestOtp, onVerifyOtp, onCa
   }
   function updateCooldown(){
     const seconds=Math.max(0,Math.ceil((otp.resendAt-Date.now())/1000));
-    const locked=['idle','restoring','signing-in','owner','disposed'].includes(state.status);
+    const locked=['idle','restoring','signing-in','password-signing-in','owner','disposed'].includes(state.status);
+    passwordSubmit.disabled=passwordEmail.disabled=password.disabled=locked||otp.busy;
+    passwordLogin.setAttribute('aria-busy',String(state.status==='password-signing-in'));
     send.disabled=resend.disabled=otp.busy||locked||seconds>0;
     resend.textContent=seconds?`Resend code (${seconds}s)`:'Resend code';
     send.textContent=seconds&&!otp.hasChallenge?`Send login code (${seconds}s)`:'Send login code';
@@ -83,8 +93,10 @@ export function createAuthShell({ publicRelease, onRequestOtp, onVerifyOtp, onCa
   let state={status:'idle'};
   function setState(next) {
     state=next;description.textContent=textByState[next.status]||textByState.error;
+    if(next.code==='PASSWORD_SIGN_IN_FAILED')description.textContent='Sign-in failed. Check your credentials or connection and try again.';
+    if(next.code==='PASSWORD_RATE_LIMITED')description.textContent='Too many sign-in attempts. Wait before trying again.';
     login.hidden=next.status==='owner';
-    if(['owner','signed-out','expired','disposed'].includes(next.status)){email.value='';token.value='';}
+    if(['owner','signed-out','expired','disposed'].includes(next.status)){email.value='';token.value='';password.value='';if(next.code!=='PASSWORD_SIGN_IN_FAILED'&&next.code!=='PASSWORD_RATE_LIMITED')passwordEmail.value='';}
     updateCooldown();
     gateSignOut.hidden=next.status!=='unauthorized';
     retryGate.hidden=next.status!=='error';
@@ -106,7 +118,7 @@ export function createAuthShell({ publicRelease, onRequestOtp, onVerifyOtp, onCa
     if(next.errorCode==='AUTH_REQUIRED')status.textContent='Session verification required — this draft is not saved';
   }
   function showError(message='Cloud setup is unavailable. Your private space remains closed.') {
-    setState({status:'error'});login.hidden=true;description.textContent=message;
+    setState({status:'error'});login.hidden=true;passwordLogin.hidden=true;description.textContent=message;
   }
   setState(state);
   setOtpState(otp);

@@ -35,6 +35,7 @@ export async function bootstrapOrbit(config=runtimeConfig) {
   },{signal:lifecycle.signal});
   const publicRelease=config?.publicRelease===true;
   const shell=createAuthShell({publicRelease,
+    onPasswordSignIn:(email,password)=>auth?.signInWithPassword(email,password),
     onRequestOtp:email=>auth?.requestEmailOtp(email),
     onVerifyOtp:token=>auth?.verifyEmailOtp(token),
     onCancelOtp:()=>auth?.cancelEmailOtp(),

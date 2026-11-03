@@ -2,7 +2,11 @@
 
 Execution record: 2 November 2026 (Asia/Jakarta). PR #2, `codex/m2-protected-cloud`; M1 base `846ad7d`, recovery checkpoint `b57c444`. M2.5 is Motion Polish; M3 is the official ORBIT 1.0.0 release. M2 remains incomplete until hosted Google/owner and deployed browser acceptance pass.
 
-## Minimal Email OTP follow-up
+## No-domain password acceptance follow-up
+
+Temporary password login now permits M2 acceptance without sending email. The existing confirmed identity was read-only verified and explicitly confirmed by the owner; no hosted user/password/owner configuration was changed by this patch. [Exact setup and current blockers](M2-PASSWORD-CLOSEOUT.md). OTP and Google are retained; OTP delivery is untested.
+
+## Historical Email OTP follow-up
 
 The visible default is now existing-user Email OTP; Google implementation remains available but hidden. No schema, RLS, owner UUID, public-read or production resource changes. [Exact Supabase setup and acceptance](M2-EMAIL-OTP.md) supersedes the Google-only manual steps below for current acceptance.
 

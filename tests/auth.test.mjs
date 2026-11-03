@@ -351,3 +351,39 @@ test('pending delivery after logout cannot restore the challenge',async()=>{
   const pending=f.controller.requestEmailOtp('owner@example.invalid');await f.controller.signOut();request.resolve({error:null});await pending;
   assert.equal(f.controller.getOtpState().hasChallenge,false);assert.equal(f.controller.getOtpState().status,'idle');
 });
+
+test('password login verifies getUser and the UUID RPC; credentials never enter state',async()=>{
+  let args;const f=setup({auth:{signInWithPassword:async value=>{args=value;return {error:null};}}});
+  assert.equal(await f.controller.signInWithPassword(' owner@example.invalid ','synthetic-password'),true);
+  assert.deepEqual(args,{email:'owner@example.invalid',password:'synthetic-password'});
+  assert.ok(f.calls.includes('orbit_owner_access'));assert.equal(f.controller.getState().status,'owner');
+  assert.equal(JSON.stringify(f.controller.getState()).includes('synthetic-password'),false);
+});
+test('password success never authorizes a nonowner',async()=>{
+  const f=setup({rpc:async()=>({data:false,error:null}),auth:{signInWithPassword:async()=>({error:null})}});
+  assert.equal(await f.controller.signInWithPassword('other@example.invalid','synthetic-password'),false);
+  assert.equal(f.controller.getState().status,'unauthorized');assert.equal(f.events.some(([e])=>e==='owner'),false);
+});
+for(const error of [{code:'invalid_credentials'},{status:429},new TypeError('credential payload')])test(`password failures remain generic: ${error.code||error.status||error.name}`,async()=>{
+  const f=setup({auth:{signInWithPassword:async()=>{throw error;}}});
+  assert.equal(await f.controller.signInWithPassword('owner@example.invalid','synthetic-password'),false);
+  assert.equal(f.controller.getState().status,'signed-out');
+  assert.equal(JSON.stringify(f.controller.getState()).includes('credential payload'),false);
+  assert.equal(f.events.some(([e])=>e==='owner'),false);
+});
+test('password request blocks duplicates/OTP/Google and cannot remount after logout',async()=>{
+  const pending=deferred();let calls=0;const f=setup({auth:{signInWithPassword:()=>{calls++;return pending.promise;}}});
+  await f.controller.start();await f.controller.signOut();f.events.length=0;
+  const login=f.controller.signInWithPassword('owner@example.invalid','synthetic-password');
+  assert.equal(await f.controller.signInWithPassword('owner@example.invalid','synthetic-password'),false);
+  assert.equal(await f.controller.requestEmailOtp('owner@example.invalid'),false);
+  assert.equal(await f.controller.signInWithGoogle(),false);
+  await f.controller.signOut();f.emit('SIGNED_IN',{user});pending.resolve({error:null});await login;await pause();
+  assert.equal(calls,1);assert.equal(f.events.some(([e])=>e==='owner'),false);assert.equal(f.controller.getState().status,'signed-out');
+});
+test('password validation and disposal reject SDK work',async()=>{
+  let calls=0;const f=setup({auth:{signInWithPassword:async()=>{calls++;return {error:null};}}});
+  assert.equal(await f.controller.signInWithPassword('bad','x'),false);
+  assert.equal(await f.controller.signInWithPassword('owner@example.invalid',''),false);
+  f.controller.dispose();assert.equal(await f.controller.signInWithPassword('owner@example.invalid','x'),false);assert.equal(calls,0);
+});

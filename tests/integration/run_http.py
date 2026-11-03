@@ -217,7 +217,13 @@ def browser_test(payload):
                 if session:context.add_init_script("sessionStorage.setItem('orbit.cloud.auth',"+json.dumps(json.dumps(session))+");")
                 page=context.new_page();page.goto(BASE);page.wait_for_function('Boolean(window.orbitReady)');page.evaluate('window.orbitReady')
                 return page
-            owner_page=page_for(payload['owner'])
+            owner_page=page_for(None)
+            owner_page.get_by_label('Email address',exact=True).fill('orbit-owner@example.invalid')
+            owner_page.get_by_label('Password',exact=True).fill(payload['password'])
+            owner_page.get_by_role('button',name='Sign in with password',exact=True).click()
+            expect(owner_page.locator('.cloud-mode')).to_have_text('Private owner space')
+            assert owner_page.get_by_label('Password',exact=True).input_value()==''
+            print('PASS browser real password sign-in through owner getUser/RPC gate',flush=True)
             expect(owner_page.locator('#app')).to_be_visible()
             expect(owner_page.locator('#active-task-list')).to_contain_text('Real HTTP saved task')
             owner_page.locator('#capture-name').fill('Real browser task')

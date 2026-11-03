@@ -1,3 +1,5 @@
+> Superseded for current acceptance: [temporary password close-out](M2-PASSWORD-CLOSEOUT.md). The observed Dashboard requires custom SMTP to edit this template. Built-in SMTP does not unlock the required Token customization. Email OTP delivery remains untested; do not create another user.
+
 # M2 minimal Email OTP patch
 
 Default sign-in is now Email OTP for existing users only. Google `signInWithGoogle()` and its PKCE implementation remain available in the controller and unit tests, with no visible Google button. No new dependency, migration, Auth user, owner assignment, public-read change, production resource change or signup enablement is part of this patch.

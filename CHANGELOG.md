@@ -1,3 +1,8 @@
+## M2 no-domain password acceptance — 2026-11-03
+
+- Add temporary password sign-in; retain OTP and Google without changing UUID authorization or RLS.
+- Verify the existing confirmed identity, document administrator password/owner setup, and distinguish hosted password acceptance from untested OTP delivery.
+
 ## M2 Email OTP patch — 2026-11-02
 
 - Use existing-user Email OTP as the visible sign-in method; retain Google OAuth for future configuration.
