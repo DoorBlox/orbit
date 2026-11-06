@@ -47,6 +47,21 @@ def reduced_motion(page):
     page.emulate_media(reduced_motion='no-preference')
 
 
+def spring_settling(page):
+    before = page.evaluate('''()=>{
+      const s=window.orbitDebug.scene;
+      const baseline={node:s.domNodes.get('inbox').style.transform,edges:s.edgeEntries.map(e=>e.path.getAttribute('d'))};
+      s.offsets.set('inbox',{x:100,y:40,vx:0,vy:0});s.applyOffsets();s.startSpring();
+      return baseline;
+    }''')
+    qa.wait_until(page, 'window.orbitDebug.scene.offsets.size===0&&window.orbitDebug.scene.springAnimation===0')
+    after = page.evaluate('''()=>{
+      const s=window.orbitDebug.scene;
+      return {node:s.domNodes.get('inbox').style.transform,edges:s.edgeEntries.map(e=>e.path.getAttribute('d'))};
+    }''')
+    assert before == after, 'Nodes and connected edges did not return to their original geometry'
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--source', action='store_true')
@@ -61,7 +76,7 @@ def main():
             try:
                 expect(page.locator('.cloud-mode')).to_have_text('Private owner space')
                 page.emulate_media(reduced_motion='no-preference')
-                for name, run in [('interruption',interruption),('reduced-motion',reduced_motion)]:
+                for name, run in [('interruption',interruption),('reduced-motion',reduced_motion),('spring-settling',spring_settling)]:
                     started = time.monotonic()
                     try:
                         run(page)

@@ -36,6 +36,12 @@ function scene() {
     viewport: { getBoundingClientRect: () => ({ left: 0, top: 0, width: 800, height: 600 }) },
   });
 }
+function springScene() {
+  return Object.assign(scene(), {
+    springAnimation: 0, gesture: null,
+    offsets: new Map([['node', { x: 100, y: 0, vx: 0, vy: 0 }]]), applyOffsets() {},
+  });
+}
 function wheel(excluded = false) {
   return { target: { closest: () => excluded }, deltaX: 17, deltaY: 120,
     preventDefault() {}, ctrlKey: false, metaKey: false };
@@ -129,5 +135,43 @@ test('board teardown clears its animation handle and cancels pending rendering',
   b.dispose(); raf.step(1000);
   assert.equal(renders, 0);
   assert.equal(b.raf, 0);
+  assert.equal(raf.pending(), 0);
+});
+
+test('elastic settling takes the same wall-clock time at 60Hz and 120Hz', t => {
+  const raf = clock(t);
+  const run = hz => {
+    const s = springScene(), start = performance.now(); s.startSpring();
+    for (let i = 0; i < 300 && raf.pending(); i++) raf.step(1000 / hz);
+    assert.equal(s.offsets.size, 0);
+    assert.equal(s.springAnimation, 0);
+    return performance.now() - start;
+  };
+  const sixty = run(60), oneTwenty = run(120);
+  assert.ok(sixty > 650 && sixty < 900, `Existing 60Hz character changed: ${sixty}ms`);
+  assert.ok(Math.abs(sixty - oneTwenty) <= sixty * .1, `${sixty}ms vs ${oneTwenty}ms`);
+});
+
+test('the first 60Hz spring step retains the existing elastic response', t => {
+  const raf = clock(t), s = springScene(); s.startSpring(); raf.step(1000 / 60);
+  assert.ok(Math.abs(s.offsets.get('node').x - 93.224) < 1e-8);
+  assert.ok(Math.abs(s.offsets.get('node').vx + 6.776) < 1e-8);
+});
+
+test('a long background gap bounds catch-up and still settles finitely', t => {
+  const raf = clock(t), s = springScene(); s.startSpring(); raf.step(10000);
+  const offset = s.offsets.get('node');
+  assert.ok(offset && Number.isFinite(offset.x) && Math.abs(offset.x) <= 100);
+  assert.ok(s.springAnimation !== 0);
+  for (let i = 0; i < 200 && raf.pending(); i++) raf.step(1000 / 60);
+  assert.equal(s.offsets.size, 0);
+  assert.equal(raf.pending(), 0);
+});
+
+test('starting a new node drag suspends the old spring without moving its offsets', t => {
+  const raf = clock(t), s = springScene(); s.startSpring();
+  s.gesture = { type: 'node' }; raf.step(1000 / 60);
+  assert.equal(s.offsets.get('node').x, 100);
+  assert.equal(s.springAnimation, 0);
   assert.equal(raf.pending(), 0);
 });

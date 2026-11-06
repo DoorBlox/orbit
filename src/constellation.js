@@ -158,15 +158,22 @@ export class Constellation {
   startSpring(){
     cancelAnimationFrame(this.springAnimation);this.springAnimation=0;if(this.disposed)return;
     if(reduceMotion()){this.offsets.clear();this.applyOffsets();return;}
-    const tick=()=>{
+    // Keep the original 60Hz spring, independent of display refresh rate.
+    // At most four steps catch up after a background pause; never replay seconds.
+    const stepMs=1000/60;let previous=performance.now(),accumulator=0;
+    const tick=now=>{
       this.springAnimation=0;if(this.disposed)return;
       if(this.gesture?.type==='node')return;
       if(reduceMotion()){this.offsets.clear();this.applyOffsets();return;}
-      let moving=false;
-      for(const [id,p] of [...this.offsets]){
-        const k=.088,friction=.77;p.vx=(p.vx-p.x*k)*friction;p.vy=(p.vy-p.y*k)*friction;p.x+=p.vx;p.y+=p.vy;
-        if(Math.hypot(p.x,p.y)+Math.hypot(p.vx,p.vy)<.10)this.offsets.delete(id);
-        else {this.offsets.set(id,p);moving=true;}
+      accumulator+=clamp(now-previous,0,stepMs*4);previous=now;
+      let moving=this.offsets.size>0;
+      while(accumulator>=stepMs-1e-7&&moving){
+        accumulator=Math.max(0,accumulator-stepMs);moving=false;
+        for(const [id,p] of [...this.offsets]){
+          const k=.088,friction=.77;p.vx=(p.vx-p.x*k)*friction;p.vy=(p.vy-p.y*k)*friction;p.x+=p.vx;p.y+=p.vy;
+          if(Math.hypot(p.x,p.y)+Math.hypot(p.vx,p.vy)<.10)this.offsets.delete(id);
+          else {this.offsets.set(id,p);moving=true;}
+        }
       }
       this.applyOffsets();if(moving)this.springAnimation=requestAnimationFrame(tick);
     };this.springAnimation=requestAnimationFrame(tick);
