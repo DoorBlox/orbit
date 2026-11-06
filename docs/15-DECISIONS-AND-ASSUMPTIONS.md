@@ -6,8 +6,9 @@ M2 is conditionally accepted for protected, password-based private use. The owne
 accepts the documented remaining physical-device and hosted write/CRUD authorization
 gaps for that scope; read-isolation PASS does not certify hosted mutations.
 Preserve the completed evidence and hosted temporary nonowner. M2.5 Motion Polish
-has a [proposed handoff and criteria](decisions/M2-TO-M2_5-HANDOFF.md) for review
-only; implementation has not started. No deployment, Production, Supabase/Auth/RLS,
+was subsequently authorized for autonomous implementation. P0/P1 are complete
+on `codex/m25-motion-polish`; [results and limits](decisions/M2_5-IMPLEMENTATION.md)
+record the passing checks. P2 is deferred; no merge or deployment has occurred. No deployment, Production, Supabase/Auth/RLS,
 DNS or protection changes follow from this acceptance. Earlier provider/status
 assumptions below are historical where superseded by this decision.
 

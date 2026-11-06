@@ -1,6 +1,8 @@
 # M2.5 Motion Polish — discovery and proposal
 
-6 November 2026 (Asia/Jakarta). **Proposal only; no implementation or deployment.**
+6 November 2026 (Asia/Jakarta). Historical discovery/proposal; the owner subsequently
+authorized autonomous implementation. See [completed P0/P1 results](M2_5-IMPLEMENTATION.md).
+The findings below record the pre-change baseline. No deployment has occurred.
 Repository: `DoorBlox/orbit`, HEAD `f2719f3b83c3ce906bee826576c134de15b35f6d`.
 The existing M2 acceptance/test/documentation work remains in the workspace and
 is preserved. Application source is unchanged. Read AGENTS.md, CODEX_HANDOFF.md

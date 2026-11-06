@@ -9,8 +9,9 @@ use.** The owner explicitly accepted the documented unverified checks in this
 conversation. This supersedes the earlier OPEN / GO-recommended assessment.
 It is not unrestricted production readiness or approval to change infrastructure.
 
-**M2.5 update: discovery/proposal authorized by the owner; implementation remains
-unapproved.** See [motion audit and proposal](M2_5-MOTION-AUDIT-PROPOSAL.md).
+**M2.5 update: the owner subsequently authorized autonomous implementation; P0/P1
+are now implemented and locally verified on the feature branch.** See
+[results and limits](M2_5-IMPLEMENTATION.md). The proposal below is historical.
 No new test run, environment onboarding, deployment or hosted write was performed
 to prepare this handoff. M3 remains out of scope.
 
@@ -129,4 +130,5 @@ source manifest to bless unreviewed changes; use the reviewed integrity workflow
 | Regression/provenance | Required existing checks and affected browser cases pass; reviewed source inventory matches approved changes; V6/M1 history remains intact. Report failures and unrun coverage honestly. |
 | Delivery boundary | Reviewable diff, evidence and rollback notes only. No M3 work, infrastructure change, deployment or production promotion. |
 
-M2.5 implementation awaits owner review of this proposed scope and criteria.
+The proposal above was approved for autonomous implementation. See
+[M2.5 implementation/results](M2_5-IMPLEMENTATION.md); no deployment or M3 work is implied.

@@ -1,6 +1,6 @@
 # ORBIT V6 → production: Codex handoff
 
-## Current handoff: M2 conditionally accepted; M2.5 scope proposed
+## Current handoff: M2 accepted; M2.5 implemented on feature branch
 
 On 6 November 2026 (Asia/Jakarta), the owner explicitly accepted **M2 for protected,
 password-based private use**, with the documented unverified checks retained.
@@ -22,14 +22,24 @@ isolation passed per owner evidence. Local browser, unit, SQL and real Auth/API
 suites passed. Physical-device and hosted write/CRUD authorization remain
 unverified; do not describe local write tests as hosted certification.
 
-**M2.5 Motion Polish discovery/proposal is authorized; implementation is not.**
-See the [motion audit and prioritized proposal](docs/decisions/M2_5-MOTION-AUDIT-PROPOSAL.md). Preserve the six-window spatial scrapbook, vanilla ES modules, reduced
-motion and all Auth/RLS/save/conflict/legacy-storage invariants. No Production,
-Supabase/Auth/RLS, DNS, protection, deployment or M3 action is authorized. Retain
-the hosted temporary nonowner account unless the owner authorizes deletion.
+**M2.5 P0/P1 are implemented and locally verified on
+`codex/m25-motion-polish`.** The owner authorized autonomous implementation after
+reviewing the audit. See [implementation/results](docs/decisions/M2_5-IMPLEMENTATION.md),
+[verification evidence](docs/evidence/m2_5/implementation/verification.json) and
+[prepared PR description](docs/decisions/M2_5-PR.md). Camera interruption, runtime
+reduced motion, elapsed-time elasticity and touch handoff are fixed. The 156-test
+required check, 25 motion browser cases and existing cloud suites passed. P2 was
+deferred because no concrete usability evidence justified changing timing/panels.
 
-Current sequence: **M2 conditionally accepted → M2.5 Motion Polish proposal → M3
-separately authorized ORBIT 1.0.0 release**.
+The current feature branch includes the prior M2 evidence checkpoint plus separate
+motion commits. Main is not modified; no merge, deployment or production promotion
+has occurred. GitHub API access returned Forbidden; no PR creation or remote CI
+success is claimed. Retain the six-window design and all security/persistence
+invariants. Physical-device and inherited hosted write/CRUD gaps remain explicit.
+No Production, Supabase/Auth/RLS, DNS, protection or M3 action is authorized.
+
+Current sequence: **M2 conditionally accepted → M2.5 implementation complete,
+reviewable feature branch → M3 separately authorized release work**.
 
 ## Historical handoff context
 
