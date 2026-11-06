@@ -20,15 +20,20 @@ isolation are retained. Owner-confirmed M2.5 CI run
 https://orbit-emtd92fo1-doorbloxs-projects.vercel.app.
 That is the prior baseline's CI/Preview evidence, not M3 Production verification.
 
+The owner independently confirmed both M3 GitHub Actions runs at `552720b` PASS,
+including all browser suites; PR #3 is updated and mergeable. That completed CI
+investigation is closed. The new grant-correction commit still needs its ordinary
+final-SHA check result, without reopening the earlier infrastructure troubleshooting.
+
 ## Completed independent M3 work
 
 | Scope | Result |
 | --- | --- |
-| Security review | Auth/lifecycle, RLS/GRANTs/RPCs, key exposure, sanitizer, backups, recovery, conflict and rollback reviewed; actual findings in M3-SECURITY-AUDIT.md. |
+| Security review | Auth/lifecycle, RLS/GRANTs/RPCs, key exposure, sanitizer, backups, recovery, conflict and rollback reviewed; actual findings in M3-SECURITY-AUDIT.md. Owner-reported live excess grants now have a locally verified, unapplied least-privilege migration (M3-LEAST-PRIVILEGE.md). |
 | Necessary fix | Production previously allowed missing cloud inputs to build local mode. Now fails closed before replacing artifacts; reviewed target, development exclusions and exact private CSP are required. |
 | Version/artifact | Package/lock metadata 1.0.0; build:release and verify:release implemented. Synthetic release verification passes; local-only/extra-file/symlink/native/SDK drift rejected. Owner-reviewed shared project/site recorded with a narrow exception; live configuration unverified. |
 | Hosted write preparation | Offline generator and tests for seven disposable nonowner fixture tables; no requests executed. Owner rows and workspace/publication mutation RPCs excluded. See M3-HOSTED-WRITE-VALIDATION.md. |
-| Required local checks | PASS: 166 tests, zero failures/skips, syntax, build, structure and unchanged native-source provenance. |
+| Required local checks | PASS: 167 tests, zero failures/skips, syntax, build, structure and unchanged native-source provenance. |
 | Local browsers | PASS: five-viewport M1 QA, 24 cloud cases, 25 motion/touch cases, five recovery/undo/integrity/legacy cases, HTTP asset/private-path smoke. All synthetic/local, not live Production or physical-device certification. |
 | Audit/evidence | Dependency advisories: 0. Limited credential signatures: no matches in 36 files. M2/M2.5 evidence hashes preserved. Initial results: docs/evidence/m3/candidate/verification.json; shared-target follow-up: docs/evidence/m3/shared-target-verification.json. |
 | Release operations | Release notes, gated checklist, backup/export, recovery and rollback procedures ready. No arbitrary new library, UI feature or Auth/model behavior change. |
@@ -54,10 +59,15 @@ an offline build/artifact-verification test with a synthetic key only.
    and narrow authorization for seeding/testing/cleaning exactly seven synthetic
    rows. It has not run. The same project is now intentionally shared; Production origin/session validation remains required;
    neither local SQL tests nor development read tests certify its deployed writes.
-3. **Final release-commit CI.** M3 code is locally verified; actual GitHub job results
-   at the final candidate SHA remain pending/unreadable through this API connection.
-   The older passed M2.5 run is not substituted. Branch CI is configured to trigger
-   without requiring API-based PR creation; no independent remote PASS is claimed.
+3. **Live least-privilege correction.** The owner's read-only audit confirms excess
+   TRUNCATE/TRIGGER/REFERENCES grants. Authorize/apply only the reviewed migration,
+   then verify effective privileges/CRUD/RLS/RPCs with the read-only postflight.
+   No live grants or workspace data have been changed here.
+4. **Final candidate checks and release records.** Retain ordinary CI PASS for the
+   new correction commit (both previous `552720b` runs already passed per owner),
+   verify the actual configured artifact, and privately record backup/rollback state.
+   Do not reopen resolved CI troubleshooting or substitute local tests for hosted proof.
+
 
 Physical Safari/Android and physical 120Hz testing remain explicitly unverified,
 not silently passed or confused with Chromium viewport/touch emulation. OTP/Google
@@ -68,8 +78,8 @@ assessment; this report does not manufacture a device or broader provider result
 ## Decision
 
 **NO-GO for Production publication.** Independent code, local validation and release
-procedures are ready; no newly confirmed unresolved application P0 was found after
-fixing the build fallback. The live target/configuration, write validation and
+procedures are ready; the locally fixed build fallback is resolved, but the confirmed live excess
+grants still require their separately authorized correction. The live target/configuration, write validation and
 final remote CI gates above are not satisfied. Conditional publication authority is retained; the latest instruction forbids
 live Production changes/deployment until actual configuration/security verification.
 

@@ -29,5 +29,24 @@ test('mutation preparation refuses owner, invalid IDs, unsafe run names and unre
   for(const nonownerId of [undefined,'not-a-uuid',confirmedOwner,confirmedOwner.toUpperCase()])
     assert.throws(()=>makeHostedWritePlan({nonownerId}),/nonowner/);
   assert.throws(()=>makeHostedWritePlan({nonownerId:nonowner,runId:'unbounded&owner_id=eq.owner'}),/identifier/);
-  assert.throws(()=>makeHostedWritePlan({nonownerId:nonowner,apiOrigin:'https://production.example.test'}),/development-only/);
+  assert.throws(()=>makeHostedWritePlan({nonownerId:nonowner,apiOrigin:'https://production.example.test'}),/shared project/);
+});
+
+
+test('administrator fixture plan requires baseline-verified atomic cleanup without owner mutations',()=>{
+  const plan=makeHostedWritePlan({nonownerId:nonowner,runId:'m3-synthetic-87654321'});
+  const {seedSql,baselineSql,cleanupSql}=plan.administrator;
+  for(const sql of [seedSql,cleanupSql]){
+    assert.ok(sql.startsWith('begin;'));assert.ok(sql.endsWith('commit;'));
+    assert.ok(sql.includes("auth.uid() is not null"));
+    assert.ok(!/truncate|cascade|disable trigger|on conflict|delete from auth/i.test(sql));
+  }
+  assert.equal((baselineSql.match(/baseline_hash/g)||[]).length,7);
+  assert.ok(cleanupSql.includes("current_setting('orbit_m3.fixture_baselines',true)"));
+  assert.ok(cleanupSql.indexOf('delete from public.tasks')<cleanupSql.indexOf('delete from public.branches'));
+  for(const f of plan.fixtures){
+    assert.ok(seedSql.includes(`Fixture count precondition: ${f.table}`));
+    assert.ok(cleanupSql.includes(`Missing or changed fixture baseline: ${f.table}`));
+    assert.ok(cleanupSql.includes(`${f.primaryKey}='${f.fixture[f.primaryKey]}'`));
+  }
 });

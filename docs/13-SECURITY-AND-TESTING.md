@@ -16,6 +16,13 @@ locked dependencies; the existing credential-signature scan found no matches in
 for the Production fallback fix, artifact guards and actual remaining live gates.
 No live mutations or authorization changes are part of these audits.
 
+M3 follow-up: owner-confirmed CI at `552720b` PASS, PR #3 mergeable. The reported
+live excess authenticated table grants have a new locally verified migration,
+not live-applied. See [grant findings/evidence](decisions/M3-LEAST-PRIVILEGE.md) and
+[Production checklist](decisions/M3-PRODUCTION-CHECKLIST.md). Current local check:
+167 tests; SQL: 205 pgTAP assertions plus concurrency/guard/cleanup regressions;
+real local Auth/PostgREST/SDK/browser pass. Hosted writes remain unverified.
+
 ## Historical M1 verified local results
 
 `npm ci`, `npm run check` (49 Node results), static build, HTTP/origin checks, inherited five-viewport QA, new actual-origin `tests/qa_m1.py`, integrity tampering tests and limited signature scan pass. Changed pure data/recovery modules measure 95.69% line and 85.17% branch coverage; DOM and whole-app coverage are not claimed. Local CSP disallows external connections, eval and executable inline scripts; inline styles support existing spatial positioning. Automatic Vercel Git deployments are disabled pending separate approval.

@@ -59,3 +59,12 @@ Window-like title bar dragging; per-widget persistent pointer/touch/keyboard res
   protected `https://orbit.starscene.com/`; other targets and public mode remain rejected.
 - Document exact Production environment/CSP/Auth requirements and shared-data risks.
   No live configuration, Auth/RLS/data or deployment changes. Issue #4 remains future work.
+
+### M3 least-privilege release gate
+
+- Add an unapplied additive migration revoking authenticated TRUNCATE/TRIGGER/
+  REFERENCES on seven private tables; retain normal CRUD/RLS/snapshots/conflicts.
+- Verify 58 new SQL assertions, grant-drift rollback, generated baseline-guarded
+  fixture cleanup and real local Auth/API/browser regressions. No live changes.
+- Record owner-confirmed `552720b` CI PASS and PR #3; consolidate Production/Auth
+  checklist and remaining live authorization/verification gates.

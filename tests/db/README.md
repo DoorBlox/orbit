@@ -58,3 +58,13 @@ unchanged; real database serialization failures retain their normal semantics.
 The SQL suite expects `PT409`; the concurrent-session harness still verifies
 conflict behavior by the unchanged diagnostic message. Real HTTP integration is
 verified separately in `tests/integration/`.
+
+## M3 least-privilege follow-up
+
+The runner now also applies `20261106120000_orbit_private_table_least_privilege.sql`
+locally, runs the read-only verification SQL and 58 privilege assertions, checks
+reapplication/atomic rollback on inherited table/column privileges, and executes
+baseline-guarded generated fixture cleanup with synthetic owner-data preservation.
+Together with the existing 14 + 133 assertions, this is 205 pgTAP assertions plus
+three real concurrency scenarios and the procedural guard/cleanup regressions.
+Hosted mutation/grant changes remain unauthorized by this local test command.

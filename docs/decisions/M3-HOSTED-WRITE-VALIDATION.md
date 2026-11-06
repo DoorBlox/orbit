@@ -64,3 +64,35 @@ cases remain **NOT RUN — narrow authorization and fixture execution required**
 The owner now intentionally shares this same project with Production (see
 M3-SHARED-PRODUCTION-TARGET.md). Production-origin/session coverage still needs
 verification; the shared-target decision does not authorize fixture mutations. Nothing in this plan changes the current owner or public-read gate.
+
+## Generated administrator fixtures and verified cleanup
+
+The offline plan now includes `administrator.seedSql`, `baselineSql` and `cleanupSql`.
+Review each exact script/UUID/run ID before authorizing execution. Execute only from
+an independently verified administrator SQL session on the pinned shared project,
+with no user JWT. Seeding requires private owner configuration, the existing nonowner
+Auth identity, and zero nonowner rows in every table; existing data aborts the whole
+transaction. Short transaction-local table locks prevent a concurrent fixture change
+between validation and write; timeouts bound their duration. Do not run concurrent
+owner tests while fixture transactions hold those locks.
+
+After approved seeding, execute the generated read-only `baselineSql`. It returns
+seven counts and full-row hashes, not record contents. Each count must be one.
+Privately retain a JSON object mapping each table name to its `baseline_hash`.
+Compare these hashes after every nonowner PATCH/DELETE; any change/missing row is
+FAIL, even when the HTTP response appears denied. Do not use a newly captured
+baseline to excuse an unexpected hosted mutation.
+
+Before approved cleanup, supply the **original** baseline JSON through the admin
+session's `orbit_m3.fixture_baselines` custom setting (use the SQL client's bound
+parameter support; no credentials are involved). Run `cleanupSql` in that same session.
+It locks the fixture tables, checks exactly one row per table and the original hash
+of every complete row, deletes exact UID+primary-key matches in dependency order,
+and verifies all seven nonowner counts are zero before commit. Missing/changed hashes
+or extra rows abort atomically; stop and review. Run `baselineSql` again afterward:
+all counts must be zero, hashes null. Preserve the nonowner Auth account.
+
+The scripts were exercised locally, including cleanup refusal/rollback and owner
+sentinel/account preservation. **Hosted seeding, requests and cleanup remain NOT RUN.**
+The three excess grants must first be corrected under separate live authorization;
+see [least-privilege migration review](M3-LEAST-PRIVILEGE.md).

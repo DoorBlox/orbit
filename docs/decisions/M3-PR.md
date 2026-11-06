@@ -16,7 +16,7 @@ and unreviewed targets; no hosted request or fixture mutation is executed. Versi
 metadata is 1.0.0. Include release notes, actual security findings, production gates,
 backup/export/rollback procedures and a concise NO-GO record.
 
-Validation: 166 local unit tests and all required checks pass; five-viewport QA,
+Validation: 167 local unit tests and all required checks pass; five-viewport QA,
 24 cloud, 25 motion and five close-out cases plus HTTP delivery smoke pass.
 Dependency audit reports zero vulnerabilities. CI retains prior checks, honors
 bundled Chromium consistently, adds the close-out/signature checks and triggers
@@ -33,3 +33,10 @@ Owner target update: intentionally share project `ixfgavgtwuzdgucjriec` with pro
 `https://orbit.starscene.com/`, using an exact source-reviewed exception. Preserve
 all exclusion/configuration/CSP/private-mode checks. Live configuration is still
 gated; multi-user Issue #4 is excluded. See M3-SHARED-PRODUCTION-TARGET.md.
+
+Grant audit follow-up: confirmed live authenticated TRUNCATE/TRIGGER/REFERENCES
+on seven private tables are addressed by an additive local-only migration, retaining
+CRUD/RLS/RPC behavior with atomic effective-privilege postchecks. 205 local pgTAP
+assertions, three concurrency scenarios, migration drift rollback, synthetic cleanup
+and real local Auth/PostgREST/SDK/browser regressions pass. No live grants or fixture
+mutations executed. Owner confirmed both prior `552720b` CI runs PASS; PR #3 exists.

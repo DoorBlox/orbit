@@ -10,17 +10,18 @@ new release-guard tests. This is not an independent live Production assessment.
 | Auth/owner access | AuthController verifies getUser then requires RPC data exactly true; generation/owner-epoch guards prevent stale hydration; logout/revocation clears private view and aborts client work. | Existing Auth/unit/browser evidence retained; no Auth behavior/settings changed. A new Production origin still needs actual redirect/session verification. |
 | Expiry/drafts | Auth errors fail closed. Cloud drafts are session-memory data, not guaranteed durable storage. Pending logout warns and export is available. | Documented lifetime limit; do not claim provider-outage or expiry recovery from ordinary offline tests. No plaintext persistence feature added. |
 | RLS/RPC source | Seven workspace tables combine per-row UID policies with restrictive configured-owner policies. Public payload RPCs are invokers; two private boolean helpers are definers with empty search_path. | Hosted read denial and metadata evidence passed; hosted write denial not executed. Owner identity is not inferred from metadata/email. |
-| Effective grants | Source grants and RLS are distinct; inherited privileges can differ by installation. RLS does not constrain TRUNCATE. | Inspect actual role grants with the read-only preflight, including TRUNCATE/REFERENCES/TRIGGER; do not call enabled RLS a full privilege audit. No arbitrary SQL/TRUNCATE Data API path was found in the reviewed app RPCs. No live grants were changed. |
+| Effective grants | Owner reports live direct TRUNCATE/TRIGGER/REFERENCES grants to authenticated on seven private tables. RLS does not constrain TRUNCATE. PR comment inaccessible here; no new live query claimed. | Confirmed release gate. New narrow migration revokes only these privileges, checks effective rights/retained CRUD atomically, and passes local SQL/Auth/API regressions. Not applied live. See M3-LEAST-PRIVILEGE.md. |
 | Snapshots/conflicts | Atomic snapshot RPC locks revision, rejects stale bases with PT409, checks deferred relations and returns a new revision. Client queue retains conflict drafts; stale read/save guards protect newer input. | Existing real local SQL/Auth/API concurrency and browser evidence retained; Production parity is unverified. |
 | Keys/artifacts | Only allowlisted public configuration reaches output; legacy service-role/privileged keys rejected. New verifier hashes all output, compares native files and rebuilt SDK, and requires clean committed CLI verification. | No credential value printed or archived. Release target metadata contains public origins only. |
 | Journal/imports | Allowlist DOM reconstruction strips active content/attributes; safe HTTP(S) links, sanitized load/save/render/import boundaries, strict backup validation and recovery originals are present. | Existing adversarial paste/corruption/quota/restore tests retained and final browser regression selected. Server storage alone is not sanitization proof. |
 | Backups/rollback | V6 export includes full workspace; import replaces cloud state and requires consent. Code rollback cannot restore erased data or revert schema. | New runbook forbids blind restore/empty snapshot/destructive rollback; export and validate privately before any separately approved restore. |
 | Dependency/signature audit | Latest locked-dependency audit reports zero known vulnerabilities; credential signatures have no matches. | Limited evidence, not a universal security guarantee. Lockfile dependency versions are unchanged; only root release version changes. |
 
-No newly confirmed unresolved application P0 was identified after fixing Production
-fallback. This does **not** establish Production GO: required live configuration,
+The Production fallback fix is locally complete. The newly reported live excess
+grants are unresolved on hosted Supabase until the reviewed correction is authorized
+and applied. This does **not** establish Production GO: required live configuration,
 write-isolation and final CI evidence remain explicit gates. App HTML/CSS/native
-modules, Auth, cloud logic, SQL migrations and current source manifest are unchanged
+modules, Auth, cloud logic, historical SQL migrations and current source manifest are unchanged
 from accepted M2.5; build tooling and release metadata are the intentional changes.
 
 The new target guard prevents reviewed builds from silently using known development

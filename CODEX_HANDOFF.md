@@ -22,6 +22,19 @@ verify or authorize live Production configuration changes. Future multi-user Iss
 is outside M3; retain current single-owner controls. No merge, Auth/RLS/DNS/protection change or live mutation is authorized
 implicitly by the conditional deployment permission.
 
+## M3 grant audit follow-up
+
+Owner independently confirmed both GitHub CI runs at `552720b` PASS (including
+browser suites), and PR #3 updated/mergeable. Do not repeat CI troubleshooting.
+A live read-only audit reports authenticated TRUNCATE/TRIGGER/REFERENCES on the
+seven private tables. [Reviewed local migration](docs/decisions/M3-LEAST-PRIVILEGE.md)
+removes those only, retains CRUD/RLS/RPCs and fails atomically on privilege drift.
+It is **not applied live**. Local SQL and real Auth/HTTP/browser regressions pass;
+prepared fixture seed/cleanup is baseline guarded and locally tested. Production
+remains gated on separately authorized live grant correction and fixture execution,
+actual configuration/Auth/protection, final-SHA checks and release records.
+See [concise Production checklist](docs/decisions/M3-PRODUCTION-CHECKLIST.md).
+
 ## Accepted M2/M2.5 baseline
 
 On 6 November 2026 (Asia/Jakarta), the owner explicitly accepted **M2 for protected,

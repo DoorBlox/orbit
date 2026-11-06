@@ -11,7 +11,7 @@ export function makeHostedWritePlan({nonownerId,runId=`m3-${randomUUID()}`,apiOr
   if(typeof nonownerId!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(nonownerId)||
     nonownerId.toLowerCase()===confirmedOwner)throw Error('An independently verified temporary nonowner UUID is required; owner is forbidden.');
   if(!/^m3-[a-z0-9-]{8,60}$/.test(runId))throw Error('Use a unique m3- disposable run identifier.');
-  if(apiOrigin!==developmentApi)throw Error('This reviewed plan is development-only; a Production plan needs separate target review.');
+  if(apiOrigin!==developmentApi)throw Error('This reviewed plan is pinned to the shared project; no other target is authorized.');
   const uid=nonownerId.toLowerCase(),branch=`${runId}-branch`;
   const rows=[
     ['profiles','user_id',{user_id:uid,display_name:`Synthetic ${runId}`},{display_name:`Probe ${runId}`}],
@@ -36,7 +36,8 @@ export function makeHostedWritePlan({nonownerId,runId=`m3-${randomUUID()}`,apiOr
       deleteProbe:{method:'DELETE',url:filtered,
         expected:'42501 or zero returned rows AND administrator verifies the seeded row still exists unchanged.'}};
   });
-  return {status:'PREPARED_NOT_EXECUTED',target:apiOrigin,runId,nonownerId:uid,
+  const administrator=fixtureSql(fixtures,uid);
+  return {administrator,status:'PREPARED_NOT_EXECUTED',target:apiOrigin,runId,nonownerId:uid,
     mutationAuthorizationRequired:true,usesOwnerRows:false,headers:{Prefer:'return=representation,count=exact'},
     sequence:['Read-only administrator and live Auth identity preflight; confirm absent nonowner data.',
       'Only after narrow authorization: run INSERT probes while rows are absent. Stop on any unexpected result.',
@@ -44,7 +45,38 @@ export function makeHostedWritePlan({nonownerId,runId=`m3-${randomUUID()}`,apiOr
       'Run UPDATE/DELETE probes with the existing nonowner session; compare synthetic rows against administrator baseline.',
       'Approved administrator removes only recorded fixture keys after verification, tasks before branches; preserve Auth user.'],
     forbidden:['Owner profile/preferences/layout or owner-scoped rows','save_owner_snapshot/publish/unpublish mutation RPCs',
-      'Schema/Auth/RLS/GRANT changes','Automatic cleanup or user deletion','Production requests','Tokens or private payloads in evidence'],fixtures};
+      'Schema/Auth/RLS/GRANT changes','Automatic cleanup or user deletion','Unverified Production-origin requests','Tokens or private payloads in evidence'],fixtures};
+}
+
+// Generated SQL is review material, never executed here. Session-local baseline
+// hashes cover every seeded column, including defaults/timestamps. No owner rows.
+function fixtureSql(fixtures,uid){
+  const literal=value=>`'${String(value).replaceAll("'","''")}'`;
+  const owner=f=>f.table==='profiles'?'user_id':'owner_id';
+  const where=f=>`${owner(f)}=${literal(uid)}::uuid`;
+  const preamble=`begin;
+set local lock_timeout='5s';
+set local statement_timeout='15s';
+do $$ begin
+    if current_user <> 'postgres' or auth.uid() is not null then raise exception 'Use verified administrator SQL session without user JWT'; end if;
+    if not exists(select 1 from auth.users where id=${literal(uid)}::uuid) then raise exception 'Nonowner Auth identity missing'; end if;
+    if not exists(select 1 from private.orbit_configuration where owner_id is not null and owner_id<>${literal(uid)}::uuid and not public_read_enabled) then raise exception 'Private owner configuration preflight failed'; end if;
+  end $$;
+`;
+  // Lock only these tables during short admin fixture transactions. No trigger
+  // disabling, role/grant changes, CASCADE or ON CONFLICT overwrite is generated.
+  const locks=`lock table ${fixtures.map(f=>`public.${f.table}`).join(', ')} in share row exclusive mode;
+`;
+  const countCheck=(f,count)=>`if (select count(*) from public.${f.table} where ${where(f)})<>${count} then raise exception 'Fixture count precondition: ${f.table}'; end if;`;
+  const seedSql=preamble+locks+'do $$ begin\n'+fixtures.map(f=>countCheck(f,0)).join('\n')+'\nend $$;\n'+
+    fixtures.map(f=>`insert into public.${f.table} (${Object.keys(f.fixture).join(',')}) values (${Object.values(f.fixture).map(v=>v===null?'null':literal(v)).join(',')});`).join('\n')+'\ncommit;';
+  const baselineSql=fixtures.map(f=>`select ${literal(f.table)} as table_name,count(*) as fixture_count,min(md5(to_jsonb(f)::text)) as baseline_hash from public.${f.table} f where ${where(f)};`).join('\n');
+  const checks=fixtures.map(f=>countCheck(f,1)+`\nif (select md5(to_jsonb(f)::text) from public.${f.table} f where ${where(f)}) is distinct from (current_setting('orbit_m3.fixture_baselines',true)::jsonb->>${literal(f.table)}) then raise exception 'Missing or changed fixture baseline: ${f.table}'; end if;`).join('\n');
+  const cleanupSql=preamble+locks+'do $$ begin\n'+checks+'\nend $$;\n'+
+    [...fixtures].reverse().map(f=>`delete from public.${f.table} where ${where(f)} and ${f.primaryKey}=${literal(f.fixture[f.primaryKey])};`).join('\n')+
+    '\ndo $$ begin\n'+fixtures.map(f=>countCheck(f,0)).join('\n')+'\nend $$;\ncommit;';
+  return {seedSql,baselineSql,cleanupSql,
+    baselineRequirement:'Capture seven administrator baseline_hash values immediately after approved seed; retain privately. Set session-local orbit_m3.fixture_baselines JSON mapping table to hash before cleanup. Cleanup refuses missing/changed rows or hashes and rolls back atomically. Verify all seven counts zero after cleanup. Preserve Auth user.'};
 }
 
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
