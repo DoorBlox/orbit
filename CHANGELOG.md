@@ -52,3 +52,10 @@
 ## V6 — 2026-11-01
 
 Window-like title bar dragging; per-widget persistent pointer/touch/keyboard resizing; milestone overflow correction with dedicated timeline lanes; clickable journal markers grouped by date; date-only journal editing and V5 ISO migration; compact mobile spatial navigator; full-backup sizes and V6 QA tests. Future deployment remains not yet executed.
+
+### M3 reviewed shared-target follow-up
+
+- Explicit owner-approved exception for shared project `ixfgavgtwuzdgucjriec` and
+  protected `https://orbit.starscene.com/`; other targets and public mode remain rejected.
+- Document exact Production environment/CSP/Auth requirements and shared-data risks.
+  No live configuration, Auth/RLS/data or deployment changes. Issue #4 remains future work.

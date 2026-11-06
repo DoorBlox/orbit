@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "date": "2026-11-06",
+  "decision": "m3-shared-private-2026-11-06",
+  "supersedes": "candidate/verification.json reviewed_target=unconfigured; prior evidence retained",
+  "target_selection": "REVIEWED_SHARED_PROJECT_EXACT_SITE",
+  "live_configuration": "NOT_VERIFIED",
+  "focused_tests": {
+    "passed": 11,
+    "failed": 0,
+    "command": "node --test tests/production_target.test.mjs tests/integrity.test.mjs tests/release.test.mjs"
+  },
+  "required_checks": {
+    "command": "npm run check",
+    "passed": 166,
+    "failed": 0,
+    "skipped": 0,
+    "syntax": "PASS",
+    "source_provenance": "PASS",
+    "build": "PASS local mode",
+    "structure": "PASS"
+  },
+  "credential_signature_scan": "PASS 36 files; limited scan",
+  "offline_shared_artifact": "PASS build and verify using synthetic key in temporary directory; no live requests",
+  "prior_browser_evidence": "Preserved; not repeated for build guard/metadata-only change",
+  "remote_ci": "Pending final commit; API previously Forbidden",
+  "live_mutations": false,
+  "production_changes": false,
+  "deployment": false,
+  "files": [
+    {
+      "path": "release/production-target.json",
+      "sha256": "c1bdf84cf16a53f8e464b94fd3f2493bbdffe5edbecdaa177bd911f35ef07c1e"
+    },
+    {
+      "path": "scripts/production-guard.mjs",
+      "sha256": "11ff6bd0c5113b06c839d81fad1efea4804ae5d5eae17ea82c177454af42118e"
+    },
+    {
+      "path": "tests/production_target.test.mjs",
+      "sha256": "f63394f4320111825243151f0621f6d7f1bf84d1ee18b176b9e12a6e2da9091d"
+    },
+    {
+      "path": "vercel.json",
+      "sha256": "6dbd22fccf1df4225d34193cdff35b88c8c207a99863ed87cc21dbc929e84471"
+    }
+  ]
+}

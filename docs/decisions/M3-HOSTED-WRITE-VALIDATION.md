@@ -61,5 +61,6 @@ UPDATE/DELETE of nonexistent data is **unverified**, not RLS proof.
 
 Current status: plan generation and safety tests PASS locally; all hosted mutation
 cases remain **NOT RUN — narrow authorization and fixture execution required**.
-Production would need its own reviewed target, existing test identity and fixture
-authorization. Nothing in this plan changes the current owner or public-read gate.
+The owner now intentionally shares this same project with Production (see
+M3-SHARED-PRODUCTION-TARGET.md). Production-origin/session coverage still needs
+verification; the shared-target decision does not authorize fixture mutations. Nothing in this plan changes the current owner or public-read gate.

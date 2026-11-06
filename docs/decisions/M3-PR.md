@@ -16,7 +16,7 @@ and unreviewed targets; no hosted request or fixture mutation is executed. Versi
 metadata is 1.0.0. Include release notes, actual security findings, production gates,
 backup/export/rollback procedures and a concise NO-GO record.
 
-Validation: 163 local unit tests and all required checks pass; five-viewport QA,
+Validation: 166 local unit tests and all required checks pass; five-viewport QA,
 24 cloud, 25 motion and five close-out cases plus HTTP delivery smoke pass.
 Dependency audit reports zero vulnerabilities. CI retains prior checks, honors
 bundled Chromium consistently, adds the close-out/signature checks and triggers
@@ -28,3 +28,8 @@ Auth redirects, hosted write validation and final remote CI remain gated. No mer
 deployment, Auth/RLS/DNS/schema change or live mutation is included. This branch is
 stacked on `codex/m25-motion-polish` at `9b54974`; review M3 changes relative to that
 base. See M3-READINESS-CHECKPOINT.md and M3-LAUNCH-RUNBOOK.md for precise limits.
+
+Owner target update: intentionally share project `ixfgavgtwuzdgucjriec` with protected
+`https://orbit.starscene.com/`, using an exact source-reviewed exception. Preserve
+all exclusion/configuration/CSP/private-mode checks. Live configuration is still
+gated; multi-user Issue #4 is excluded. See M3-SHARED-PRODUCTION-TARGET.md.

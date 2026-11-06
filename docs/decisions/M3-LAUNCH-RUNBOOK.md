@@ -7,22 +7,22 @@ does not itself perform a deployment, schema change, Auth/RLS change or mutation
 ## Gates before any build promotion
 
 - [ ] Identify the exact Vercel project, protected Production origin and intended
-  Supabase project. No inferred target or copied development database binding.
+  Supabase project. The reviewed shared project/site pair is recorded in M3-SHARED-PRODUCTION-TARGET.md; verify the actual Vercel project.
 - [ ] In `release/production-target.json`, review canonical public API/site URLs,
-  mark the chosen target reviewed, and retain development exclusions. This is
+  verify the reviewed shared exception and retain development exclusions. This is
   source metadata, not a secret store or proof of live settings.
 - [ ] Verify **Production-scoped** ORBIT_SUPABASE_URL,
   ORBIT_SUPABASE_PUBLISHABLE_KEY and explicit ORBIT_SITE_URL exist and match the
   reviewed target. The owner confirms URL/key currently have Preview scope only;
-  do not blindly promote that Preview. Never store privileged keys in frontend.
+  do not blindly promote that Preview; shared database approval does not verify Production-scoped bindings. Never store privileged keys in frontend.
 - [ ] Review exact Production CSP connect-src to the chosen API while retaining
   private script/object/base/frame/form restrictions. Do not broaden to wildcards.
 - [ ] Verify Production protection and current configuration through an authorized
   live session. Confirm incognito denial and exact Auth site/redirect entries.
   Password sign-in does not prove redirect or other-provider settings are correct.
 - [ ] Confirm intended owner and disabled public reads on the **chosen project**,
-  effective RLS/GRANTs/RPCs, and appropriate owner/nonowner validation. Existing
-  development read tests do not certify a different Production project. Hosted
+  effective RLS/GRANTs/RPCs, and appropriate owner/nonowner validation. The project is now intentionally shared; retain the existing hosted read
+  evidence without treating it as Production-origin/session verification. Hosted
   write cases require the separate safe-fixture plan and narrow authorization.
 - [ ] Required CI/browser checks pass on the exact final release commit; retain
   run URL, head SHA and individual outcomes. M2.5 run `42199466081` passed at the
@@ -43,13 +43,12 @@ npm run verify:release > /tmp/orbit-private-release-verification.json
 
 The same guard runs when Vercel invokes the ordinary build with VERCEL_ENV=production.
 It refuses local fallback, unreviewed/mismatched targets, known development targets
-and mismatched/weakened CSP **before replacing existing output**. Verification
+without the exact owner-approved shared exception, and mismatched/weakened CSP **before replacing existing output**. Verification
 reports version, source commit and artifact SHA256 inventory without the public
 key; rejects extra files/symlinks/native or SDK drift. It does not attest live
 Vercel protection, live RLS or Auth redirects. A clean artifact alone is not GO.
 
-Current expected result: NO-GO, because Production target and required live
-configuration have not been verified. Do not disable the gate to make it pass.
+Current expected result: NO-GO, until required live configuration/security checks pass. The source target pair is now reviewed; offline synthetic-key guard tests pass. Do not disable the gate to make it pass.
 
 ## Private backup/export and recovery
 

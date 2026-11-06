@@ -15,9 +15,11 @@ Do not repeat onboarding/completed acceptance. M3 fixes unsafe Production local
 fallback, verifies reviewed target/CSP/artifact integrity and prepares nonowner
 write probes without executing them. Native app/Auth/cloud/SQL source is unchanged.
 Production is NO-GO until its target/inputs/protection/Auth redirects, appropriate
-write validation and final-commit CI are verified. Keep release/production-target.json
-unconfigured until a genuine target review; never silently copy Preview's development
-bindings. No merge, Auth/RLS/DNS/protection change or live mutation is authorized
+write validation and final-commit CI are verified. The owner has explicitly reviewed shared Supabase project `ixfgavgtwuzdgucjriec`
+for `https://orbit.starscene.com/`; the exact source exception is recorded in
+[the target decision](docs/decisions/M3-SHARED-PRODUCTION-TARGET.md). This does not
+verify or authorize live Production configuration changes. Future multi-user Issue #4
+is outside M3; retain current single-owner controls. No merge, Auth/RLS/DNS/protection change or live mutation is authorized
 implicitly by the conditional deployment permission.
 
 ## Accepted M2/M2.5 baseline

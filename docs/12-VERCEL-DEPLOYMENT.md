@@ -1,3 +1,8 @@
+> M3 target update: the owner explicitly approved shared Supabase project
+> `ixfgavgtwuzdgucjriec` for `https://orbit.starscene.com/`. See the
+> [exact configuration/security requirements](decisions/M3-SHARED-PRODUCTION-TARGET.md).
+> Source preparation does not verify actual Production settings or permit changing them.
+
 # 12 — Deployment boundaries and historical preparation
 
 ## Current state — 6 November 2026

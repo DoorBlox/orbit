@@ -18,7 +18,16 @@ export function assertProductionConfig(config,{
   if(!Array.isArray(target.developmentSupabaseUrls)||!target.developmentSupabaseUrls.length)
     throw Error('Production target must retain explicit development exclusions.');
   for(const origin of target.developmentSupabaseUrls)https(origin,true);
-  if(target.developmentSupabaseUrls.includes(config.supabaseUrl))
+  // Owner-reviewed M3 architecture decision. Never turn this into a general
+  // allow-development switch: a new project/site requires a new source review.
+  const shared=target.sharedDatabaseException;
+  const approvedShared=shared?.decision==='m3-shared-private-2026-11-06'&&
+    shared.scope==='single-owner-private'&&
+    shared.supabaseUrl==='https://ixfgavgtwuzdgucjriec.supabase.co'&&
+    shared.siteUrl==='https://orbit.starscene.com/'&&
+    shared.supabaseUrl===target.supabaseUrl&&shared.siteUrl===target.siteUrl;
+  if(shared&&!approvedShared)throw Error('Production shared database exception differs from the reviewed M3 decision.');
+  if(target.developmentSupabaseUrls.includes(config.supabaseUrl)&&!approvedShared)
     throw Error('Production cannot silently use the development database.');
   if(config.supabaseUrl!==target.supabaseUrl||config.siteUrl!==target.siteUrl)
     throw Error('Production cloud configuration differs from the reviewed target.');

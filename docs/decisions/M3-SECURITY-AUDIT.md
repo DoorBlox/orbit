@@ -6,7 +6,7 @@ new release-guard tests. This is not an independent live Production assessment.
 | Boundary | Actual finding/evidence | Disposition |
 | --- | --- | --- |
 | Production configuration | Before the fix, `VERCEL_ENV=production` with no cloud fields returned null/local mode. The owner confirms cloud URL/key are configured for Preview only. | Fixed build-time fallback defect with failing-then-passing tests. Production now requires complete inputs and reviewed target/CSP; remains blocked until real configuration is verified. |
-| API target/CSP | Repository CSP currently permits only the development Supabase origin. No Production project/site origin is selected in the reviewed metadata. | `release/production-target.json` intentionally stays unconfigured. Never copy development variables into Production or broaden CSP to make a build pass. |
+| API target/CSP | Repository CSP currently permits only the development Supabase origin. The owner now explicitly selected the same project for `https://orbit.starscene.com/`. | Reviewed metadata and a narrow exact project/site exception now permit intentional sharing. Live bindings/Auth/protection remain unverified; CSP is unchanged. |
 | Auth/owner access | AuthController verifies getUser then requires RPC data exactly true; generation/owner-epoch guards prevent stale hydration; logout/revocation clears private view and aborts client work. | Existing Auth/unit/browser evidence retained; no Auth behavior/settings changed. A new Production origin still needs actual redirect/session verification. |
 | Expiry/drafts | Auth errors fail closed. Cloud drafts are session-memory data, not guaranteed durable storage. Pending logout warns and export is available. | Documented lifetime limit; do not claim provider-outage or expiry recovery from ordinary offline tests. No plaintext persistence feature added. |
 | RLS/RPC source | Seven workspace tables combine per-row UID policies with restrictive configured-owner policies. Public payload RPCs are invokers; two private boolean helpers are definers with empty search_path. | Hosted read denial and metadata evidence passed; hosted write denial not executed. Owner identity is not inferred from metadata/email. |
@@ -25,6 +25,6 @@ from accepted M2.5; build tooling and release metadata are the intentional chang
 
 The new target guard prevents reviewed builds from silently using known development
 origins. The existing local/Preview build modes remain supported. Unit tests use
-synthetic reviewed targets to exercise both success and failure paths, not a real
-Production project. No live database mutation, protection bypass or schema change
+synthetic keys and offline artifacts to exercise success/failure paths, including
+the reviewed shared pair; no live Production connection is made. No live database mutation, protection bypass or schema change
 was needed for this audit.

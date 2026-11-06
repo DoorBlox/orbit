@@ -1,3 +1,11 @@
+## M3 shared database decision — 6 November 2026
+
+Owner-approved Preview/Production sharing is restricted to project
+`ixfgavgtwuzdgucjriec` and protected `https://orbit.starscene.com/`.
+See [decision and requirements](decisions/M3-SHARED-PRODUCTION-TARGET.md).
+Keep single-owner Auth/RLS and data unchanged; future multi-user Issue #4 is outside M3.
+No live Production settings or deployment until actual security/configuration verification.
+
 # 15 — Architecture decision record and skill utilization
 
 ## M3 authority and release gates — 6 November 2026

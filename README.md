@@ -81,8 +81,9 @@ not remove that hold or promote an artifact without separate authorization.
 It refuses local fallback and requires complete cloud inputs, reviewed public
 origins in release/production-target.json, development exclusions and matching
 private CSP. `npm run verify:release` verifies a clean committed artifact and prints
-hashes without keys; it does not certify live protection/Auth/RLS. Current Production
-metadata intentionally remains unconfigured. Neither command deploys anything.
+hashes without keys; it does not certify live protection/Auth/RLS. Production metadata now explicitly reviews shared project `ixfgavgtwuzdgucjriec`
+for `https://orbit.starscene.com/`, through a narrow source exception. Actual live
+configuration remains unverified; see the [target decision](docs/decisions/M3-SHARED-PRODUCTION-TARGET.md). Neither command deploys anything.
 
 ## Evidence and handoff
 
