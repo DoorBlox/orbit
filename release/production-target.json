@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "status": "unconfigured",
+  "supabaseUrl": null,
+  "siteUrl": null,
+  "developmentSupabaseUrls": [
+    "https://ixfgavgtwuzdgucjriec.supabase.co"
+  ],
+  "note": "Production is blocked until the owner selects a target and its public origins are reviewed. No credentials belong in this file. Retain development exclusions."
+}

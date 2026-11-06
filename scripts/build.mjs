@@ -2,6 +2,7 @@ import { cp, mkdir, rm, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { build } from 'esbuild';
+import { assertProductionConfig } from './production-guard.mjs';
 
 // Keep native modules and a deliberately small public distribution allowlist.
 export const browserModules = [
@@ -10,6 +11,11 @@ export const browserModules = [
   'bootstrap.js','auth/controller.js','auth/shell.js','cloud/client-config.js',
   'cloud/mappers.js','cloud/repository.js','cloud/sync.js','cloud/owner-tools.js',
 ];
+export const sdkBuildOptions=(root,outdir)=>({
+  entryPoints:[path.join(root,'src/cloud/client.js')],outfile:path.join(outdir,'src/cloud/client.js'),
+  bundle:true,platform:'browser',format:'esm',target:['es2022'],minify:false,
+  sourcemap:false,legalComments:'eof',logLevel:'silent',
+});
 
 const loopback = host => ['localhost','127.0.0.1','[::1]'].includes(host);
 function publicUrl(value, label, originOnly = false) {
@@ -33,7 +39,7 @@ function publicKey(value) {
   throw Error('ORBIT_SUPABASE_PUBLISHABLE_KEY must be a publishable key or legacy anon JWT; secret/service-role keys cannot enter browser output.');
 }
 
-export function resolveBuildConfig(env = process.env) {
+export function resolveBuildConfig(env = process.env, productionOptions) {
   const url = (env.ORBIT_SUPABASE_URL || '').trim();
   const key = (env.ORBIT_SUPABASE_PUBLISHABLE_KEY || '').trim();
   let site = (env.ORBIT_SITE_URL || '').trim();
@@ -49,14 +55,19 @@ export function resolveBuildConfig(env = process.env) {
   if (env.ORBIT_PUBLIC_RELEASE && env.ORBIT_PUBLIC_RELEASE !== 'false') {
     throw Error('Public release is not enabled for this milestone. Protected preview builds require publicRelease:false.');
   }
-  if (!url && !key && !site) return null;
+  if (!url && !key && !site) {
+    if(env.VERCEL_ENV==='production')throw Error('Production requires all public cloud inputs together; local fallback is forbidden.');
+    return null;
+  }
   if (!url || !key || !site) throw Error('Configured cloud builds require ORBIT_SUPABASE_URL, ORBIT_SUPABASE_PUBLISHABLE_KEY and ORBIT_SITE_URL together.');
-  return Object.freeze({
+  const config = Object.freeze({
     supabaseUrl: publicUrl(url, 'ORBIT_SUPABASE_URL', true),
     publishableKey: publicKey(key),
     siteUrl: publicUrl(site, 'ORBIT_SITE_URL'),
     publicRelease: false,
   });
+  if(env.VERCEL_ENV==='production')assertProductionConfig(config,productionOptions);
+  return config;
 }
 
 export async function buildDist({ root = process.cwd(), outdir = path.join(root, 'dist'), env = process.env } = {}) {
@@ -71,10 +82,7 @@ export async function buildDist({ root = process.cwd(), outdir = path.join(root,
     await cp(path.join(root,'src',file), path.join(outdir,'src',file));
   }
   // Bundle only the SDK boundary. All scrapbook/auth/repository modules stay native ESM.
-  await build({ entryPoints:[path.join(root,'src/cloud/client.js')], outfile:path.join(outdir,'src/cloud/client.js'),
-    bundle:true, platform:'browser', format:'esm', target:['es2022'], minify:false,
-    sourcemap:false, legalComments:'eof', logLevel:'silent',
-  });
+  await build(sdkBuildOptions(root,outdir));
   await writeFile(path.join(outdir,'src/runtime-config.js'), `// Build-generated allowlisted public configuration. No privileged credentials.\nexport const runtimeConfig = ${JSON.stringify(config)};\n`);
   const index = await readFile(path.join(outdir,'index.html'), 'utf8');
   for (const ref of ['./src/bootstrap.js','./src/styles.css']) {
