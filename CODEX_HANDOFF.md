@@ -1,5 +1,17 @@
 # ORBIT V6 → production: Codex handoff
 
+## Current M3 work checkpoint
+
+The owner authorized safe M3 release-readiness work under GitHub issue #2, without
+merge, Production deployment, Auth/RLS/DNS/protection changes or live mutations.
+M2.5 CI passed and its protected Preview is deployed per owner report; do not
+repeat completed acceptance/setup. M3 branch `codex/m3-release-readiness` is stacked
+on verified `9b54974`. See [checkpoint](docs/decisions/M3-READINESS-CHECKPOINT.md).
+Issue #2's body is currently inaccessible (API Forbidden; HTML 404) and has been
+requested from the owner. Do not substitute the historical roadmap or claim M3
+GO until the actual plan is available and fulfilled. New work so far is audit and
+documentation only. Preserve all accepted M2/M2.5 evidence and the original design.
+
 ## Current handoff: M2 accepted; M2.5 implemented on feature branch
 
 On 6 November 2026 (Asia/Jakarta), the owner explicitly accepted **M2 for protected,
@@ -36,7 +48,8 @@ motion commits. Main is not modified; no merge, deployment or production promoti
 has occurred. GitHub API access returned Forbidden; no PR creation or remote CI
 success is claimed. Retain the six-window design and all security/persistence
 invariants. Physical-device and inherited hosted write/CRUD gaps remain explicit.
-No Production, Supabase/Auth/RLS, DNS, protection or M3 action is authorized.
+No Production, Supabase/Auth/RLS, DNS or protection change is authorized.
+Safe M3 readiness work is now authorized as recorded in the checkpoint above.
 
 Current sequence: **M2 conditionally accepted → M2.5 implementation complete,
 reviewable feature branch → M3 separately authorized release work**.

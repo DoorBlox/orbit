@@ -1,6 +1,23 @@
 # 13 — Security and test plan with honest execution status
 
-## M1 verified local results
+## Current evidence — 6 November 2026
+
+M2 conditional acceptance and M2.5 verification supersede the historical local-only
+status below. The owner reports M2.5 CI passed and its protected Preview is deployed.
+Hosted Auth, persistence, synchronization, conflict recovery, logout and nonowner
+read isolation passed per recorded owner evidence. Physical-device and full hosted
+write/CRUD authorization remain documented gaps; read isolation is not mutation
+certification. Local SQL/Auth/API evidence and the 156-test/M2.5 browser results are
+preserved in the milestone evidence archives.
+
+The new M3 dependency advisory audit reports zero known vulnerabilities across
+locked dependencies; the existing credential-signature scan found no matches in
+32 browser/build/CI files. Neither result is a full security proof. M3's issue plan
+is currently inaccessible through this session's GitHub API/HTML connection; do
+not infer its exit criteria from the older milestone numbering below. No live
+mutations or authorization changes are part of these audits.
+
+## Historical M1 verified local results
 
 `npm ci`, `npm run check` (49 Node results), static build, HTTP/origin checks, inherited five-viewport QA, new actual-origin `tests/qa_m1.py`, integrity tampering tests and limited signature scan pass. Changed pure data/recovery modules measure 95.69% line and 85.17% branch coverage; DOM and whole-app coverage are not claimed. Local CSP disallows external connections, eval and executable inline scripts; inline styles support existing spatial positioning. Automatic Vercel Git deployments are disabled pending separate approval.
 
