@@ -62,6 +62,55 @@ def spring_settling(page):
     assert before == after, 'Nodes and connected edges did not return to their original geometry'
 
 
+def touch_continuity(page):
+    page.emulate_media(reduced_motion='reduce')
+    points = page.evaluate('''()=>{
+      const {board:b,scene:s}=window.orbitDebug;
+      b.focus('constellation',{initial:true});s.fitAll();
+      const r=s.viewport.getBoundingClientRect();
+      const x=(Math.max(25,r.left+25)+Math.min(innerWidth-25,r.right-25))/2;
+      const y=Math.max(110,r.top+35);
+      return {x,y,hostScale:s.hostScale(),initialScale:s.camera.scale};
+    }''')
+    cdp = page.context.new_cdp_session(page)
+    cdp.send('Emulation.setTouchEmulationEnabled', {'enabled':True,'maxTouchPoints':5})
+    x, y = points['x'], points['y']
+    one = {'id':1,'x':x-35,'y':y}
+    two = {'id':2,'x':x+35,'y':y}
+    touch_active = False
+    try:
+        cdp.send('Input.dispatchTouchEvent', {'type':'touchStart','touchPoints':[one,two]})
+        touch_active = True
+        qa.wait_until(page, 'window.orbitDebug.scene.pointerPositions.size===2')
+        two = {**two,'x':x+60}
+        cdp.send('Input.dispatchTouchEvent', {'type':'touchMove','touchPoints':[one,two]})
+        qa.wait_until(page, f'window.orbitDebug.scene.camera.scale!=={points["initialScale"]}')
+        before = page.evaluate('window.orbitDebug.scene.getCamera()')
+        # CDP touchEnd names the released points, not the remaining points.
+        cdp.send('Input.dispatchTouchEvent', {'type':'touchEnd','touchPoints':[two]})
+        qa.wait_until(page, 'window.orbitDebug.scene.pointerPositions.size===1&&window.orbitDebug.scene.gesture?.type==="pan"')
+        lifted = page.evaluate('window.orbitDebug.scene.getCamera()')
+        assert lifted == before, 'Finger lift jumped the camera'
+        assert page.evaluate('window.orbitDebug.scene.gesture.type') == 'pan'
+        one = {**one,'x':one['x']+24,'y':one['y']+12}
+        cdp.send('Input.dispatchTouchEvent', {'type':'touchMove','touchPoints':[one]})
+        # Chromium may coalesce touchMove until the next rendering opportunity.
+        qa.wait_until(page, f'Math.abs(window.orbitDebug.scene.camera.x-({before["x"]}))>2')
+        after = page.evaluate('window.orbitDebug.scene.getCamera()')
+        assert abs(after['x']-before['x']-24/points['hostScale']) < 1, (before,after)
+        assert abs(after['y']-before['y']-12/points['hostScale']) < 1, (before,after)
+        assert after['scale'] == before['scale']
+        cdp.send('Input.dispatchTouchEvent', {'type':'touchEnd','touchPoints':[]})
+        touch_active = False
+        assert page.evaluate('window.orbitDebug.scene.pointerPositions.size') == 0
+        assert page.evaluate('window.orbitDebug.scene.gesture') is None
+    finally:
+        if touch_active:
+            cdp.send('Input.dispatchTouchEvent', {'type':'touchCancel','touchPoints':[]})
+        cdp.detach()
+        page.emulate_media(reduced_motion='no-preference')
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--source', action='store_true')
@@ -76,7 +125,7 @@ def main():
             try:
                 expect(page.locator('.cloud-mode')).to_have_text('Private owner space')
                 page.emulate_media(reduced_motion='no-preference')
-                for name, run in [('interruption',interruption),('reduced-motion',reduced_motion),('spring-settling',spring_settling)]:
+                for name, run in [('interruption',interruption),('reduced-motion',reduced_motion),('spring-settling',spring_settling),('touch-continuity',touch_continuity)]:
                     started = time.monotonic()
                     try:
                         run(page)

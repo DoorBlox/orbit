@@ -46,6 +46,17 @@ function wheel(excluded = false) {
   return { target: { closest: () => excluded }, deltaX: 17, deltaY: 120,
     preventDefault() {}, ctrlKey: false, metaKey: false };
 }
+function touchScene(scale = 1) {
+  const s = scene(), classes = new Set();
+  Object.assign(s, { pointerPositions: new Map(), gesture: null, hostScale: () => scale });
+  s.viewport.classList = { add: name => classes.add(name), remove: name => classes.delete(name) };
+  s.viewport.setPointerCapture = () => {};
+  return { s, classes };
+}
+function touch(id, x, y, type = 'pointermove') {
+  return { pointerId: id, clientX: x, clientY: y, pointerType: 'touch', button: 0,
+    type, target: { closest: () => null } };
+}
 
 test('background wheel pan owns the board after interrupting navigation', t => {
   const raf = clock(t), b = board();
@@ -174,4 +185,37 @@ test('starting a new node drag suspends the old spring without moving its offset
   assert.equal(s.offsets.get('node').x, 100);
   assert.equal(s.springAnimation, 0);
   assert.equal(raf.pending(), 0);
+});
+
+for (const hostScale of [1, .6, 1.8]) test(`pinch continues as one-finger pan at host scale ${hostScale}`, t => {
+  clock(t); const { s, classes } = touchScene(hostScale);
+  s.pointerDown(touch(1, 100, 150, 'pointerdown'));
+  s.pointerDown(touch(2, 200, 150, 'pointerdown'));
+  s.pointerMove(touch(2, 260, 170));
+  const pinched = s.getCamera();
+  s.pointerUp(touch(2, 260, 170, 'pointerup'));
+  assert.deepEqual(s.getCamera(), pinched, 'Finger lift must not jump the camera');
+  assert.equal(s.pointerPositions.size, 1);
+  assert.ok(classes.has('is-grabbing'));
+  s.pointerMove(touch(1, 124, 162));
+  assert.ok(Math.abs(s.camera.x - pinched.x - 24 / hostScale) < 1e-8);
+  assert.ok(Math.abs(s.camera.y - pinched.y - 12 / hostScale) < 1e-8);
+  assert.equal(s.camera.scale, pinched.scale);
+  s.pointerUp(touch(1, 124, 162, 'pointerup'));
+  assert.equal(s.gesture, null);
+  assert.equal(s.pointerPositions.size, 0);
+  assert.ok(!classes.has('is-grabbing'));
+});
+
+for (const event of ['pointercancel', 'lostpointercapture']) test(`${event} safely cancels a pinch`, t => {
+  clock(t); const { s, classes } = touchScene();
+  s.pointerDown(touch(1, 100, 150, 'pointerdown'));
+  s.pointerDown(touch(2, 200, 150, 'pointerdown'));
+  const camera = s.getCamera();
+  s.pointerUp(touch(2, 200, 150, event));
+  assert.equal(s.gesture, null);
+  assert.equal(s.pointerPositions.size, 0);
+  assert.ok(!classes.has('is-grabbing'));
+  s.pointerMove(touch(1, 124, 162));
+  assert.deepEqual(s.getCamera(), camera);
 });

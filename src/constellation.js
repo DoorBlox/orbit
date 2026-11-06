@@ -136,7 +136,19 @@ export class Constellation {
   pointerUp(e){
     if(!this.pointerPositions.has(e.pointerId))return;
     this.pointerPositions.delete(e.pointerId);const g=this.gesture;
-    if(g?.type==='pinch'){if(this.pointerPositions.size<2){this.gesture=null;this.viewport.classList.remove('is-grabbing');}return;}
+    if(g?.type==='pinch'){
+      if(e.type!=='pointerup'){
+        this.pointerPositions.clear();this.gesture=null;this.viewport.classList.remove('is-grabbing');
+      }else if(this.pointerPositions.size===1){
+        // The remaining captured pointer owns a new pan origin at this camera.
+        // Mark moved so its later release cannot become a background double tap.
+        const [pointerId,start]=[...this.pointerPositions.entries()][0];
+        this.gesture={type:'pan',pointerId,start:{...start},startCamera:{...this.camera},moved:true};
+      }else if(this.pointerPositions.size===0){
+        this.gesture=null;this.viewport.classList.remove('is-grabbing');
+      }
+      return;
+    }
     if(g?.pointerId!==e.pointerId)return;
     this.gesture=null;this.viewport.classList.remove('is-grabbing');
     if(g.type==='node'){

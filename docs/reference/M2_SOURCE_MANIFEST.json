@@ -68,8 +68,8 @@
       "reason": "Queue writes with honest pending/retry/conflict states and revision checks."
     },
     "src/constellation.js": {
-      "sha256": "f72361157e4023f643bf9a88aa47eb9647ae3805b300cda7bd85ab8a3751114c",
-      "reason": "M2.5 P0/P1-A reviewed: interruptible accessible camera; elapsed-time 60Hz-calibrated spring with bounded background catch-up and animation teardown. No model or cloud changes."
+      "sha256": "7cf8866d644bdcb90731e02a17da4266501fae5779d85a42e80f88ec77396359",
+      "reason": "M2.5 P0/P1 reviewed: input interruption, runtime reduced motion, bounded elapsed-time elasticity, and jump-free pinch-to-pan with safe cancellation. No model/cloud changes."
     },
     "src/csv.js": {
       "sha256": "43bd69daa75c06e88a42cd71d34f4847068997562219db25d5f2ee4d728be109",
