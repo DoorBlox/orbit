@@ -1,18 +1,26 @@
 # ORBIT V6 → production: Codex handoff
 
-## Current M3 work checkpoint
+## Current M3 release candidate — gated, not published
 
-The owner authorized safe M3 release-readiness work under GitHub issue #2, without
-merge, Production deployment, Auth/RLS/DNS/protection changes or live mutations.
-M2.5 CI passed and its protected Preview is deployed per owner report; do not
-repeat completed acceptance/setup. M3 branch `codex/m3-release-readiness` is stacked
-on verified `9b54974`. See [checkpoint](docs/decisions/M3-READINESS-CHECKPOINT.md).
-Issue #2's body is currently inaccessible (API Forbidden; HTML 404) and has been
-requested from the owner. Do not substitute the historical roadmap or claim M3
-GO until the actual plan is available and fulfilled. New work so far is audit and
-documentation only. Preserve all accepted M2/M2.5 evidence and the original design.
+The owner supplied issue #2's authoritative scope and conditionally authorized
+protected-private Production publication once all applicable gates pass. Version
+1.0.0 is prepared on `codex/m3-release-readiness`, based on verified M2.5 `9b54974`.
+See [GO/NO-GO](docs/decisions/M3-READINESS-CHECKPOINT.md),
+[security audit](docs/decisions/M3-SECURITY-AUDIT.md),
+[release notes](docs/releases/1.0.0.md) and
+[launch/backup/rollback runbook](docs/decisions/M3-LAUNCH-RUNBOOK.md).
 
-## Current handoff: M2 accepted; M2.5 implemented on feature branch
+M2.5 CI run 42199466081 passed and its protected Preview is READY per owner report.
+Do not repeat onboarding/completed acceptance. M3 fixes unsafe Production local
+fallback, verifies reviewed target/CSP/artifact integrity and prepares nonowner
+write probes without executing them. Native app/Auth/cloud/SQL source is unchanged.
+Production is NO-GO until its target/inputs/protection/Auth redirects, appropriate
+write validation and final-commit CI are verified. Keep release/production-target.json
+unconfigured until a genuine target review; never silently copy Preview's development
+bindings. No merge, Auth/RLS/DNS/protection change or live mutation is authorized
+implicitly by the conditional deployment permission.
+
+## Accepted M2/M2.5 baseline
 
 On 6 November 2026 (Asia/Jakarta), the owner explicitly accepted **M2 for protected,
 password-based private use**, with the documented unverified checks retained.
@@ -48,8 +56,8 @@ motion commits. Main is not modified; no merge, deployment or production promoti
 has occurred. GitHub API access returned Forbidden; no PR creation or remote CI
 success is claimed. Retain the six-window design and all security/persistence
 invariants. Physical-device and inherited hosted write/CRUD gaps remain explicit.
-No Production, Supabase/Auth/RLS, DNS or protection change is authorized.
-Safe M3 readiness work is now authorized as recorded in the checkpoint above.
+Production publication is subject to the newer M3 gates above. Supabase/Auth/RLS,
+DNS and protection changes remain separate authorization boundaries.
 
 Current sequence: **M2 conditionally accepted → M2.5 implementation complete,
 reviewable feature branch → M3 separately authorized release work**.

@@ -5,7 +5,7 @@
 - M0 baseline and M1 frontend stabilization: completed; M1 merged.
 - M2: **conditionally accepted by the owner for protected, password-based private use** on 6 November 2026 (Asia/Jakarta). Hosted read isolation and browser workflows passed; completed local tests passed. Physical-device and hosted write/CRUD authorization gaps remain documented accepted limitations. See [close-out](decisions/M2-HOSTED-CLOSEOUT.md) and [preserved evidence](evidence/m2/acceptance-20261106/manifest.json). No production/public release is authorized.
 - M2.5: **P0/P1 implemented and locally verified** on `codex/m25-motion-polish`, following explicit autonomous implementation approval. [Results and limits](decisions/M2_5-IMPLEMENTATION.md): 156 unit tests, 25 motion browser cases, existing cloud regressions green. P2 deferred for lack of concrete usability evidence. Reviewable branch; no merge or deployment.
-- M3: official ORBIT 1.0.0 release, separately approved after privacy and release checks pass.
+- M3: **1.0.0 release candidate prepared; Production NO-GO pending live gates.** The owner supplied authoritative issue #2 scope and conditional protected-private publication authority. [GO/NO-GO](decisions/M3-READINESS-CHECKPOINT.md) records Production target/configuration/Auth/protection, hosted write validation and final CI gaps. Build/artifact guards, tests, release notes and rollback procedures are implemented; no deployment or live mutation performed.
 
 The original plan below is retained as historical context. Its milestone numbering and local-only M2 boundary have been superseded by the explicit user authorization above.
 

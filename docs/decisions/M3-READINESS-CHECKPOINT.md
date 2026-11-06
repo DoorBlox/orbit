@@ -1,73 +1,83 @@
-# M3 release-readiness checkpoint
+# ORBIT 1.0.0 — release candidate GO/NO-GO
 
-6 November 2026 (Asia/Jakarta). Branch: `codex/m3-release-readiness`, stacked on
-verified M2.5 `9b54974eaef630bba90450d85be5779bea3e8b03`. Main remains at
-`f2719f3b83c3ce906bee826576c134de15b35f6d`; no merge was performed.
+6 November 2026 (Asia/Jakarta). Branch `codex/m3-release-readiness`, stacked on
+M2.5 `9b54974eaef630bba90450d85be5779bea3e8b03`. Version **1.0.0** is prepared;
+no release tag, merge or Production deployment has been performed.
 
-## Scope and authority
+## Authoritative scope and accepted baseline
 
-The owner authorized safe M3 development, audits, fixes, tests, documentation and
-PR preparation under [issue #2](https://github.com/DoorBlox/orbit/issues/2).
-M2.5 CI passed and its protected Preview is deployed per the owner's latest
-report. These accepted results are not reopened or independently re-certified.
-No Production promotion, merge, Auth/RLS/DNS/protection change or live database
-mutation is authorized by this task.
+The owner supplied issue #2's authoritative scope in this conversation, resolving
+this checkpoint's earlier issue-access blocker (historical checkpoint: `235e8d8`).
+Safe M3 development is authorized. Protected-private Production publication is
+also authorized **conditionally**, after all applicable release gates pass.
+Production target selection must not silently reuse the development database;
+Auth/RLS/DNS/protection changes and live mutations remain separate boundaries.
 
-## Completed independent work
+M2 conditional acceptance, hosted browser acceptance and 10/10 direct nonowner read
+isolation are retained. Owner-confirmed M2.5 CI run
+[42199466081](https://github.com/DoorBlox/orbit/actions/runs/42199466081) passed at
+`9b54974`; the protected Preview is READY at
+https://orbit-emtd92fo1-doorbloxs-projects.vercel.app.
+That is the prior baseline's CI/Preview evidence, not M3 Production verification.
 
-- Verified remote M2.5 branch and PR #1 head both match `9b54974`; main is not
-  silently substituted for the accepted feature baseline.
-- Read current repository rules, handoff, roadmap, build/public configuration,
-  workflow, deployment and security records. The older historical M3 numbering
-  is not used as a replacement for the current issue's release-readiness plan.
-- `npm audit --json` completed with zero reported vulnerabilities across locked
-  runtime/build dependencies. No package was installed, upgraded or rewritten.
-- `python scripts/check_secrets.py` passed: no common credential signatures in
-  32 browser/build/CI files. Values were not printed; this limited scan is not a
-  comprehensive secret or security audit.
-- Verified preserved M2 and M2.5 evidence file hashes. No completed acceptance
-  test, onboarding or source build was repeated.
-- Corrected stale README/deployment/security descriptions that still claimed no
-  Auth, cloud sync, executed CI or deployed Preview. Historical records remain
-  identified as historical. Application source and visual design are unchanged.
-- Inspected retained local dist configuration: it is the local prototype mode,
-  not a newly generated or deployed protected-cloud release artifact. No release
-  candidate provenance is inferred from that existing local output.
+## Completed independent M3 work
 
-Audit metadata is preserved in `docs/evidence/m3/release-audit-summary.json`.
+| Scope | Result |
+| --- | --- |
+| Security review | Auth/lifecycle, RLS/GRANTs/RPCs, key exposure, sanitizer, backups, recovery, conflict and rollback reviewed; actual findings in M3-SECURITY-AUDIT.md. |
+| Necessary fix | Production previously allowed missing cloud inputs to build local mode. Now fails closed before replacing artifacts; reviewed target, development exclusions and exact private CSP are required. |
+| Version/artifact | Package/lock metadata 1.0.0; build:release and verify:release implemented. Synthetic release verification passes; local-only/extra-file/symlink/native/SDK drift rejected. Production target intentionally unconfigured. |
+| Hosted write preparation | Offline generator and tests for seven disposable nonowner fixture tables; no requests executed. Owner rows and workspace/publication mutation RPCs excluded. See M3-HOSTED-WRITE-VALIDATION.md. |
+| Required local checks | PASS: 163 tests, zero failures/skips, syntax, build, structure and unchanged native-source provenance. |
+| Local browsers | PASS: five-viewport M1 QA, 24 cloud cases, 25 motion/touch cases, five recovery/undo/integrity/legacy cases, HTTP asset/private-path smoke. All synthetic/local, not live Production or physical-device certification. |
+| Audit/evidence | Dependency advisories: 0. Limited credential signatures: no matches in 36 files. M2/M2.5 evidence hashes preserved. New results: docs/evidence/m3/candidate/verification.json. |
+| Release operations | Release notes, gated checklist, backup/export, recovery and rollback procedures ready. No arbitrary new library, UI feature or Auth/model behavior change. |
+| CI/PR preparation | All existing checks retained; release guard tests join normal unit tests, secret scan and close-out suite added; explicit M3 branch push trigger. Reviewable commits/PR description prepared. GitHub API remains Forbidden. |
 
-## Genuine blocker and exact remaining work
+A deliberate attempt to build Production without its required cloud fields was
+correctly refused and left existing dist hashes unchanged. This **expected NO-GO**
+is a safety check, not a failing application regression. No real Production cloud
+artifact has been generated or claimed verified.
 
-Issue #2's title/body/checklist is unavailable through the current connection:
-`gh issue view 2 --repo DoorBlox/orbit --json title,body,state,url` returned
-Forbidden from GitHub GraphQL; the authorized GitHub issue page returned HTTP
-404. Git HTTPS access works, but Git protocol does not expose issue bodies.
-Do not infer that the issue is missing or use another repository/identity.
+## Genuine remaining gates
 
-The owner has been asked to paste the issue plan; no credentials are requested.
-Until it is available, the exact release requirements and issue-specific exit
-criteria cannot be established. This is an information/access blocker, not a
-demonstrated application defect or justification to rerun accepted milestones.
+1. **Production target/configuration decision and verification.** The owner reports
+   URL/publishable key have Preview scope only. Production project/API origin and
+   protected site origin are not selected in reviewed metadata. Production-scoped
+   inputs, exact CSP, Auth site/redirects, protection and target owner/read gate must
+   be verified against the intended project. No live connector, CLI binding or
+   credentials are present here; Preview requests also stop at proxy CONNECT 403.
+   Do not resolve this by blindly promoting Preview or copying development bindings.
+2. **Hosted write-isolation evidence.** The prepared development plan requires an
+   existing confirmed nonowner UUID, administrator-confirmed absence of its data,
+   and narrow authorization for seeding/testing/cleaning exactly seven synthetic
+   rows. It has not run. Production needs its own reviewed validation target/identity;
+   neither local SQL tests nor development read tests certify its deployed writes.
+3. **Final release-commit CI.** M3 code is locally verified; actual GitHub job results
+   at the final candidate SHA remain pending/unreadable through this API connection.
+   The older passed M2.5 run is not substituted. Branch CI is configured to trigger
+   without requiring API-based PR creation; no independent remote PASS is claimed.
 
-Once the issue body is supplied:
+Physical Safari/Android and physical 120Hz testing remain explicitly unverified,
+not silently passed or confused with Chromium viewport/touch emulation. OTP/Google
+and real provider-outage variants remain outside the verified password workflow.
+The owner must retain/accept appropriate scope limits when making the final gate
+assessment; this report does not manufacture a device or broader provider result.
 
-1. Map each actual issue requirement to retained evidence, new work and explicit
-   authorization boundaries; preserve completed M2/M2.5 acceptance.
-2. Implement safe required changes sequentially on this branch, with targeted
-   regression tests and reviewed source-manifest updates if source changes occur.
-3. Run checks justified by those changes, prepare reviewable commits/PR and
-   record issue-specific GO/NO-GO with remaining limits.
-4. Stop before any merge, Production deployment, Auth/RLS/DNS/protection change
-   or live mutation. Record exact target/Preview provenance only from evidence;
-   the latest M2.5 Preview URL was not supplied in this task.
+## Decision
 
-## Assessment
+**NO-GO for Production publication.** Independent code, local validation and release
+procedures are ready; no newly confirmed unresolved application P0 was found after
+fixing the build fallback. The live target/configuration, write validation and
+final remote CI gates above are not satisfied. Conditional publication authority
+is retained and need not be requested again once the actual gates pass.
 
-**NO-GO for claiming an M3 release candidate ready:** the governing issue plan
-cannot yet be read. Completed audits have no newly confirmed dependency/security
-failure, and M2.5 CI/Preview success is retained as owner-reported evidence.
-This checkpoint is safe reviewable groundwork, not completed M3 acceptance.
+Next needed information is the reviewed Production Supabase/project origin and
+protected Production site origin (public metadata, no secret values), plus an
+appropriate live verification channel. Fixture mutations are not implied by that
+selection; review their exact narrow plan separately. No schema migration, owner
+assignment, test-user deletion or production-data restore is required by this work.
 
-Physical-device and hosted write/CRUD gaps remain explicit, previously accepted
-M2 limitations. Whether they are M3 release blockers must follow the actual issue
-plan rather than an invented requirement or automatic expansion of scope.
+See [release notes](../releases/1.0.0.md),
+[launch/backup/rollback runbook](M3-LAUNCH-RUNBOOK.md),
+[security audit](M3-SECURITY-AUDIT.md), and [prepared PR](M3-PR.md).

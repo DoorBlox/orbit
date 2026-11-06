@@ -1,3 +1,11 @@
+## 1.0.0 private release candidate — 2026-11-06 (not Production-published)
+
+- Preserve accepted M2 private cloud functionality and M2.5 motion fixes.
+- Fail closed when Production cloud configuration is absent, unreviewed, mismatched or development-scoped; enforce exact private CSP before artifact replacement.
+- Verify committed release artifacts, inventory, native files and rebuilt SDK integrity; never print keys.
+- Prepare offline-only nonowner CRUD fixture plans; no hosted mutations or Auth/RLS changes.
+- Add release guard/plan tests, complete private recovery browser CI coverage, and reconcile release notes, security findings, backup/rollback and remaining launch gates.
+
 ## M2.5 Motion Polish — 2026-11-06
 
 - Give manual wheel, zoom and keyboard camera input priority over navigation.

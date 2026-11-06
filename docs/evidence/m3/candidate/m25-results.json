@@ -1,0 +1,127 @@
+[
+  {
+    "case": "interruption-desktop",
+    "status": "PASS",
+    "seconds": 2.88
+  },
+  {
+    "case": "reduced-motion-desktop",
+    "status": "PASS",
+    "seconds": 0.41
+  },
+  {
+    "case": "spring-settling-desktop",
+    "status": "PASS",
+    "seconds": 1.72
+  },
+  {
+    "case": "touch-continuity-desktop",
+    "status": "PASS",
+    "seconds": 1.77
+  },
+  {
+    "case": "teardown-desktop",
+    "status": "PASS",
+    "seconds": 0.9
+  },
+  {
+    "case": "interruption-tablet",
+    "status": "PASS",
+    "seconds": 3.02
+  },
+  {
+    "case": "reduced-motion-tablet",
+    "status": "PASS",
+    "seconds": 0.33
+  },
+  {
+    "case": "spring-settling-tablet",
+    "status": "PASS",
+    "seconds": 0.98
+  },
+  {
+    "case": "touch-continuity-tablet",
+    "status": "PASS",
+    "seconds": 1.15
+  },
+  {
+    "case": "teardown-tablet",
+    "status": "PASS",
+    "seconds": 0.9
+  },
+  {
+    "case": "interruption-phone",
+    "status": "PASS",
+    "seconds": 2.98
+  },
+  {
+    "case": "reduced-motion-phone",
+    "status": "PASS",
+    "seconds": 0.24
+  },
+  {
+    "case": "spring-settling-phone",
+    "status": "PASS",
+    "seconds": 0.86
+  },
+  {
+    "case": "touch-continuity-phone",
+    "status": "PASS",
+    "seconds": 0.77
+  },
+  {
+    "case": "teardown-phone",
+    "status": "PASS",
+    "seconds": 0.87
+  },
+  {
+    "case": "interruption-small",
+    "status": "PASS",
+    "seconds": 2.87
+  },
+  {
+    "case": "reduced-motion-small",
+    "status": "PASS",
+    "seconds": 0.29
+  },
+  {
+    "case": "spring-settling-small",
+    "status": "PASS",
+    "seconds": 0.88
+  },
+  {
+    "case": "touch-continuity-small",
+    "status": "PASS",
+    "seconds": 0.58
+  },
+  {
+    "case": "teardown-small",
+    "status": "PASS",
+    "seconds": 0.85
+  },
+  {
+    "case": "interruption-landscape",
+    "status": "PASS",
+    "seconds": 2.95
+  },
+  {
+    "case": "reduced-motion-landscape",
+    "status": "PASS",
+    "seconds": 0.3
+  },
+  {
+    "case": "spring-settling-landscape",
+    "status": "PASS",
+    "seconds": 0.87
+  },
+  {
+    "case": "touch-continuity-landscape",
+    "status": "PASS",
+    "seconds": 0.74
+  },
+  {
+    "case": "teardown-landscape",
+    "status": "PASS",
+    "seconds": 0.86
+  }
+]

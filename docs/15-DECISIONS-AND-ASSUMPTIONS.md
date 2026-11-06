@@ -1,5 +1,16 @@
 # 15 — Architecture decision record and skill utilization
 
+## M3 authority and release gates — 6 November 2026
+
+The owner supplied the authoritative issue #2 scope and authorized protected-private
+Production publication only after genuine gates pass. 1.0.0 candidate metadata,
+Production fail-closed build/target/CSP guards and artifact verification are implemented.
+Production target remains unconfigured; Preview-only bindings do not satisfy its
+requirements. Hosted write probes are prepared offline, not executed. No merge,
+Auth/RLS/DNS/protection change, live mutation or blind Preview promotion is implied.
+See decisions/M3-READINESS-CHECKPOINT.md and M3-LAUNCH-RUNBOOK.md. Older authorization
+wording below is historical where superseded by this explicit gated authority.
+
 ## Owner acceptance — 6 November 2026
 
 M2 is conditionally accepted for protected, password-based private use. The owner

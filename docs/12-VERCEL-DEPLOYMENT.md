@@ -14,9 +14,12 @@ fields intentionally produce a local prototype. No populated configuration or
 privileged credential is needed to read this guide. Keep public reads disabled,
 protection intact, and the existing development target separate from Production.
 
-M3 release-readiness work is authorized by the owner subject to issue #2; merges,
-Production deployment, Auth/RLS/DNS/protection changes and live database mutations
-remain separate authorization boundaries. This guide does not perform any of them.
+The owner supplied authoritative issue #2 scope and conditionally authorized
+protected-private Production publication after all release gates pass. Merges,
+Auth/RLS/DNS/protection changes and live mutations are not implicitly authorized.
+Production URL/key currently have Preview scope only per owner finding; reviewed
+Production target/configuration and redirects remain unverified. M3 adds a fail-closed
+Production build guard; do not blindly promote a development-configured Preview. This guide does not perform any of them.
 Completed tests/evidence must not be repeated merely because historical checklists
 below still use pre-M2 language. See M3-READINESS-CHECKPOINT.md in decisions/.
 

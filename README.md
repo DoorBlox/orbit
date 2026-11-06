@@ -5,6 +5,8 @@ resizable windows: constellation, timeline, active tasks, completed tasks, perso
 space and dated paper-like journal. The app remains native HTML/CSS/JavaScript ES
 modules; the Supabase SDK is the only isolated browser bundle.
 
+Version **1.0.0 release candidate**; Production is not yet published.
+
 ## Current state
 
 - **M2:** owner-accepted for protected, password-based private use, with documented
@@ -14,15 +16,18 @@ modules; the Supabase SDK is the only isolated browser bundle.
   PR [#1](https://github.com/DoorBlox/orbit/pull/1) has not been merged by this agent.
   Original camera timing, visual identity and widget persistence are preserved.
 - **M3:** release-readiness work follows
-  [issue #2](https://github.com/DoorBlox/orbit/issues/2). No Production deployment,
-  promotion, Auth/RLS/DNS change or live database mutation is authorized here.
+  [issue #2](https://github.com/DoorBlox/orbit/issues/2). Protected Production publication is authorized only after genuine release gates
+  pass; Auth/RLS/DNS changes and live mutations are not implicitly authorized.
 - Remote `main` was verified at `f2719f3b83c3ce906bee826576c134de15b35f6d`;
   the feature branch contains the later accepted work. Do not reset to main and
   silently discard it. No claim is made that these feature changes are merged.
 
-The exact M3 issue checklist is not readable from this agent's current GitHub
-connection. See the [M3 checkpoint](docs/decisions/M3-READINESS-CHECKPOINT.md)
-for what is verified and the outstanding source-of-scope blocker.
+The owner supplied the authoritative M3 checklist in the current handoff. See the
+[M3 GO/NO-GO](docs/decisions/M3-READINESS-CHECKPOINT.md),
+[1.0.0 release notes](docs/releases/1.0.0.md) and
+[launch/backup/rollback runbook](docs/decisions/M3-LAUNCH-RUNBOOK.md).
+Production publication is conditionally authorized once its gates pass; target
+configuration and hosted write validation remain unverified, so no promotion occurs.
 
 ## Development and validation
 
@@ -69,6 +74,15 @@ the SDK boundary and writing allowlisted public runtime configuration. Repositor
 docs, tests, migrations, environment examples and backups are not deployment files.
 Automatic Vercel Git deployment remains disabled in repository configuration; do
 not remove that hold or promote an artifact without separate authorization.
+
+## Production build safety
+
+`npm run build:release` enforces the same guarded path as VERCEL_ENV=production.
+It refuses local fallback and requires complete cloud inputs, reviewed public
+origins in release/production-target.json, development exclusions and matching
+private CSP. `npm run verify:release` verifies a clean committed artifact and prints
+hashes without keys; it does not certify live protection/Auth/RLS. Current Production
+metadata intentionally remains unconfigured. Neither command deploys anything.
 
 ## Evidence and handoff
 

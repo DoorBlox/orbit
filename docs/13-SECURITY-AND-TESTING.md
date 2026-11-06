@@ -12,10 +12,9 @@ preserved in the milestone evidence archives.
 
 The new M3 dependency advisory audit reports zero known vulnerabilities across
 locked dependencies; the existing credential-signature scan found no matches in
-32 browser/build/CI files. Neither result is a full security proof. M3's issue plan
-is currently inaccessible through this session's GitHub API/HTML connection; do
-not infer its exit criteria from the older milestone numbering below. No live
-mutations or authorization changes are part of these audits.
+32 browser/build/CI files. Neither result is a full security proof. The owner supplied M3's authoritative plan. See decisions/M3-SECURITY-AUDIT.md
+for the Production fallback fix, artifact guards and actual remaining live gates.
+No live mutations or authorization changes are part of these audits.
 
 ## Historical M1 verified local results
 
