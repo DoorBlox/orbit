@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {parseCsv,exportCsv,importCsv} from '../src/csv.js';
+for(const title of ['=1+1','-1+1','+1+1','@SUM(A1)',' =1+1','\n=1+1','\t=1+1','\r=1+1'])test(`export neutralizes formula prefix ${JSON.stringify(title)}`,()=>assert.equal(parseCsv(exportCsv([{title}]))[1][0],`'${title}`));
+test('export preserves ordinary quoted multiline values',()=>{const t={title:'Hello, "world"',description:'Two\nlines',projectId:'inbox'};const result=importCsv(exportCsv([t]));assert.equal(result.tasks[0].title,t.title);assert.equal(result.tasks[0].description,t.description);});
+test('duplicate case-normalized headers fail explicitly',()=>assert.throws(()=>importCsv('title, TITLE\nFirst,Second'),/duplicate/i));
+test('missing title and unclosed quotes fail explicitly',()=>{assert.throws(()=>importCsv('name\nHello'),/title/i);assert.throws(()=>parseCsv('title\n"broken'),/unclosed/i);});
+test('BOM, CRLF and invalid row omissions work',()=>{const r=importCsv('\uFEFFtitle,description\r\nGood,ok\r\n,missing\r\n');assert.equal(r.tasks.length,1);assert.equal(r.omitted,1);});
+test('row with too many columns is omitted instead of silently shifting fields',()=>{const r=importCsv('title,description\nGood,ok\nBad,extra,cell');assert.equal(r.tasks.length,1);assert.equal(r.omitted,1);});
+test('unsafe resource URL is omitted from imported task',()=>{const r=importCsv('title,resource_url\nHello,javascript:alert(1)');assert.equal(r.tasks[0].resourceUrl,'');});

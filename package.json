@@ -1,0 +1,30 @@
+{
+  "name": "orbit-spatial-scrapbook-prototype",
+  "version": "0.6.0-handoff.1",
+  "private": true,
+  "type": "module",
+  "description": "Preserved ORBIT V6 static ES-module prototype plus production engineering handoff",
+  "scripts": {
+    "dev": "node scripts/dev-server.mjs",
+    "start": "node scripts/dev-server.mjs",
+    "dev:dist": "node scripts/dev-server.mjs --dist",
+    "lint": "node scripts/check-syntax.mjs",
+    "test": "node --test tests/*.mjs",
+    "build": "node scripts/build.mjs",
+    "verify:structure": "node scripts/verify-structure.mjs",
+    "check": "npm run lint && npm test && npm run verify:source && npm run build && npm run verify:structure",
+    "build:offline": "python scripts_build_preview.py",
+    "verify:source": "node scripts/verify-source.mjs",
+    "record:source": "node scripts/record-source.mjs",
+    "test:browser": "python tests/qa_m1.py"
+  },
+  "engines": {
+    "node": ">=22 <25"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.118.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  }
+}

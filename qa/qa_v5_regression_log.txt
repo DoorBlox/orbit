@@ -1,0 +1,7 @@
+INIT desktop errors [] state {'tasks': 22, 'branches': 31, 'selectedBranchId': 'inbox', 'camera': {'x': 0, 'y': 0, 'scale': 0.3177396704143844}, 'boardScale': 0.8453038674033149, 'boardPan': {'x': -205.60773480662976, 'y': -498.85359116022096}, 'mode': 'deadline', 'milestones': 0, 'journalPages': 1, 'widgetSizes': {}} map? 31
+DRAG {'left': 1895, 'top': 760} {'left': 1969.77, 'top': 730.093}
+DESKTOP INTERACTION PASS
+PASS desktop
+INIT tablet errors [] state {'tasks': 22, 'branches': 31, 'selectedBranchId': 'inbox', 'camera': {'x': 0, 'y': 0, 'scale': 0.3177396704143844}, 'boardScale': 0.5547445255474452, 'boardPan': {'x': -157.44525547445255, 'y': -72.70072992700727}, 'mode': 'deadline', 'milestones': 0, 'journalPages': 1, 'widgetSizes': {}} map? 31
+PASS tablet
+INIT phone errors [] state {'tasks': 22, 'branches': 31, 'selectedBranchId': 'inbox', 'camera': {'x': 0, 'y': 0, 'scale': 0.2505524273311665}, 'boardScale': 0.94, 'boardPan': {'x': -646.3, 'y': -560.3}, 'mode': 'deadline', 'milestones': 0, 'journalPages': 1, 'widgetSizes': {}} map? 31

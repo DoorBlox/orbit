@@ -1,0 +1,15 @@
+START desktop {'tasks': 22, 'branches': 31, 'selectedBranchId': 'inbox', 'camera': {'x': 0, 'y': 0, 'scale': 0.3177396704143844}, 'boardScale': 0.8453038674033149, 'boardPan': {'x': -205.60773480662976, 'y': -498.85359116022096}, 'mode': 'deadline', 'milestones': 0, 'journalPages': 1, 'widgetSizes': {}} errors []
+MILESTONE {'x': 528.412353515625, 'y': 485.4642639160156, 'width': 133.90673828125, 'height': 21.256805419921875} {'x': 100.88217163085938, 'y': 305.66717529296875, 'width': 1238.2086486816406, 'height': 345.8243408203125} visible True
+HEADER DRAG {'x': 445, 'y': 105} {'x': 540.968, 'y': 152.419}
+RESIZE {'w': 1400, 'h': 525} {'w': 1564, 'h': 638}
+DESKTOP INTERACTION PASS
+PASS desktop
+START tablet {'tasks': 22, 'branches': 31, 'selectedBranchId': 'inbox', 'camera': {'x': 0, 'y': 0, 'scale': 0.3177396704143844}, 'boardScale': 0.5547445255474452, 'boardPan': {'x': -157.44525547445255, 'y': -72.70072992700727}, 'mode': 'deadline', 'milestones': 0, 'journalPages': 1, 'widgetSizes': {}} errors []
+PASS tablet
+START phone {'tasks': 22, 'branches': 31, 'selectedBranchId': 'inbox', 'camera': {'x': 0, 'y': 0, 'scale': 0.2505524273311665}, 'boardScale': 0.94, 'boardPan': {'x': -646.3, 'y': -560.3}, 'mode': 'deadline', 'milestones': 0, 'journalPages': 1, 'widgetSizes': {}} errors []
+PHONE FLOW PASS
+PASS phone
+START small {'tasks': 22, 'branches': 31, 'selectedBranchId': 'inbox', 'camera': {'x': 0, 'y': 0, 'scale': 0.2505524273311665}, 'boardScale': 0.94, 'boardPan': {'x': -681.3, 'y': -632.3}, 'mode': 'deadline', 'milestones': 0, 'journalPages': 1, 'widgetSizes': {}} errors []
+PASS small
+START landscape {'tasks': 22, 'branches': 31, 'selectedBranchId': 'inbox', 'camera': {'x': 0, 'y': 0, 'scale': 0.3177396704143844}, 'boardScale': 0.55, 'boardPan': {'x': -180.25, 'y': -422.375}, 'mode': 'deadline', 'milestones': 0, 'journalPages': 1, 'widgetSizes': {}} errors []
+PASS landscape

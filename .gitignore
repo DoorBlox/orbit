@@ -1,0 +1,26 @@
+node_modules/
+dist/
+.vercel/
+.env
+.env.*
+!.env.example
+*.local
+.DS_Store
+*.log
+coverage/
+playwright-report/
+test-results/
+qa/*.png
+qa/*.json
+qa/*.md
+qa/*.log
+__pycache__/
+.pytest_cache/
+*.pyc
+# Built from source; the bundled artifact remains in this handoff ZIP for reference.
+ORBIT_Offline_Preview.html
+# Tokens, local backups, and untracked personal exports
+orbit-complete-backup-*.json
+orbit-tasks-*.csv
+*.sqlite
+supabase/.temp/

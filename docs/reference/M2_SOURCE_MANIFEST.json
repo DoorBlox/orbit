@@ -1,0 +1,115 @@
+{
+  "baselineCommit": "846ad7df3fa3fdf4c63fd22f2830fed56f83a06e",
+  "milestone": "M2",
+  "review": "Intentional protected-cloud frontend changes; final hashes require central diff review. Original V6 and M1 manifests remain immutable.",
+  "files": {
+    "assets/orbit.svg": {
+      "sha256": "97eb19dd4e0773d0b6489b1f49d794ffd272fb3bc2d42af4faffd6a1adca78c3",
+      "reason": "Unchanged from reviewed M1; retained and integrity checked."
+    },
+    "index.html": {
+      "sha256": "be6b092dc61d9fd2a7e7dad12eb4aaa4adbb644fa0bc12662fdd7e54344166be",
+      "reason": "Use the explicit local/protected-cloud bootstrap entry while preserving V6 spatial DOM."
+    },
+    "src/app.js": {
+      "sha256": "93717587998e6030e09c1b6067f502012b901fe1abd69a35472ae45e3ff9f9cc",
+      "reason": "Mount/dispose existing scrapbook over local or authenticated owner snapshots; guard visitor writes."
+    },
+    "src/auth/README.md": {
+      "sha256": "1ec9f199e2ab8b76ff9a7d462f1804d6653706a8eb4b005e23311d76c9d1f7d5",
+      "reason": "Document owner/session gate and private lifecycle invariants."
+    },
+    "src/auth/controller.js": {
+      "sha256": "536c310db2ff511e9ad0bffb7bb64b9af37c37a8d817fc22b4bcbed219458da1",
+      "reason": "Verify server owner authorization and clear private state on session revocation."
+    },
+    "src/auth/shell.js": {
+      "sha256": "971ed3f84c98568549e27d74fe94658de6456301f9199b74b13b7d290b1a23ed",
+      "reason": "Accessible owner sign-in/status shell without exposing scrapbook data."
+    },
+    "src/backup.js": {
+      "sha256": "f03df9680e644d694f998182907f5c37ce5c5d342ec6c9359a561640619fa02a",
+      "reason": "Unchanged from reviewed M1; retained and integrity checked."
+    },
+    "src/board.js": {
+      "sha256": "a605de5c8e6594ac13bccedb39ae5b22cb1bacc10a70c6e39a9e2aadc34be12c",
+      "reason": "Support injected layout and read-only/disposable cloud lifecycle."
+    },
+    "src/bootstrap.js": {
+      "sha256": "5f51b728d87f0b36d3f33ff159d6a70b54f889faa527016277f89d731951a6c8",
+      "reason": "Gate private mounting on verified owner authentication; public release stays disabled."
+    },
+    "src/cloud/README.md": {
+      "sha256": "2fa23ecebff7de9fa7e5463f3c77031e97850cf192398ea0da66c2f6cd19a4af",
+      "reason": "Unchanged from reviewed M1; retained and integrity checked."
+    },
+    "src/cloud/client-config.js": {
+      "sha256": "73f8785a6ba5fa9f5ebdf4ae84aa0bf8fb5183a975d4a5c71df12cdc6a73853b",
+      "reason": "Validate explicitly configured public Supabase client settings."
+    },
+    "src/cloud/client.js": {
+      "sha256": "81661945d0f44a17552f058726d828e49792fe47387c598d878551a80b23fa85",
+      "reason": "Lazy SDK boundary with browser-safe credentials and session storage."
+    },
+    "src/cloud/mappers.js": {
+      "sha256": "21e3e285c08af6aa17d89acaf8e270aaaae1a78ccfcfa35e2e96500468ca5ee1",
+      "reason": "Unchanged from reviewed M1; retained and integrity checked."
+    },
+    "src/cloud/owner-tools.js": {
+      "sha256": "919ec4fb7eb81fc45d426f62a2c6abaad88c7af309ffa94a5349e4b94e7b714f",
+      "reason": "Owner-only profile/publication/import controls over authenticated repository."
+    },
+    "src/cloud/repository.js": {
+      "sha256": "ac75a7acf2ae390f8e402a5db57f1cea221ec6f762529a4de9ab9db61289d63f",
+      "reason": "Owner-scoped snapshot persistence and reviewed publication projection."
+    },
+    "src/cloud/sync.js": {
+      "sha256": "869732ccb58424bd9d6ca7eaef4e8259ca5bfb835ff95e7fd29a44441960c773",
+      "reason": "Queue writes with honest pending/retry/conflict states and revision checks."
+    },
+    "src/constellation.js": {
+      "sha256": "0d963eb43187b1a1e2ac6c991932a1797f22087976b034fd86b6f7e0ae57b068",
+      "reason": "Preserve graph behavior while supporting injected owner profile and lifecycle."
+    },
+    "src/csv.js": {
+      "sha256": "43bd69daa75c06e88a42cd71d34f4847068997562219db25d5f2ee4d728be109",
+      "reason": "Unchanged from reviewed M1; retained and integrity checked."
+    },
+    "src/data.js": {
+      "sha256": "c745dae0abebfc54ee7497ed50889680940e2df5da16b72489cd9ad6257bade9",
+      "reason": "Unchanged from reviewed M1; retained and integrity checked."
+    },
+    "src/dates.js": {
+      "sha256": "8c32e8c4fc62b0a06584fe0df7f6726d9c47871f3c99eb756c6637bc235a7218",
+      "reason": "Unchanged from reviewed M1; retained and integrity checked."
+    },
+    "src/journal.js": {
+      "sha256": "413234f31b571ad777e6bbac54659a7836a61e924a39a96da919663e2817eb80",
+      "reason": "Support injected entries and read-only/disposable persistence lifecycle."
+    },
+    "src/layout.js": {
+      "sha256": "1293793393eef61b6ab69bb74ad586040fbb066da4b85af877b92551415b14f3",
+      "reason": "Unchanged from reviewed M1; retained and integrity checked."
+    },
+    "src/model.js": {
+      "sha256": "b18a313f200439b5f7f9d0eb11c12e970a0a844ff804091c3bc0a1959e1eb352",
+      "reason": "Unchanged from reviewed M1; retained and integrity checked."
+    },
+    "src/runtime-config.js": {
+      "sha256": "667beee515a5681ff91676cd5d7d5f4c53ed01aa6304163eb8919d2f4b20f2e8",
+      "reason": "Null local default; only build-generated allowlisted public configuration activates cloud."
+    },
+    "src/storage.js": {
+      "sha256": "86d0f51446dea4259aba54b00a2171a7d49e65606661ad7fe79f75169788c1e1",
+      "reason": "Unchanged from reviewed M1; retained and integrity checked."
+    },
+    "src/styles.css": {
+      "sha256": "a874c4eac3d14fb9cc29a8f02829cf244c22d3333663e6beb7b94550a6259116",
+      "reason": "Minimal authentication/status controls retaining spatial scrapbook identity."
+    },
+    "src/widgets.js": {
+      "sha256": "aee68a4ce8a37edbb2de2fa1b0a2fc4589fcaf28a00603db2b148c6875a8ec58",
+      "reason": "Preserve task/timeline projection over canonical owner snapshots and read-only controls."
+    }
+  }
+}
