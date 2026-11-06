@@ -1,0 +1,15 @@
+{
+  "desktop": "PASS",
+  "tablet": "PASS",
+  "phone": "PASS",
+  "small": "PASS",
+  "landscape": "PASS",
+  "core flows": "PASS",
+  "failure and security": "PASS",
+  "preferences and dates": "PASS",
+  "density_load_ms": {
+    "100": 1451,
+    "500": 1295,
+    "2000": 3359
+  }
+}

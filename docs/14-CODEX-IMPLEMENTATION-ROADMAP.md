@@ -3,8 +3,8 @@
 ## Current approved delivery sequence
 
 - M0 baseline and M1 frontend stabilization: completed; M1 merged.
-- M2: protected Vercel development preview, Google OAuth, server-configured owner UUID, private-by-default persistence, explicit safe public projections, synchronization and security/browser acceptance. Implementation and actual gates are tracked in [M2 evidence](decisions/M2-IMPLEMENTATION.md) and PR #2. No public production release is authorized.
-- M2.5: Motion Polish, preserving the spatial scrapbook interaction model.
+- M2: **conditionally accepted by the owner for protected, password-based private use** on 6 November 2026 (Asia/Jakarta). Hosted read isolation and browser workflows passed; completed local tests passed. Physical-device and hosted write/CRUD authorization gaps remain documented accepted limitations. See [close-out](decisions/M2-HOSTED-CLOSEOUT.md) and [preserved evidence](evidence/m2/acceptance-20261106/manifest.json). No production/public release is authorized.
+- M2.5: Motion Polish, preserving the spatial scrapbook interaction model. [Scope, constraints and acceptance criteria](decisions/M2-TO-M2_5-HANDOFF.md) prepared for review; **implementation not started or authorized**.
 - M3: official ORBIT 1.0.0 release, separately approved after privacy and release checks pass.
 
 The original plan below is retained as historical context. Its milestone numbering and local-only M2 boundary have been superseded by the explicit user authorization above.

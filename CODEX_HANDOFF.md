@@ -1,16 +1,41 @@
 # ORBIT V6 → production: Codex handoff
 
-## Current handoff: M2 implementation in PR #2
+## Current handoff: M2 conditionally accepted; M2.5 scope proposed
 
-Continue branch `codex/m2-protected-cloud`, PR #2. M1 is merged. M2 introduces protected cloud Auth, UUID owner authorization, snapshot persistence, explicit publication projections, consent-based local import and conflict-aware synchronization. See [M2 execution evidence](docs/decisions/M2-IMPLEMENTATION.md) and [security review](docs/decisions/M2-SECURITY-REVIEW.md) for actual verification and remaining gates. Local mode and original V6/M1 provenance remain supported.
+On 6 November 2026 (Asia/Jakarta), the owner explicitly accepted **M2 for protected,
+password-based private use**, with the documented unverified checks retained.
+Owner assignment and public-read-disabled state are already confirmed. Do not
+repeat assignment or onboarding, reopen completed acceptance checks, or change
+hosted services as part of this handoff.
 
-The development migrations have been applied to `orbit-development` (`ixfgavgtwuzdgucjriec`). Owner UUID is deliberately unconfigured and public reads disabled. Vercel `orbit-personal-dev` has all-deployments protection. Temporary Email + Password is the visible default for no-domain M2 acceptance; OTP and Google remain implemented. See [password close-out](docs/decisions/M2-PASSWORD-CLOSEOUT.md). The existing confirmed user has a password; its UID was explicitly confirmed by the owner, but administrator UUID assignment and hosted browser acceptance remain required; do not declare M2 complete before those pass. No personal data was automatically imported.
+Verified application baseline: `DoorBlox/orbit`, main commit
+`f2719f3b83c3ce906bee826576c134de15b35f6d`; local task branch `work`. Acceptance
+reports and test additions are local workspace changes, not a claimed new commit,
+merge, deployment or promotion. The original `hlarknnt/orbit-personal` repository
+is excluded.
 
-Current delivery numbering: **M2 protected cloud integration → M2.5 Motion Polish → M3 official ORBIT 1.0.0 release**. The older milestone numbering below is historical and superseded by the user's approved scope.
+Read the [M2 → M2.5 handoff](docs/decisions/M2-TO-M2_5-HANDOFF.md),
+[consolidated close-out](docs/decisions/M2-HOSTED-CLOSEOUT.md) and
+[preserved evidence manifest](docs/evidence/m2/acceptance-20261106/manifest.json).
+Hosted authentication/persistence/sync/conflict/logout and direct nonowner read
+isolation passed per owner evidence. Local browser, unit, SQL and real Auth/API
+suites passed. Physical-device and hosted write/CRUD authorization remain
+unverified; do not describe local write tests as hosted certification.
 
-The remaining sections preserve the original handoff context except where explicitly updated below.
+**M2.5 Motion Polish discovery/proposal is authorized; implementation is not.**
+See the [motion audit and prioritized proposal](docs/decisions/M2_5-MOTION-AUDIT-PROPOSAL.md). Preserve the six-window spatial scrapbook, vanilla ES modules, reduced
+motion and all Auth/RLS/save/conflict/legacy-storage invariants. No Production,
+Supabase/Auth/RLS, DNS, protection, deployment or M3 action is authorized. Retain
+the hosted temporary nonowner account unless the owner authorizes deletion.
 
-**Document status:** prepared repository handoff; NO app redeployment, NO database execution, NO actual cloud connection. Use with `AGENTS.md` and `docs/14-CODEX-IMPLEMENTATION-ROADMAP.md`.
+Current sequence: **M2 conditionally accepted → M2.5 Motion Polish proposal → M3
+separately authorized ORBIT 1.0.0 release**.
+
+## Historical handoff context
+
+The sections below preserve the original handoff and may describe capabilities as
+not built or not connected. Those historical status statements do not supersede
+the current acceptance record above or its linked evidence.
 
 ## 1. The product
 ORBIT is a single-user personal spatial scrapbook with an arbitrarily deep radial constellation, actionable tasks, Premiere-like timeline and milestones, floating rearrangeable glass widgets, and a dated paper-like journal. One continuous 2D space contains **six movable/resizable widgets**: `timeline`, `constellation`, `active`, `completed`, `space`, `journal`. Responsive mobile, drag/resize, glass effects, task colors, completed-task history, CSV/JSON backup, editable journal dates, timeline journal markers and Markdown exports are already implemented in the **browser-only prototype**.
