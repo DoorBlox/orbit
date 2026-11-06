@@ -17,7 +17,8 @@ const productionOptions=()=>({
 
 test('Production refuses local fallback and an unreviewed target',()=>{
   assert.throws(()=>resolveBuildConfig({VERCEL_ENV:'production'}),/Production/);
-  assert.throws(()=>resolveBuildConfig({...configured,VERCEL_ENV:'production'}),/reviewed Production target/);
+  const options=productionOptions();options.target.status='unconfigured';
+  assert.throws(()=>resolveBuildConfig({...configured,VERCEL_ENV:'production'},options),/reviewed Production target/);
   assert.equal(resolveBuildConfig({VERCEL_ENV:'preview'}),null);
 });
 

@@ -466,7 +466,8 @@ def main():
     parser=argparse.ArgumentParser();parser.add_argument('--source',action='store_true');parser.add_argument('--only',default='');args=parser.parse_args()
     OUT.mkdir(exist_ok=True);results=[]
     with server(args.source),sync_playwright() as p:
-        browser=p.chromium.launch(headless=True,executable_path=os.environ.get('CHROMIUM_PATH') or shutil.which('chromium'),args=['--no-sandbox'])
+        executable=None if os.environ.get('ORBIT_BROWSER_BUNDLED') else os.environ.get('CHROMIUM_PATH') or shutil.which('chromium')
+        browser=p.chromium.launch(headless=True,executable_path=executable,args=['--no-sandbox'])
         cases=[('password-flow',lambda:password_case(browser,args.source)),('otp-flow',lambda:otp_flow_case(browser,args.source)),('otp-failures',lambda:otp_failure_case(browser,args.source)),('local-compatibility',lambda:local_compatibility(browser,args.source)),('journal-refresh-save-races',lambda:journal_races(browser,args.source)),('immediate-logout-draft',lambda:immediate_logout_draft(browser,args.source)),('owner-opt-in-tools',lambda:owner_tools_case(browser,args.source)),('owner-empty-expiry',lambda:owner_lifecycle_case(browser,args.source))]
         for label,size in [('desktop',(1440,900)),('tablet',(900,1100)),('phone',(390,844)),('small',(320,700))]:
             for mode in ['signed-out','nonowner']:
