@@ -1,7 +1,7 @@
 {
   "baselineCommit": "846ad7df3fa3fdf4c63fd22f2830fed56f83a06e",
   "milestone": "M2",
-  "review": "Intentional protected-cloud frontend changes; final hashes require central diff review. Original V6 and M1 manifests remain immutable.",
+  "review": "Reviewed M2 cloud baseline with authorized M2.5 motion fixes; current hashes are recorded after diff review. Original V6 and historical M1 manifests remain immutable.",
   "files": {
     "assets/orbit.svg": {
       "sha256": "97eb19dd4e0773d0b6489b1f49d794ffd272fb3bc2d42af4faffd6a1adca78c3",
@@ -12,8 +12,8 @@
       "reason": "Use the explicit local/protected-cloud bootstrap entry while preserving V6 spatial DOM."
     },
     "src/app.js": {
-      "sha256": "93717587998e6030e09c1b6067f502012b901fe1abd69a35472ae45e3ff9f9cc",
-      "reason": "Mount/dispose existing scrapbook over local or authenticated owner snapshots; guard visitor writes."
+      "sha256": "02063b37418e055d5b0dec4e258ede9a384b63b8fefa42b5dec9c38377f2b9df",
+      "reason": "M2 bootstrap/snapshot mount retained; M2.5 reviewed keyboard-arrow input cancels obsolete graph camera navigation. Auth and persistence behavior unchanged."
     },
     "src/auth/README.md": {
       "sha256": "1ec9f199e2ab8b76ff9a7d462f1804d6653706a8eb4b005e23311d76c9d1f7d5",

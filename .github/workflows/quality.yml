@@ -44,6 +44,10 @@ jobs:
         env:
           ORBIT_BROWSER_BUNDLED: '1'
         run: python tests/qa_m2.py
+      - name: Motion, touch and reduced-motion regressions
+        env:
+          ORBIT_BROWSER_BUNDLED: '1'
+        run: python tests/qa_m25.py
       - name: Retain synthetic browser evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -52,6 +56,8 @@ jobs:
           path: |
             qa/m1-*.png
             qa/m1-results.json
+            qa/m25-*.png
+            qa/m25-results.json
             test-results/
           retention-days: 7
 # No deployment or database migration. Automatic Vercel deployments disabled pending approval.

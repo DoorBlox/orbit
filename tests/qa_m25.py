@@ -23,6 +23,12 @@ def interruption(page):
       document.getElementById('zoom-in').click();const camera=s.getCamera();
       await new Promise(r=>setTimeout(r,600));
       if(JSON.stringify(s.getCamera())!==JSON.stringify(camera))throw Error('Graph overwrote zoom command');
+      for(const key of ['+','ArrowLeft']){
+        s.focusNode('inbox');await new Promise(r=>setTimeout(r,100));
+        document.dispatchEvent(new KeyboardEvent('keydown',{key,bubbles:true,cancelable:true}));
+        const keyed=s.getCamera();await new Promise(r=>setTimeout(r,600));
+        if(JSON.stringify(s.getCamera())!==JSON.stringify(keyed))throw Error('Graph overwrote keyboard '+key);
+      }
       return {layoutUnchanged:layout===JSON.stringify(b.getLayout()),pan,camera};
     }''')
     assert result['layoutUnchanged'], result
@@ -111,6 +117,28 @@ def touch_continuity(page):
         page.emulate_media(reduced_motion='no-preference')
 
 
+def teardown(page):
+    page.evaluate('''()=>{
+      const {board:b,scene:s}=window.orbitDebug;
+      const state=window.__m25Teardown={b,s,renders:0};
+      const render=b.render.bind(b),apply=s.applyCamera.bind(s);
+      b.render=()=>{state.renders++;render();};s.applyCamera=()=>{state.renders++;apply();};
+      b.animate({x:300,y:200,scale:1},600);
+      s.animateCamera({x:200,y:300,scale:1.2},600);
+      s.offsets.set('inbox',{x:100,y:40,vx:0,vy:0});s.startSpring();
+    }''')
+    page.locator('.cloud-toolbar').get_by_role('button', name='Sign out', exact=True).click()
+    expect(page.locator('#app')).to_be_hidden()
+    assert page.locator('#app').inner_text() == ''
+    state = page.evaluate('''()=>{
+      const {b,s,renders}=window.__m25Teardown;
+      return {disposed:b.disposed&&s.disposed,frames:[b.raf,s.cameraAnimation,s.springAnimation],renders};
+    }''')
+    assert state['disposed'] and state['frames'] == [0,0,0], state
+    page.wait_for_timeout(650)
+    assert page.evaluate('window.__m25Teardown.renders') == state['renders']
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--source', action='store_true')
@@ -120,19 +148,24 @@ def main():
     with qa.server(source=args.source), sync_playwright() as p:
         executable = None if os.environ.get('ORBIT_BROWSER_BUNDLED') else shutil.which('chromium')
         browser = p.chromium.launch(headless=True, executable_path=executable, args=['--no-sandbox'])
-        for label, size in [('desktop',(1440,900)),('phone',(390,844))]:
+        for label, size in [('desktop',(1440,900)),('tablet',(900,1100)),('phone',(390,844)),('small',(320,700)),('landscape',(844,390))]:
             ctx, page, errors = qa.cloud_context(browser, size, 'owner', source=args.source)
             try:
                 expect(page.locator('.cloud-mode')).to_have_text('Private owner space')
                 page.emulate_media(reduced_motion='no-preference')
-                for name, run in [('interruption',interruption),('reduced-motion',reduced_motion),('spring-settling',spring_settling),('touch-continuity',touch_continuity)]:
+                for name, run in [('interruption',interruption),('reduced-motion',reduced_motion),('spring-settling',spring_settling),('touch-continuity',touch_continuity),('teardown',teardown)]:
                     started = time.monotonic()
                     try:
+                        page.emulate_media(reduced_motion='no-preference')
                         run(page)
                         qa.assert_no_local_leak(page)
                         assert not page.evaluate('window.__m2Fixture.calls.some(c=>c.name==="save_owner_snapshot")')
                         assert not errors, errors
                         result = {'case':f'{name}-{label}','status':'PASS'}
+                        if name == 'touch-continuity':
+                            page.emulate_media(reduced_motion='reduce')
+                            page.evaluate("window.orbitDebug.board.focus('constellation',{initial:true});window.orbitDebug.scene.fitAll()")
+                            page.screenshot(path=str(qa.OUT/f'm25-{label}-after.png'))
                     except Exception:
                         result = {'case':f'{name}-{label}','status':'FAIL','traceback':traceback.format_exc()}
                     result['seconds'] = round(time.monotonic()-started,2)
