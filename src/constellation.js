@@ -84,10 +84,12 @@ export class Constellation {
     this.camera={x:lx-wx*scale,y:ly-wy*scale,scale};this.applyCamera();
   }
   animateCamera(target,duration=450){
-    cancelAnimationFrame(this.cameraAnimation);
+    cancelAnimationFrame(this.cameraAnimation);this.cameraAnimation=0;if(this.disposed)return;
     if(reduceMotion()||duration<=0){this.camera={...target};this.applyCamera();return;}
     const start=performance.now(),from={...this.camera};
     const tick=(time)=>{
+      this.cameraAnimation=0;if(this.disposed)return;
+      if(reduceMotion()){this.camera={...target};this.applyCamera();return;}
       const t=clamp((time-start)/duration,0,1),e=1-Math.pow(1-t,3);
       this.camera={x:from.x+(target.x-from.x)*e,y:from.y+(target.y-from.y)*e,scale:from.scale+(target.scale-from.scale)*e};
       this.applyCamera();if(t<1)this.cameraAnimation=requestAnimationFrame(tick);
@@ -154,10 +156,12 @@ export class Constellation {
   }
   stackOffset(id){const o=this.effectiveOffset(id);return {x:o.x*.88,y:o.y*.88};}
   startSpring(){
-    cancelAnimationFrame(this.springAnimation);
+    cancelAnimationFrame(this.springAnimation);this.springAnimation=0;if(this.disposed)return;
     if(reduceMotion()){this.offsets.clear();this.applyOffsets();return;}
     const tick=()=>{
+      this.springAnimation=0;if(this.disposed)return;
       if(this.gesture?.type==='node')return;
+      if(reduceMotion()){this.offsets.clear();this.applyOffsets();return;}
       let moving=false;
       for(const [id,p] of [...this.offsets]){
         const k=.088,friction=.77;p.vx=(p.vx-p.x*k)*friction;p.vy=(p.vy-p.y*k)*friction;p.x+=p.vx;p.y+=p.vy;
@@ -397,6 +401,6 @@ export class Constellation {
     for(const r of this.nodesEl.querySelectorAll('.task-row'))r.classList.toggle('is-selected',r.dataset.taskId===this.selectedTaskId);
     for(const e of this.edgeEntries)e.path.classList.toggle('is-selected',e.to===this.focusedNode);
   }
-  dispose(){this.observer.disconnect();cancelAnimationFrame(this.cameraAnimation);cancelAnimationFrame(this.springAnimation);this.nodesEl.replaceChildren();this.edgesEl.replaceChildren();this.domNodes.clear();this.domStacks.clear();}
+  dispose(){this.disposed=true;this.observer.disconnect();cancelAnimationFrame(this.cameraAnimation);cancelAnimationFrame(this.springAnimation);this.cameraAnimation=0;this.springAnimation=0;this.nodesEl.replaceChildren();this.edgesEl.replaceChildren();this.domNodes.clear();this.domStacks.clear();}
 
 }

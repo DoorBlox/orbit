@@ -28,6 +28,25 @@ def interruption(page):
     assert result['layoutUnchanged'], result
 
 
+def reduced_motion(page):
+    page.evaluate('''()=>{
+      const {board:b,scene:s}=window.orbitDebug;
+      b.animate({x:40,y:-30,scale:.8},500);
+      s.animateCamera({x:70,y:-20,scale:1.1},500);
+      s.offsets.set('inbox',{x:100,y:20,vx:0,vy:0});s.startSpring();
+    }''')
+    page.wait_for_timeout(80)
+    page.emulate_media(reduced_motion='reduce')
+    qa.wait_until(page, '''(()=>{
+      const {board:b,scene:s}=window.orbitDebug;
+      return b.pan.x===40&&b.pan.y===-30&&b.scale===.8&&b.raf===0&&
+        s.camera.x===70&&s.camera.y===-20&&s.camera.scale===1.1&&
+        s.cameraAnimation===0&&s.springAnimation===0&&s.offsets.size===0;
+    })()''')
+    assert page.locator('.ambient-orb').first.evaluate('e=>getComputedStyle(e).animationName') == 'none'
+    page.emulate_media(reduced_motion='no-preference')
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--source', action='store_true')
@@ -42,18 +61,19 @@ def main():
             try:
                 expect(page.locator('.cloud-mode')).to_have_text('Private owner space')
                 page.emulate_media(reduced_motion='no-preference')
-                started = time.monotonic()
-                try:
-                    interruption(page)
-                    qa.assert_no_local_leak(page)
-                    assert not page.evaluate('window.__m2Fixture.calls.some(c=>c.name==="save_owner_snapshot")')
-                    assert not errors, errors
-                    result = {'case':f'interruption-{label}','status':'PASS'}
-                except Exception:
-                    result = {'case':f'interruption-{label}','status':'FAIL','traceback':traceback.format_exc()}
-                result['seconds'] = round(time.monotonic()-started,2)
-                results.append(result)
-                print(json.dumps(result), flush=True)
+                for name, run in [('interruption',interruption),('reduced-motion',reduced_motion)]:
+                    started = time.monotonic()
+                    try:
+                        run(page)
+                        qa.assert_no_local_leak(page)
+                        assert not page.evaluate('window.__m2Fixture.calls.some(c=>c.name==="save_owner_snapshot")')
+                        assert not errors, errors
+                        result = {'case':f'{name}-{label}','status':'PASS'}
+                    except Exception:
+                        result = {'case':f'{name}-{label}','status':'FAIL','traceback':traceback.format_exc()}
+                    result['seconds'] = round(time.monotonic()-started,2)
+                    results.append(result)
+                    print(json.dumps(result), flush=True)
             finally:
                 qa.close_context(ctx, page)
         browser.close()

@@ -81,3 +81,53 @@ test('even a clamped graph zoom command cancels the obsolete flight', t => {
   assert.deepEqual(s.getCamera(), { x: 0, y: 0, scale: 2.65 });
   assert.equal(raf.pending(), 0);
 });
+
+test('enabling reduced motion resolves an active board flight to its target', t => {
+  const raf = clock(t), b = board();
+  b.animate({ x: 500, y: 300, scale: 1.2 }, 520); raf.step(100);
+  raf.reduce(); raf.step(1);
+  assert.deepEqual(b.pan, { x: 500, y: 300 });
+  assert.equal(b.scale, 1.2);
+  assert.equal(b.raf, 0);
+  assert.equal(raf.pending(), 0);
+});
+
+test('reduced motion resolves only the newest graph target', t => {
+  const raf = clock(t), s = scene();
+  s.animateCamera({ x: 500, y: 300, scale: 1.2 }, 500); raf.step(100);
+  s.animateCamera({ x: 100, y: 50, scale: .8 }, 500);
+  raf.reduce(); raf.step(1);
+  assert.deepEqual(s.getCamera(), { x: 100, y: 50, scale: .8 });
+  assert.equal(s.cameraAnimation, 0);
+  assert.equal(raf.pending(), 0);
+});
+
+test('enabling reduced motion clears settling offsets without another spring frame', t => {
+  const raf = clock(t), s = scene();
+  Object.assign(s, { offsets: new Map([['node', { x: 100, y: 0, vx: 0, vy: 0 }]]), applyOffsets() {} });
+  s.startSpring(); raf.step(16);
+  raf.reduce(); raf.step(16);
+  assert.equal(s.offsets.size, 0);
+  assert.equal(s.springAnimation, 0);
+  assert.equal(raf.pending(), 0);
+});
+
+test('already reduced motion schedules no navigation frames', t => {
+  const raf = clock(t), b = board(), s = scene(); raf.reduce();
+  b.animate({ x: 50, y: 30, scale: .5 }, 500);
+  s.animateCamera({ x: 50, y: 30, scale: .5 }, 500);
+  assert.deepEqual(b.pan, { x: 50, y: 30 });
+  assert.deepEqual(s.getCamera(), { x: 50, y: 30, scale: .5 });
+  assert.equal(raf.pending(), 0);
+});
+
+test('board teardown clears its animation handle and cancels pending rendering', t => {
+  const raf = clock(t), b = board();
+  let renders = 0;
+  Object.assign(b, { render() { renders++; }, events: { abort() {} }, pointers: new Map(), widgets: new Map() });
+  b.animate({ x: 50, y: 30, scale: .5 }, 500);
+  b.dispose(); raf.step(1000);
+  assert.equal(renders, 0);
+  assert.equal(b.raf, 0);
+  assert.equal(raf.pending(), 0);
+});

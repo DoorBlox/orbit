@@ -89,7 +89,7 @@ export class SpatialBoard {
     if(initialLayout)this.setLayout(initialLayout,{persist:false});
     this.render();
     // Open near the constellation and leave adjacent glass objects discoverable by drifting sideways.
-    requestAnimationFrame(()=>this.focus('constellation',{initial:true}));
+    this.raf=requestAnimationFrame(()=>{this.raf=0;this.focus('constellation',{initial:true});});
   }
   getLayout(){const out=structuredClone(this.positions);for(const [id,size] of Object.entries(this.sizes))out[id]={...out[id],width:size.w,height:size.h};return out;}
   setLayout(value,{persist=true}={}){
@@ -159,9 +159,12 @@ export class SpatialBoard {
     this.animate({scale,x:w/2-((x0+x1)/2)*scale,y:h/2-((y0+y1)/2)*scale},600);
   }
   animate(target,duration=350){cancelAnimationFrame(this.raf);
-    if(duration===0||prefersReduce()){this.scale=target.scale;this.pan={x:target.x,y:target.y};this.render();return;}
+    this.raf=0;if(this.disposed)return;
+    const finish=()=>{this.raf=0;this.scale=target.scale;this.pan={x:target.x,y:target.y};this.render();};
+    if(duration===0||prefersReduce()){finish();return;}
     const from={x:this.pan.x,y:this.pan.y,scale:this.scale};const start=performance.now();
-    const frame=now=>{const t=clamp((now-start)/duration,0,1),e=1-Math.pow(1-t,3);
+    const frame=now=>{this.raf=0;if(this.disposed)return;if(prefersReduce()){finish();return;}
+      const t=clamp((now-start)/duration,0,1),e=1-Math.pow(1-t,3);
       this.pan.x=from.x+(target.x-from.x)*e;this.pan.y=from.y+(target.y-from.y)*e;this.scale=from.scale+(target.scale-from.scale)*e;
       this.render();if(t<1)this.raf=requestAnimationFrame(frame);
     };this.raf=requestAnimationFrame(frame);
@@ -256,6 +259,6 @@ export class SpatialBoard {
     const {w,h}=this.viewportSize(),wx=(w/2-this.pan.x)/this.scale,wy=(h/2-this.pan.y)/this.scale,{x0,x1,y0,y1}=this.navBounds;
     el.style.left=`${clamp((wx-x0)/(x1-x0)*100,0,100)}%`;el.style.top=`${clamp((wy-y0)/(y1-y0)*100,0,100)}%`;
   }
-  dispose(){cancelAnimationFrame(this.raf);this.events.abort();this.pointers.clear();this.widgets.clear();}
+  dispose(){this.disposed=true;cancelAnimationFrame(this.raf);this.raf=0;this.events.abort();this.pointers.clear();this.widgets.clear();}
 
 }
