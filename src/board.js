@@ -195,7 +195,7 @@ export class SpatialBoard {
   }
   onWheel(e){
     if(e.target.closest('.map-viewport,.timeline-scroll,.rail-task-list,.journal-editor,.journal-paper input'))return;
-    e.preventDefault();const rect=this.viewport.getBoundingClientRect();
+    e.preventDefault();cancelAnimationFrame(this.raf);const rect=this.viewport.getBoundingClientRect();
     if(e.ctrlKey||e.metaKey){this.zoomBy(Math.exp(-e.deltaY*.0018),e.clientX-rect.left,e.clientY-rect.top);return;}
     this.pan.x-=e.deltaX;this.pan.y-=e.deltaY;this.render();
   }

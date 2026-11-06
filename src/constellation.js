@@ -77,6 +77,7 @@ export class Constellation {
   }
   hostScale(){const r=this.viewport.getBoundingClientRect();return Math.max(.001,r.width/Math.max(1,this.width));}
   zoomBy(multiplier,cx,cy){
+    cancelAnimationFrame(this.cameraAnimation);
     const r=this.viewport.getBoundingClientRect(),hs=this.hostScale();const lx=((cx??r.left+r.width/2)-r.left)/hs-this.width/2,ly=((cy??r.top+r.height/2)-r.top)/hs-this.height/2;
     this.atOverview=false;const old=this.camera.scale,scale=clamp(old*multiplier,.008,2.65);if(old===scale)return;
     const wx=(lx-this.camera.x)/old,wy=(ly-this.camera.y)/old;

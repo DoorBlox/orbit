@@ -32,8 +32,8 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "src/board.js": {
-      "sha256": "a605de5c8e6594ac13bccedb39ae5b22cb1bacc10a70c6e39a9e2aadc34be12c",
-      "reason": "Support injected layout and read-only/disposable cloud lifecycle."
+      "sha256": "0083285049e0296f21958b81e01a45dce814f3a1e652f8c9649f8a26ebc88d8a",
+      "reason": "M2.5 P0-A reviewed: background wheel pan cancels obsolete camera navigation; saved layout and cloud behavior unchanged."
     },
     "src/bootstrap.js": {
       "sha256": "5f51b728d87f0b36d3f33ff159d6a70b54f889faa527016277f89d731951a6c8",
@@ -68,8 +68,8 @@
       "reason": "Queue writes with honest pending/retry/conflict states and revision checks."
     },
     "src/constellation.js": {
-      "sha256": "0d963eb43187b1a1e2ac6c991932a1797f22087976b034fd86b6f7e0ae57b068",
-      "reason": "Preserve graph behavior while supporting injected owner profile and lifecycle."
+      "sha256": "459584ce4ad494593db25e14bceb61e0322504b99df43cfd505f00c116c9a8de",
+      "reason": "M2.5 P0-A reviewed: manual anchored zoom cancels obsolete graph focus animation, including clamped commands."
     },
     "src/csv.js": {
       "sha256": "43bd69daa75c06e88a42cd71d34f4847068997562219db25d5f2ee4d728be109",
