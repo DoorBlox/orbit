@@ -118,7 +118,7 @@ jobs:
             echo
             echo "- **Staged URL:** $url"
             echo "- **Source commit:** $ORBIT_EXPECTED_SOURCE_SHA"
-            echo "- **Domains unchanged:** explicit `--skip-domain` was required"
+            echo "- **Domains unchanged:** the mandatory skip-domain deployment flag was used"
             echo "- **Next:** inspect SSO/CSP, perform owner smoke, verify aliases are unchanged, then separately authorize promotion"
           } >> "$GITHUB_STEP_SUMMARY"
 
