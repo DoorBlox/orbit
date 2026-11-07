@@ -1,0 +1,138 @@
+name: ORBIT M6 stage Production without domain changes
+
+# Stage ONLY when the owner explicitly starts this workflow on main.
+# This workflow NEVER promotes to a custom domain or mutates Supabase.
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Confirm STAGE_ONLY: build Production but do not change domain aliases'
+        required: true
+        type: choice
+        options:
+          - STAGE_ONLY
+
+permissions:
+  contents: read
+
+concurrency:
+  group: orbit-m6-stage-production
+  cancel-in-progress: false
+
+jobs:
+  stage-only:
+    if: github.ref == 'refs/heads/main' && inputs.confirmation == 'STAGE_ONLY'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      VERCEL_ORG_ID: team_xHRnXQbjaIEx2rNZ94p5QBao
+      VERCEL_PROJECT_ID: prj_FZH5dyyZvUXfVmTz04HBCMbIrQk5
+      ORBIT_EXPECTED_SOURCE_SHA: fc5af5a8cd2c99d1e104615e72c3cd2b460f60d6
+    steps:
+      - name: Require owner-provided short-lived Vercel token in GitHub Secrets
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${VERCEL_TOKEN:-}" ]; then
+            echo "::error::Add a short-lived team-scoped VERCEL_TOKEN in repository Actions secrets. Never paste it into logs, source, or chat."
+            exit 1
+          fi
+
+      - name: Checkout exact previously reviewed and owner-smoked source
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          ref: fc5af5a8cd2c99d1e104615e72c3cd2b460f60d6
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Setup reviewed Node version
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Verify exact source and locked project dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$ORBIT_EXPECTED_SOURCE_SHA"
+          npm ci --ignore-scripts
+          npm run lint
+          npm test
+          npm run verify:source
+
+      - name: Install pinned Vercel CLI
+        run: npm install --global --ignore-scripts vercel@65.11.0
+
+      - name: Pull Production environment without printing configuration
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          vercel pull --yes --environment=production --scope doorbloxs-projects > "$RUNNER_TEMP/orbit-m6-pull.log" 2>&1
+          echo "Reviewed Production environment configuration fetched privately."
+
+      - name: Build exact source for real Production environment
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          vercel build --prod --scope doorbloxs-projects > "$RUNNER_TEMP/orbit-m6-build.log" 2>&1 || {
+            echo "::error::Vercel Production build failed. Inspect settings privately; logs are deliberately not uploaded."
+            exit 1
+          }
+          node scripts/verify-release.mjs > "$RUNNER_TEMP/orbit-m6-release-report.json"
+          ORBIT_REPORT="$RUNNER_TEMP/orbit-m6-release-report.json" node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            const r=JSON.parse(readFileSync(process.env.ORBIT_REPORT,"utf8"));
+            if(r.commit!==process.env.ORBIT_EXPECTED_SOURCE_SHA || r.version!=="1.0.0" ||
+               r.mode!=="protected-private" || r.siteUrl!=="https://orbit.starscene.com/" ||
+               r.supabaseUrl!=="https://ixfgavgtwuzdgucjriec.supabase.co" ||
+               !Array.isArray(r.files) || r.files.length<10 ||
+               r.files.some(f=>!/^([a-f0-9]{64})$/.test(f.sha256)))
+              process.exit(1);
+            console.log("Production artifact integrity and source target passed.");
+          '
+
+      - name: STAGE ONLY - no custom-domain reassignment
+        id: stage
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The --skip-domain flag is non-negotiable: staging must NOT promote.
+          url="$(vercel deploy --prebuilt --prod --skip-domain --scope doorbloxs-projects)"
+          DEPLOYMENT_URL="$url" node --input-type=module -e '
+            const value=process.env.DEPLOYMENT_URL;
+            const u=new URL(value);
+            if(u.protocol!=="https:" || u.origin!==value ||
+               !u.hostname.endsWith(".vercel.app")) process.exit(1);
+          '
+          {
+            echo "### ORBIT M6 staged Production build (not promoted)"
+            echo
+            echo "- **Staged URL:** $url"
+            echo "- **Source commit:** $ORBIT_EXPECTED_SOURCE_SHA"
+            echo "- **Domains unchanged:** explicit `--skip-domain` was required"
+            echo "- **Next:** inspect SSO/CSP, perform owner smoke, verify aliases are unchanged, then separately authorize promotion"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Clear temporary locally fetched configuration
+        if: always()
+        shell: bash
+        run: |
+          rm -rf .vercel
+          rm -f "$RUNNER_TEMP/orbit-m6-pull.log" "$RUNNER_TEMP/orbit-m6-build.log" "$RUNNER_TEMP/orbit-m6-release-report.json"
+
+# Security boundaries:
+# - Manual workflow only, invoked from main, with explicit STAGE_ONLY input.
+# - Fixed reviewed source SHA; all build inputs retained within ephemeral CI.
+# - No npm install scripts, checkout credentials, Production aliases, DB writes,
+#   automation bypass key, service-role key, or user backups.
+# - Source and report may contain a public publishable key; never upload them
+#   as publicly readable CI artifacts.
