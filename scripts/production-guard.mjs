@@ -46,7 +46,18 @@ export function assertProductionConfig(config,{
     if(values.length!==expected.length||!expected.every(v=>values.includes(v)))
       throw Error(`Production CSP ${key} differs from the private release policy.`);
   };
-  exact('connect-src',["'self'",target.supabaseUrl]);
-  for(const key of ['default-src','script-src','form-action'])exact(key,["'self'"]);
-  for(const key of ['object-src','base-uri','frame-ancestors'])exact(key,["'none'"]);
+  const reviewed=new Map([
+    ['default-src',["'self'"]],
+    ['script-src',["'self'"]],
+    ['style-src',["'self'","'unsafe-inline'"]],
+    ['img-src',["'self'",'data:']],
+    ['connect-src',["'self'",target.supabaseUrl]],
+    ['object-src',["'none'"]],
+    ['base-uri',["'none'"]],
+    ['frame-ancestors',["'none'"]],
+    ['form-action',["'self'"]],
+  ]);
+  if(directives.size!==reviewed.size)
+    throw Error('Production CSP contains missing or unreviewed directives.');
+  for(const [key,values] of reviewed)exact(key,values);
 }
