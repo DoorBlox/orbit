@@ -47,7 +47,7 @@ jobs:
           set -a
           source "$RUNNER_TEMP/orbit-local-api.env"
           set +a
-          node tests/local_http_rls.mjs
+          node tests/integration/local_http_rls.mjs
           rm -f "$RUNNER_TEMP/orbit-local-api.env"
       - name: Stop and discard disposable local database
         if: always()
