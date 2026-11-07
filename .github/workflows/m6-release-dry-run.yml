@@ -38,11 +38,11 @@ jobs:
         run: |
           set -euo pipefail
           npm run build:release
-          mkdir -p release-evidence
-          node scripts/verify-release.mjs > release-evidence/orbit-1.0.0-production-artifact-dry-run.json
+          mkdir -p "$RUNNER_TEMP/orbit-release-evidence"
+          node scripts/verify-release.mjs > "$RUNNER_TEMP/orbit-release-evidence/orbit-1.0.0-production-artifact-dry-run.json"
           node --input-type=module -e '
             import {readFileSync} from "node:fs";
-            const report=JSON.parse(readFileSync("release-evidence/orbit-1.0.0-production-artifact-dry-run.json","utf8"));
+            const report=JSON.parse(readFileSync(process.env.RUNNER_TEMP+"/orbit-release-evidence/orbit-1.0.0-production-artifact-dry-run.json","utf8"));
             if(report.commit!==process.env.GITHUB_SHA && process.env.GITHUB_EVENT_NAME!=="pull_request") process.exit(1);
             if(report.mode!=="protected-private" || report.version!=="1.0.0") process.exit(1);
             if(report.siteUrl!=="https://orbit.starscene.com/" ||
@@ -57,7 +57,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: m6-production-artifact-dry-run
-          path: release-evidence/orbit-1.0.0-production-artifact-dry-run.json
+          path: ${{ runner.temp }}/orbit-release-evidence/orbit-1.0.0-production-artifact-dry-run.json
           if-no-files-found: error
           retention-days: 7
 
