@@ -24,8 +24,8 @@
       "reason": "Verify server owner authorization and clear private state on session revocation."
     },
     "src/auth/shell.js": {
-      "sha256": "971ed3f84c98568549e27d74fe94658de6456301f9199b74b13b7d290b1a23ed",
-      "reason": "Accessible owner sign-in/status shell without exposing scrapbook data."
+      "sha256": "ac1f227e9c56bb40b0b15d7d13d0f5aed12352ed6ca666db9e19efef9005703a",
+      "reason": "Reviewed M2 owner sign-in/status shell; M5/M6 sign-out failure now explicitly warns about an unconfirmed retained session and offers a retry without exposing private DOM. Original V6/M1 provenance unchanged."
     },
     "src/backup.js": {
       "sha256": "f03df9680e644d694f998182907f5c37ce5c5d342ec6c9359a561640619fa02a",
