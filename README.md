@@ -7,27 +7,31 @@ modules; the Supabase SDK is the only isolated browser bundle.
 
 Version **1.0.0 release candidate**; Production is not yet published.
 
-## Current state
+## Current state (7 November 2026)
 
-- **M2:** owner-accepted for protected, password-based private use, with documented
-  physical-device and hosted write/CRUD authorization gaps.
-- **M2.5:** motion P0/P1 implemented on `codex/m25-motion-polish` at `9b54974`.
-  GitHub Actions passed and its protected Preview is deployed, per owner report.
-  PR [#1](https://github.com/DoorBlox/orbit/pull/1) has not been merged by this agent.
-  Original camera timing, visual identity and widget persistence are preserved.
-- **M3:** release-readiness work follows
-  [issue #2](https://github.com/DoorBlox/orbit/issues/2). Protected Production publication is authorized only after genuine release gates
-  pass; Auth/RLS/DNS changes and live mutations are not implicitly authorized.
-- Remote `main` was verified at `f2719f3b83c3ce906bee826576c134de15b35f6d`;
-  the feature branch contains the later accepted work. Do not reset to main and
-  silently discard it. No claim is made that these feature changes are merged.
+- **Source repository:** public and [MIT-licensed](LICENSE), with copyright (c) 2026
+  DoorBlox. This license applies to ORBIT's repository code and documentation.
+  Third-party dependencies keep their own licenses.
+- **Canonical roadmap:** M0 → M1 → M2 → M2.5 → M3 → M4 → M5 → M6.
+  M2.5 and 1.0.0 release-readiness changes are merged into `main`.
+- **Release:** 1.0.0 remains a **release candidate**, not a published Production app.
+  The last successful exact-head Production artifact dry run uses a synthetic
+  publishable key and deploys nothing. The protected Vercel Preview has passed
+  an owner sign-in and private workspace smoke test.
+- **Security evidence:** real nonowner bearer-session HTTP READ and INSERT checks
+  passed for seven private tables, corroborated by Supabase gateway logs and a
+  zero-nonowner-row SQL postflight. Real authenticated HTTP UPDATE/DELETE
+  remains unverified; SQL role simulations and mocked browser tests are separate.
+- **Remaining release gates:** authenticated nonowner UPDATE/DELETE evidence,
+  Production hosted authentication/headers, a rollback decision, and any accepted
+  physical-device testing limitations. See [M6 issue #2](https://github.com/DoorBlox/orbit/issues/2)
+  and the [release runbook](docs/decisions/M3-LAUNCH-RUNBOOK.md).
 
-The owner supplied the authoritative M3 checklist in the current handoff. See the
-[M3 GO/NO-GO](docs/decisions/M3-READINESS-CHECKPOINT.md),
-[1.0.0 release notes](docs/releases/1.0.0.md) and
-[launch/backup/rollback runbook](docs/decisions/M3-LAUNCH-RUNBOOK.md).
-Production publication is conditionally authorized once its gates pass; target
-configuration and hosted write validation remain unverified, so no promotion occurs.
+**Public source is not public workspace access.** Do not commit private journal
+entries, exports, credentials, auth tokens, or private user data. The ORBIT
+workspace database remains guarded by Supabase owner-only RLS; deployed access
+is separately protected by Vercel Authentication. Published source does not
+give anyone permission to view the owner's live content.
 
 ## Development and validation
 
@@ -82,8 +86,8 @@ It refuses local fallback and requires complete cloud inputs, reviewed public
 origins in release/production-target.json, development exclusions and matching
 private CSP. `npm run verify:release` verifies a clean committed artifact and prints
 hashes without keys; it does not certify live protection/Auth/RLS. Production metadata now explicitly reviews shared project `ixfgavgtwuzdgucjriec`
-for `https://orbit.starscene.com/`, through a narrow source exception. Actual live
-configuration remains unverified; see the [target decision](docs/decisions/M3-SHARED-PRODUCTION-TARGET.md). Neither command deploys anything.
+for `https://orbit.starscene.com/`, through a narrow source exception. Live Production-scoped URLs and the public key's active-project match were verified;
+Production runtime/hosted authentication is not yet attested. See the [target decision](docs/decisions/M3-SHARED-PRODUCTION-TARGET.md). Neither command deploys anything.
 
 ## Evidence and handoff
 
