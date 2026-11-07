@@ -1,0 +1,35 @@
+{
+  "timestamp": "2026-11-06T08:36:21.234232+00:00",
+  "results": [
+    {
+      "case": "mobile-320",
+      "status": "PASS",
+      "seconds": 4.6,
+      "transport": "mocked SDK; local HTTP origin"
+    },
+    {
+      "case": "mobile-390",
+      "status": "PASS",
+      "seconds": 4.28,
+      "transport": "mocked SDK; local HTTP origin"
+    },
+    {
+      "case": "cloud-crud-undo",
+      "status": "PASS",
+      "seconds": 9.22,
+      "transport": "mocked SDK; local HTTP origin"
+    },
+    {
+      "case": "offline-export-retry-logout",
+      "status": "PASS",
+      "seconds": 2.29,
+      "transport": "mocked SDK; local HTTP origin"
+    },
+    {
+      "case": "all-entity-snapshot-integrity",
+      "status": "PASS",
+      "seconds": 2.92,
+      "transport": "mocked SDK; local HTTP origin"
+    }
+  ]
+}

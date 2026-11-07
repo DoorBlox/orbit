@@ -1,0 +1,91 @@
+{
+  "baseline": {
+    "repository": "DoorBlox/orbit",
+    "commit": "f2719f3b83c3ce906bee826576c134de15b35f6d"
+  },
+  "acceptance": {
+    "status": "CONDITIONALLY_ACCEPTED",
+    "date": "2026-11-06",
+    "timezone": "Asia/Jakarta",
+    "authority": "Explicit owner acceptance in this conversation",
+    "scope": "Protected password-based private workflow only",
+    "m2_5": "Scope preparation only; implementation not authorized"
+  },
+  "automated": {
+    "node_tests": 138,
+    "mocked_cloud_browser_cases": 24,
+    "new_closeout_browser_cases": 5,
+    "local_sql_assertions": 147,
+    "local_concurrency_scenarios": 3,
+    "real_local_auth_api_browser_integration": "PASS",
+    "transport_note": "Local synthetic fixtures; no hosted write certification"
+  },
+  "hosted": {
+    "source": "Owner-reported observations, not agent execution",
+    "browser_observations_passed": 8,
+    "rls_metadata": "RLS on eight public application tables; restrictive owner policies on seven private workspace tables; public reads disabled",
+    "nonowner_read_isolation": {
+      "verdict": "PASS",
+      "authenticatedNonowner": true,
+      "timestamp": "2026-11-06T08:26:03.218Z",
+      "checks_passed": 10,
+      "orbit_owner_access": {
+        "status": 200,
+        "value": false
+      },
+      "load_owner_snapshot": {
+        "status": 403,
+        "code": "42501"
+      },
+      "zero_accessible_rows": [
+        "profiles",
+        "branches",
+        "tasks",
+        "journal_entries",
+        "milestones",
+        "widget_layouts",
+        "preferences",
+        "published_content"
+      ],
+      "mutations_executed": false
+    }
+  },
+  "unverified": [
+    "Physical-device Safari/Android and exact-hosted-origin mobile coverage",
+    "Hosted write/INSERT/UPDATE/DELETE authorization and constraint rollback",
+    "Hosted provider-outage recovery variants",
+    "OTP inbox delivery and Google OAuth"
+  ],
+  "files": [
+    {
+      "path": "m1-results.json",
+      "sha256": "e03ba06be72df31a932add00168280dbc3cd25bc9034ab79aa201da4faffb95e",
+      "bytes": 277
+    },
+    {
+      "path": "m2-results.json",
+      "sha256": "36b58c5b69bcb94fa7a585de92cac777cb64bcebe57be023574c10ce9c292df3",
+      "bytes": 2719
+    },
+    {
+      "path": "m2-closeout-results.json",
+      "sha256": "93c47119dec66ae6c42927ed7f20f06cd851f9a70531b4ae498bfceafcb2a063",
+      "bytes": 808
+    },
+    {
+      "path": "local-sql.log",
+      "sha256": "9fc93ad6a759c9e5ccf41fd41ea55bfa35e28eb76603819ed2a34c385eb67f7e",
+      "bytes": 7079
+    },
+    {
+      "path": "local-http.log",
+      "sha256": "5661618f731bfd413f2647ed2daf1fb98e042210d3d4c9e59a0e501b7ec8ec47",
+      "bytes": 964
+    },
+    {
+      "path": "local-check.log",
+      "sha256": "d73f6418882f74b8623eefe8d014f31fc009fabd48c9a5fa826a149f36739ab5",
+      "bytes": 28350
+    }
+  ]
+}

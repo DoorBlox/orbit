@@ -103,7 +103,7 @@ def server(source=False):
             except subprocess.TimeoutExpired:proc.kill();proc.wait()
 
 
-def cloud_context(browser,size,mode,public=False,source=False,snapshot=None):
+def cloud_context(browser,size,mode,public=False,source=False,snapshot=None,legacy_seed=None):
     ctx=browser.new_context(viewport={'width':size[0],'height':size[1]},reduced_motion='reduce',timezone_id='Asia/Jakarta',accept_downloads=True)
     ctx.tracing.start(screenshots=True,snapshots=True)
     config={'supabaseUrl':'https://synthetic.supabase.co','publishableKey':'sb_publishable_synthetic_fixture','siteUrl':BASE+'/', 'publicRelease':public}
@@ -119,6 +119,7 @@ def cloud_context(browser,size,mode,public=False,source=False,snapshot=None):
         'allowed':mode=='owner','snapshot':OWNER_SNAPSHOT if snapshot is None else snapshot,'publicRows':PUBLIC_ROWS,'revision':1,'calls':[],'delayAuth':100}
     initial={'orbit.phase1.branches.v1':json.dumps([{'id':'inbox','parentId':'root','label':'Synthetic local inbox'},{'id':'just-because','parentId':'root','label':'Just Because'}]),TASK_KEY:json.dumps([{'id':'private-local','title':LOCAL_SECRET,'projectId':'inbox'}]),
         JOURNAL_KEY:json.dumps([{'id':'local-j','title':LOCAL_SECRET,'date':'2026-11-01','html':'<p>SYNTHETIC UNPUBLISHED LOCAL JOURNAL BODY</p>'}])}
+    initial.update(legacy_seed or {})
     ctx.add_init_script('''(() => {
       window.__m2Fixture=%s;
       for(const [key,value] of Object.entries(%s))localStorage.setItem(key,value);

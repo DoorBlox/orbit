@@ -1,0 +1,146 @@
+[
+  {
+    "test": "password-flow",
+    "status": "PASS",
+    "seconds": 3.37,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "otp-flow",
+    "status": "PASS",
+    "seconds": 1.93,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "otp-failures",
+    "status": "PASS",
+    "seconds": 3.63,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "local-compatibility",
+    "status": "PASS",
+    "seconds": 2.25,
+    "transport": "local-runtime"
+  },
+  {
+    "test": "journal-refresh-save-races",
+    "status": "PASS",
+    "seconds": 2.27,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "immediate-logout-draft",
+    "status": "PASS",
+    "seconds": 1.52,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "owner-opt-in-tools",
+    "status": "PASS",
+    "seconds": 4.14,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "owner-empty-expiry",
+    "status": "PASS",
+    "seconds": 1.35,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "signed-out-desktop",
+    "status": "PASS",
+    "seconds": 2.48,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "nonowner-desktop",
+    "status": "PASS",
+    "seconds": 2.4,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "owner-desktop",
+    "status": "PASS",
+    "seconds": 3.86,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "visitor-desktop",
+    "status": "PASS",
+    "seconds": 2.67,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "signed-out-tablet",
+    "status": "PASS",
+    "seconds": 2.01,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "nonowner-tablet",
+    "status": "PASS",
+    "seconds": 2.08,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "owner-tablet",
+    "status": "PASS",
+    "seconds": 3.09,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "visitor-tablet",
+    "status": "PASS",
+    "seconds": 1.92,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "signed-out-phone",
+    "status": "PASS",
+    "seconds": 1.78,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "nonowner-phone",
+    "status": "PASS",
+    "seconds": 1.7,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "owner-phone",
+    "status": "PASS",
+    "seconds": 3.04,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "visitor-phone",
+    "status": "PASS",
+    "seconds": 1.65,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "signed-out-small",
+    "status": "PASS",
+    "seconds": 1.6,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "nonowner-small",
+    "status": "PASS",
+    "seconds": 1.53,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "owner-small",
+    "status": "PASS",
+    "seconds": 3.13,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "visitor-small",
+    "status": "PASS",
+    "seconds": 1.31,
+    "transport": "mocked-sdk"
+  }
+]

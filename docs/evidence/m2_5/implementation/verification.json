@@ -1,0 +1,62 @@
+{
+  "repository": "DoorBlox/orbit",
+  "branch": "codex/m25-motion-polish",
+  "baseline": "f2719f3b83c3ce906bee826576c134de15b35f6d",
+  "tested_code_commit": "705d5fb",
+  "status": "IMPLEMENTATION_COMPLETE_LOCAL_VALIDATION_PASS",
+  "unit_tests": {
+    "passed": 156,
+    "failed": 0,
+    "skipped": 0,
+    "new_motion_cases": 18
+  },
+  "motion_browser": {
+    "passed": 25,
+    "profiles": [
+      "1440x900",
+      "900x1100",
+      "390x844",
+      "320x700",
+      "844x390"
+    ],
+    "source_and_dist_verified": true,
+    "transport": "local HTTP + mocked cloud SDK; Chromium CDP touch input"
+  },
+  "cloud_browser_passed": 24,
+  "closeout_browser_passed": 5,
+  "m1_browser": "PASS all viewport/core/recovery/accessibility/date/density groups",
+  "provenance": "PASS immutable V6 13 Git blobs, historical M1 18 Git blobs, reviewed current source 27 files",
+  "hosted_changes": false,
+  "p2": "Deferred: no concrete usability evidence justifies timing or decorative panel changes",
+  "limitations": [
+    "No physical Safari/Android or physical 120Hz measurement",
+    "No new hosted acceptance or hosted write-RLS certification",
+    "GitHub API Forbidden; PR creation unavailable"
+  ],
+  "files": [
+    {
+      "path": "m1-results.json",
+      "sha256": "3ae4736a7a6161394b0c9158ae5d24a6b06e80ca4ea7b98c2f87e34d985cb1f1"
+    },
+    {
+      "path": "m2-closeout-results.json",
+      "sha256": "1832231d2dbfa89940113562690ca8c90fffb11fc570174bf562862f726ade74"
+    },
+    {
+      "path": "m2-results.json",
+      "sha256": "983b7b0ee2ad3f172732cfcfec96edc16a52ba92f813ef140af70338025311a4"
+    },
+    {
+      "path": "m25-desktop-after.png",
+      "sha256": "a7c657a1059d975034c15afa1768c6c5a3fe6a140a41e7bd5b2fcb52992cceb5"
+    },
+    {
+      "path": "m25-phone-after.png",
+      "sha256": "af82fa45f3ed6ca4ccfd5e1f47d73e9bf71a031b23433e263fe9c9625381f837"
+    },
+    {
+      "path": "m25-results.json",
+      "sha256": "4f2e98b98e5b41e844b45496bf3c1e97be47170a1a442be2e63b2753f7969dc0"
+    }
+  ]
+}

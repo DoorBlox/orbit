@@ -1,0 +1,185 @@
+PASS migration 20261101140000_orbit_initial_schema.sql
+PASS migration 20261101140001_orbit_owner_snapshots_publication.sql
+PASS migration 20261102053522_orbit_business_conflict_http_status.sql
+SET
+BEGIN
+1..14
+ok 1 - profiles table exists
+ok 2 - profiles has RLS enabled
+ok 3 - branches table exists
+ok 4 - branches has RLS enabled
+ok 5 - tasks table exists
+ok 6 - tasks has RLS enabled
+ok 7 - journal_entries table exists
+ok 8 - journal_entries has RLS enabled
+ok 9 - milestones table exists
+ok 10 - milestones has RLS enabled
+ok 11 - widget_layouts table exists
+ok 12 - widget_layouts has RLS enabled
+ok 13 - preferences table exists
+ok 14 - preferences has RLS enabled
+ROLLBACK
+PASS pgTAP 01_schema_and_rls.sql
+SET
+BEGIN
+NOTICE:  extension "pgtap" already exists, skipping
+CREATE EXTENSION
+SET
+INSERT 0 2
+UPDATE 1
+ok 1 - public reads default disabled
+ok 2 - anon has no task grant
+ok 3 - owner cannot configure allowlist or enable public reads
+ok 4 - anonymous publication RPC denied
+ok 5 - no exposed security-definer RPC
+ok 6 - public projection has only safe columns
+SET
+11111111-1111-4111-8111-111111111111
+ok 7 - allowlisted UUID accepted
+ok 8 - empty owner revision zero
+ok 9 - owner snapshot saves normalized records atomically
+ok 10 - owner reads private task
+ok 11 - preferences load from normalized table
+ok 12 - owner journal loads
+ok 13 - owner can update profiles
+ok 14 - owner can delete and recreate profiles
+ok 15 - owner can update branches
+ok 16 - owner can delete and recreate branches
+ok 17 - owner can update tasks
+ok 18 - owner can delete and recreate tasks
+ok 19 - owner can update journal_entries
+ok 20 - owner can delete and recreate journal_entries
+ok 21 - owner can update milestones
+ok 22 - owner can delete and recreate milestones
+ok 23 - owner can update widget_layouts
+ok 24 - owner can delete and recreate widget_layouts
+ok 25 - owner can update preferences
+ok 26 - owner can delete and recreate preferences
+ok 27 - stale revision rejected
+ok 28 - invalid FK rejected inside snapshot RPC
+ok 29 - failed snapshot retains original rows
+ok 30 - cyclic branches rejected
+ok 31 - cyclic snapshot rolled back
+SELECT 1
+UPDATE 1
+ok 32 - direct owner DML also advances revision
+ok 33 - direct-write stale revision rejected
+ok 34 - owner reassignment blocked
+ok 35 - cross-owner or nonexistent branch denied
+ok 36 - owner explicitly publishes safe task projection
+ok 37 - owner can read publication with public gate off
+UPDATE 1
+ok 38 - private title changed after confirmation requires new review
+ok 39 - unconfirmed newer title never published
+UPDATE 1
+ok 40 - publication rejects HTML excerpt
+ok 41 - explicit journal excerpt publishes without body
+ok 42 - private fields absent projection
+SELECT 1
+ok 43 - late snapshot failure after publication pruning rejected
+ok 44 - all seven collections and revision roll back after late failure
+ok 45 - publication pruning rolls back with failed snapshot
+ok 46 - owner can publish milestone
+ok 47 - direct source deletion succeeds
+ok 48 - direct deletion also unpublishes final absent source
+22222222-2222-4222-8222-222222222222
+ok 49 - nonowner UUID denied independently of provider/email claims
+ok 50 - stranger snapshot denied
+ok 51 - stranger save denied
+ok 52 - stranger publication denied
+ok 53 - stranger unpublish denied
+ok 54 - stranger profiles filtered
+ok 55 - stranger branches filtered
+ok 56 - stranger tasks filtered
+ok 57 - stranger journal filtered
+ok 58 - stranger milestones filtered
+ok 59 - stranger layout filtered
+ok 60 - stranger preferences filtered
+ok 61 - protected preview stranger sees no publication
+ok 62 - stranger own profile denied
+ok 63 - stranger own branch denied
+ok 64 - stranger own task denied
+ok 65 - stranger own journal denied
+ok 66 - stranger own milestone denied
+ok 67 - stranger own layout denied
+ok 68 - stranger own preference denied
+ok 69 - forged owner task denied
+ok 70 - forged owner profiles insert denied
+ok 71 - forged owner branches insert denied
+ok 72 - forged owner journal_entries insert denied
+ok 73 - forged owner milestones insert denied
+ok 74 - forged owner widget_layouts insert denied
+ok 75 - forged owner preferences insert denied
+ok 76 - stranger cannot allowlist self
+ok 77 - configuration cannot be enumerated
+ok 78 - stranger update affects zero rows
+ok 79 - stranger delete affects zero rows
+ok 80 - stranger profiles update denied
+ok 81 - stranger branches update denied
+ok 82 - stranger journal_entries update denied
+ok 83 - stranger milestones update denied
+ok 84 - stranger widget_layouts update denied
+ok 85 - stranger preferences update denied
+ok 86 - stranger profiles delete denied
+ok 87 - stranger branches delete denied
+ok 88 - stranger tasks delete denied
+ok 89 - stranger milestones delete denied
+ok 90 - stranger widget_layouts delete denied
+ok 91 - stranger preferences delete denied
+SET
+
+ok 92 - anonymous protected preview empty
+ok 93 - anon profiles read denied
+ok 94 - anon profiles update denied
+ok 95 - anon profiles delete denied
+ok 96 - anon branches read denied
+ok 97 - anon branches update denied
+ok 98 - anon branches delete denied
+ok 99 - anon tasks read denied
+ok 100 - anon tasks update denied
+ok 101 - anon tasks delete denied
+ok 102 - anon journal_entries read denied
+ok 103 - anon journal_entries update denied
+ok 104 - anon journal_entries delete denied
+ok 105 - anon milestones read denied
+ok 106 - anon milestones update denied
+ok 107 - anon milestones delete denied
+ok 108 - anon widget_layouts read denied
+ok 109 - anon widget_layouts update denied
+ok 110 - anon widget_layouts delete denied
+ok 111 - anon preferences read denied
+ok 112 - anon preferences update denied
+ok 113 - anon preferences delete denied
+ok 114 - anon profiles insert denied
+ok 115 - anon branches insert denied
+ok 116 - anon journal_entries insert denied
+ok 117 - anon milestones insert denied
+ok 118 - anon widget_layouts insert denied
+ok 119 - anon preferences insert denied
+ok 120 - anon tasks insert denied
+ok 121 - anonymous private task read denied
+ok 122 - anonymous private journal read denied
+ok 123 - anonymous join cannot recover private columns
+ok 124 - anonymous source mapping denied
+ok 125 - anonymous snapshot RPC denied
+RESET
+UPDATE 1
+SET
+ok 126 - explicit admin gate enables only approved public projections
+ok 127 - anonymous publication response excludes private identifiers and bodies
+ok 128 - anonymous cannot publish
+ok 129 - enabled public gate does not weaken private journal grants
+SET
+11111111-1111-4111-8111-111111111111
+ok 130 - owner can unpublish
+ok 131 - unpublish removes only intended projection
+ok 132 - deleting journal in snapshot succeeds
+ok 133 - deleted source removes its publication atomically
+RESET
+1..133
+ROLLBACK
+PASS pgTAP 02_owner_isolation.sql
+PASS two-session CAS: one commit, one Snapshot conflict; no silent overwrite
+PASS direct-DML versus CAS: direct update retained, snapshot conflict, no lock inversion
+PASS publication versus source deletion: serialized, no orphan public projection
+PASS local PostgreSQL SQL/RLS/atomicity/concurrency checks; hosted/OAuth/PostgREST NOT tested

@@ -1,0 +1,146 @@
+[
+  {
+    "test": "password-flow",
+    "status": "PASS",
+    "seconds": 4.29,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "otp-flow",
+    "status": "PASS",
+    "seconds": 2.32,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "otp-failures",
+    "status": "PASS",
+    "seconds": 4.0,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "local-compatibility",
+    "status": "PASS",
+    "seconds": 2.44,
+    "transport": "local-runtime"
+  },
+  {
+    "test": "journal-refresh-save-races",
+    "status": "PASS",
+    "seconds": 2.29,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "immediate-logout-draft",
+    "status": "PASS",
+    "seconds": 1.08,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "owner-opt-in-tools",
+    "status": "PASS",
+    "seconds": 3.87,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "owner-empty-expiry",
+    "status": "PASS",
+    "seconds": 0.89,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "signed-out-desktop",
+    "status": "PASS",
+    "seconds": 2.14,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "nonowner-desktop",
+    "status": "PASS",
+    "seconds": 2.22,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "owner-desktop",
+    "status": "PASS",
+    "seconds": 2.84,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "visitor-desktop",
+    "status": "PASS",
+    "seconds": 1.76,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "signed-out-tablet",
+    "status": "PASS",
+    "seconds": 1.67,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "nonowner-tablet",
+    "status": "PASS",
+    "seconds": 1.49,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "owner-tablet",
+    "status": "PASS",
+    "seconds": 2.29,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "visitor-tablet",
+    "status": "PASS",
+    "seconds": 1.6,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "signed-out-phone",
+    "status": "PASS",
+    "seconds": 1.2,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "nonowner-phone",
+    "status": "PASS",
+    "seconds": 1.23,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "owner-phone",
+    "status": "PASS",
+    "seconds": 2.13,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "visitor-phone",
+    "status": "PASS",
+    "seconds": 1.06,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "signed-out-small",
+    "status": "PASS",
+    "seconds": 1.2,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "nonowner-small",
+    "status": "PASS",
+    "seconds": 1.07,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "owner-small",
+    "status": "PASS",
+    "seconds": 1.93,
+    "transport": "mocked-sdk"
+  },
+  {
+    "test": "visitor-small",
+    "status": "PASS",
+    "seconds": 1.1,
+    "transport": "mocked-sdk"
+  }
+]

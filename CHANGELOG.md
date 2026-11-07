@@ -1,3 +1,12 @@
+## M2.5 Motion Polish — 2026-11-06
+
+- Give manual wheel, zoom and keyboard camera input priority over navigation.
+- Resolve active motion when reduced motion is enabled and cancel animation handles on teardown.
+- Preserve 60Hz elasticity with elapsed-time integration and bounded background catch-up.
+- Continue graph pinch into one-finger pan without jumps; clear canceled gestures safely.
+- Add 18 deterministic motion tests and 25 five-viewport Chromium cases to CI; preserve existing cloud regressions and source provenance.
+- Preserve camera timing, CSS identity, widget persistence and Auth/RLS/sync; defer unsupported P2 visual changes. No deployment.
+
 ## M2 no-domain password acceptance — 2026-11-03
 
 - Add temporary password sign-in; retain OTP and Google without changing UUID authorization or RLS.

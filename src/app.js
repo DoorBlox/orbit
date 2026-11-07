@@ -274,6 +274,9 @@ function initKeyboard(){
     if(isField)return;
     if(e.metaKey||e.ctrlKey||e.altKey)return;
     if(e.key.startsWith('Arrow')&&e.target instanceof Element&&e.target.closest('button,a,[role=button],#timeline-scroll,.journal-widget'))return;
+    if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){
+      cancelAnimationFrame(scene.cameraAnimation);scene.cameraAnimation=0;
+    }
     switch(e.key){
       case '/':e.preventDefault();switchCaptureMode('capture');input.focus();break;
       case 'f':e.preventDefault();switchCaptureMode('find');input.focus();break;

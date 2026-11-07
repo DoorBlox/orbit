@@ -1,0 +1,869 @@
+
+> orbit-spatial-scrapbook-prototype@0.6.0-handoff.1 check
+> npm run lint && npm test && npm run verify:source && npm run build && npm run verify:structure
+
+
+> orbit-spatial-scrapbook-prototype@0.6.0-handoff.1 lint
+> node scripts/check-syntax.mjs
+
+JavaScript syntax verified: 41 files (not a full semantic linter).
+
+> orbit-spatial-scrapbook-prototype@0.6.0-handoff.1 test
+> node --test tests/*.mjs
+
+TAP version 13
+# Subtest: focusing a tall journal starts below fixed chrome without changing stored positions
+ok 1 - focusing a tall journal starts below fixed chrome without changing stored positions
+  ---
+  duration_ms: 1.732971
+  type: 'test'
+  ...
+# Subtest: keyboard focus pans an offscreen control into the usable viewport
+ok 2 - keyboard focus pans an offscreen control into the usable viewport
+  ---
+  duration_ms: 0.282539
+  type: 'test'
+  ...
+# Subtest: keyboard focus inside the usable viewport does not move the camera
+ok 3 - keyboard focus inside the usable viewport does not move the camera
+  ---
+  duration_ms: 0.344942
+  type: 'test'
+  ...
+# Subtest: restores only after verified server user and boolean owner RPC; no session object authorization
+ok 4 - restores only after verified server user and boolean owner RPC; no session object authorization
+  ---
+  duration_ms: 1.996141
+  type: 'test'
+  ...
+# Subtest: signed out does not call private authorization or mount callback
+ok 5 - signed out does not call private authorization or mount callback
+  ---
+  duration_ms: 0.657155
+  type: 'test'
+  ...
+# Subtest: signed-in nonowner is denied regardless of email or user metadata
+ok 6 - signed-in nonowner is denied regardless of email or user metadata
+  ---
+  duration_ms: 0.246546
+  type: 'test'
+  ...
+# Subtest: truthy malformed RPC data cannot authorize
+ok 7 - truthy malformed RPC data cannot authorize
+  ---
+  duration_ms: 0.251063
+  type: 'test'
+  ...
+# Subtest: server auth errors fail closed and do not expose provider error details
+ok 8 - server auth errors fail closed and do not expose provider error details
+  ---
+  duration_ms: 0.435777
+  type: 'test'
+  ...
+# Subtest: owner RPC outage fails closed
+ok 9 - owner RPC outage fails closed
+  ---
+  duration_ms: 0.348687
+  type: 'test'
+  ...
+# Subtest: Google OAuth uses fixed same-origin redirect and minimal scopes
+ok 10 - Google OAuth uses fixed same-origin redirect and minimal scopes
+  ---
+  duration_ms: 0.960064
+  type: 'test'
+  ...
+# Subtest: rejects external or insecure configured redirect origins
+ok 11 - rejects external or insecure configured redirect origins
+  ---
+  duration_ms: 0.596616
+  type: 'test'
+  ...
+# Subtest: OAuth failure is visible and preserves the private gate
+ok 12 - OAuth failure is visible and preserves the private gate
+  ---
+  duration_ms: 0.447975
+  type: 'test'
+  ...
+# Subtest: logout clears DOM and cancels writes before the network settles
+ok 13 - logout clears DOM and cancels writes before the network settles
+  ---
+  duration_ms: 0.703094
+  type: 'test'
+  ...
+# Subtest: failed network logout still clears private view and reports failure
+ok 14 - failed network logout still clears private view and reports failure
+  ---
+  duration_ms: 0.452402
+  type: 'test'
+  ...
+# Subtest: sign-out event invalidates pending verification before it can mount
+ok 15 - sign-out event invalidates pending verification before it can mount
+  ---
+  duration_ms: 11.354195
+  type: 'test'
+  ...
+# Subtest: same-owner token refresh does not discard drafts or remount
+ok 16 - same-owner token refresh does not discard drafts or remount
+  ---
+  duration_ms: 6.421882
+  type: 'test'
+  ...
+# Subtest: refresh revocation clears private view and pending owner callback context
+ok 17 - refresh revocation clears private view and pending owner callback context
+  ---
+  duration_ms: 5.969907
+  type: 'test'
+  ...
+# Subtest: an expired session immediately clears existing owner DOM
+ok 18 - an expired session immediately clears existing owner DOM
+  ---
+  duration_ms: 0.376799
+  type: 'test'
+  ...
+# Subtest: account switch does not keep previous owner UI during verification
+ok 19 - account switch does not keep previous owner UI during verification
+  ---
+  duration_ms: 5.039706
+  type: 'test'
+  ...
+# Subtest: dispose unsubscribes and stale owner hydration cannot become current
+ok 20 - dispose unsubscribes and stale owner hydration cannot become current
+  ---
+  duration_ms: 0.367054
+  type: 'test'
+  ...
+# Subtest: owner hydration failure clears mounted state and remains recoverable
+ok 21 - owner hydration failure clears mounted state and remains recoverable
+  ---
+  duration_ms: 0.332974
+  type: 'test'
+  ...
+# Subtest: start is idempotent and does not remount an existing owner
+ok 22 - start is idempotent and does not remount an existing owner
+  ---
+  duration_ms: 0.205876
+  type: 'test'
+  ...
+# Subtest: a late sign-in event during logout cannot remount private data
+ok 23 - a late sign-in event during logout cannot remount private data
+  ---
+  duration_ms: 4.580425
+  type: 'test'
+  ...
+# Subtest: cleanup failure still cancels writes and cannot authorize mounting
+ok 24 - cleanup failure still cancels writes and cannot authorize mounting
+  ---
+  duration_ms: 0.280146
+  type: 'test'
+  ...
+# Subtest: requires a real injected auth client and permits local HTTP callback development
+ok 25 - requires a real injected auth client and permits local HTTP callback development
+  ---
+  duration_ms: 0.364961
+  type: 'test'
+  ...
+# Subtest: SDK RPC error result is fail-closed like an exception
+ok 26 - SDK RPC error result is fail-closed like an exception
+  ---
+  duration_ms: 0.228609
+  type: 'test'
+  ...
+# Subtest: missing SDK session error is a normal signed-out state
+ok 27 - missing SDK session error is a normal signed-out state
+  ---
+  duration_ms: 0.159576
+  type: 'test'
+  ...
+# Subtest: OAuth exception stays generic; disposal stops all new auth work
+ok 28 - OAuth exception stays generic; disposal stops all new auth work
+  ---
+  duration_ms: 0.221649
+  type: 'test'
+  ...
+# Subtest: initial-session hints do not bypass the server verification currently in flight
+ok 29 - initial-session hints do not bypass the server verification currently in flight
+  ---
+  duration_ms: 0.192505
+  type: 'test'
+  ...
+# Subtest: session verification finishing after disposal cannot publish an owner
+ok 30 - session verification finishing after disposal cannot publish an owner
+  ---
+  duration_ms: 0.183362
+  type: 'test'
+  ...
+# Subtest: silent owner revalidation does not invalidate the active hydration lifetime
+ok 31 - silent owner revalidation does not invalidate the active hydration lifetime
+  ---
+  duration_ms: 0.480193
+  type: 'test'
+  ...
+# Subtest: auth callback does not await SDK calls under the listener lock
+ok 32 - auth callback does not await SDK calls under the listener lock
+  ---
+  duration_ms: 6.239828
+  type: 'test'
+  ...
+# Subtest: email OTP requests existing users only and never authorizes on delivery
+ok 33 - email OTP requests existing users only and never authorizes on delivery
+  ---
+  duration_ms: 0.784564
+  type: 'test'
+  ...
+# Subtest: OTP verification uses email type then getUser and the UUID owner RPC
+ok 34 - OTP verification uses email type then getUser and the UUID owner RPC
+  ---
+  duration_ms: 0.658988
+  type: 'test'
+  ...
+# Subtest: verified email without allowlisted UUID cannot mount private data
+ok 35 - verified email without allowlisted UUID cannot mount private data
+  ---
+  duration_ms: 0.302519
+  type: 'test'
+  ...
+# Subtest: OTP verification handles INVALID_CODE without leaking provider errors
+ok 36 - OTP verification handles INVALID_CODE without leaking provider errors
+  ---
+  duration_ms: 0.334867
+  type: 'test'
+  ...
+# Subtest: OTP verification handles RATE_LIMITED without leaking provider errors
+ok 37 - OTP verification handles RATE_LIMITED without leaking provider errors
+  ---
+  duration_ms: 0.136333
+  type: 'test'
+  ...
+# Subtest: OTP verification handles UNAVAILABLE without leaking provider errors
+ok 38 - OTP verification handles UNAVAILABLE without leaking provider errors
+  ---
+  duration_ms: 0.159717
+  type: 'test'
+  ...
+# Subtest: OTP delivery failure stays closed (email_address_not_authorized)
+ok 39 - OTP delivery failure stays closed (email_address_not_authorized)
+  ---
+  duration_ms: 0.179016
+  type: 'test'
+  ...
+# Subtest: OTP delivery failure stays closed (email_provider_disabled)
+ok 40 - OTP delivery failure stays closed (email_provider_disabled)
+  ---
+  duration_ms: 0.079297
+  type: 'test'
+  ...
+# Subtest: OTP delivery failure stays closed (TypeError)
+ok 41 - OTP delivery failure stays closed (TypeError)
+  ---
+  duration_ms: 0.072768
+  type: 'test'
+  ...
+# Subtest: OTP delivery failure stays closed (429)
+ok 42 - OTP delivery failure stays closed (429)
+  ---
+  duration_ms: 0.078667
+  type: 'test'
+  ...
+# Subtest: OTP rejects malformed input and duplicate submissions without extra SDK calls
+ok 43 - OTP rejects malformed input and duplicate submissions without extra SDK calls
+  ---
+  duration_ms: 0.234177
+  type: 'test'
+  ...
+# Subtest: OTP verification completing after logout cannot restore owner via SDK event or result
+ok 44 - OTP verification completing after logout cannot restore owner via SDK event or result
+  ---
+  duration_ms: 6.901078
+  type: 'test'
+  ...
+# Subtest: OTP resend works after cooldown without enabling signup
+ok 45 - OTP resend works after cooldown without enabling signup
+  ---
+  duration_ms: 0.269841
+  type: 'test'
+  ...
+# Subtest: duplicate verification and verification after disposal never call the SDK twice
+ok 46 - duplicate verification and verification after disposal never call the SDK twice
+  ---
+  duration_ms: 0.380475
+  type: 'test'
+  ...
+# Subtest: pending delivery after logout cannot restore the challenge
+ok 47 - pending delivery after logout cannot restore the challenge
+  ---
+  duration_ms: 0.391301
+  type: 'test'
+  ...
+# Subtest: password login verifies getUser and the UUID RPC; credentials never enter state
+ok 48 - password login verifies getUser and the UUID RPC; credentials never enter state
+  ---
+  duration_ms: 0.355197
+  type: 'test'
+  ...
+# Subtest: password success never authorizes a nonowner
+ok 49 - password success never authorizes a nonowner
+  ---
+  duration_ms: 0.274748
+  type: 'test'
+  ...
+# Subtest: password failures remain generic: invalid_credentials
+ok 50 - password failures remain generic: invalid_credentials
+  ---
+  duration_ms: 0.253777
+  type: 'test'
+  ...
+# Subtest: password failures remain generic: 429
+ok 51 - password failures remain generic: 429
+  ---
+  duration_ms: 0.153067
+  type: 'test'
+  ...
+# Subtest: password failures remain generic: TypeError
+ok 52 - password failures remain generic: TypeError
+  ---
+  duration_ms: 0.098966
+  type: 'test'
+  ...
+# Subtest: password request blocks duplicates/OTP/Google and cannot remount after logout
+ok 53 - password request blocks duplicates/OTP/Google and cannot remount after logout
+  ---
+  duration_ms: 5.871201
+  type: 'test'
+  ...
+# Subtest: password validation and disposal reject SDK work
+ok 54 - password validation and disposal reject SDK work
+  ---
+  duration_ms: 0.29677
+  type: 'test'
+  ...
+# Subtest: valid V5 and V6 snapshots preserve IDs and optional omissions
+ok 55 - valid V5 and V6 snapshots preserve IDs and optional omissions
+  ---
+  duration_ms: 2.015681
+  type: 'test'
+  ...
+# Subtest: rejects unsupported versions, malformed fields, duplicate IDs and missing inbox
+ok 56 - rejects unsupported versions, malformed fields, duplicate IDs and missing inbox
+  ---
+  duration_ms: 0.602264
+  type: 'test'
+  ...
+# Subtest: rejects branch cycles and orphan parents
+ok 57 - rejects branch cycles and orphan parents
+  ---
+  duration_ms: 0.534904
+  type: 'test'
+  ...
+# Subtest: rejects impossible dates and malformed journal/layout before storage
+ok 58 - rejects impossible dates and malformed journal/layout before storage
+  ---
+  duration_ms: 0.772957
+  type: 'test'
+  ...
+# Subtest: journal validation invokes sanitizer and retains legacy timestamps
+ok 59 - journal validation invokes sanitizer and retains legacy timestamps
+  ---
+  duration_ms: 0.88947
+  type: 'test'
+  ...
+# Subtest: successful restore preserves absent journal/layout keys and removes marker
+ok 60 - successful restore preserves absent journal/layout keys and removes marker
+  ---
+  duration_ms: 0.664947
+  type: 'test'
+  ...
+# Subtest: failed staged restore rolls every changed key back
+ok 61 - failed staged restore rolls every changed key back
+  ---
+  duration_ms: 0.41119
+  type: 'test'
+  ...
+# Subtest: failed rollback retains durable recovery marker and originals
+ok 62 - failed rollback retains durable recovery marker and originals
+  ---
+  duration_ms: 0.405391
+  type: 'test'
+  ...
+# Subtest: interrupted restore recovers originals on startup
+ok 63 - interrupted restore recovers originals on startup
+  ---
+  duration_ms: 0.574843
+  type: 'test'
+  ...
+# Subtest: corrupt recovery marker is retained and prevents a new restore
+ok 64 - corrupt recovery marker is retained and prevents a new restore
+  ---
+  duration_ms: 0.470098
+  type: 'test'
+  ...
+# Subtest: marker cannot direct rollback outside allowlisted app keys
+ok 65 - marker cannot direct rollback outside allowlisted app keys
+  ---
+  duration_ms: 0.216371
+  type: 'test'
+  ...
+# Subtest: visitor model contains only explicit publication fields, never private record extras
+ok 66 - visitor model contains only explicit publication fields, never private record extras
+  ---
+  duration_ms: 1.09214
+  type: 'test'
+  ...
+# Subtest: empty publication is an empty visitor space, never sample tasks or private records
+ok 67 - empty publication is an empty visitor space, never sample tasks or private records
+  ---
+  duration_ms: 1.807742
+  type: 'test'
+  ...
+# Subtest: published milestone requires explicit publication date and branch is standalone
+ok 68 - published milestone requires explicit publication date and branch is standalone
+  ---
+  duration_ms: 0.329579
+  type: 'test'
+  ...
+# Subtest: publication projection does not mutate provider rows or share model arrays
+ok 69 - publication projection does not mutate provider rows or share model arrays
+  ---
+  duration_ms: 0.294126
+  type: 'test'
+  ...
+# Subtest: preserves V6 root branch and existing string IDs
+ok 70 - preserves V6 root branch and existing string IDs
+  ---
+  duration_ms: 2.000528
+  type: 'test'
+  ...
+# Subtest: task fields survive adapter with null date, parent and status
+ok 71 - task fields survive adapter with null date, parent and status
+  ---
+  duration_ms: 2.017313
+  type: 'test'
+  ...
+# Subtest: milestone and journal date mapping retains values
+ok 72 - milestone and journal date mapping retains values
+  ---
+  duration_ms: 0.267848
+  type: 'test'
+  ...
+# Subtest: widget sizes and color mode survive mapping
+ok 73 - widget sizes and color mode survive mapping
+  ---
+  duration_ms: 0.535124
+  type: 'test'
+  ...
+# Subtest: no secret or untrusted host accepted in public client config
+ok 74 - no secret or untrusted host accepted in public client config
+  ---
+  duration_ms: 0.453092
+  type: 'test'
+  ...
+# Subtest: loads owner snapshot with authenticated identity and normalized V6 shapes
+ok 75 - loads owner snapshot with authenticated identity and normalized V6 shapes
+  ---
+  duration_ms: 3.108201
+  type: 'test'
+  ...
+# Subtest: fresh empty snapshot does not inject demonstration tasks or branches
+ok 76 - fresh empty snapshot does not inject demonstration tasks or branches
+  ---
+  duration_ms: 1.022016
+  type: 'test'
+  ...
+# Subtest: writes exact revision and allowlisted sanitized snapshot in one RPC
+ok 77 - writes exact revision and allowlisted sanitized snapshot in one RPC
+  ---
+  duration_ms: 0.749693
+  type: 'test'
+  ...
+# Subtest: unauthenticated and changed-user operations never call private RPC
+ok 78 - unauthenticated and changed-user operations never call private RPC
+  ---
+  duration_ms: 0.824464
+  type: 'test'
+  ...
+# Subtest: SQL stale-revision errors become recoverable conflict without payload details
+ok 79 - SQL stale-revision errors become recoverable conflict without payload details
+  ---
+  duration_ms: 0.348938
+  type: 'test'
+  ...
+# Subtest: invalid snapshots/revisions cannot reach a write RPC
+ok 80 - invalid snapshots/revisions cannot reach a write RPC
+  ---
+  duration_ms: 0.457979
+  type: 'test'
+  ...
+# Subtest: malformed server response and missing journal sanitizer fail closed
+ok 81 - malformed server response and missing journal sanitizer fail closed
+  ---
+  duration_ms: 0.435506
+  type: 'test'
+  ...
+# Subtest: public reads use explicit projection, strip unexpected private fields, no auth dependency
+ok 82 - public reads use explicit projection, strip unexpected private fields, no auth dependency
+  ---
+  duration_ms: 0.461134
+  type: 'test'
+  ...
+# Subtest: publish requires explicit plain text excerpt and allowlisted kind/source/date
+ok 83 - publish requires explicit plain text excerpt and allowlisted kind/source/date
+  ---
+  duration_ms: 0.99074
+  type: 'test'
+  ...
+# Subtest: aborted operation rejects without calling RPC
+ok 84 - aborted operation rejects without calling RPC
+  ---
+  duration_ms: 1.444373
+  type: 'test'
+  ...
+# Subtest: maps network, forbidden, validation and auth failures without private details
+ok 85 - maps network, forbidden, validation and auth failures without private details
+  ---
+  duration_ms: 0.536526
+  type: 'test'
+  ...
+# Subtest: synchronous SDK failures and getUser network errors are sanitized
+ok 86 - synchronous SDK failures and getUser network errors are sanitized
+  ---
+  duration_ms: 0.273295
+  type: 'test'
+  ...
+# Subtest: propagates abort signal and rejects abort during auth verification
+ok 87 - propagates abort signal and rejects abort during auth verification
+  ---
+  duration_ms: 0.394736
+  type: 'test'
+  ...
+# Subtest: rejects malformed published rows and non-increasing write acknowledgments
+ok 88 - rejects malformed published rows and non-increasing write acknowledgments
+  ---
+  duration_ms: 0.284792
+  type: 'test'
+  ...
+# Subtest: preserves profile and timezone through cloud normalization
+ok 89 - preserves profile and timezone through cloud normalization
+  ---
+  duration_ms: 1.425195
+  type: 'test'
+  ...
+# Subtest: queues immutable draft and saves only after explicit flush
+ok 90 - queues immutable draft and saves only after explicit flush
+  ---
+  duration_ms: 3.658227
+  type: 'test'
+  ...
+# Subtest: serializes updates arriving during an in-flight save with latest revision
+ok 91 - serializes updates arriving during an in-flight save with latest revision
+  ---
+  duration_ms: 7.743479
+  type: 'test'
+  ...
+# Subtest: offline writes retain draft and explicit retry saves when online
+ok 92 - offline writes retain draft and explicit retry saves when online
+  ---
+  duration_ms: 1.006824
+  type: 'test'
+  ...
+# Subtest: conflict retains local draft and never retries without an explicit resolution
+ok 93 - conflict retains local draft and never retries without an explicit resolution
+  ---
+  duration_ms: 0.598908
+  type: 'test'
+  ...
+# Subtest: user-requested discard loads remote revision after conflict
+ok 94 - user-requested discard loads remote revision after conflict
+  ---
+  duration_ms: 1.795504
+  type: 'test'
+  ...
+# Subtest: refresh updates clean sessions but never overwrites a queued edit
+ok 95 - refresh updates clean sessions but never overwrites a queued edit
+  ---
+  duration_ms: 0.41143
+  type: 'test'
+  ...
+# Subtest: edit arriving during refresh invalidates remote response
+ok 96 - edit arriving during refresh invalidates remote response
+  ---
+  duration_ms: 0.567532
+  type: 'test'
+  ...
+# Subtest: logout disposal aborts request and ignores late completion
+ok 97 - logout disposal aborts request and ignores late completion
+  ---
+  duration_ms: 6.17427
+  type: 'test'
+  ...
+# Subtest: transient error retains draft and sanitized status without source error text
+ok 98 - transient error retains draft and sanitized status without source error text
+  ---
+  duration_ms: 1.086422
+  type: 'test'
+  ...
+# Subtest: failed discard reload preserves the local draft
+ok 99 - failed discard reload preserves the local draft
+  ---
+  duration_ms: 0.676063
+  type: 'test'
+  ...
+# Subtest: two sessions refresh clean state and reject stale dirty writes
+ok 100 - two sessions refresh clean state and reject stale dirty writes
+  ---
+  duration_ms: 0.819276
+  type: 'test'
+  ...
+# Subtest: focus refresh and online retry listeners detach after disposal
+ok 101 - focus refresh and online retry listeners detach after disposal
+  ---
+  duration_ms: 5.262878
+  type: 'test'
+  ...
+# Subtest: debounce saves the last queued version automatically
+ok 102 - debounce saves the last queued version automatically
+  ---
+  duration_ms: 5.774627
+  type: 'test'
+  ...
+# Subtest: invalid acknowledgments and responses retain pending drafts and revision
+ok 103 - invalid acknowledgments and responses retain pending drafts and revision
+  ---
+  duration_ms: 0.504589
+  type: 'test'
+  ...
+# Subtest: refresh when offline and disposed methods never fetch or enqueue
+ok 104 - refresh when offline and disposed methods never fetch or enqueue
+  ---
+  duration_ms: 1.090398
+  type: 'test'
+  ...
+# Subtest: explicit remote reload retains a new edit queued synchronously by snapshot consumer
+ok 105 - explicit remote reload retains a new edit queued synchronously by snapshot consumer
+  ---
+  duration_ms: 0.482616
+  type: 'test'
+  ...
+# Subtest: clean refresh preserves pending feedback for callback-triggered edit
+ok 106 - clean refresh preserves pending feedback for callback-triggered edit
+  ---
+  duration_ms: 0.367225
+  type: 'test'
+  ...
+# Subtest: export neutralizes formula prefix "=1+1"
+ok 107 - export neutralizes formula prefix "=1+1"
+  ---
+  duration_ms: 2.356876
+  type: 'test'
+  ...
+# Subtest: export neutralizes formula prefix "-1+1"
+ok 108 - export neutralizes formula prefix "-1+1"
+  ---
+  duration_ms: 0.235119
+  type: 'test'
+  ...
+# Subtest: export neutralizes formula prefix "+1+1"
+ok 109 - export neutralizes formula prefix "+1+1"
+  ---
+  duration_ms: 0.286825
+  type: 'test'
+  ...
+# Subtest: export neutralizes formula prefix "@SUM(A1)"
+ok 110 - export neutralizes formula prefix "@SUM(A1)"
+  ---
+  duration_ms: 0.13486
+  type: 'test'
+  ...
+# Subtest: export neutralizes formula prefix " =1+1"
+ok 111 - export neutralizes formula prefix " =1+1"
+  ---
+  duration_ms: 0.110493
+  type: 'test'
+  ...
+# Subtest: export neutralizes formula prefix "\\n=1+1"
+ok 112 - export neutralizes formula prefix "\\n=1+1"
+  ---
+  duration_ms: 0.173247
+  type: 'test'
+  ...
+# Subtest: export neutralizes formula prefix "\\t=1+1"
+ok 113 - export neutralizes formula prefix "\\t=1+1"
+  ---
+  duration_ms: 0.184314
+  type: 'test'
+  ...
+# Subtest: export neutralizes formula prefix "\\r=1+1"
+ok 114 - export neutralizes formula prefix "\\r=1+1"
+  ---
+  duration_ms: 0.099257
+  type: 'test'
+  ...
+# Subtest: export preserves ordinary quoted multiline values
+ok 115 - export preserves ordinary quoted multiline values
+  ---
+  duration_ms: 1.080493
+  type: 'test'
+  ...
+# Subtest: duplicate case-normalized headers fail explicitly
+ok 116 - duplicate case-normalized headers fail explicitly
+  ---
+  duration_ms: 0.969298
+  type: 'test'
+  ...
+# Subtest: missing title and unclosed quotes fail explicitly
+ok 117 - missing title and unclosed quotes fail explicitly
+  ---
+  duration_ms: 0.539751
+  type: 'test'
+  ...
+# Subtest: BOM, CRLF and invalid row omissions work
+ok 118 - BOM, CRLF and invalid row omissions work
+  ---
+  duration_ms: 0.419262
+  type: 'test'
+  ...
+# Subtest: row with too many columns is omitted instead of silently shifting fields
+ok 119 - row with too many columns is omitted instead of silently shifting fields
+  ---
+  duration_ms: 0.199446
+  type: 'test'
+  ...
+# Subtest: unsafe resource URL is omitted from imported task
+ok 120 - unsafe resource URL is omitted from imported task
+  ---
+  duration_ms: 0.138746
+  type: 'test'
+  ...
+# Subtest: Jakarta day changes at 17:00 UTC regardless of process timezone
+ok 121 - Jakarta day changes at 17:00 UTC regardless of process timezone
+  ---
+  duration_ms: 1.228492
+  type: 'test'
+  ...
+# Subtest: invalid civil dates never overflow to a different day
+ok 122 - invalid civil dates never overflow to a different day
+  ---
+  duration_ms: 0.410639
+  type: 'test'
+  ...
+# Subtest: civil arithmetic crosses months and leap years without host local time
+ok 123 - civil arithmetic crosses months and leap years without host local time
+  ---
+  duration_ms: 0.278133
+  type: 'test'
+  ...
+# Subtest: deadlines and labels use the same civil day as the journal
+ok 124 - deadlines and labels use the same civil day as the journal
+  ---
+  duration_ms: 1.977484
+  type: 'test'
+  ...
+# Subtest: integrity accepts reviewed M2 and rejects current, extra and historical changes
+ok 125 - integrity accepts reviewed M2 and rejects current, extra and historical changes
+  ---
+  duration_ms: 795.575003
+  type: 'test'
+  ...
+# Subtest: public build config is explicit, allowlisted and keeps protected preview mode
+ok 126 - public build config is explicit, allowlisted and keeps protected preview mode
+  ---
+  duration_ms: 2.954213
+  type: 'test'
+  ...
+# Build complete: preserved spatial UI, native modules and one SDK bundle (protected cloud preview).
+# Build complete: preserved spatial UI, native modules and one SDK bundle (local prototype).
+# Subtest: build emits native app plus isolated SDK and only public config
+ok 127 - build emits native app plus isolated SDK and only public config
+  ---
+  duration_ms: 159.168291
+  type: 'test'
+  ...
+# Subtest: partially invalid saved tasks retain valid record and raw storage
+ok 128 - partially invalid saved tasks retain valid record and raw storage
+  ---
+  duration_ms: 4.004431
+  type: 'test'
+  ...
+# Subtest: malformed saved JSON does not become demos or overwrite original
+ok 129 - malformed saved JSON does not become demos or overwrite original
+  ---
+  duration_ms: 0.315408
+  type: 'test'
+  ...
+# Subtest: missing task storage alone loads demos, while explicit empty is retained
+ok 130 - missing task storage alone loads demos, while explicit empty is retained
+  ---
+  duration_ms: 1.144327
+  type: 'test'
+  ...
+# Subtest: duplicate saved task IDs preserve first and block overwrite
+ok 131 - duplicate saved task IDs preserve first and block overwrite
+  ---
+  duration_ms: 0.201659
+  type: 'test'
+  ...
+# Subtest: invalid branch hierarchy retains valid tree and blocks overwrite
+ok 132 - invalid branch hierarchy retains valid tree and blocks overwrite
+  ---
+  duration_ms: 0.426172
+  type: 'test'
+  ...
+# Subtest: all invalid existing branches never seed demos
+ok 133 - all invalid existing branches never seed demos
+  ---
+  duration_ms: 0.15489
+  type: 'test'
+  ...
+# Subtest: saved empty branches stay empty
+ok 134 - saved empty branches stay empty
+  ---
+  duration_ms: 0.241428
+  type: 'test'
+  ...
+# Subtest: preferences reject invalid enum without overwriting original
+ok 135 - preferences reject invalid enum without overwriting original
+  ---
+  duration_ms: 0.203813
+  type: 'test'
+  ...
+# Subtest: denied writes return false and inaccessible reads stay recoverable
+ok 136 - denied writes return false and inaccessible reads stay recoverable
+  ---
+  duration_ms: 0.47883
+  type: 'test'
+  ...
+# Subtest: normal task branch and preference saves survive reload
+ok 137 - normal task branch and preference saves survive reload
+  ---
+  duration_ms: 0.586039
+  type: 'test'
+  ...
+# ORBIT V5: arbitrary-depth layout, collision-safe upper lists, common radial anchors, CSV, sorting, colors passed
+# Subtest: tests/test_csv.mjs
+ok 12 - tests/test_csv.mjs
+  ---
+  duration_ms: 62.292707
+  type: 'test'
+  ...
+1..138
+# tests 138
+# suites 0
+# pass 138
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1310.650937
+
+> orbit-spatial-scrapbook-prototype@0.6.0-handoff.1 verify:source
+> node scripts/verify-source.mjs
+
+PASS: immutable V6 provenance (13 Git blobs), historical M1 (18 Git blobs) and reviewed M2 source (27 files).
+
+> orbit-spatial-scrapbook-prototype@0.6.0-handoff.1 build
+> node scripts/build.mjs
+
+Build complete: preserved spatial UI, native modules and one SDK bundle (local prototype).
+
+> orbit-spatial-scrapbook-prototype@0.6.0-handoff.1 verify:structure
+> node scripts/verify-structure.mjs
+
+Handoff structure verified: 42 essential files; explicit local/protected-preview configuration.

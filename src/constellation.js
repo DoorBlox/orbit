@@ -77,16 +77,19 @@ export class Constellation {
   }
   hostScale(){const r=this.viewport.getBoundingClientRect();return Math.max(.001,r.width/Math.max(1,this.width));}
   zoomBy(multiplier,cx,cy){
+    cancelAnimationFrame(this.cameraAnimation);
     const r=this.viewport.getBoundingClientRect(),hs=this.hostScale();const lx=((cx??r.left+r.width/2)-r.left)/hs-this.width/2,ly=((cy??r.top+r.height/2)-r.top)/hs-this.height/2;
     this.atOverview=false;const old=this.camera.scale,scale=clamp(old*multiplier,.008,2.65);if(old===scale)return;
     const wx=(lx-this.camera.x)/old,wy=(ly-this.camera.y)/old;
     this.camera={x:lx-wx*scale,y:ly-wy*scale,scale};this.applyCamera();
   }
   animateCamera(target,duration=450){
-    cancelAnimationFrame(this.cameraAnimation);
+    cancelAnimationFrame(this.cameraAnimation);this.cameraAnimation=0;if(this.disposed)return;
     if(reduceMotion()||duration<=0){this.camera={...target};this.applyCamera();return;}
     const start=performance.now(),from={...this.camera};
     const tick=(time)=>{
+      this.cameraAnimation=0;if(this.disposed)return;
+      if(reduceMotion()){this.camera={...target};this.applyCamera();return;}
       const t=clamp((time-start)/duration,0,1),e=1-Math.pow(1-t,3);
       this.camera={x:from.x+(target.x-from.x)*e,y:from.y+(target.y-from.y)*e,scale:from.scale+(target.scale-from.scale)*e};
       this.applyCamera();if(t<1)this.cameraAnimation=requestAnimationFrame(tick);
@@ -133,7 +136,19 @@ export class Constellation {
   pointerUp(e){
     if(!this.pointerPositions.has(e.pointerId))return;
     this.pointerPositions.delete(e.pointerId);const g=this.gesture;
-    if(g?.type==='pinch'){if(this.pointerPositions.size<2){this.gesture=null;this.viewport.classList.remove('is-grabbing');}return;}
+    if(g?.type==='pinch'){
+      if(e.type!=='pointerup'){
+        this.pointerPositions.clear();this.gesture=null;this.viewport.classList.remove('is-grabbing');
+      }else if(this.pointerPositions.size===1){
+        // The remaining captured pointer owns a new pan origin at this camera.
+        // Mark moved so its later release cannot become a background double tap.
+        const [pointerId,start]=[...this.pointerPositions.entries()][0];
+        this.gesture={type:'pan',pointerId,start:{...start},startCamera:{...this.camera},moved:true};
+      }else if(this.pointerPositions.size===0){
+        this.gesture=null;this.viewport.classList.remove('is-grabbing');
+      }
+      return;
+    }
     if(g?.pointerId!==e.pointerId)return;
     this.gesture=null;this.viewport.classList.remove('is-grabbing');
     if(g.type==='node'){
@@ -153,15 +168,24 @@ export class Constellation {
   }
   stackOffset(id){const o=this.effectiveOffset(id);return {x:o.x*.88,y:o.y*.88};}
   startSpring(){
-    cancelAnimationFrame(this.springAnimation);
+    cancelAnimationFrame(this.springAnimation);this.springAnimation=0;if(this.disposed)return;
     if(reduceMotion()){this.offsets.clear();this.applyOffsets();return;}
-    const tick=()=>{
+    // Keep the original 60Hz spring, independent of display refresh rate.
+    // At most four steps catch up after a background pause; never replay seconds.
+    const stepMs=1000/60;let previous=performance.now(),accumulator=0;
+    const tick=now=>{
+      this.springAnimation=0;if(this.disposed)return;
       if(this.gesture?.type==='node')return;
-      let moving=false;
-      for(const [id,p] of [...this.offsets]){
-        const k=.088,friction=.77;p.vx=(p.vx-p.x*k)*friction;p.vy=(p.vy-p.y*k)*friction;p.x+=p.vx;p.y+=p.vy;
-        if(Math.hypot(p.x,p.y)+Math.hypot(p.vx,p.vy)<.10)this.offsets.delete(id);
-        else {this.offsets.set(id,p);moving=true;}
+      if(reduceMotion()){this.offsets.clear();this.applyOffsets();return;}
+      accumulator+=clamp(now-previous,0,stepMs*4);previous=now;
+      let moving=this.offsets.size>0;
+      while(accumulator>=stepMs-1e-7&&moving){
+        accumulator=Math.max(0,accumulator-stepMs);moving=false;
+        for(const [id,p] of [...this.offsets]){
+          const k=.088,friction=.77;p.vx=(p.vx-p.x*k)*friction;p.vy=(p.vy-p.y*k)*friction;p.x+=p.vx;p.y+=p.vy;
+          if(Math.hypot(p.x,p.y)+Math.hypot(p.vx,p.vy)<.10)this.offsets.delete(id);
+          else {this.offsets.set(id,p);moving=true;}
+        }
       }
       this.applyOffsets();if(moving)this.springAnimation=requestAnimationFrame(tick);
     };this.springAnimation=requestAnimationFrame(tick);
@@ -396,6 +420,6 @@ export class Constellation {
     for(const r of this.nodesEl.querySelectorAll('.task-row'))r.classList.toggle('is-selected',r.dataset.taskId===this.selectedTaskId);
     for(const e of this.edgeEntries)e.path.classList.toggle('is-selected',e.to===this.focusedNode);
   }
-  dispose(){this.observer.disconnect();cancelAnimationFrame(this.cameraAnimation);cancelAnimationFrame(this.springAnimation);this.nodesEl.replaceChildren();this.edgesEl.replaceChildren();this.domNodes.clear();this.domStacks.clear();}
+  dispose(){this.disposed=true;this.observer.disconnect();cancelAnimationFrame(this.cameraAnimation);cancelAnimationFrame(this.springAnimation);this.cameraAnimation=0;this.springAnimation=0;this.nodesEl.replaceChildren();this.edgesEl.replaceChildren();this.domNodes.clear();this.domStacks.clear();}
 
 }

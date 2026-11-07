@@ -1,0 +1,13 @@
+PASS real local GoTrue signup: two distinct synthetic identities
+PASS actual Auth-issued owner/nonowner/anon identity and private REST denial
+PASS all model entities persist over actual PostgREST RPC; stale CAS and forged owner rejected
+PASS actual two-session SDK sync CAS: one commit, one retained conflict draft, explicit reload
+PASS actual explicit publication projection; default public gate and nonowner publish denied
+PASS real anonymous approved projection and immediate unpublish removal; public gate reset
+PASS browser real password sign-in through owner getUser/RPC gate
+PASS browser real Auth session restore and task save/reload
+PASS two independent browser Auth sessions share journal update via real HTTP focus refresh
+PASS browser other private DOM gate
+PASS browser anonymous private DOM gate
+PASS browser real Auth logout clears private DOM
+PASS local Auth HTTP/PostgREST/SDK/browser integration. Google OIDC and hosted configuration NOT tested.

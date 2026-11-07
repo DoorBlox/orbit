@@ -1,5 +1,17 @@
 # 15 — Architecture decision record and skill utilization
 
+## Owner acceptance — 6 November 2026
+
+M2 is conditionally accepted for protected, password-based private use. The owner
+accepts the documented remaining physical-device and hosted write/CRUD authorization
+gaps for that scope; read-isolation PASS does not certify hosted mutations.
+Preserve the completed evidence and hosted temporary nonowner. M2.5 Motion Polish
+was subsequently authorized for autonomous implementation. P0/P1 are complete
+on `codex/m25-motion-polish`; [results and limits](decisions/M2_5-IMPLEMENTATION.md)
+record the passing checks. P2 is deferred; no merge or deployment has occurred. No deployment, Production, Supabase/Auth/RLS,
+DNS or protection changes follow from this acceptance. Earlier provider/status
+assumptions below are historical where superseded by this decision.
+
 ## M1 decisions
 
 - D-016: Keep the original V6 SHA manifest immutable and verify its Git blobs at commit 06f8039. A separate reviewed M1 source inventory admits intentional changes and rejects unexpected changes. CI needs full history. After source diff review, `npm run record:source -- --reviewed` refreshes existing approved entries; new paths/reasons require explicit manifest review. Never rewrite the V6 manifest.

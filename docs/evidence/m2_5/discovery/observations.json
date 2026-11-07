@@ -1,0 +1,145 @@
+{
+  "desktop": {
+    "board_wheel_during_navigation": {
+      "before": {
+        "x": -48.314917127071794,
+        "y": -402.610497237569
+      },
+      "afterInput": {
+        "x": -48.314917127071794,
+        "y": -522.610497237569
+      },
+      "afterSettle": {
+        "x": -382.0408163265306,
+        "y": -1368.061224489796
+      },
+      "originalTarget": {
+        "x": -382.0408163265306,
+        "y": -1368.061224489796
+      },
+      "manualDelta": -120,
+      "residualManualDelta": 0,
+      "layoutUnchanged": true
+    },
+    "graph_zoom_during_navigation": {
+      "before": {
+        "x": -81.3754916641543,
+        "y": -13.303183602504351,
+        "scale": 0.6478653053574136
+      },
+      "afterInput": {
+        "x": -109.85691374660831,
+        "y": -18.038608178097007,
+        "scale": 0.8746181622325084
+      },
+      "afterSettle": {
+        "x": -880.702032714422,
+        "y": -143.976283285053,
+        "scale": 1.12
+      },
+      "originalTarget": {
+        "x": -880.702032714422,
+        "y": -143.976283285053,
+        "scale": 1.12
+      }
+    },
+    "runtime_reduced_motion": {
+      "preference": true,
+      "before": {
+        "x": -52.72364532477633,
+        "y": -415.36470617053317
+      },
+      "later": {
+        "x": -264.14282955223655,
+        "y": -1026.9888134307257
+      },
+      "continuedDistance": 647.133772910387,
+      "ambientAnimation": "none"
+    },
+    "existing_reduced_navigation": {
+      "pan": {
+        "x": -1514.1600000000003,
+        "y": -685
+      },
+      "ambientAnimation": "none",
+      "mapFloatAnimation": "none"
+    },
+    "runtime_errors": [],
+    "mock_save_calls": 0
+  },
+  "phone": {
+    "board_wheel_during_navigation": {
+      "before": {
+        "x": -668.4834559641914,
+        "y": -825.5085469798673
+      },
+      "afterInput": {
+        "x": -668.4834559641914,
+        "y": -945.5085469798673
+      },
+      "afterSettle": {
+        "x": -751.1838565022422,
+        "y": -1380.7174887892377
+      },
+      "originalTarget": {
+        "x": -751.1838565022422,
+        "y": -1380.7174887892377
+      },
+      "manualDelta": -120,
+      "residualManualDelta": 0,
+      "layoutUnchanged": true
+    },
+    "graph_zoom_during_navigation": {
+      "before": {
+        "x": -56.35140271764858,
+        "y": -9.212270688396492,
+        "scale": 0.4592696876073978
+      },
+      "afterInput": {
+        "x": -76.07439366882558,
+        "y": -12.436557539059335,
+        "scale": 0.620014078269987
+      },
+      "afterSettle": {
+        "x": -880.702032714422,
+        "y": -143.976283285053,
+        "scale": 1.12
+      },
+      "originalTarget": {
+        "x": -880.702032714422,
+        "y": -143.976283285053,
+        "scale": 1.12
+      }
+    },
+    "runtime_reduced_motion": {
+      "preference": true,
+      "before": {
+        "x": -692.2899322658985,
+        "y": -985.3200457898653
+      },
+      "later": {
+        "x": -728.4416974585747,
+        "y": -1228.0329521286285
+      },
+      "continuedDistance": 245.39051536266768,
+      "ambientAnimation": "none"
+    },
+    "existing_reduced_navigation": {
+      "pan": {
+        "x": -1679.6341463414635,
+        "y": -557.6829268292684
+      },
+      "ambientAnimation": "none",
+      "mapFloatAnimation": "none"
+    },
+    "runtime_errors": [],
+    "mock_save_calls": 0
+  },
+  "spring_source_equation_simulation": {
+    "initialDisplacement": 100,
+    "framesToThreshold": 46,
+    "at60HzMs": 766.6666666666667,
+    "at120HzMs": 383.33333333333337,
+    "note": "Mathematical evaluation of existing per-frame recurrence, not physical-device measurement"
+  }
+}
