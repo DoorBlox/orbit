@@ -1,0 +1,65 @@
+name: ORBIT private 1.0.0 Production artifact dry run
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  production-artifact-dry-run:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout reviewed commit
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Use Node 22
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies without scripts
+        run: npm ci --ignore-scripts
+      - name: Check syntax, tests, and original-source provenance
+        run: |
+          npm run lint
+          npm test
+          npm run verify:source
+      - name: Build and verify 1.0.0 with exact Production target and synthetic public key
+        env:
+          ORBIT_SUPABASE_URL: https://ixfgavgtwuzdgucjriec.supabase.co
+          ORBIT_SITE_URL: https://orbit.starscene.com/
+          ORBIT_SUPABASE_PUBLISHABLE_KEY: sb_publishable_orbit_synthetic_ci_never_live
+        run: |
+          set -euo pipefail
+          npm run build:release
+          mkdir -p release-evidence
+          node scripts/verify-release.mjs > release-evidence/orbit-1.0.0-production-artifact-dry-run.json
+          node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            const report=JSON.parse(readFileSync("release-evidence/orbit-1.0.0-production-artifact-dry-run.json","utf8"));
+            if(report.commit!==process.env.GITHUB_SHA && process.env.GITHUB_EVENT_NAME!=="pull_request") process.exit(1);
+            if(report.mode!=="protected-private" || report.version!=="1.0.0") process.exit(1);
+            if(report.siteUrl!=="https://orbit.starscene.com/" ||
+                report.supabaseUrl!=="https://ixfgavgtwuzdgucjriec.supabase.co") process.exit(1);
+            if(report.files?.length<10 || report.files.some(f=>!/^([a-f0-9]{64})$/.test(f.sha256))) process.exit(1);
+            const raw=JSON.stringify(report);
+            if(raw.includes("sb_publishable_") || raw.includes("authorization") || raw.includes("Bearer ")) process.exit(1);
+            console.log("Production-targeted dry-run artifact verified (synthetic publishable key; NO deployment).");
+          '
+      - name: Retain only public, key-free checksum report
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: m6-production-artifact-dry-run
+          path: release-evidence/orbit-1.0.0-production-artifact-dry-run.json
+          if-no-files-found: error
+          retention-days: 7
+
+# CI-only. This does NOT authorize or initiate a Vercel Production deployment.
+# The key is synthetic, so this cannot prove real Production runtime connectivity.
