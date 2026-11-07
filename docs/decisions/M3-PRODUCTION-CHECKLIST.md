@@ -1,3 +1,5 @@
+> **Live verification addendum — 7 November 2026.** The Production API URL, canonical site URL, active project publishable key (value not recorded), verified domain, Vercel Authentication scope, least-privilege migration and its RLS/CRUD/no-extra-grants postflight are **PASS** by direct checks. Public reads remain disabled and seven nonowner row counts are zero. Prior live 21-case checks were PostgreSQL role simulations, **not authenticated HTTP requests**. Remaining gates: Supabase Auth Site URL and exact allowed redirect check; HTTP bearer-token write isolation; owner-controlled offline encrypted backup/export attestation; verified Production build and protected-origin CSP/login/owner smoke; recorded rollback target. The legacy unchecked items below are preserved as an operational checklist; do not treat them as evidence that verified settings are still missing. No Production release yet.
+
 # M3 concise protected Production checklist
 
 Read-only verification first; no live changes or deployment are authorized here.
