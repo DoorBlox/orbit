@@ -21,6 +21,8 @@ jobs:
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: '22'
+      - name: Install pinned application SDK for local HTTP checks
+        run: npm ci --ignore-scripts
       - name: Install pinned Supabase CLI
         uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3, reviewed commit
         with:
