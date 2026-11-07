@@ -12,7 +12,7 @@ const productionOptions=()=>({
   target:{schemaVersion:1,status:'reviewed',supabaseUrl:configured.ORBIT_SUPABASE_URL,
     siteUrl:configured.ORBIT_SITE_URL,developmentSupabaseUrls:['https://ixfgavgtwuzdgucjriec.supabase.co']},
   deployment:{headers:[{source:'/(.*)',headers:[{key:'Content-Security-Policy',value:
-    "default-src 'self'; script-src 'self'; connect-src 'self' https://synthetic.supabase.co; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"}]}]},
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://synthetic.supabase.co; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"}]}]},
 });
 
 test('Production refuses local fallback and an unreviewed target',()=>{
