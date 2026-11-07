@@ -31,7 +31,7 @@ jobs:
           set -euo pipefail
           # Never link to the hosted project or supply its URL/credentials.
           # CLI may display disposable local keys; keep raw startup output private.
-          if ! supabase start > "$RUNNER_TEMP/orbit-supabase-start.log" 2>&1; then
+          if ! supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor > "$RUNNER_TEMP/orbit-supabase-start.log" 2>&1; then
             echo "::error::Local Supabase stack did not start; inspect CLI/images/config without using hosted credentials."
             exit 1
           fi
