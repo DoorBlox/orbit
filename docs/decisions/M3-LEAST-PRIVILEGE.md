@@ -1,3 +1,5 @@
+> **Live outcome — 7 November 2026.** The historical “local only / not applied” wording below describes this migration's initial review state. Supabase migration history now independently includes `20261106142540 orbit_private_table_least_privilege` on project `ixfgavgtwuzdgucjriec`. New read-only effective-privilege checks verified all seven private tables retain RLS and authenticated SELECT/INSERT/UPDATE/DELETE while effective TRUNCATE, TRIGGER, and table/column REFERENCES are all false. The owner configuration and `public_read_enabled=false` remain intact. **Do not reapply the migration** or repeat unsafe write probes to prove this already completed grant correction. Remaining HTTP-session isolation is a separate gate. [Current verified audit](M5-M6-LIVE-RECONCILIATION-20261107.md).
+
 # M3 private-table grants correction — local only
 
 The owner reports a live read-only audit found direct `TRUNCATE`, `TRIGGER` and
