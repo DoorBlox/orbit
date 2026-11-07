@@ -1,0 +1,61 @@
+name: ORBIT local Supabase RLS security
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  local-postgres-rls:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout reviewed source
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          persist-credentials: false
+      - name: Node 22 for fixed Supabase CLI
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: '22'
+      - name: Install pinned application SDK for local HTTP checks
+        run: npm ci --ignore-scripts
+      - name: Install pinned Supabase CLI
+        uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3, reviewed commit
+        with:
+          version: 2.84.2
+      - name: Start isolated local Supabase services and apply repository migrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Never link to the hosted project or supply its URL/credentials.
+          # CLI may display disposable local keys; keep raw startup output private.
+          if ! supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor > "$RUNNER_TEMP/orbit-supabase-start.log" 2>&1; then
+            echo "::error::Local Supabase stack did not start; inspect CLI/images/config without using hosted credentials."
+            exit 1
+          fi
+          echo "Isolated local Supabase stack started; repository migrations applied."
+      - name: Execute transaction-rolled-back pgTAP isolation tests
+        run: supabase test db
+      - name: Test real local Auth bearer-session HTTP authorization
+        shell: bash
+        run: |
+          set -euo pipefail
+          # CLI emits only disposable LOCAL API values. Never upload or print.
+          supabase status -o env > "$RUNNER_TEMP/orbit-local-api.env"
+          set -a
+          source "$RUNNER_TEMP/orbit-local-api.env"
+          set +a
+          node tests/integration/local_http_rls.mjs
+          rm -f "$RUNNER_TEMP/orbit-local-api.env"
+      - name: Stop and discard disposable local database
+        if: always()
+        shell: bash
+        run: supabase stop --no-backup > /dev/null 2>&1 || true
+
+# Zero hosted database writes. All fake identities and fixtures remain local.
+# SQL test 02 exercises both owner and nonowner UPDATE/DELETE on seven tables.
+# pgTAP is a SQL-role/DB integration gate, not a live bearer-session HTTP result.
