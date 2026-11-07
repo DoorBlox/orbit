@@ -37,6 +37,20 @@ test('shared exception is required and cannot expand to other projects, sites, d
     {ORBIT_SUPABASE_URL:'https://other.supabase.co'}]){
     assert.throws(()=>resolveBuildConfig({...env,...override}),/Production/);
   }
+  // Changing only style/img allowances or introducing an extra CSP directive
+  // must not silently evade the supposedly exact Production policy.
+  for (const rewrite of [
+    csp => csp.replace("style-src 'self' 'unsafe-inline'", "style-src * 'unsafe-inline'"),
+    csp => csp.replace("img-src 'self' data:", "img-src * data:"),
+    csp => csp + "; worker-src *",
+    csp => csp + "; frame-src *",
+    csp => csp + "; script-src 'self'",
+  ]) {
+    const changed=structuredClone(deployment);
+    const header=changed.headers[0].headers.find(h=>h.key==='Content-Security-Policy');
+    header.value=rewrite(header.value);
+    assert.throws(()=>resolveBuildConfig(env,{target,deployment:changed}),/CSP/);
+  }
   const broad=structuredClone(deployment);
   broad.headers[0].headers.find(h=>h.key==='Content-Security-Policy').value="connect-src *";
   assert.throws(()=>resolveBuildConfig(env,{target,deployment:broad}),/CSP/);
