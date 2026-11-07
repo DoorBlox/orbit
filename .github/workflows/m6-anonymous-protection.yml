@@ -1,0 +1,74 @@
+name: ORBIT M6 unauthenticated hosted-access smoke
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unauthenticated-protection:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Set up Node 22 (no application code or external dependencies)
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: '22'
+
+      - name: Verify both exact hostnames reject anonymous app access
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          const targets = [
+            { label: 'staged-production-no-alias', url: 'https://orbit-n29h3lpcz-doorbloxs-projects.vercel.app/' },
+            { label: 'existing-canonical-domain', url: 'https://orbit.starscene.com/' },
+          ];
+          let failures = 0;
+          for (const target of targets) {
+            let status, result = 'INCONCLUSIVE', redirectHost = null, hasCsp = false;
+            try {
+              const response = await fetch(target.url, {
+                method: 'GET', redirect: 'manual', cache: 'no-store',
+                signal: AbortSignal.timeout(12000),
+              });
+              status = response.status;
+              hasCsp = response.headers.has('content-security-policy');
+              if ([401, 403].includes(status)) {
+                result = 'PASS_AUTH_GATE';
+              } else if ([301,302,303,307,308].includes(status)) {
+                const location = response.headers.get('location');
+                if (location) {
+                  const redirect = new URL(location, target.url);
+                  redirectHost = redirect.hostname;
+                  const isVercelAuth = (redirectHost === 'vercel.com' || redirectHost.endsWith('.vercel.com')) ||
+                    (redirectHost === new URL(target.url).hostname && /auth|login|sso|_vercel/i.test(redirect.pathname));
+                  result = redirect.protocol === 'https:' && isVercelAuth ? 'PASS_AUTH_REDIRECT' : 'INCONCLUSIVE_REDIRECT';
+                }
+              } else if (status === 200) {
+                const body = (await response.text()).slice(0,160000);
+                result = /(?:\.\/)?src\/bootstrap\.js/.test(body) ? 'FAIL_ANONYMOUS_APP_SHELL' : 'INCONCLUSIVE_200';
+              } else {
+                result = 'INCONCLUSIVE_STATUS';
+              }
+            } catch (error) {
+              result = 'INCONCLUSIVE_NETWORK';
+              // Do not log request bodies, query strings, or credential-like headers.
+            }
+            // Output only status and benign summary flags, never cookies or URLs with query parameters.
+            console.log(JSON.stringify({target: target.label, status: status ?? null,
+              result, redirectHost, responseHasCsp: hasCsp}));
+            if (!result.startsWith('PASS_')) failures++;
+          }
+          if (failures) {
+            console.error('Anonymous host gate not fully verified; inspect deployment protection without weakening it.');
+            process.exitCode = 1;
+          }
+          NODE
+
+# This is a READ-ONLY, unauthenticated GET check against exactly two known ORBIT hosts.
+# It cannot verify protected-app CSP, Supabase RLS, owner login, or other routes.
+# It never sends user credentials, bearer tokens or private data.
