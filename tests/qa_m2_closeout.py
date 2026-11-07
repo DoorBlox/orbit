@@ -6,6 +6,7 @@ this is not database/RLS evidence. Run after npm run build.
 """
 import copy
 import json
+import os
 import shutil
 import time
 import traceback
@@ -238,7 +239,8 @@ def main():
     qa.OUT.mkdir(exist_ok=True)
     results = []
     with qa.server(), sync_playwright() as p:
-        browser = p.chromium.launch(headless=True, executable_path=shutil.which('chromium'), args=['--no-sandbox'])
+        executable = None if os.environ.get('ORBIT_BROWSER_BUNDLED') else shutil.which('chromium')
+        browser = p.chromium.launch(headless=True, executable_path=executable, args=['--no-sandbox'])
         cases = [('mobile-320', lambda: mobile_flow(browser, 320)),
                  ('mobile-390', lambda: mobile_flow(browser, 390)),
                  ('cloud-crud-undo', lambda: crud_undo(browser)),

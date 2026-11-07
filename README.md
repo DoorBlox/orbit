@@ -1,120 +1,104 @@
 # ORBIT — The Spatial Scrapbook
 
-**An authentic ORBIT V6 browser prototype, preserved and packaged for staged production engineering in Codex.**
+ORBIT preserves one pannable spatial scrapbook with six independently movable,
+resizable windows: constellation, timeline, active tasks, completed tasks, personal
+space and dated paper-like journal. The app remains native HTML/CSS/JavaScript ES
+modules; the Supabase SDK is the only isolated browser bundle.
 
-The UI is an open, pannable 2D scrapbook with six floating glass widgets (constellation, timeline, active tasks, completed tasks, personal space, paper-like dated journal). It has movable/resizable windows, radial freely nested branches, animated atmosphere, in-place task actions, deadline/urgency sorting, timeline markers for journal entries, and JSON/CSV export. These interactions currently run **entirely in the browser using localStorage**. There is **no actual login or cloud data sync** yet.
+Version **1.0.0 release candidate**; Production is not yet published.
 
-## Read this first
+## Current state
 
-- [Codex handoff](CODEX_HANDOFF.md) — current architecture, evidence and next step.
-- [Codex first task](CODEX_FIRST_TASK.md) — ready-to-paste Milestone 0 assignment.
-- [Agent/repository rules](AGENTS.md) — design preservation and security boundaries.
-- [Feature audit](docs/02-EXISTING-FEATURE-AUDIT.md), [PRD](docs/03-PRD.md), [system architecture](docs/06-SYSTEM-ARCHITECTURE.md), [Codex roadmap](docs/14-CODEX-IMPLEMENTATION-ROADMAP.md).
-- [Source integrity manifest](docs/reference/V6_SOURCE_MANIFEST.json). Original V6 instructions are archived at `docs/reference/AGENTS_V6_ORIGINAL.md`.
+- **M2:** owner-accepted for protected, password-based private use, with documented
+  physical-device and hosted write/CRUD authorization gaps.
+- **M2.5:** motion P0/P1 implemented on `codex/m25-motion-polish` at `9b54974`.
+  GitHub Actions passed and its protected Preview is deployed, per owner report.
+  PR [#1](https://github.com/DoorBlox/orbit/pull/1) has not been merged by this agent.
+  Original camera timing, visual identity and widget persistence are preserved.
+- **M3:** release-readiness work follows
+  [issue #2](https://github.com/DoorBlox/orbit/issues/2). Protected Production publication is authorized only after genuine release gates
+  pass; Auth/RLS/DNS changes and live mutations are not implicitly authorized.
+- Remote `main` was verified at `f2719f3b83c3ce906bee826576c134de15b35f6d`;
+  the feature branch contains the later accepted work. Do not reset to main and
+  silently discard it. No claim is made that these feature changes are merged.
 
-## Prerequisites and local commands
+The owner supplied the authoritative M3 checklist in the current handoff. See the
+[M3 GO/NO-GO](docs/decisions/M3-READINESS-CHECKPOINT.md),
+[1.0.0 release notes](docs/releases/1.0.0.md) and
+[launch/backup/rollback runbook](docs/decisions/M3-LAUNCH-RUNBOOK.md).
+Production publication is conditionally authorized once its gates pass; target
+configuration and hosted write validation remain unverified, so no promotion occurs.
 
-Node.js 22 and npm 10+; browser of your choice. Zero third-party npm dependencies are required for current V6 source.
+## Development and validation
 
-```sh
-npm ci
-npm run dev          # http://127.0.0.1:4173, source development server
-npm run check        # syntax, unit, static build, structure
-npm run dev:dist     # serve production distribution after npm run build
-```
-
-The `dev` server is **local only** (binds loopback) and shouldn't be exposed to the internet; Vercel serves the filtered `dist` output. The `lint` script is a Node syntax checker rather than ESLint; `test` runs Node's built-in test runner. If Python + Chromium/Playwright are available, run `python tests/qa_v6.py` for historical simulated-browser QA.
-
-`npm run build` creates `dist/index.html`, the original browser `dist/src/*.js` and CSS, and `dist/assets/orbit.svg`. Inactive `src/cloud` adapters are intentionally excluded. It does not minify or rewrite the prototype. `dist/` is ignored by Git. The standalone `ORBIT_Offline_Preview.html` is also included for inspection, not for production deployment. **Do not enter real private journal information into a publicly accessible prototype.** Browser storage is not cross-device, and JSON backups are unencrypted.
-
-## Production roadmap (what is and isn't connected)
-
-| Area | Status today |
-|---|---|
-| Spatial UI / graph / task actions / timeline / journal / CSV+JSON | Browser-functional, localStorage only |
-| Git repository structure / static build / pinned npm lockfile | Prepared; run checks locally |
-| GitHub quality CI | Configured in `.github/workflows/quality.yml`, not yet executed in GitHub |
-| Vercel `Other` static configuration | Prepared `vercel.json`; no live deployed site |
-| Supabase schema / RLS / seed / client mappers | Prepared draft files; DB NOT executed/tested |
-| Supabase Auth / remote data repositories / storage | Not implemented |
-| Hardware mobile QA / production monitoring | Not verified |
-
-Read [implementation gaps](docs/04-MVP-GAP-ANALYSIS.md), [Supabase integration](docs/08-SUPABASE-INTEGRATION.md), [security & testing](docs/13-SECURITY-AND-TESTING.md), and [deployment](docs/12-VERCEL-DEPLOYMENT.md).
-
-## Repository map
-
-```text
-.
-├── index.html                  # PRESERVED V6 app entry
-├── src/                        # PRESERVED V6 logic and design + inactive cloud adapters
-├── assets/                     # original icon
-├── tests/                      # original tests, handoff mapper tests, QA scripts
-├── scripts/                    # Node dev server, syntax/build/structure/source validation
-├── supabase/                   # draft schema migration, test scaffold, local seed/config
-├── docs/                       # 01..15 engineering docs + original product/design docs
-│   └── reference/              # V6 SHA manifest, archived original AGENTS/README
-├── .github/workflows/quality.yml
-├── package.json & package-lock.json
-├── vercel.json                 # Vercel static build/headers
-├── .env.example                # future ONLY, no real secrets
-├── AGENTS.md                   # Codex repository instructions
-├── CODEX_HANDOFF.md
-└── CODEX_FIRST_TASK.md
-```
-
-## Initial GitHub setup — user-controlled, no automatic push
-
-Create a **private**, empty GitHub repository using your own account. Inside extracted project folder:
+Use Node 22 and npm 10+. The lockfile pins the Supabase SDK and esbuild. The
+published development environment is already prepared; do not repeat onboarding.
+For a fresh external checkout only, `npm ci --ignore-scripts` restores dependencies.
 
 ```sh
-git init
-git add .
-git commit -m "chore: preserve ORBIT V6 and engineering handoff"
-git branch -M main
-git remote add origin https://github.com/YOUR_ACCOUNT/YOUR_PRIVATE_REPO.git
-git push -u origin main
+npm run dev              # loopback source server; local prototype mode
+npm run check            # syntax, unit tests, provenance, build and structure
+npm run dev:dist         # loopback server for the existing dist build
+python tests/qa_m1.py     # local persistence/accessibility/viewport regressions
+python tests/qa_m2.py     # cloud wiring with synthetic mocked SDK transport
+python tests/qa_m25.py    # motion/touch/reduced-motion on five viewport profiles
 ```
 
-Replace the example repository URL. Check `git status` and `git diff --cached --stat` before commit. Don't run `git push --force`. For Codex, open this folder directly in VS Code/ChatGPT Codex and paste [the first-task prompt](CODEX_FIRST_TASK.md).
+Run relevant checks after changes; do not repeat accepted M2/M2.5 testing just to
+recreate evidence. `lint` is a syntax checker, not a semantic linter. Browser QA
+uses the pinned Playwright tooling and Chromium; results are not hardware Safari
+or live hosted-RLS certification.
 
-## Planned Vercel deployment
+## Local and protected-cloud modes
 
-Import the private repo in Vercel (Root `.`, Framework **Other**, Node **22**, Build `npm run build`, Output `dist`). **Enable Vercel Authentication / All Deployments protection before sharing any URL**, then verify incognito access fails. This protects the prototype URL, but does **not** replace Supabase Auth/RLS for future personal data. GitHub Actions only runs quality checks; Vercel Git integration handles builds. See [deployment runbook](docs/12-VERCEL-DEPLOYMENT.md).
+With no public configuration, the build produces a localStorage prototype. That
+artifact is **not** evidence of a configured protected-cloud release candidate.
+Configured cloud builds require all three public inputs together:
+`ORBIT_SUPABASE_URL`, `ORBIT_SUPABASE_PUBLISHABLE_KEY`, `ORBIT_SITE_URL`.
+See [.env.example](.env.example); no dotenv loader is provided. Privileged/service-role
+keys must never enter browser configuration, build output, logs or Git.
 
-## Planned Supabase integration
+Cloud mode uses verified Auth, an administrator-configured owner UUID, restrictive
+server RLS, snapshot persistence and revision-checked conflict recovery. It does
+not automatically import legacy local content. Explicit import replaces the cloud
+snapshot and requires review/consent; JSON backups are unencrypted. Session Auth
+uses sessionStorage and unsaved drafts are not durable across tab closure.
 
-Provision a separate development project or local Supabase stack. `supabase/migrations/20261101140000_orbit_initial_schema.sql` is a hand-authored draft and **has not been applied**. Validate and test it using current Supabase CLI / pgTAP / actual owner- and cross-owner-RLS scenarios before linking a hosted database. **Never use the Supabase secret/service-role key in the frontend.** The publishable key can only be used safely with verified RLS.
+Public viewing remains disabled. Vercel protection and Supabase authorization are
+separate boundaries. Keep both intact; do not use real private data in an
+unprotected deployment. Password sign-in does not establish OTP or Google OAuth
+acceptance.
 
-`.env.example` describes names for later integration but the current frontend ignores them. Do **not** add real `.env` credentials to Git. No `LICENSE` file was created because a license has not been chosen.
+`npm run build` emits only allowlisted app/assets into ignored `dist/`, bundling
+the SDK boundary and writing allowlisted public runtime configuration. Repository
+docs, tests, migrations, environment examples and backups are not deployment files.
+Automatic Vercel Git deployment remains disabled in repository configuration; do
+not remove that hold or promote an artifact without separate authorization.
 
-## Documentation index
+## Production build safety
 
-| File | Contents |
-|---|---|
-| [01](docs/01-PROJECT-OVERVIEW.md) | Overview and provenance |
-| [02](docs/02-EXISTING-FEATURE-AUDIT.md) | Source-level feature inventory |
-| [03](docs/03-PRD.md) | User stories, FR/NFR, acceptance |
-| [04](docs/04-MVP-GAP-ANALYSIS.md) | Gap ranking and blockers |
-| [05](docs/05-UI-UX-DESIGN-SYSTEM.md) | Actual tokens, layout and UI preservation |
-| [06](docs/06-SYSTEM-ARCHITECTURE.md) | Static and target architecture |
-| [07](docs/07-DATABASE-ERD.md) | Schema/ERD and integrity |
-| [08](docs/08-SUPABASE-INTEGRATION.md) | Migration/Auth/RLS/integration plan |
-| [09](docs/09-API-CONTRACTS.md) | Data operations and errors |
-| [10](docs/10-FRONTEND-BACKEND-MAPPING.md) | UI-action-by-action backend contracts |
-| [11](docs/11-GITHUB-SETUP.md) | Repo/CI/branch control |
-| [12](docs/12-VERCEL-DEPLOYMENT.md) | Protected preview/release runbook |
-| [13](docs/13-SECURITY-AND-TESTING.md) | Threats, status, test plan |
-| [14](docs/14-CODEX-IMPLEMENTATION-ROADMAP.md) | M0–M6 dependencies/commands/DoD |
-| [15](docs/15-DECISIONS-AND-ASSUMPTIONS.md) | ADR, skill matrix, unresolved choices |
+`npm run build:release` enforces the same guarded path as VERCEL_ENV=production.
+It refuses local fallback and requires complete cloud inputs, reviewed public
+origins in release/production-target.json, development exclusions and matching
+private CSP. `npm run verify:release` verifies a clean committed artifact and prints
+hashes without keys; it does not certify live protection/Auth/RLS. Production metadata now explicitly reviews shared project `ixfgavgtwuzdgucjriec`
+for `https://orbit.starscene.com/`, through a narrow source exception. Actual live
+configuration remains unverified; see the [target decision](docs/decisions/M3-SHARED-PRODUCTION-TARGET.md). Neither command deploys anything.
 
-For exact executed checks and known blockers, read [validation report](VALIDATION_REPORT.md).
+## Evidence and handoff
 
-**Privacy first:** prototype sample data may be used for smoke testing; real journal entries require Auth+owner RLS and verified secure syncing before cloud exposure.
+- [Repository instructions](AGENTS.md) and [current handoff](CODEX_HANDOFF.md).
+- [M2 conditional acceptance](docs/decisions/M2-HOSTED-CLOSEOUT.md) and
+  [preserved evidence](docs/evidence/m2/acceptance-20261106/manifest.json).
+- [M2.5 implementation/results](docs/decisions/M2_5-IMPLEMENTATION.md) and
+  [preserved evidence](docs/evidence/m2_5/implementation/verification.json).
+- [Roadmap](docs/14-CODEX-IMPLEMENTATION-ROADMAP.md),
+  [deployment boundaries](docs/12-VERCEL-DEPLOYMENT.md) and
+  [security/test evidence](docs/13-SECURITY-AND-TESTING.md).
+- [Immutable V6 provenance](docs/reference/V6_SOURCE_MANIFEST.json), historical M1
+  and reviewed current source inventory. Record current hashes only after reviewing
+  intentional source changes; never rewrite original provenance to make checks pass.
 
-## M1 verification and review
-
-M1 retains static native modules and the spatial scrapbook. See [M1 evidence](docs/decisions/M1-IMPLEMENTATION.md).
-Run `npm ci && npm run check` with Node 22 and full Git history (original provenance commit required).
-For browser QA: `python -m pip install -r tests/requirements-browser.txt`, `python -m playwright install chromium`,
-`npm run build && npm run test:browser`. System Chromium is used when present; set `ORBIT_BROWSER_BUNDLED=1` to use Playwright's installed browser.
-Automatic Vercel Git deployments are disabled pending separate approval/protection verification. No application credentials are required locally.
+Older handoff/first-task documents and numbered milestone sections are historical
+where superseded by the current records. Production release is not implied by a
+passing local build, a protected Preview, or this release-readiness work.

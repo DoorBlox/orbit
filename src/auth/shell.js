@@ -95,10 +95,15 @@ export function createAuthShell({ publicRelease, onPasswordSignIn, onRequestOtp,
     state=next;description.textContent=textByState[next.status]||textByState.error;
     if(next.code==='PASSWORD_SIGN_IN_FAILED')description.textContent='Sign-in failed. Check your credentials or connection and try again.';
     if(next.code==='PASSWORD_RATE_LIMITED')description.textContent='Too many sign-in attempts. Wait before trying again.';
+    // A failed SDK sign-out can leave a session stored even though the private
+    // view was cleared. Do not present that state as confirmed signed out.
+    if(next.code==='SIGN_OUT_FAILED')
+      description.textContent='Sign-out could not be confirmed. Your session may still be active on this device. Retry sign-out before leaving it.';
     login.hidden=next.status==='owner';
     if(['owner','signed-out','expired','disposed'].includes(next.status)){email.value='';token.value='';password.value='';if(next.code!=='PASSWORD_SIGN_IN_FAILED'&&next.code!=='PASSWORD_RATE_LIMITED')passwordEmail.value='';}
     updateCooldown();
-    gateSignOut.hidden=next.status!=='unauthorized';
+    gateSignOut.hidden=next.status!=='unauthorized'&&next.code!=='SIGN_OUT_FAILED';
+    gateSignOut.textContent=next.code==='SIGN_OUT_FAILED'?'Retry sign-out':'Sign out';
     retryGate.hidden=next.status!=='error';
     if(next.status!=='owner'){gate.hidden=false;toolbar.hidden=true;ownerTools.hidden=true;measure();}
   }

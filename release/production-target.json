@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "reviewed",
+  "supabaseUrl": "https://ixfgavgtwuzdgucjriec.supabase.co",
+  "siteUrl": "https://orbit.starscene.com/",
+  "developmentSupabaseUrls": [
+    "https://ixfgavgtwuzdgucjriec.supabase.co"
+  ],
+  "sharedDatabaseException": {
+    "decision": "m3-shared-private-2026-11-06",
+    "scope": "single-owner-private",
+    "supabaseUrl": "https://ixfgavgtwuzdgucjriec.supabase.co",
+    "siteUrl": "https://orbit.starscene.com/"
+  },
+  "note": "Owner explicitly approved shared Preview/Production database for M3. This reviews source targets only, not live Vercel/Auth configuration. Retain exclusions; no credentials. Multi-user Issue #4 is outside M3."
+}

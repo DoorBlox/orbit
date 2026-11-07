@@ -1,0 +1,67 @@
+{
+  "version": "1.0.0",
+  "baseline": "552720b",
+  "baseline_ci": "Both final-commit runs PASS including browsers; independently verified by owner; PR #3 updated/mergeable",
+  "live_grant_audit": "Owner reports direct authenticated TRUNCATE/TRIGGER/REFERENCES on seven private tables; PR comment API Forbidden",
+  "migration_status": "LOCAL_ONLY_NOT_APPLIED_HOSTED",
+  "required_check": {
+    "command": "npm run check",
+    "tests_passed": 167,
+    "failed": 0,
+    "skipped": 0,
+    "syntax": "PASS",
+    "source_provenance": "PASS",
+    "build": "PASS local mode",
+    "structure": "PASS"
+  },
+  "sql": {
+    "command": "python tests/db/run_local.py",
+    "structural": 14,
+    "owner_isolation_snapshot_publication": 133,
+    "least_privilege": 58,
+    "total_pgtap": 205,
+    "concurrency_scenarios": 3,
+    "migration_reapplication": "PASS",
+    "inherited_table_and_column_drift_atomic_rollback": "PASS",
+    "read_only_postflight_syntax": "PASS"
+  },
+  "fixture_cleanup": {
+    "environment": "disposable local PostgreSQL only",
+    "seven_fixtures_removed": "PASS",
+    "missing_baseline_refused": "PASS",
+    "changed_baseline_refused_atomically": "PASS",
+    "preexisting_rows_refused": "PASS",
+    "owner_sentinel_and_auth_user_preserved": "PASS"
+  },
+  "real_local_auth_http": {
+    "command": "python tests/integration/run_http.py",
+    "status": "PASS",
+    "scope": "GoTrue/PostgREST/SDK, CRUD persistence, owner/nonowner/anon, stale CAS, forged owner, two-browser sync/conflict/logout"
+  },
+  "hosted_mutations": "NOT_RUN",
+  "live_grants_auth_rls_data_changes": false,
+  "production_deployment": false,
+  "new_commit_ci": "Requires ordinary CI for new commit; prior CI troubleshooting closed",
+  "files": [
+    {
+      "path": "supabase/migrations/20261106120000_orbit_private_table_least_privilege.sql",
+      "sha256": "eb8d03a06db106373347a8db97bae6a4de296e600768d47de8b65c6ce6902e05"
+    },
+    {
+      "path": "supabase/tests/03_least_privilege.sql",
+      "sha256": "4c40cda732c512d540f697d23efc9177a7bd5b379cc2fadfb07bac30f1cd6b52"
+    },
+    {
+      "path": "supabase/verification/m3_private_grants_read_only.sql",
+      "sha256": "5303614305b3a10471767046a4d1a656e149507dd9eb6b1e3dc1af4588461cfe"
+    },
+    {
+      "path": "scripts/hosted-write-plan.mjs",
+      "sha256": "be546082e8fcf2a6c4affb57cfef45fd5aa871f9b9014f15809a3c59c4eaf360"
+    },
+    {
+      "path": "tests/db/run_local.py",
+      "sha256": "e23eaf97fad0eda80e3d235eb438ad3fb510c921f8d0760674e4f42871270d2f"
+    }
+  ]
+}

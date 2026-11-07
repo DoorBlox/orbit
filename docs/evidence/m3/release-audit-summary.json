@@ -1,0 +1,50 @@
+{
+  "date": "2026-11-06",
+  "timezone": "Asia/Jakarta",
+  "repository": "DoorBlox/orbit",
+  "baseline": "9b54974eaef630bba90450d85be5779bea3e8b03",
+  "branch": "codex/m3-release-readiness",
+  "dependency_audit": {
+    "command": "npm audit --json",
+    "exit_code": 0,
+    "metadata": {
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      },
+      "dependencies": {
+        "prod": 10,
+        "dev": 27,
+        "optional": 26,
+        "peer": 0,
+        "peerOptional": 0,
+        "total": 36
+      }
+    },
+    "lockfile_sha256": "37672fb2f5070b7838753257a31f8d5e81b4c487d9b77be25089ac17d014c3bf"
+  },
+  "limited_credential_scan": {
+    "command": "python scripts/check_secrets.py",
+    "exit_code": 0,
+    "files": 32,
+    "result": "No signatures found; not a comprehensive secret audit"
+  },
+  "prior_evidence_hashes": "M2 and M2.5 archive files verified intact",
+  "completed_acceptance_tests_repeated": false,
+  "hosted_status": {
+    "source": "Owner report in current task",
+    "m25_ci": "PASS",
+    "protected_preview": "Deployed; latest URL not supplied"
+  },
+  "issue_2_access": {
+    "api": "Forbidden",
+    "html_status": 404,
+    "body_available": false
+  },
+  "release_decision": "NO-GO: governing issue plan unavailable",
+  "application_or_hosted_changes": false
+}

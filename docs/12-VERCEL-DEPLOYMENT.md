@@ -1,6 +1,34 @@
-# 12 — Vercel deployment preparation (NOT DEPLOYED)
+> M3 target update: the owner explicitly approved shared Supabase project
+> `ixfgavgtwuzdgucjriec` for `https://orbit.starscene.com/`. See the
+> [exact configuration/security requirements](decisions/M3-SHARED-PRODUCTION-TARGET.md).
+> Source preparation does not verify actual Production settings or permit changing them.
 
-## M1 deployment hold
+# 12 — Deployment boundaries and historical preparation
+
+## Current state — 6 November 2026
+
+The owner reports M2.5 GitHub Actions passed and a protected Preview is deployed.
+M2 is accepted for the protected private password workflow. Auth, owner-restricted
+RLS and snapshot synchronization are implemented; do not interpret the historical
+M1 instructions below as current absence of authentication or as permission to
+provision/redeploy. Main remains unmerged by this agent.
+
+Current builds include native app modules plus one bundled SDK boundary. All three
+allowlisted public configuration fields are required for a cloud artifact; absent
+fields intentionally produce a local prototype. No populated configuration or
+privileged credential is needed to read this guide. Keep public reads disabled,
+protection intact, and the existing development target separate from Production.
+
+The owner supplied authoritative issue #2 scope and conditionally authorized
+protected-private Production publication after all release gates pass. Merges,
+Auth/RLS/DNS/protection changes and live mutations are not implicitly authorized.
+Production URL/key currently have Preview scope only per owner finding; reviewed
+Production target/configuration and redirects remain unverified. M3 adds a fail-closed
+Production build guard; do not blindly promote a development-configured Preview. This guide does not perform any of them.
+Completed tests/evidence must not be repeated merely because historical checklists
+below still use pre-M2 language. See M3-READINESS-CHECKPOINT.md in decisions/.
+
+## Historical M1 deployment hold
 
 The locally verified static artifact is prepared for a future protected preview, not deployed. `vercel.json` now sets `git.deploymentEnabled: false` to prevent review pushes/PRs from launching automatic deployments. No project settings changed. Review [the protected-preview checklist](decisions/M1-PREVIEW-CHECKLIST.md) before separately authorizing any deployment; do not remove the hold as part of routine source review. CSP is local-only until future Auth/cloud allowlists are explicitly reviewed.
 

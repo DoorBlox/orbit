@@ -1,6 +1,41 @@
 # ORBIT V6 → production: Codex handoff
 
-## Current handoff: M2 accepted; M2.5 implemented on feature branch
+## Current M3 release candidate — gated, not published
+
+The owner supplied issue #2's authoritative scope and conditionally authorized
+protected-private Production publication once all applicable gates pass. Version
+1.0.0 is prepared on `codex/m3-release-readiness`, based on verified M2.5 `9b54974`.
+See [GO/NO-GO](docs/decisions/M3-READINESS-CHECKPOINT.md),
+[security audit](docs/decisions/M3-SECURITY-AUDIT.md),
+[release notes](docs/releases/1.0.0.md) and
+[launch/backup/rollback runbook](docs/decisions/M3-LAUNCH-RUNBOOK.md).
+
+M2.5 CI run 42199466081 passed and its protected Preview is READY per owner report.
+Do not repeat onboarding/completed acceptance. M3 fixes unsafe Production local
+fallback, verifies reviewed target/CSP/artifact integrity and prepares nonowner
+write probes without executing them. Native app/Auth/cloud/SQL source is unchanged.
+Production is NO-GO until its target/inputs/protection/Auth redirects, appropriate
+write validation and final-commit CI are verified. The owner has explicitly reviewed shared Supabase project `ixfgavgtwuzdgucjriec`
+for `https://orbit.starscene.com/`; the exact source exception is recorded in
+[the target decision](docs/decisions/M3-SHARED-PRODUCTION-TARGET.md). This does not
+verify or authorize live Production configuration changes. Future multi-user Issue #4
+is outside M3; retain current single-owner controls. No merge, Auth/RLS/DNS/protection change or live mutation is authorized
+implicitly by the conditional deployment permission.
+
+## M3 grant audit follow-up
+
+Owner independently confirmed both GitHub CI runs at `552720b` PASS (including
+browser suites), and PR #3 updated/mergeable. Do not repeat CI troubleshooting.
+A live read-only audit reports authenticated TRUNCATE/TRIGGER/REFERENCES on the
+seven private tables. [Reviewed local migration](docs/decisions/M3-LEAST-PRIVILEGE.md)
+removes those only, retains CRUD/RLS/RPCs and fails atomically on privilege drift.
+It is **not applied live**. Local SQL and real Auth/HTTP/browser regressions pass;
+prepared fixture seed/cleanup is baseline guarded and locally tested. Production
+remains gated on separately authorized live grant correction and fixture execution,
+actual configuration/Auth/protection, final-SHA checks and release records.
+See [concise Production checklist](docs/decisions/M3-PRODUCTION-CHECKLIST.md).
+
+## Accepted M2/M2.5 baseline
 
 On 6 November 2026 (Asia/Jakarta), the owner explicitly accepted **M2 for protected,
 password-based private use**, with the documented unverified checks retained.
@@ -36,7 +71,8 @@ motion commits. Main is not modified; no merge, deployment or production promoti
 has occurred. GitHub API access returned Forbidden; no PR creation or remote CI
 success is claimed. Retain the six-window design and all security/persistence
 invariants. Physical-device and inherited hosted write/CRUD gaps remain explicit.
-No Production, Supabase/Auth/RLS, DNS, protection or M3 action is authorized.
+Production publication is subject to the newer M3 gates above. Supabase/Auth/RLS,
+DNS and protection changes remain separate authorization boundaries.
 
 Current sequence: **M2 conditionally accepted → M2.5 implementation complete,
 reviewable feature branch → M3 separately authorized release work**.

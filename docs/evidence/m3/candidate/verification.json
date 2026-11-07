@@ -1,0 +1,74 @@
+{
+  "version": "1.0.0",
+  "code_commit": "9401650",
+  "release_status": "NO_GO_PRODUCTION",
+  "authority": "Owner supplied authoritative issue #2 scope and gated Production authorization",
+  "baseline_ci": {
+    "run": 42199466081,
+    "commit": "9b54974eaef630bba90450d85be5779bea3e8b03",
+    "source": "Owner verified",
+    "status": "PASS"
+  },
+  "preview": {
+    "url": "https://orbit-emtd92fo1-doorbloxs-projects.vercel.app",
+    "source": "Owner verified READY",
+    "agent_reachability": "Proxy CONNECT 403; not re-certified"
+  },
+  "required_checks": {
+    "tests_passed": 163,
+    "tests_failed": 0,
+    "tests_skipped": 0,
+    "syntax": "PASS",
+    "build": "PASS local mode",
+    "structure": "PASS",
+    "source_provenance": "PASS unchanged native source"
+  },
+  "browser": {
+    "m1": "PASS five viewports/core/recovery/date/accessibility/density",
+    "cloud_passed": 24,
+    "motion_passed": 25,
+    "closeout_passed": 5,
+    "http_delivery": "PASS",
+    "transport": "synthetic local HTTP, mocked cloud; not physical hardware or hosted writes"
+  },
+  "dependency_audit": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "credential_signatures": {
+    "files": 36,
+    "status": "PASS limited scan"
+  },
+  "production_guard": {
+    "without_cloud_inputs": "EXPECTED_NO_GO",
+    "prior_artifact_unchanged": true,
+    "reviewed_target": "unconfigured",
+    "release_artifact_verifier": "PASS synthetic tests incl SDK drift; real release artifact NOT produced"
+  },
+  "hosted_mutation_test": "PREPARED_NOT_EXECUTED",
+  "production_configuration": "NOT_VERIFIED; Preview-only variables per owner",
+  "final_ci": "PENDING remote result; API access Forbidden",
+  "published": false,
+  "files": [
+    {
+      "path": "m1-results.json",
+      "sha256": "b7e10c88f81c92815b435c5930a64025c5bccc25eb513d3cf3db0aa2749c83da"
+    },
+    {
+      "path": "m2-closeout-results.json",
+      "sha256": "0a6bd0ca903c82f7ef059e98ccb5f17ecf708509f0953fd040a133721ae2e1b4"
+    },
+    {
+      "path": "m2-results.json",
+      "sha256": "ffa555b23d151b89e31e84599077ffd01947899d9d75b5f9d6ffdf162f629671"
+    },
+    {
+      "path": "m25-results.json",
+      "sha256": "f0943f59156e10d21f1aed4d4146499d3623092088d9d07f74a10326d29a1ad4"
+    }
+  ]
+}

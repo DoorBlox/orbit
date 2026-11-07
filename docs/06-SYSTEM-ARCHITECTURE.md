@@ -1,6 +1,19 @@
-# 06 — Production system architecture (proposed, not yet activated)
+# 06 — Current private-cloud architecture and historical proposal
 
-## M1 current local runtime
+## Current release architecture — M3
+
+The accepted M2/M2.5 runtime uses bootstrap Auth/UUID authorization, one private
+owner snapshot repository and revision-checked synchronization over native modules.
+The Supabase SDK boundary is bundled; the static six-widget design is preserved.
+Local mode remains explicit when unconfigured, but Production may no longer fall
+back to it. M3 requires a reviewed Production target, complete cloud configuration
+and exact CSP; release artifact verification checks inventory/source/SDK hashes.
+No new server, framework, schema, Auth provider, storage bucket or live migration
+is introduced. See decisions/M3-SECURITY-AUDIT.md and M3-LAUNCH-RUNBOOK.md.
+The initial proposal/status below is historical, not a claim that Auth/cloud remain
+unimplemented or authorization to alter an existing project.
+
+## Historical M1 local runtime
 
 M1 retains this native-module architecture. New dates.js centralizes Jakarta civil dates; backup.js validates snapshots and uses write-ahead originals for recoverable multi-key restoration. Storage corruption blocks ordinary overwrite; journal/layout still have their existing independent keys, with coordinated import persistence before view hydration. Cloud adapters remain inactive. See [M1 evidence](decisions/M1-IMPLEMENTATION.md).
 

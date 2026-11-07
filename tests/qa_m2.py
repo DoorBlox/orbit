@@ -58,7 +58,7 @@ export async function createCloudClient(){
       async signInWithOtp(options){fixture.calls.push({type:'otp-request',existingOnly:options.options.shouldCreateUser===false});return {error:fixture.otpSendError||null};},
       async verifyOtp(options){fixture.calls.push({type:'otp-verify',emailType:options.type==='email'});if(fixture.otpVerifyError)return {error:fixture.otpVerifyError};fixture.user={id:'11111111-1111-4111-8111-111111111111'};fixture.listener('SIGNED_IN',{user:fixture.user});return {error:null};},
       async signInWithOAuth(options){fixture.calls.push({type:'oauth',options});return {data:{url:'https://mock.invalid'},error:null};},
-      async signOut(){fixture.calls.push({type:'logout'});fixture.user=null;fixture.listener('SIGNED_OUT',null);return {error:null};}
+      async signOut(){fixture.calls.push({type:'logout'});if(fixture.failSignOutOnce){fixture.failSignOutOnce=false;return {error:{message:'synthetic outage'}};}fixture.user=null;fixture.listener('SIGNED_OUT',null);return {error:null};}
     },
     rpc(name,args){
       fixture.calls.push({type:'rpc',name,args});
@@ -353,6 +353,26 @@ def journal_races(browser,source):
     finally:close_context(ctx,page)
 
 
+def failed_logout_recovery(browser,source):
+    ctx,page,errors=cloud_context(browser,(390,844),'owner',source=source)
+    try:
+        expect(page.locator('.cloud-mode')).to_have_text('Private owner space')
+        page.evaluate('window.__m2Fixture.failSignOutOnce=true')
+        page.locator('.cloud-toolbar').get_by_role('button',name='Sign out',exact=True).click()
+        expect(page.locator('.cloud-gate-message')).to_contain_text('session may still be active')
+        expect(page.locator('.cloud-gate').get_by_role('button',name='Retry sign-out')).to_be_visible()
+        expect(page.locator('#app')).to_be_hidden()
+        assert page.locator('#app').inner_text()==''
+        assert OWNER_SECRET not in page.locator('body').inner_text()
+        assert len([call for call in page.evaluate('window.__m2Fixture.calls') if call.get('type')=='logout'])==1
+        page.locator('.cloud-gate').get_by_role('button',name='Retry sign-out').click()
+        expect(page.locator('.cloud-gate-message')).to_contain_text('Sign in to open')
+        expect(page.locator('.cloud-gate').get_by_role('button',name='Retry sign-out')).to_be_hidden()
+        assert len([call for call in page.evaluate('window.__m2Fixture.calls') if call.get('type')=='logout'])==2
+        assert not errors,errors
+    finally:close_context(ctx,page)
+
+
 def immediate_logout_draft(browser,source):
     ctx,page,errors=cloud_context(browser,(390,844),'owner',source=source)
     try:
@@ -466,8 +486,9 @@ def main():
     parser=argparse.ArgumentParser();parser.add_argument('--source',action='store_true');parser.add_argument('--only',default='');args=parser.parse_args()
     OUT.mkdir(exist_ok=True);results=[]
     with server(args.source),sync_playwright() as p:
-        browser=p.chromium.launch(headless=True,executable_path=os.environ.get('CHROMIUM_PATH') or shutil.which('chromium'),args=['--no-sandbox'])
-        cases=[('password-flow',lambda:password_case(browser,args.source)),('otp-flow',lambda:otp_flow_case(browser,args.source)),('otp-failures',lambda:otp_failure_case(browser,args.source)),('local-compatibility',lambda:local_compatibility(browser,args.source)),('journal-refresh-save-races',lambda:journal_races(browser,args.source)),('immediate-logout-draft',lambda:immediate_logout_draft(browser,args.source)),('owner-opt-in-tools',lambda:owner_tools_case(browser,args.source)),('owner-empty-expiry',lambda:owner_lifecycle_case(browser,args.source))]
+        executable=None if os.environ.get('ORBIT_BROWSER_BUNDLED') else os.environ.get('CHROMIUM_PATH') or shutil.which('chromium')
+        browser=p.chromium.launch(headless=True,executable_path=executable,args=['--no-sandbox'])
+        cases=[('password-flow',lambda:password_case(browser,args.source)),('otp-flow',lambda:otp_flow_case(browser,args.source)),('otp-failures',lambda:otp_failure_case(browser,args.source)),('local-compatibility',lambda:local_compatibility(browser,args.source)),('journal-refresh-save-races',lambda:journal_races(browser,args.source)),('immediate-logout-draft',lambda:immediate_logout_draft(browser,args.source)),('failed-logout-recovery',lambda:failed_logout_recovery(browser,args.source)),('owner-opt-in-tools',lambda:owner_tools_case(browser,args.source)),('owner-empty-expiry',lambda:owner_lifecycle_case(browser,args.source))]
         for label,size in [('desktop',(1440,900)),('tablet',(900,1100)),('phone',(390,844)),('small',(320,700))]:
             for mode in ['signed-out','nonowner']:
                 cases.append((f'{mode}-{label}',lambda s=size,m=mode:gate_case(browser,s,m,args.source)))

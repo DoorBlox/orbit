@@ -1,3 +1,11 @@
+## 1.0.0 private release candidate — 2026-11-06 (not Production-published)
+
+- Preserve accepted M2 private cloud functionality and M2.5 motion fixes.
+- Fail closed when Production cloud configuration is absent, unreviewed, mismatched or development-scoped; enforce exact private CSP before artifact replacement.
+- Verify committed release artifacts, inventory, native files and rebuilt SDK integrity; never print keys.
+- Prepare offline-only nonowner CRUD fixture plans; no hosted mutations or Auth/RLS changes.
+- Add release guard/plan tests, complete private recovery browser CI coverage, and reconcile release notes, security findings, backup/rollback and remaining launch gates.
+
 ## M2.5 Motion Polish — 2026-11-06
 
 - Give manual wheel, zoom and keyboard camera input priority over navigation.
@@ -44,3 +52,19 @@
 ## V6 — 2026-11-01
 
 Window-like title bar dragging; per-widget persistent pointer/touch/keyboard resizing; milestone overflow correction with dedicated timeline lanes; clickable journal markers grouped by date; date-only journal editing and V5 ISO migration; compact mobile spatial navigator; full-backup sizes and V6 QA tests. Future deployment remains not yet executed.
+
+### M3 reviewed shared-target follow-up
+
+- Explicit owner-approved exception for shared project `ixfgavgtwuzdgucjriec` and
+  protected `https://orbit.starscene.com/`; other targets and public mode remain rejected.
+- Document exact Production environment/CSP/Auth requirements and shared-data risks.
+  No live configuration, Auth/RLS/data or deployment changes. Issue #4 remains future work.
+
+### M3 least-privilege release gate
+
+- Add an unapplied additive migration revoking authenticated TRUNCATE/TRIGGER/
+  REFERENCES on seven private tables; retain normal CRUD/RLS/snapshots/conflicts.
+- Verify 58 new SQL assertions, grant-drift rollback, generated baseline-guarded
+  fixture cleanup and real local Auth/API/browser regressions. No live changes.
+- Record owner-confirmed `552720b` CI PASS and PR #3; consolidate Production/Auth
+  checklist and remaining live authorization/verification gates.
