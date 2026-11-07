@@ -38,6 +38,17 @@ jobs:
           echo "Isolated local Supabase stack started; repository migrations applied."
       - name: Execute transaction-rolled-back pgTAP isolation tests
         run: supabase test db
+      - name: Test real local Auth bearer-session HTTP authorization
+        shell: bash
+        run: |
+          set -euo pipefail
+          # CLI emits only disposable LOCAL API values. Never upload or print.
+          supabase status -o env > "$RUNNER_TEMP/orbit-local-api.env"
+          set -a
+          source "$RUNNER_TEMP/orbit-local-api.env"
+          set +a
+          node tests/local_http_rls.mjs
+          rm -f "$RUNNER_TEMP/orbit-local-api.env"
       - name: Stop and discard disposable local database
         if: always()
         shell: bash
