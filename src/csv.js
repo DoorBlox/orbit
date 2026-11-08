@@ -58,3 +58,58 @@ export function importCsv(raw) {
   }
   return {tasks,omitted};
 }
+
+/** Branch CSV is deliberately separate from task CSV. A single import action
+ * detects the header and validates the complete hierarchy before mutating it.
+ * IDs are stable so subsequent task CSVs can refer to newly imported branches. */
+export const BRANCH_CSV_HEADERS=['id','parent_id','label','color'];
+export function exportBranchesCsv(branches) {
+  const lines=[BRANCH_CSV_HEADERS.join(',')];
+  for(const branch of branches)lines.push([
+    branch.id,branch.parentId||'root',branch.label,branch.color||'',
+  ].map(quote).join(','));
+  return lines.join('\r\n')+'\r\n';
+}
+export function importBranchesCsv(raw,existingBranches=[]) {
+  const rows=parseCsv(raw);
+  if(rows.length<2)throw Error('Branch CSV has no rows to import.');
+  if(rows.length>4001)throw Error('Branch CSV exceeds the 4,000 branch limit.');
+  const headers=rows[0].map(x=>x.trim().toLowerCase());
+  if(new Set(headers).size!==headers.length)throw Error('Branch CSV has duplicate column headers.');
+  for(const required of ['id','parent_id','label'])if(!headers.includes(required))
+    throw Error('Branch CSV needs id, parent_id and label columns.');
+  const at=(row,key)=>String(row[headers.indexOf(key)]||'').trim();
+  const existing=new Map(existingBranches.map(branch=>[branch.id,branch]));
+  const pending=[],seen=new Set();let omitted=0;
+  const validId=value=>/^[A-Za-z0-9][A-Za-z0-9_-]{0,99}$/.test(value)&&
+    !['root','__proto__','prototype','constructor'].includes(value);
+  for(const row of rows.slice(1)) {
+    if(row.length>headers.length)throw Error('Branch CSV contains excess columns.');
+    const id=at(row,'id'),parentId=at(row,'parent_id')||'root',label=at(row,'label'),
+      color=headers.includes('color')?at(row,'color'):'';
+    if(!validId(id)||!label||label.length>72||
+      (parentId!=='root'&&!validId(parentId))||
+      (color&&!/^#[A-Fa-f0-9]{6}$/.test(color)))throw Error('Branch CSV contains invalid IDs, names or colors.');
+    if(seen.has(id))throw Error('Branch CSV contains duplicate IDs.');
+    seen.add(id);
+    const branch={id,parentId,label,...(color?{color}:{})};
+    const prior=existing.get(id);
+    if(prior){
+      if(prior.parentId!==parentId||prior.label!==label||(prior.color||'')!==(color||''))
+        throw Error('Branch ID collides with an existing, different branch.');
+      omitted++;continue;
+    }
+    pending.push(branch);
+  }
+  if(existing.size+pending.length>4000)throw Error('Import would exceed the 4,000 branch limit.');
+  const byId=new Map([...existingBranches,...pending].map(branch=>[branch.id,branch]));
+  for(const branch of pending){
+    const ancestry=new Set();let cursor=branch;
+    while(cursor&&cursor.parentId!=='root'){
+      if(ancestry.has(cursor.id))throw Error('Branch CSV has a parent cycle.');
+      ancestry.add(cursor.id);cursor=byId.get(cursor.parentId);
+      if(!cursor)throw Error('Branch CSV references an unknown parent ID.');
+    }
+  }
+  return {branches:pending,omitted};
+}

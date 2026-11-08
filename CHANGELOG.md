@@ -2,6 +2,8 @@
 
 ## 2.1.0 — Unreleased, source-only development (8 November 2026)
 
+- Space now offers one import action for tasks CSV, hierarchically validated branches CSV, journal-page JSON selection, or full JSON backup. Selective export supports tasks/branches CSV, journals-only JSON and full-space JSON; branch imports preserve stable IDs, detect conflicts/cycles and require explicit confirmation.
+
 - Fixed full-backup restoration of per-user Space names; local prototype mode now persists a renamed Space with validated, recoverable storage. Older V5/V6 backups without a profile preserve the current title.
 
 - [PR #18](https://github.com/DoorBlox/orbit/pull/18): removed the persistent signed-in cloud dock and moved account, sync and backup actions inside the draggable Space widget; retained signed-out access gate and safe teardown.

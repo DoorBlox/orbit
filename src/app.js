@@ -1,7 +1,7 @@
 import { branchPath,descendantsOf,createBranch,removeBranchPreservingContents } from './data.js';
 import { cleanTask,taskSummary } from './model.js';
 import { readTasks,saveTasks,readPreferences,savePreferences,readBranches,saveBranches,readProfile,saveProfile,STORAGE_KEYS,getStorageStatus,getRecoveryData,markStorageIssue,isStorageWriteBlocked,clearStorageIssues } from './storage.js';
-import { importCsv,exportCsv } from './csv.js';
+import { importCsv,exportCsv,parseCsv,importBranchesCsv,exportBranchesCsv } from './csv.js';
 import { Constellation } from './constellation.js';
 import { ScrapWidgets } from './widgets.js';
 import { SpatialBoard } from './board.js';
@@ -282,8 +282,21 @@ function initTools(){
     $('clear-demo').textContent='Remove samples';
   });
   $('export-csv').addEventListener('click',()=>{
-    download(exportCsv(state.tasks),`orbit-tasks-${new Date().toISOString().slice(0,10)}.csv`,'text/csv;charset=utf-8');
-    message(`Exported ${state.tasks.length} tasks as CSV.`);
+    journal.commit();const date=new Date().toISOString().slice(0,10);
+    switch($('export-kind').value){
+      case 'branches':
+        download(exportBranchesCsv(state.branches),`orbit-branches-${date}.csv`,'text/csv;charset=utf-8');
+        message(`Exported ${state.branches.length} branches as CSV.`);break;
+      case 'journals':{
+        const entries=journal.getEntries();
+        download(JSON.stringify({format:'orbit-selection',version:1,kind:'journalEntries',entries},null,2),
+          `orbit-journals-${date}.json`,'application/json');
+        message(`Exported ${entries.length} journal pages as JSON.`);break;
+      }
+      case 'space':backupJson();break;
+      default:download(exportCsv(state.tasks),`orbit-tasks-${date}.csv`,'text/csv;charset=utf-8');
+        message(`Exported ${state.tasks.length} tasks as CSV.`);
+    }
   });
   $('csv-file').addEventListener('change',async e=>{
     const file=e.target.files?.[0];if(!file||readOnly||disposed)return;
@@ -292,9 +305,56 @@ function initTools(){
       const contents=await file.text();
       if(disposed||readOnly)return;
       if(file.name.toLowerCase().endsWith('.json')){
-        const data=contents;
-        message('Restore complete backup? This replaces current branches and tasks. Export a backup first.',10000,
-          {label:'Restore',run:()=>{try{restoreBackup(data);}catch(err){message(err.message,5500);}}});
+        const parsed=JSON.parse(contents);
+        if(parsed?.format==='orbit-selection'){
+          if(parsed.version!==1||parsed.kind!=='journalEntries'||!Array.isArray(parsed.entries))
+            throw Error('Unsupported selected export.');
+          const validatePages=()=>{
+            const verified=validateBackup({format:'orbit-backup',version:6,
+              branches:state.branches,tasks:state.tasks,preferences:state.preferences,
+              profile:state.profile,milestones,journalEntries:parsed.entries,
+              spatialLayout:board.getLayout()},{sanitizeHtml:sanitizeJournal});
+            const originals=journal.getEntries(),ids=new Set(originals.map(entry=>entry.id));
+            const additional=verified.journalEntries.filter(entry=>!ids.has(entry.id));
+            if(originals.length+additional.length>600)throw Error('Journal would exceed the 600-page limit.');
+            return {originals,additional,omitted:verified.journalEntries.length-additional.length};
+          };
+          const preview=validatePages();
+          if(!preview.additional.length)message('All selected journal pages are already present.');
+          else message(`Import ${preview.additional.length} journal pages? Existing pages will be kept.`,10000,
+            {label:'Import',run:()=>{
+              if(readOnly||disposed)return;
+              try{
+                const {originals,additional,omitted}=validatePages();
+                journal.replaceEntries([...originals,...additional]);
+                message(`Imported ${additional.length} journal pages${omitted?`; skipped ${omitted} duplicates`:''}.`,6000);
+              }catch(err){message(`Import failed: ${err.message}`,5500);}
+            }});
+        }else{
+          // A full backup remains an explicit replacement, never an automatic merge.
+          validateBackup(parsed,{sanitizeHtml:sanitizeJournal});
+          message('Restore complete backup? This replaces current branches and tasks. Export a backup first.',10000,
+            {label:'Restore',run:()=>{try{restoreBackup(contents);}catch(err){message(err.message,5500);}}});
+        }
+      }else if(parseCsv(contents)[0]?.map(v=>v.trim().toLowerCase()).includes('parent_id')){
+        const preview=importBranchesCsv(contents,state.branches);
+        if(!preview.branches.length)message('All branches in this CSV already exist.');
+        else message(`Import ${preview.branches.length} branches? Existing branches and tasks will remain.`,10000,
+          {label:'Import',run:()=>{
+            if(readOnly||disposed)return;
+            try{
+              const {branches,omitted}=importBranchesCsv(contents,state.branches);
+              if(!branches.length){message('These branches are already present.');return;}
+              state.branches.push(...branches);sync();
+              message(`Imported ${branches.length} branches${omitted?`; skipped ${omitted} duplicates`:''}.`,6500,
+                rememberDelete(()=>{const ids=new Set(branches.map(b=>b.id));
+                  if(state.tasks.some(t=>ids.has(t.projectId))||state.branches.some(b=>!ids.has(b.id)&&ids.has(b.parentId))){
+                    message('Cannot undo after branches gain tasks or child branches. Move them first.');return;
+                  }
+                  state.branches=state.branches.filter(b=>!ids.has(b.id));sync();
+                }));
+            }catch(err){message(`Import failed: ${err.message}`,5500);}
+          }});
       }else{
         const r=importCsv(contents);const valid=new Set(state.branches.map(b=>b.id));let moved=0;
         for(const t of r.tasks)if(!valid.has(t.projectId)){t.projectId='inbox';moved++;}
