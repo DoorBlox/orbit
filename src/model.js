@@ -52,7 +52,7 @@ export function cleanTask(raw,fallbackBranch='inbox'){
     createdAt:raw.createdAt||new Date().toISOString(),completedAt:raw.completedAt||'',
   };
 }
-export function validateHttpUrl(value){if(!value)return '';try{const u=new URL(value);return ['https:','http:'].includes(u.protocol)?u.href:'';}catch{return '';}}
+export function validateHttpUrl(value){if(!value)return '';try{const u=new URL(value);return ['https:','http:'].includes(u.protocol)&&!u.username&&!u.password?u.href:'';}catch{return '';}}
 export function sortedProjectTasks(tasks,branchId,mode='deadline'){
   const matching=tasks.filter(t=>t.projectId===branchId);
   return matching.sort((a,b)=>{

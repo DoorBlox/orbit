@@ -51,3 +51,25 @@ test('collapsed branch view state roundtrips only valid non-leaf branch IDs',()=
 test('legacy backups without collapsed branch state remain compatible',()=>{
   const value=fixture();assert.equal(validateBackup(value).collapsedBranchIds,undefined);
 });
+
+test('private workspace extensions survive a complete backup and atomic restore',()=>{
+  const value=fixture();value.extensions={
+    notes:[{id:'note_1',title:'Thought',text:'Private notes',x:1100,y:1400,width:300,height:250,color:'mint'}],
+    journalScenes:{},taskLinks:{one:[{label:'Reference',url:'https://example.org/'}]}
+  };
+  const snapshot=validateBackup(value);
+  assert.equal(snapshot.extensions.notes[0].text,'Private notes');
+  const store=fake();
+  assert.equal(persistBackup(snapshot,store).ok,true);
+  assert.deepEqual(JSON.parse(store.getItem(STORAGE_KEYS.extensions)),snapshot.extensions);
+});
+test('older backups without extensions preserve existing local drawings and notes',()=>{
+  const prior='{"notes":[{"id":"note_a"}]}';
+  const store=fake({[STORAGE_KEYS.extensions]:prior});
+  const result=persistBackup(validateBackup(fixture()),store);
+  assert.equal(result.ok,true);assert.equal(store.getItem(STORAGE_KEYS.extensions),prior);
+});
+test('invalid drawing extensions are rejected before any restore write',()=>{
+  const value=fixture();value.extensions={notes:[{id:'x',title:'oops',text:'X',x:0,y:0,width:10,height:10,color:'sand'}]};
+  assert.throws(()=>validateBackup(value),/sticky note/i);
+});
