@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.1.0 — Unreleased, source-only development (9 November 2026)
+
+- Removed the obsolete LOCAL PROTOTYPE header caption without changing the WIB clock.
+- Added branch-level expand/collapse, ArrowLeft/ArrowRight keyboard disclosure, expand-all/collapse-all controls and compact constellation layouts. View state is saved per account in the current browser and included in full backups; it is deliberately not cloud-synced yet.
+
 ## 2.1.0 — Unreleased, source-only development (8 November 2026)
 
 - Space now offers one import action for tasks CSV, hierarchically validated branches CSV, journal-page JSON selection, or full JSON backup. Selective export supports tasks/branches CSV, journals-only JSON and full-space JSON; branch imports preserve stable IDs, detect conflicts/cycles and require explicit confirmation.

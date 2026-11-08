@@ -37,3 +37,31 @@ test('journal pages sort chronologically with stable order on equal dates',()=>{
   assert.deepEqual(orderJournalEntries(before).map(x=>x.id),['first','same','later']);
   assert.equal(before[0].id,'later');
 });
+
+test('collapsing a branch hides descendants but keeps its own tasks and an expansion target',()=>{
+  const branches=tree(),tasks=[{id:'direct',projectId:'topic'},{id:'nested',projectId:'sub'},{id:'deep-task',projectId:'deep'}];
+  const expanded=createLayout(branches,tasks,'My space');
+  assert.ok(expanded.nodes.some(n=>n.id==='sub'));
+  assert.ok(expanded.nodes.some(n=>n.id==='deep'));
+  const collapsed=createLayout(branches,tasks,'My space',['topic']);
+  assert.ok(collapsed.nodes.some(n=>n.id==='topic'&&n.collapsed&&n.hasChildren));
+  assert.ok(!collapsed.nodes.some(n=>n.id==='sub'||n.id==='deep'));
+  assert.ok(collapsed.stacks.some(s=>s.branchId==='topic'));
+  assert.ok(!collapsed.stacks.some(s=>s.branchId==='sub'||s.branchId==='deep'));
+  assert.deepEqual(collapsed.children.get('topic'),['sub']);
+});
+test('nested collapse is independent and expanding a parent reveals still-collapsed children',()=>{
+  const branches=tree(),tasks=[{id:'nested',projectId:'sub'},{id:'deep-task',projectId:'deep'}];
+  const nested=createLayout(branches,tasks,'My space',['topic','sub']);
+  assert.ok(!nested.nodes.some(n=>n.id==='sub'||n.id==='deep'));
+  const parentExpanded=createLayout(branches,tasks,'My space',['sub']);
+  assert.ok(parentExpanded.nodes.some(n=>n.id==='sub'&&n.collapsed));
+  assert.ok(!parentExpanded.nodes.some(n=>n.id==='deep'));
+  const allExpanded=createLayout(branches,tasks,'My space',[]);
+  assert.ok(allExpanded.nodes.some(n=>n.id==='deep'));
+});
+test('unknown and leaf IDs are ignored as collapsed view state',()=>{
+  const layout=createLayout(tree(),[],'My space',['missing','deep']);
+  assert.deepEqual([...layout.collapsed],[]);
+  assert.ok(layout.nodes.some(n=>n.id==='deep'));
+});

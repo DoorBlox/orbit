@@ -10,9 +10,9 @@ const hoverPossible=()=>matchMedia('(hover:hover) and (pointer:fine)').matches;
 const NS='http://www.w3.org/2000/svg';
 
 export class Constellation {
-  constructor({viewport,world,edgesEl,nodesEl,decorEl,onBranchSelected,onBranchAdd,onBranchRename,onBranchMove,onBranchDelete,onTaskSelected,onTaskUpdate,onTaskDelete}) {
-    Object.assign(this,{viewport,world,edgesEl,nodesEl,decorEl,onBranchSelected,onBranchAdd,onBranchRename,onBranchMove,onBranchDelete,onTaskSelected,onTaskUpdate,onTaskDelete});
-    this.branches=[];this.tasks=[];this.mode='deadline';this.displayName='My space';this.layout=createLayout([],[],this.displayName);this.bounds=getDisplayBounds(this.layout);
+  constructor({viewport,world,edgesEl,nodesEl,decorEl,onBranchSelected,onBranchAdd,onBranchRename,onBranchMove,onBranchDelete,onBranchToggle,onTaskSelected,onTaskUpdate,onTaskDelete}) {
+    Object.assign(this,{viewport,world,edgesEl,nodesEl,decorEl,onBranchSelected,onBranchAdd,onBranchRename,onBranchMove,onBranchDelete,onBranchToggle,onTaskSelected,onTaskUpdate,onTaskDelete});
+    this.branches=[];this.tasks=[];this.mode='deadline';this.displayName='My space';this.collapsedBranchIds=[];this.layout=createLayout([],[],this.displayName);this.bounds=getDisplayBounds(this.layout);
     this.nodeMap=new Map();this.stackMap=new Map();this.domNodes=new Map();this.domStacks=new Map();this.edgeEntries=[];
     this.camera={x:0,y:0,scale:.2};this.cameraAnimation=0;this.springAnimation=0;
     this.focusedNode='';this.expandedTaskId='';this.selectedTaskId='';this.offsets=new Map();
@@ -26,11 +26,12 @@ export class Constellation {
     const ring=node('div','world-ring inner');this.decorEl.append(ring);
     this.decorEl.append(node('div','world-ring outer'));
   }
-  setData(branches,tasks,mode='deadline',displayName=this.displayName){
+  setData(branches,tasks,mode='deadline',displayName=this.displayName,collapsedBranchIds=this.collapsedBranchIds){
     const focus=this.focusedNode;
     this.branches=branches;this.tasks=tasks;this.mode=mode;
     this.displayName=String(displayName||'My space').trim().slice(0,100)||'My space';
-    this.layout=createLayout(branches,tasks,this.displayName);this.bounds=getDisplayBounds(this.layout);
+    this.collapsedBranchIds=Array.isArray(collapsedBranchIds)?[...collapsedBranchIds]:[];
+    this.layout=createLayout(branches,tasks,this.displayName,this.collapsedBranchIds);this.bounds=getDisplayBounds(this.layout);
     this.nodeMap=new Map(this.layout.nodes.map(n=>[n.id,n]));
     this.stackMap=new Map(this.layout.stacks.map(s=>[s.branchId,s]));
     if(!this.nodeMap.has(focus))this.focusedNode='';
@@ -266,11 +267,15 @@ export class Constellation {
   }
   buildNode(item){
     const el=node('div',`graph-node node-${item.type}`);el.dataset.id=item.id;el.style.left=item.x+'px';el.style.top=item.y+'px';
-    el.style.setProperty('--branch-color',item.color);el.dataset.depth=String(item.depth||0);el.tabIndex=0;el.setAttribute('role','button');
-    el.setAttribute('aria-label',item.id==='root'?`${item.label}, center of the constellation; focus`:`${branchPath(item.id,this.branches)}; focus, edit or add a branch`);
+    el.style.setProperty('--branch-color',item.color);el.dataset.depth=String(item.depth||0);el.dataset.collapsed=String(Boolean(item.collapsed));el.classList.toggle('has-children',Boolean(item.hasChildren));el.tabIndex=0;el.setAttribute('role','button');
+    const path=item.id==='root'?item.label:branchPath(item.id,this.branches);
+    el.title=path;el.setAttribute('aria-label',item.id==='root'?`${item.label}, center of the constellation; focus`:`${path}; focus, edit or add a branch${item.hasChildren?`; ${item.collapsed?'collapsed':'expanded'}`:''}`);
+    if(item.hasChildren)el.setAttribute('aria-expanded',String(!item.collapsed));
     el.addEventListener('keydown',e=>{
       if(e.target!==el)return;
       if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();this.focusNode(item.id);this.onBranchSelected?.(item.id);}
+      if(item.hasChildren&&e.key==='ArrowRight'&&item.collapsed){e.preventDefault();e.stopPropagation();this.onBranchToggle?.(item.id);}
+      if(item.hasChildren&&e.key==='ArrowLeft'&&!item.collapsed){e.preventDefault();e.stopPropagation();this.onBranchToggle?.(item.id);}
       if(e.key==='F2'&&item.id!=='root'){e.preventDefault();e.stopPropagation();this.focusNode(item.id);this.openBranchEditor(el,item,'rename');}
       if(e.key==='Insert'){e.preventDefault();e.stopPropagation();this.focusNode(item.id);this.openBranchEditor(el,item,'add');}
     });
@@ -283,7 +288,7 @@ export class Constellation {
       el.append(node('div','node-label',item.label));
       const count=this.tasks.filter(t=>t.projectId===item.id&&t.status!=='completed').length;
       const ch=this.layout.children.get(item.id)||[];
-      const small=[ch.length?`${ch.length} branch${ch.length===1?'':'es'}`:'',count?`${count} action${count===1?'':'s'}`:''].filter(Boolean).join(' · ');
+      const small=[ch.length?(ch.length+' branch'+(ch.length===1?'':'es')):'',count?(count+' action'+(count===1?'':'s')):'',item.collapsed?'collapsed':''].filter(Boolean).join(' · ');
       if(small)el.append(node('div','node-secondary',small));
     }
     const controls=node('div','node-actions');controls.setAttribute('aria-label','Branch actions');
@@ -291,6 +296,13 @@ export class Constellation {
       b.addEventListener('pointerdown',e=>e.stopPropagation());
       b.addEventListener('click',e=>{e.stopPropagation();this.focusNode(item.id);this.openBranchEditor(el,item,mode);});controls.append(b);};
     action('Add a child branch','+','add');
+    if(item.hasChildren){
+      const toggle=node('button','node-action node-toggle',item.collapsed?'▸':'▾');toggle.type='button';
+      toggle.setAttribute('aria-label',item.collapsed?'Expand branch':'Collapse branch');toggle.setAttribute('aria-expanded',String(!item.collapsed));
+      toggle.title=item.collapsed?'Show child branches':'Hide child branches';
+      toggle.addEventListener('pointerdown',e=>e.stopPropagation());
+      toggle.addEventListener('click',e=>{e.stopPropagation();this.focusNode(item.id);this.onBranchToggle?.(item.id);});el.append(toggle);
+    }
     if(item.id!=='root'){action('Rename branch','✎','rename');action('Move branch to another parent','↗','move');}
     if(!['root','inbox','just-because'].includes(item.id)){
       const del=node('button','node-action','×');del.type='button';

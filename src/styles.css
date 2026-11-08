@@ -833,3 +833,7 @@ body.cloud-space-mounted .app-shell{height:100dvh!important}
 /* Selective export options belong to the Space control panel, not a fixed dock. */
 .space-actions .space-export-picker{min-width:132px;max-width:100%;height:44px;padding:8px 10px;border:1px solid rgba(91,121,151,.32);border-radius:12px;background:rgba(255,255,255,.66);color:var(--text);font:inherit;font-size:12px}
 .space-actions .space-export-picker:focus-visible{outline:3px solid rgba(91,132,190,.54);outline-offset:2px}
+
+.node-branch.has-children{padding-right:49px}
+.node-action.node-toggle{position:absolute;z-index:5;top:-13px;right:-13px;border:1px solid rgba(255,255,255,.95);border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 5px 16px rgba(66,99,145,.18);font-size:21px;font-weight:700;color:#5577A8}
+.node-action.node-toggle[aria-expanded="false"]{color:#42699F}

@@ -122,12 +122,13 @@ def cloud_context(browser,size,mode,public=False,source=False,snapshot=None,lega
     initial.update(legacy_seed or {})
     ctx.add_init_script('''(() => {
       window.__m2Fixture=%s;
+      window.__m2InitialUserId=window.__m2Fixture.user?.id ?? null;
       for(const [key,value] of Object.entries(%s))localStorage.setItem(key,value);
       window.__m2LocalAccess=[];
       for(const name of ['getItem','setItem','removeItem']){
         const original=Storage.prototype[name];
         Storage.prototype[name]=function(...args){
-          if(this===window.localStorage)window.__m2LocalAccess.push({method:name,key:args[0]});
+          if(this===window.localStorage)window.__m2LocalAccess.push({method:name,key:args[0],userId:window.__m2Fixture.user?.id ?? null});
           return original.apply(this,args);
         };
       }
@@ -171,7 +172,13 @@ def assert_pointer_reachable(page,selector):
 
 
 def assert_no_local_leak(page):
-    assert page.evaluate('window.__m2LocalAccess')==[],page.evaluate('window.__m2LocalAccess')
+    # Cloud content must never use legacy local keys. A signed-in user's
+    # non-content branch disclosure preference is the sole allowed exception.
+    accesses=page.evaluate('window.__m2LocalAccess')
+    # Attribute each access to its user at the time: signup/logout can change identity.
+    allowed_key=f'orbit.v7.collapsed-branches.{OWNER_ID}'
+    unexpected=[a for a in accesses if a.get('userId')!=OWNER_ID or a.get('key')!=allowed_key or a.get('method') not in ('getItem','setItem')]
+    assert not unexpected,f'Unexpected local-storage access: {unexpected}'
     calls=page.evaluate('window.__m2Fixture.calls')
     assert LOCAL_SECRET not in json.dumps(calls),'Local private content reached mocked SDK'
     assert LOCAL_SECRET not in page.locator('body').inner_text()

@@ -8,24 +8,27 @@ const DEFAULT_COLOR='#6597E6';
  * Every branch can have children AND its own direct tasks: direct tasks get
  * their own virtual terminal, never force a branch to become a 'project'.
  */
-export function createLayout(branches,tasks=[],displayName='My space'){
+export function createLayout(branches,tasks=[],displayName='My space',collapsedBranchIds=[]){
   const rootName=String(displayName||'My space').trim().slice(0,100)||'My space';
   const byId=branchIndex(branches);
   const children=new Map([['root',[]]]);
   for(const b of branches){if(!children.has(b.id))children.set(b.id,[]);if(!children.has(b.parentId))children.set(b.parentId,[]);children.get(b.parentId).push(b.id);}
   const counts=new Map();for(const t of tasks)counts.set(t.projectId,(counts.get(t.projectId)||0)+1);
+  const branchIds=new Set(branches.map(b=>b.id));
+  const parentsWithChildren=new Set(branches.map(b=>b.parentId).filter(id=>id!=='root'));
+  const collapsed=new Set(Array.isArray(collapsedBranchIds)?collapsedBranchIds.filter(id=>branchIds.has(id)&&parentsWithChildren.has(id)):[]);
   const leafDescriptors=[];const ancestry=new Map([['root',[]]]);
   const depth=new Map([['root',0]]);let maxDepth=1;
   const visit=(id,parentIds=[],d=1)=>{
     ancestry.set(id,parentIds);depth.set(id,d);maxDepth=Math.max(maxDepth,d);
-    const ch=children.get(id)||[];const count=counts.get(id)||0;
-    if(count || !ch.length){leafDescriptors.push({branchId:id,count,weight:1+Math.min(count,8)*.19});}
-    for(const child of ch)visit(child,[id,...parentIds],d+1);
+    const ch=children.get(id)||[];const count=counts.get(id)||0;const isCollapsed=collapsed.has(id);
+    if(count || !ch.length || isCollapsed)leafDescriptors.push({branchId:id,count,collapsed:isCollapsed,weight:1+Math.min(count,8)*.19});
+    if(!isCollapsed)for(const child of ch)visit(child,[id,...parentIds],d+1);
   };
   for(const child of children.get('root')||[])visit(child,[],1);
   if(!leafDescriptors.length){return {
     nodes:[{id:'root',type:'root',label:rootName,x:0,y:0,color:DEFAULT_COLOR,parentId:null,depth:0}],
-    edges:[],stacks:[],ancestry,children,depth,RADIUS:850,
+    edges:[],stacks:[],ancestry,children,depth,collapsed,RADIUS:850,
   };}
   const endpointCount=leafDescriptors.length;
   const firstCount=(children.get('root')||[]).length;
@@ -45,7 +48,7 @@ export function createLayout(branches,tasks=[],displayName='My space'){
   const descendants=new Map();
   const collect=(id)=>{
     const all=[...(posByBranch.get(id)||[])];
-    for(const c of children.get(id)||[])all.push(...collect(c));
+    if(!collapsed.has(id))for(const c of children.get(id)||[])all.push(...collect(c));
     descendants.set(id,all);return all;
   };
   for(const child of children.get('root')||[])collect(child);
@@ -57,19 +60,22 @@ export function createLayout(branches,tasks=[],displayName='My space'){
   const nodes=[{id:'root',type:'root',label:rootName,x:0,y:0,color:DEFAULT_COLOR,parentId:null,depth:0}];
   const edges=[];
   for(const b of branches){
+    if(!ancestry.has(b.id))continue;
     const endpoints=descendants.get(b.id)||[];
     let sx=0,sy=0;
     for(const p of endpoints){sx+=Math.cos(radians(p.angle))*p.weight;sy+=Math.sin(radians(p.angle))*p.weight;}
     const angle= Math.atan2(sy,sx)*180/Math.PI;
     const d=depth.get(b.id)||1;
     // Terminal branches live on a shared penultimate band regardless of path depth.
-    const terminal=(children.get(b.id)||[]).length===0;
+    const childCount=(children.get(b.id)||[]).length;
+    const isCollapsed=collapsed.has(b.id);
+    const terminal=childCount===0||isCollapsed;
     const maxInnerDepth=Math.max(1,maxDepth-1);
     let radius=INNER+(d-1)*(INNER_MAX-INNER)/maxInnerDepth;
     if(terminal)radius=INNER_MAX;
     radius=clamp(radius,INNER,INNER_MAX);
     const node={...b,type:'branch',depth:d,color:inheritedColor(b.id),count:endpoints.length,angle,
-      ...polar(angle,radius),terminal};
+      childCount,hasChildren:childCount>0,collapsed:isCollapsed,...polar(angle,radius),terminal};
     nodes.push(node);edges.push([b.parentId,b.id]);
   }
   const stacks=stackPositions.map((p,i)=>{
@@ -83,7 +89,7 @@ export function createLayout(branches,tasks=[],displayName='My space'){
       attachX:p.x,attachY:p.y,upper,estimatedHeight,
       angle:p.angle,count:p.count,index:i};
   });
-  return {nodes,edges,stacks,ancestry,children,depth,RADIUS:HORIZON,INNER};
+  return {nodes,edges,stacks,ancestry,children,depth,collapsed,RADIUS:HORIZON,INNER};
 }
 export function getDescendants(layout,id){return layout.nodes.filter(n=>n.id!==id&&(layout.ancestry.get(n.id)||[]).includes(id)).map(n=>n.id);}
 export function getDisplayBounds(layout){

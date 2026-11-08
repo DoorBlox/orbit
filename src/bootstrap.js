@@ -107,7 +107,7 @@ export async function bootstrapOrbit(config=runtimeConfig) {
             app?.setCloudStatus(status);shell.setSyncStatus(status);
             if(['AUTH_REQUIRED','FORBIDDEN'].includes(status.errorCode))void auth.refresh(false);
           }});
-        app=mountOrbit({initialSnapshot:loaded.snapshot,persistLocally:false,onSnapshotChange:snapshot=>sync?.queue(snapshot)});
+        app=mountOrbit({initialSnapshot:loaded.snapshot,persistLocally:false,viewStateKey:user.id,onSnapshotChange:snapshot=>sync?.queue(snapshot)});
         // The original owner alone may publish; other users still get private import tools.
         let canPublish=false;
         try{const result=await client.rpc('orbit_owner_access');canPublish=result?.data===true;}catch{}

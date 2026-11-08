@@ -1,19 +1,19 @@
 {
   "baselineCommit": "846ad7df3fa3fdf4c63fd22f2830fed56f83a06e",
   "milestone": "M2",
-  "review": "Selective export and multi-format import; V6/M1 provenance immutable.",
+  "review": "2.1 reviewed: branch hierarchy disclosure, keyboard controls, per-account browser-local view state, backup validation and header caption removal. Historical V6/M1 provenance remains immutable.",
   "files": {
     "assets/orbit.svg": {
       "sha256": "97eb19dd4e0773d0b6489b1f49d794ffd272fb3bc2d42af4faffd6a1adca78c3",
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "index.html": {
-      "sha256": "fc1f2db58777044991359974c2079111709e91289a30481258b6cf7d44f41e67",
-      "reason": "2.1 reviewed: typed branch CSV import/export, journal selective JSON and single Space import control"
+      "sha256": "8c6ae00355768cf36c6ef15e614c404f92eaff4110bbd769b6e9e48541676641",
+      "reason": "2.1 reviewed: obsolete LOCAL PROTOTYPE header caption removed; WIB clock unchanged"
     },
     "src/app.js": {
-      "sha256": "4c447a8c9b432ee19be32c36ca895f7a5dfa1d6ae87a730ea4f74750266a7be3",
-      "reason": "2.1 reviewed: typed branch CSV import/export, journal selective JSON and single Space import control"
+      "sha256": "09c87caeeb65f1787b482a83e8efd79f2c58e4e6fef4c25e2f8c1a9010f189ad",
+      "reason": "2.1 reviewed: account-scoped collapsed branch preference, read-only visitor storage isolation, branch hierarchy disclosure and backup compatibility."
     },
     "src/auth/README.md": {
       "sha256": "1ec9f199e2ab8b76ff9a7d462f1804d6653706a8eb4b005e23311d76c9d1f7d5",
@@ -28,16 +28,16 @@
       "reason": "2.1 reviewed: Space panel cloud controls replace the fixed dock; owner state and signed-out teardown remain gated."
     },
     "src/backup.js": {
-      "sha256": "aa9dca28ba7d5d44911c9819466792b26a8188e629e31d952a5fc87ef1d261a1",
-      "reason": "2.1 reviewed: private Space profile validation and profile-preserving backup/local restore"
+      "sha256": "0174da6c50fa86973c83adc0002f5281632dbd2cfd8ab6162edf6bb57559a3f1",
+      "reason": "2.1 reviewed: branch collapse/expand, keyboard disclosure and per-account local view state with backup support"
     },
     "src/board.js": {
       "sha256": "0e079b6e4817dd0ae2829d95698d9847e7d0e82b19e3186c419577216d4ce57e",
       "reason": "M2.5 P0-A/B reviewed: manual input owns the camera; active navigation resolves immediately on reduced motion; initialization/navigation handles cancel on disposal. Layout and cloud behavior unchanged."
     },
     "src/bootstrap.js": {
-      "sha256": "7eb6f78590ef015465cfd00a29a630b21f726d5b04cf521ef132993dc250a2e6",
-      "reason": "2.1 reviewed: Space panel cloud controls replace the fixed dock; owner state and signed-out teardown remain gated."
+      "sha256": "e71536bd7b58bb13a09a4803e5ee520c3834dc040622cf399b3e7b411318edc5",
+      "reason": "2.1 reviewed: branch collapse/expand, keyboard disclosure and per-account local view state with backup support"
     },
     "src/cloud/README.md": {
       "sha256": "2fa23ecebff7de9fa7e5463f3c77031e97850cf192398ea0da66c2f6cd19a4af",
@@ -68,8 +68,8 @@
       "reason": "Queue writes with honest pending/retry/conflict states and revision checks."
     },
     "src/constellation.js": {
-      "sha256": "378b3d187a1b2d23cba794426953d4c7d18ed31f588087dddb43f42d3ff51cd1",
-      "reason": "1.1 reviewed: user-specific center, non-destructive branch removal, chronological journal or viewport fullscreen fix."
+      "sha256": "76b77a5f86c0200141e08f65e849e99087da7f17cbba027188a45a5054db9e84",
+      "reason": "2.1 reviewed: branch collapse/expand, keyboard disclosure and per-account local view state with backup support"
     },
     "src/csv.js": {
       "sha256": "e5de107e78d76d26553d25dca1b200765aaafeb2b836216b1ae11f57e5499178",
@@ -88,8 +88,8 @@
       "reason": "Reviewed 1.1: date reordering immediately updates navigation control disabled states and page labels."
     },
     "src/layout.js": {
-      "sha256": "5d707732bbbed368235e47387bac3811316ae38fdb48f6a998f4399dd345c239",
-      "reason": "1.1 reviewed: user-specific center, non-destructive branch removal, chronological journal or viewport fullscreen fix."
+      "sha256": "1895015e94741e987e696be8ab1d77ab348560dc847a70a41bd7c6ca74626ee3",
+      "reason": "2.1 reviewed: branch collapse/expand, keyboard disclosure and per-account local view state with backup support"
     },
     "src/model.js": {
       "sha256": "b18a313f200439b5f7f9d0eb11c12e970a0a844ff804091c3bc0a1959e1eb352",
@@ -104,8 +104,8 @@
       "reason": "2.1 reviewed: private Space profile validation and profile-preserving backup/local restore"
     },
     "src/styles.css": {
-      "sha256": "ca949bbdca5aafb36c305c518579630ef7406974b5992eeef51e7184c82268a8",
-      "reason": "2.1 reviewed: typed branch CSV import/export, journal selective JSON and single Space import control"
+      "sha256": "96a5a6be8403957fd6aa872bab4649f4755b3f4284f403611bef1e6f6820692f",
+      "reason": "2.1 reviewed: branch collapse/expand, keyboard disclosure and per-account local view state with backup support"
     },
     "src/widgets.js": {
       "sha256": "aee68a4ce8a37edbb2de2fa1b0a2fc4589fcaf28a00603db2b148c6875a8ec58",
