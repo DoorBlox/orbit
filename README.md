@@ -54,7 +54,7 @@ The original V6 source and later reviewed changes have distinct manifests under 
 
 Production sign-in is bound to the exact canonical hostname. The alternate domain **redirects**, rather than creating a second Auth origin. Full JSON exports are **not encrypted by the app**; keep them in encrypted owner-controlled storage and do not commit them.
 
-Verified evidence includes hosted nonowner **READ/INSERT** HTTP denial, local authenticated **PATCH/DELETE** denial on disposable fixtures, and the owner-confirmed working Production login. This does **not** claim a comprehensive penetration test, hosted PATCH/DELETE certification, physical iOS/Android approval or post-authenticated CSP/header certification. See [evidence and gaps](docs/PROJECT_HISTORY.md#securitytest-evidence--correct-interpretation).
+Verified evidence includes hosted nonowner **READ/INSERT** HTTP denial, local authenticated **PATCH/DELETE** denial on disposable fixtures, and the owner-confirmed working Production login. This does **not** claim a comprehensive penetration test, hosted PATCH/DELETE certification, physical iOS/Android approval or post-authenticated CSP/header certification. See [evidence and gaps](docs/PROJECT_HISTORY.md).
 
 ## Run locally
 
