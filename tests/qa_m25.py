@@ -151,7 +151,7 @@ def main():
         for label, size in [('desktop',(1440,900)),('tablet',(900,1100)),('phone',(390,844)),('small',(320,700)),('landscape',(844,390))]:
             ctx, page, errors = qa.cloud_context(browser, size, 'owner', source=args.source)
             try:
-                expect(page.locator('.cloud-mode')).to_have_text('Private owner space')
+                expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
                 page.emulate_media(reduced_motion='no-preference')
                 for name, run in [('interruption',interruption),('reduced-motion',reduced_motion),('spring-settling',spring_settling),('touch-continuity',touch_continuity),('teardown',teardown)]:
                     started = time.monotonic()
