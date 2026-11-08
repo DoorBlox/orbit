@@ -127,7 +127,9 @@ def teardown(page):
       s.animateCamera({x:200,y:300,scale:1.2},600);
       s.offsets.set('inbox',{x:100,y:40,vx:0,vy:0});s.startSpring();
     }''')
-    page.locator('.cloud-toolbar').get_by_role('button', name='Sign out', exact=True).click()
+    # Preserve the moving graph state; trigger its in-widget sign-out without
+    # shifting the camera while this test measures teardown.
+    page.locator('.cloud-toolbar').get_by_role('button', name='Sign out', exact=True).evaluate('button => button.click()')
     expect(page.locator('#app')).to_be_hidden()
     assert page.locator('#app').inner_text() == ''
     state = page.evaluate('''()=>{

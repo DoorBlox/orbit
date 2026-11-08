@@ -27,6 +27,7 @@ export function createAuthShell({ publicRelease, onPasswordSignIn, onSignUp, onR
   const release=document.createElement('p');release.className='cloud-release-note';
   release.textContent=publicRelease?'Only content intentionally published can be viewed without signing in.':'Your private workspace is accessible only after signing in. Account creation may require an invitation.';
   const toolbar=document.createElement('div');toolbar.className='cloud-toolbar glass-widget';toolbar.hidden=true;
+  toolbar.setAttribute('role','group');toolbar.setAttribute('aria-label','Workspace status and controls');
   const mode=document.createElement('span');mode.className='cloud-mode';
   const status=document.createElement('span');status.className='cloud-sync-state';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
   const controls=document.createElement('div');controls.className='cloud-controls';
@@ -84,11 +85,26 @@ export function createAuthShell({ publicRelease, onPasswordSignIn, onSignUp, onR
   const retry=button('Retry save',onRetry);
   const reload=button('Reload cloud version',onReload);
   const signOut=button('Sign out',onSignOut);
-  const visitorSignIn=button('Sign in',()=>{gate.hidden=false;email.focus();});
+  const visitorSignIn=button('Sign in',()=>{gate.hidden=false;passwordEmail.focus();});
   const ownerTools=document.createElement('div');ownerTools.id='cloud-owner-tools';ownerTools.hidden=true;
   controls.append(ownerTools);toolbar.append(mode,status,controls);root.append(gate,toolbar);document.body.append(root);
+  // The access gate stays outside the private app. Account controls live in
+  // the movable Space widget while signed in; the bottom cloud dock is gone.
+  function detachSpaceControls(){
+    if(toolbar.parentElement!==root)root.append(toolbar);
+    document.body.classList.remove('cloud-space-mounted');
+    measure();
+  }
+  function attachSpaceControls(space){
+    if(!space)return false;
+    if(toolbar.parentElement!==space)space.append(toolbar);
+    document.body.classList.add('cloud-space-mounted');
+    measure();
+    return true;
+  }
   const measure=()=>{
-    const height=toolbar.hidden?0:Math.ceil(toolbar.getBoundingClientRect().height+24);
+    const embedded=toolbar.closest('#space-widget')!==null;
+    const height=toolbar.hidden||embedded?0:Math.ceil(toolbar.getBoundingClientRect().height+24);
     document.documentElement.style.setProperty('--cloud-dock-height',`${height}px`);
     document.body.classList.toggle('cloud-connected',height>0);
   };
@@ -109,7 +125,7 @@ export function createAuthShell({ publicRelease, onPasswordSignIn, onSignUp, onR
     gateSignOut.hidden=next.status!=='unauthorized'&&next.code!=='SIGN_OUT_FAILED';
     gateSignOut.textContent=next.code==='SIGN_OUT_FAILED'?'Retry sign-out':'Sign out';
     retryGate.hidden=next.status!=='error';
-    if(next.status!=='owner'){gate.hidden=false;toolbar.hidden=true;ownerTools.hidden=true;measure();}
+    if(next.status!=='owner'){gate.hidden=false;toolbar.hidden=true;ownerTools.hidden=true;detachSpaceControls();measure();}
   }
   function showApp(owner) {
     gate.hidden=true;toolbar.hidden=false;mode.textContent=owner?'Private workspace':'Published space · read only';
@@ -131,5 +147,6 @@ export function createAuthShell({ publicRelease, onPasswordSignIn, onSignUp, onR
   }
   setState(state);
   setOtpState(otp);
-  return {setState,setOtpState,showApp,setSyncStatus,showError,ownerTools,dispose:()=>{clearInterval(cooldownTimer);resizeObserver.disconnect();root.remove();document.body.classList.remove('cloud-connected');document.documentElement.style.removeProperty('--cloud-dock-height');}};
+  return {setState,setOtpState,showApp,setSyncStatus,showError,ownerTools,attachSpaceControls,detachSpaceControls,
+    dispose:()=>{detachSpaceControls();clearInterval(cooldownTimer);resizeObserver.disconnect();root.remove();document.body.classList.remove('cloud-connected','cloud-space-mounted');document.documentElement.style.removeProperty('--cloud-dock-height');}};
 }

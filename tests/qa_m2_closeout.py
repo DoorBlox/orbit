@@ -42,6 +42,7 @@ def legacy(page):
 
 
 def backup(page):
+    page.evaluate("window.orbitDebug.board.focus('space',{initial:true})")
     with page.expect_download() as download:
         page.locator('.cloud-toolbar').get_by_role('button', name='Export backup', exact=True).click()
     return json.loads(Path(download.value.path()).read_text())
@@ -79,6 +80,7 @@ def mobile_flow(browser, width):
         assert stored['journalEntries'][0]['date'] == '2026-11-06'
         assert_preserved(page, original)
         page.screenshot(path=str(qa.OUT / f'm2-closeout-mobile-{width}.png'))
+        page.evaluate("window.orbitDebug.board.focus('space',{initial:true})")
         page.locator('.cloud-toolbar').get_by_role('button', name='Sign out', exact=True).click()
         expect(page.locator('#app')).to_be_hidden()
         assert page.locator('#app').inner_text() == ''
@@ -181,6 +183,7 @@ def offline_recovery(browser):
             dialogs.append(dialog.message)
             dialog.dismiss()
         page.on('dialog', cancel)
+        page.evaluate("window.orbitDebug.board.focus('space',{initial:true})")
         signout = page.locator('.cloud-toolbar').get_by_role('button', name='Sign out', exact=True)
         signout.click()
         assert dialogs and 'not saved' in dialogs[0]
