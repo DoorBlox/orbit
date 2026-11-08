@@ -1,7 +1,7 @@
 {
   "baselineCommit": "846ad7df3fa3fdf4c63fd22f2830fed56f83a06e",
   "milestone": "M2",
-  "review": "Reviewed 2.1 Space control panel and user-specific naming; original V6 and M1 historical manifests unchanged.",
+  "review": "Current reviewed sources preserve personalized Space names in complete backup recovery; original V6 and M1 provenance remain immutable.",
   "files": {
     "assets/orbit.svg": {
       "sha256": "97eb19dd4e0773d0b6489b1f49d794ffd272fb3bc2d42af4faffd6a1adca78c3",
@@ -12,8 +12,8 @@
       "reason": "2.1 reviewed: per-account editable space name and constellation center reflected in cloud snapshot"
     },
     "src/app.js": {
-      "sha256": "db416cea33893662b74f387a19c849ce33f191a473a25ea4e8097d3664c1dcc2",
-      "reason": "2.1 reviewed: per-account editable space name and constellation center reflected in cloud snapshot"
+      "sha256": "41fc113751a666439b811a1049475fa97b1bfe1919b765562b7567101373767f",
+      "reason": "2.1 reviewed: private Space profile validation and profile-preserving backup/local restore"
     },
     "src/auth/README.md": {
       "sha256": "1ec9f199e2ab8b76ff9a7d462f1804d6653706a8eb4b005e23311d76c9d1f7d5",
@@ -28,8 +28,8 @@
       "reason": "2.1 reviewed: Space panel cloud controls replace the fixed dock; owner state and signed-out teardown remain gated."
     },
     "src/backup.js": {
-      "sha256": "f03df9680e644d694f998182907f5c37ce5c5d342ec6c9359a561640619fa02a",
-      "reason": "Unchanged from reviewed M1; retained and integrity checked."
+      "sha256": "aa9dca28ba7d5d44911c9819466792b26a8188e629e31d952a5fc87ef1d261a1",
+      "reason": "2.1 reviewed: private Space profile validation and profile-preserving backup/local restore"
     },
     "src/board.js": {
       "sha256": "0e079b6e4817dd0ae2829d95698d9847e7d0e82b19e3186c419577216d4ce57e",
@@ -100,8 +100,8 @@
       "reason": "Null local default; only build-generated allowlisted public configuration activates cloud."
     },
     "src/storage.js": {
-      "sha256": "86d0f51446dea4259aba54b00a2171a7d49e65606661ad7fe79f75169788c1e1",
-      "reason": "Unchanged from reviewed M1; retained and integrity checked."
+      "sha256": "fd3ee20737e1e13842b4436b4baf7647478b50c24ea95a7b8b5983ef1b6dabcf",
+      "reason": "2.1 reviewed: private Space profile validation and profile-preserving backup/local restore"
     },
     "src/styles.css": {
       "sha256": "22a2fa6e7ee3022b5bbc93bc5a5aac791467abed5b96b9b0bc340a3e4fb47604",

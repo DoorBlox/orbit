@@ -2,6 +2,8 @@
 
 ## 2.1.0 — Unreleased, source-only development (8 November 2026)
 
+- Fixed full-backup restoration of per-user Space names; local prototype mode now persists a renamed Space with validated, recoverable storage. Older V5/V6 backups without a profile preserve the current title.
+
 - [PR #18](https://github.com/DoorBlox/orbit/pull/18): removed the persistent signed-in cloud dock and moved account, sync and backup actions inside the draggable Space widget; retained signed-out access gate and safe teardown.
 - [PR #19](https://github.com/DoorBlox/orbit/pull/19): proposed inline account-specific Space naming, saved in the existing workspace profile and reflected in the constellation center.
 - **Not deployed.** The live app still serves reviewed 1.0.0 source `fc5af5a` with Vercel Authentication.
