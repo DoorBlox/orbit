@@ -196,7 +196,7 @@ def normal_flows(browser):
     before=page.evaluate('window.orbitDebug.state.tasks')
     page.locator('#csv-file').set_input_files({'name':'tasks.csv','mimeType':'text/csv','buffer':b'title\nM1 imported CSV\n'})
     expect(page.locator('#toast')).to_contain_text('Imported 1')
-    page.locator('#csv-file').set_input_files({'name':'branches.csv','mimeType':'text/csv','buffer':b'id,parent_id,label,color\\nnew-work,root,Work stream,#6597E6\\nnew-class,new-work,Class notes,\\n'})
+    page.locator('#csv-file').set_input_files({'name':'branches.csv','mimeType':'text/csv','buffer':b'id,parent_id,label,color\nnew-work,root,Work stream,#6597E6\nnew-class,new-work,Class notes,\n'})
     expect(page.locator('#toast')).to_contain_text('Import 2 branches')
     page.locator('#toast button').click()
     expect(page.locator('#toast')).to_contain_text('Imported 2 branches')
