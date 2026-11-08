@@ -12,8 +12,8 @@
       "reason": "2.1 reviewed: obsolete LOCAL PROTOTYPE header caption removed; WIB clock unchanged"
     },
     "src/app.js": {
-      "sha256": "f8fd8a839f7bbab5a3b43071851885cfbc4a7272bcda5d31918bde28021afb70",
-      "reason": "2.1 reviewed: branch collapse/expand, keyboard disclosure and per-account local view state with backup support"
+      "sha256": "09c87caeeb65f1787b482a83e8efd79f2c58e4e6fef4c25e2f8c1a9010f189ad",
+      "reason": "2.1 reviewed: account-scoped collapsed branch preference, read-only visitor storage isolation, branch hierarchy disclosure and backup compatibility."
     },
     "src/auth/README.md": {
       "sha256": "1ec9f199e2ab8b76ff9a7d462f1804d6653706a8eb4b005e23311d76c9d1f7d5",

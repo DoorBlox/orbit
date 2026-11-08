@@ -31,10 +31,10 @@ function readCollapsedBranches(){
     return Array.isArray(value)&&value.length<=4000&&value.every(id=>typeof id==='string'&&id.length<=100)?value:[];
   }catch{return [];}
 }
-function saveCollapsedBranches(){try{localStorage.setItem(collapsedStorageKey,JSON.stringify(state.collapsedBranchIds));return true;}catch{return false;}}
+function saveCollapsedBranches(){if(readOnly)return true;try{localStorage.setItem(collapsedStorageKey,JSON.stringify(state.collapsedBranchIds));return true;}catch{return false;}}
 const state={branches:initialBranches,tasks:initialSnapshot?structuredClone(initialSnapshot.tasks):readTasks(),preferences:initialSnapshot?structuredClone(initialSnapshot.preferences):readPreferences(),profile:structuredClone(initialSnapshot?.profile||(persistLocally?readProfile():{displayName:'My space'})),selectedBranchId:'inbox',
   collapsedBranchIds:[],selectedTaskId:'',captureMode:'capture',captureDraft:'',searchDraft:''};
-state.collapsedBranchIds=normalizeCollapsedBranches(initialSnapshot?.collapsedBranchIds??readCollapsedBranches(),state.branches);
+state.collapsedBranchIds=normalizeCollapsedBranches(initialSnapshot?.collapsedBranchIds??(readOnly?[]:readCollapsedBranches()),state.branches);
 const capture=$('capture-form'),input=$('capture-name'),target=$('capture-target');
 const milestoneKey='orbit-v4-milestones';
 let milestones=structuredClone(initialSnapshot?.milestones||[]);

@@ -171,7 +171,13 @@ def assert_pointer_reachable(page,selector):
 
 
 def assert_no_local_leak(page):
-    assert page.evaluate('window.__m2LocalAccess')==[],page.evaluate('window.__m2LocalAccess')
+    # Cloud content must never use legacy local keys. A signed-in user's
+    # non-content branch disclosure preference is the sole allowed exception.
+    accesses=page.evaluate('window.__m2LocalAccess')
+    user=page.evaluate('window.__m2Fixture.user')
+    allowed_key=f'orbit.v7.collapsed-branches.{OWNER_ID}' if user and user.get('id')==OWNER_ID else None
+    unexpected=[a for a in accesses if allowed_key is None or a.get('key')!=allowed_key or a.get('method') not in ('getItem','setItem')]
+    assert not unexpected,f'Unexpected local-storage access: {unexpected}'
     calls=page.evaluate('window.__m2Fixture.calls')
     assert LOCAL_SECRET not in json.dumps(calls),'Local private content reached mocked SDK'
     assert LOCAL_SECRET not in page.locator('body').inner_text()
