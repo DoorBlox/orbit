@@ -72,7 +72,7 @@ export class AuthController {
     if (this.signingOut && event !== 'SIGNED_OUT') return;
     // SDK sign-ins emit SIGNED_IN before their promises resolve. Only the current
     // operation may initiate verification; late events after logout are ignored.
-    if (['verify','password'].includes(this.otpPending?.kind) && event !== 'SIGNED_OUT') return;
+    if (['verify','password','signup'].includes(this.otpPending?.kind) && event !== 'SIGNED_OUT') return;
     if (event === 'SIGNED_OUT' || !session?.user?.id) {
       this.cancelEmailOtp();
       const expired = !this.signingOut && this.state.status === 'owner';
@@ -188,6 +188,35 @@ export class AuthController {
         if(rate)this.verifyAt=Date.now()+60000;
         this.otpState('error',rate?'RATE_LIMITED':error?.code==='otp_expired'||error?.code==='otp_disabled'?'INVALID_CODE':'UNAVAILABLE');
       }
+      return false;
+    }finally{
+      this.otpPending=null;
+      if(!this.disposed)this.onOtpState(this.getOtpState());
+    }
+  }
+
+  /** Supabase Auth owns email verification and rate limiting; no client-side allowlist. */
+  async signUpWithPassword(email,password) {
+    if(this.disposed||this.signingOut||this.otpPending||this.state.status==='owner')return false;
+    const address=typeof email==='string'?email.trim():'';
+    if(address.length>254||!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(address)||
+      typeof password!=='string'||password.length<8||password.length>4096){
+      this.publish('signed-out',null,'SIGN_UP_FAILED');return false;
+    }
+    this.cancelEmailOtp();
+    const operation={epoch:this.otpEpoch,kind:'signup'};this.otpPending=operation;
+    this.publish('signing-up');
+    try{
+      const response=await this.client.auth.signUp({email:address,password,options:{emailRedirectTo:this.redirectUrl}});
+      if(this.disposed||operation.epoch!==this.otpEpoch){
+        if(response?.data?.session)await this.client.auth.signOut({scope:'local'});
+        return false;
+      }
+      if(response?.error)throw response.error;
+      if(response?.data?.session){await this.refresh(false);return this.state.status==='owner';}
+      this.publish('signup-pending');return true;
+    }catch{
+      if(!this.disposed&&operation.epoch===this.otpEpoch)this.publish('signed-out',null,'SIGN_UP_FAILED');
       return false;
     }finally{
       this.otpPending=null;

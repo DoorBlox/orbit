@@ -1,7 +1,7 @@
 {
   "baselineCommit": "846ad7df3fa3fdf4c63fd22f2830fed56f83a06e",
   "milestone": "M2",
-  "review": "Reviewed M2 cloud baseline with authorized M2.5 motion fixes; current hashes are recorded after diff review. Original V6 and historical M1 manifests remain immutable.",
+  "review": "Reviewed ORBIT 2.0 staging source hashes (tenant-aware signup and owner-only publishing). Original V6 and historical M1 manifests unchanged.",
   "files": {
     "assets/orbit.svg": {
       "sha256": "97eb19dd4e0773d0b6489b1f49d794ffd272fb3bc2d42af4faffd6a1adca78c3",
@@ -20,12 +20,12 @@
       "reason": "Document owner/session gate and private lifecycle invariants."
     },
     "src/auth/controller.js": {
-      "sha256": "536c310db2ff511e9ad0bffb7bb64b9af37c37a8d817fc22b4bcbed219458da1",
-      "reason": "Verify server owner authorization and clear private state on session revocation."
+      "sha256": "24612830680aad81f11c068c57d59db0f57e42943377a3c74156a9e965472171",
+      "reason": "ORBIT 2.0 reviewed draft: verified-user workspace gate and signup while preserving tenant privacy; Production release requires staged migration."
     },
     "src/auth/shell.js": {
-      "sha256": "ac1f227e9c56bb40b0b15d7d13d0f5aed12352ed6ca666db9e19efef9005703a",
-      "reason": "Reviewed M2 owner sign-in/status shell; M5/M6 sign-out failure now explicitly warns about an unconfirmed retained session and offers a retry without exposing private DOM. Original V6/M1 provenance unchanged."
+      "sha256": "64dbb79cded761b3c367760f5ec06b853b20ac45ce0b2cd44964601adbbb46c8",
+      "reason": "ORBIT 2.0 reviewed draft: verified-user workspace gate and signup while preserving tenant privacy; Production release requires staged migration."
     },
     "src/backup.js": {
       "sha256": "f03df9680e644d694f998182907f5c37ce5c5d342ec6c9359a561640619fa02a",
@@ -36,8 +36,8 @@
       "reason": "M2.5 P0-A/B reviewed: manual input owns the camera; active navigation resolves immediately on reduced motion; initialization/navigation handles cancel on disposal. Layout and cloud behavior unchanged."
     },
     "src/bootstrap.js": {
-      "sha256": "5f51b728d87f0b36d3f33ff159d6a70b54f889faa527016277f89d731951a6c8",
-      "reason": "Gate private mounting on verified owner authentication; public release stays disabled."
+      "sha256": "b2705864c4fe5aab3e8110cb3aa48a5cb01f7d4d3ca5f6056f3ef690aa0fb0ad",
+      "reason": "ORBIT 2.0 reviewed draft: verified-user workspace gate and signup while preserving tenant privacy; Production release requires staged migration."
     },
     "src/cloud/README.md": {
       "sha256": "2fa23ecebff7de9fa7e5463f3c77031e97850cf192398ea0da66c2f6cd19a4af",
@@ -56,8 +56,8 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "src/cloud/owner-tools.js": {
-      "sha256": "919ec4fb7eb81fc45d426f62a2c6abaad88c7af309ffa94a5349e4b94e7b714f",
-      "reason": "Owner-only profile/publication/import controls over authenticated repository."
+      "sha256": "e419837acb4401fa73a32b4c302e515386ec59ad4456b95fda1275086e52e528",
+      "reason": "ORBIT 2.0 reviewed draft: verified-user workspace gate and signup while preserving tenant privacy; Production release requires staged migration."
     },
     "src/cloud/repository.js": {
       "sha256": "ac75a7acf2ae390f8e402a5db57f1cea221ec6f762529a4de9ab9db61289d63f",
