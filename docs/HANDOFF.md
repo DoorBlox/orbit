@@ -1,4 +1,6 @@
-# ORBIT V6 — AUTHORITATIVE NEW-CHAT HANDOFF
+> **Historical V6 design handoff (1 November 2026), not current release status.** The current and durable new-session handoff is [../CODEX_HANDOFF.md](../CODEX_HANDOFF.md), supported by [OPERATIONS.md](OPERATIONS.md) and [PROJECT_HISTORY.md](PROJECT_HISTORY.md). Keep the design requirements below; disregard their outdated local-only/Auth-not-built claims.
+
+# ORBIT V6 — historical design handoff
 
 **Updated 2026-11-01.** This file is the project's source of truth and supersedes V5 handoff guidance where changed. ORBIT is a private personal **spatial scrapbook**, eventually deployed through private GitHub → Vercel → Supabase Auth + Row Level Security. User loves open, colorful, animated light ambience, translucent liquid-glass-like widgets, a radial elastic constellation with no fixed hierarchy, free-standing terminal task text, timeline, paper diary, a real Just Because branch, and desktop + mobile support. No tabs, conventional dashboards or mandatory productivity scores.
 
