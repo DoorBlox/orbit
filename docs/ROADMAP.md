@@ -1,6 +1,6 @@
 # ORBIT — roadmap after 1.0.0
 
-**Updated 8 November 2026.** The original V1–V6 creative evolution and M0–M6 delivery sequence are documented in [PROJECT_HISTORY.md](PROJECT_HISTORY.md). This is a **possible follow-up backlog**, not an authorization to deploy or a promise of features.
+**Updated 9 November 2026.** The original V1–V6 creative evolution and M0–M6 delivery sequence are documented in [PROJECT_HISTORY.md](PROJECT_HISTORY.md). This is a **possible follow-up backlog**, not an authorization to deploy or a promise of features.
 
 ## Shipped
 
@@ -12,7 +12,7 @@
 
 ## Near-term quality and operations
 
-- [ ] Add a free public-repository `main` branch ruleset with required checks and no force pushes (admin action).
+- [x] Main branch protection is active with PR-only merges, no force push and four required status checks.
 - [ ] Perform a privacy-safe post-authenticated **Production response** header/CSP check; preserve Vercel Authentication.
 - [ ] Record physical Safari/Android/touch, large-font/screen-reader and high-refresh-rate regression results.
 - [ ] Improve owner backup discipline: encrypted offsite copy and a supervised restore rehearsal against disposable data.
@@ -25,6 +25,6 @@
 - [ ] Optional snapping/collision aids and additional layout presets without abandoning freeform movement.
 - [ ] Deeper timeline views (hour to years), reminders, calendar/Classroom integration or study sessions.
 - [ ] Stronger accessible navigation, privacy controls and performance at extreme task density.
-- [ ] Multi-user support only under an explicitly separate architecture/security project; **not** a default extension of 1.0.0.
+- [ ] Google-first 2.2 beta is in source development; complete OAuth owner setup, hosted multi-user isolation, private media validation and separately approved staged Production release. See [rollout](OAUTH_2_2_ROLLOUT.md).
 
 For current operations, deployment and rollback use [OPERATIONS.md](OPERATIONS.md). The user prefers no paid services and the original six-window aesthetic should be treated as a binding product requirement.
