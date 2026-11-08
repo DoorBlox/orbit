@@ -1,5 +1,8 @@
 # ORBIT repository instructions for coding agents
 
+> **Latest 8 Nov 2026 update (read before the historical checkpoints below):** 1.1 foundations, ORBIT 2.0 tenant/signup source and 2.1 Space controls are in `main`. Hosted Supabase has migration `20261108161935 orbit_tenant_private_workspaces`, with unchanged owner row counts verified afterward. GitHub's [Protect main](https://github.com/DoorBlox/orbit/rules/26803051) ruleset is active. **Vercel Production is still 1.0.0 (`fc5af5a`) with Vercel Authentication for all deployments.** Multi-user Production exposure remains untested/not released. The older owner-only RLS and no-ruleset statements below are historical. Follow the latest section of [CODEX_HANDOFF.md](CODEX_HANDOFF.md).
+
+
 > **Current as of 8 November 2026.** ORBIT 1.0.0 is **already live**, single-owner and private, at [orbit.starscene.com](https://orbit.starscene.com/). Source is intentionally public and [MIT licensed](LICENSE). Read [CODEX_HANDOFF.md](CODEX_HANDOFF.md), [docs/OPERATIONS.md](docs/OPERATIONS.md), and [docs/PROJECT_HISTORY.md](docs/PROJECT_HISTORY.md) before meaningful work. Older M0-first-task and pre-launch documents are **history**, not a command to repeat onboarding.
 
 ## Objective, ownership, and state

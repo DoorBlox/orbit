@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.1.0 — Unreleased, source-only development (8 November 2026)
+
+- [PR #18](https://github.com/DoorBlox/orbit/pull/18): removed the persistent signed-in cloud dock and moved account, sync and backup actions inside the draggable Space widget; retained signed-out access gate and safe teardown.
+- [PR #19](https://github.com/DoorBlox/orbit/pull/19): proposed inline account-specific Space naming, saved in the existing workspace profile and reflected in the constellation center.
+- **Not deployed.** The live app still serves reviewed 1.0.0 source `fc5af5a` with Vercel Authentication.
+
+## 2.0.0 — Unreleased multi-user code; hosted tenant schema prepared (8 November 2026)
+
+- [PR #14](https://github.com/DoorBlox/orbit/pull/14) and stacked [#15](https://github.com/DoorBlox/orbit/pull/15) merged: tenant-isolated private RLS, owner-only publishing distinction, authenticated workspace snapshots, and Supabase email/password signup UI.
+- Hosted Supabase migration `20261108161935 orbit_tenant_private_workspaces` applied; exact pre/post row counts unchanged, all seven private-table tenant policies installed, `orbit_workspace_access` present.
+- Verified existing branch protection [Protect main](https://github.com/DoorBlox/orbit/rules/26803051) active.
+- **Not a Production release:** no visitor signup enablement, no Vercel public access transition, no new custom-domain promotion. Hosted end-to-end multi-account acceptance remains pending.
+
+
 ## 1.1.0 — Unreleased (source-only foundations merged 8 November 2026)
 
 - Merged [PR #12](https://github.com/DoorBlox/orbit/pull/12): constellation root follows the workspace profile rather than hard-coded name; safe branch deletion with child/task preservation, confirmation and undo.

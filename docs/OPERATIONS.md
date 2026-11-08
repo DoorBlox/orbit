@@ -1,5 +1,14 @@
 # ORBIT production operations and recovery
 
+## 8 Nov 2026 update — separate live application and new tenant schema
+
+The **live application** remains Vercel's owner-only 1.0.0 build `fc5af5a` on `dpl_9rgHVEreGqspHtNY27WnPyMduFik`. SSO protection is still enabled for **all** deployments, and both custom domains still route to that build. Do not infer that `main` or the new tenant SQL is deployed client code.
+
+The **hosted database schema** was intentionally advanced to ORBIT 2.0: migration `20261108161935 orbit_tenant_private_workspaces` succeeded. Immediate read-only pre/post checks showed 28 tasks, 23 branches, 1 journal, 1 profile, 6 widget layouts, 1 preferences, 1 workspace revision and zero published items unchanged; original owner retained. The seven private tables now have `orbit_tenant_authenticated` restrictive policies, replacing `orbit_single_owner`; `orbit_workspace_access` exists. This does **not** certify hosted A/B/C bearer isolation, email delivery, public signup readiness or disaster recovery.
+
+GitHub branch protection [Protect main](https://github.com/DoorBlox/orbit/rules/26803051) is Active, requiring PRs and the four existing CI checks. Source 2.0 Auth was merged with [PR #14](https://github.com/DoorBlox/orbit/pull/14) and [PR #15](https://github.com/DoorBlox/orbit/pull/15); the fixed bottom dock/Space control move merged via [PR #18](https://github.com/DoorBlox/orbit/pull/18). Do not remove Vercel Authentication or promote new source until the exact-origin hosted acceptance and backup gates are cleared.
+
+
 > **Current operational record — 8 November 2026 (Asia/Jakarta).** This is the operational source of truth for ORBIT 1.0.0. Historic pre-launch runbooks are preserved under [decisions](decisions/README.md) but their old "Production NO-GO" statements describe a past checkpoint. Recheck provider state before acting.
 
 ## Live service inventory
