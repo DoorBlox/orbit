@@ -1,126 +1,104 @@
-# ORBIT V6 → production: Codex handoff
+# ORBIT — current-session handoff for a future developer or ChatGPT session
 
-## Current M3 release candidate — gated, not published
+**Checkpoint:** 8 November 2026, Asia/Jakarta. **Status:** ORBIT **1.0.0 is deployed and owner-confirmed working in Production**. This file supersedes the older M0–M6 prelaunch-status paragraphs in Git history and historical `docs/` materials. **Re-verify current remote state** when resuming; this is a checkpoint, not a live API.
 
-The owner supplied issue #2's authoritative scope and conditionally authorized
-protected-private Production publication once all applicable gates pass. Version
-1.0.0 is prepared on `codex/m3-release-readiness`, based on verified M2.5 `9b54974`.
-See [GO/NO-GO](docs/decisions/M3-READINESS-CHECKPOINT.md),
-[security audit](docs/decisions/M3-SECURITY-AUDIT.md),
-[release notes](docs/releases/1.0.0.md) and
-[launch/backup/rollback runbook](docs/decisions/M3-LAUNCH-RUNBOOK.md).
+## 0. First five minutes in a new session
 
-M2.5 CI run 42199466081 passed and its protected Preview is READY per owner report.
-Do not repeat onboarding/completed acceptance. M3 fixes unsafe Production local
-fallback, verifies reviewed target/CSP/artifact integrity and prepares nonowner
-write probes without executing them. Native app/Auth/cloud/SQL source is unchanged.
-Production is NO-GO until its target/inputs/protection/Auth redirects, appropriate
-write validation and final-commit CI are verified. The owner has explicitly reviewed shared Supabase project `ixfgavgtwuzdgucjriec`
-for `https://orbit.starscene.com/`; the exact source exception is recorded in
-[the target decision](docs/decisions/M3-SHARED-PRODUCTION-TARGET.md). This does not
-verify or authorize live Production configuration changes. Future multi-user Issue #4
-is outside M3; retain current single-owner controls. No merge, Auth/RLS/DNS/protection change or live mutation is authorized
-implicitly by the conditional deployment permission.
+1. Read this file, [README.md](README.md), [AGENTS.md](AGENTS.md), [docs/OPERATIONS.md](docs/OPERATIONS.md) and [docs/PROJECT_HISTORY.md](docs/PROJECT_HISTORY.md).
+2. Query `DoorBlox/orbit` **main** and its latest CI; check the live Vercel project `orbit` and both domain aliases; inspect Supabase only read-only unless explicit new authorization.
+3. Compare the **serving app** SHA with the repository head; do not deploy `main` reflexively. Look at `vercel.json`, `release/production-target.json`, the CI workflows, and the code related to the new task.
+4. Ask the owner **only** for action that genuinely requires their authenticated browser or account. Do not request or paste a password, `VERCEL_TOKEN`, private journal content, or backup JSON.
+5. Continue from the current request. Do not rerun M0 onboarding, the already-accepted M2 setup, or a Production migration to recreate historical evidence.
 
-## M3 grant audit follow-up
+## 1. User objective and guardrails
 
-Owner independently confirmed both GitHub CI runs at `552720b` PASS (including
-browser suites), and PR #3 updated/mergeable. Do not repeat CI troubleshooting.
-A live read-only audit reports authenticated TRUNCATE/TRIGGER/REFERENCES on the
-seven private tables. [Reviewed local migration](docs/decisions/M3-LEAST-PRIVILEGE.md)
-removes those only, retains CRUD/RLS/RPCs and fails atomically on privilege drift.
-It is **not applied live**. Local SQL and real Auth/HTTP/browser regressions pass;
-prepared fixture seed/cleanup is baseline guarded and locally tested. Production
-remains gated on separately authorized live grant correction and fixture execution,
-actual configuration/Auth/protection, final-SHA checks and release records.
-See [concise Production checklist](docs/decisions/M3-PRODUCTION-CHECKLIST.md).
+ORBIT is a personal, single-owner **spatial scrapbook**. One continuous zoomable/pannable canvas contains six draggable, resizable glass-like windows (Constellation, Continuum/timeline, Things to do, Already done, Your space, Journal). Keep radial branches, journal-date timeline links, soft animated background, notebook feel, mobile minimap, elastic movement and reduced-motion accommodations. The owner expressly wants the **source public and MIT licensed**, while the actual scrapbook is **private**. Preserve the V6 design; no framework migration or conventional dashboard replacement.
 
-## Accepted M2/M2.5 baseline
+The owner favors **zero additional spending**, practical autonomous progress, verified CI, and avoiding needless repetitive requests. Prior authorizations specifically covered staged deployment and the exact current Production domain assignments; **they are not blanket approval for future promotions, DNS changes, destructive hosted database operations, Auth/RLS changes, or paid resources**.
 
-On 6 November 2026 (Asia/Jakarta), the owner explicitly accepted **M2 for protected,
-password-based private use**, with the documented unverified checks retained.
-Owner assignment and public-read-disabled state are already confirmed. Do not
-repeat assignment or onboarding, reopen completed acceptance checks, or change
-hosted services as part of this handoff.
+## 2. Exact current identities and release outcome
 
-Verified application baseline: `DoorBlox/orbit`, main commit
-`f2719f3b83c3ce906bee826576c134de15b35f6d`; local task branch `work`. Acceptance
-reports and test additions are local workspace changes, not a claimed new commit,
-merge, deployment or promotion. The original `hlarknnt/orbit-personal` repository
-is excluded.
+| Item | Value / last verified result |
+| --- | --- |
+| Public GitHub repo | [DoorBlox/orbit](https://github.com/DoorBlox/orbit), `main`, MIT (DoorBlox 2026) |
+| Head at start of Nov 8 docs work | `42448c41d2e87f408d5f424c3ff7a60b5311b583` (newer docs/CI); **read latest after this checkpoint** |
+| Last serving application source commit | `fc5af5a8cd2c99d1e104615e72c3cd2b460f60d6` |
+| Serving Production deployment | `dpl_9rgHVEreGqspHtNY27WnPyMduFik`, Vercel READY, `target=production` |
+| Vercel | Project `prj_FZH5dyyZvUXfVmTz04HBCMbIrQk5`, team `team_xHRnXQbjaIEx2rNZ94p5QBao` |
+| Main URL | [https://orbit.starscene.com/](https://orbit.starscene.com/) — Vercel alias to serving deployment |
+| Secondary URL | [https://orbit.allintime.space/](https://orbit.allintime.space/) — Vercel redirect to `orbit.starscene.com` on same deployment |
+| Owner acceptance | Owner reported canonical sign-in/workspace works perfectly; subsequently confirmed secondary browser redirect works |
+| SSO | Vercel Authentication `enabled=true`, `deploymentType=all` |
+| Supabase | Project `ixfgavgtwuzdgucjriec`, `ap-southeast-1`, ACTIVE_HEALTHY on 8 Nov |
+| Production cloud origin | `https://ixfgavgtwuzdgucjriec.supabase.co`; site `https://orbit.starscene.com/` |
+| Backup | Owner confirmed local complete JSON export saved; **do not seek/import/upload its contents** |
+| Source deployment policy | `vercel.json` has `git.deploymentEnabled=false`; manual guarded stages only |
 
-Read the [M2 → M2.5 handoff](docs/decisions/M2-TO-M2_5-HANDOFF.md),
-[consolidated close-out](docs/decisions/M2-HOSTED-CLOSEOUT.md) and
-[preserved evidence manifest](docs/evidence/m2/acceptance-20261106/manifest.json).
-Hosted authentication/persistence/sync/conflict/logout and direct nonowner read
-isolation passed per owner evidence. Local browser, unit, SQL and real Auth/API
-suites passed. Physical-device and hosted write/CRUD authorization remain
-unverified; do not describe local write tests as hosted certification.
+**Reason main ≠ Production SHA:** PRs #5–#10 add build checks, MIT metadata, local security CI, runbooks, manual stage workflow and anonymous-host test; the released static app is the specific reviewed `fc5af5a` source. Documentation commits can advance `main` without changing the runtime.
 
-**M2.5 P0/P1 are implemented and locally verified on
-`codex/m25-motion-polish`.** The owner authorized autonomous implementation after
-reviewing the audit. See [implementation/results](docs/decisions/M2_5-IMPLEMENTATION.md),
-[verification evidence](docs/evidence/m2_5/implementation/verification.json) and
-[prepared PR description](docs/decisions/M2_5-PR.md). Camera interruption, runtime
-reduced motion, elapsed-time elasticity and touch handoff are fixed. The 156-test
-required check, 25 motion browser cases and existing cloud suites passed. P2 was
-deferred because no concrete usability evidence justified changing timing/panels.
+## 3. Architecture and major file map
 
-The current feature branch includes the prior M2 evidence checkpoint plus separate
-motion commits. Main is not modified; no merge, deployment or production promotion
-has occurred. GitHub API access returned Forbidden; no PR creation or remote CI
-success is claimed. Retain the six-window design and all security/persistence
-invariants. Physical-device and inherited hosted write/CRUD gaps remain explicit.
-Production publication is subject to the newer M3 gates above. Supabase/Auth/RLS,
-DNS and protection changes remain separate authorization boundaries.
+- `index.html`, `src/styles.css`, `assets/orbit.svg` — visual identity.
+- `src/board.js`, `src/constellation.js`, `src/layout.js`, `src/widgets.js` — spatial camera, radial graph and six-window views.
+- `src/app.js`, `src/model.js`, `src/data.js`, `src/journal.js`, `src/backup.js`, `src/dates.js` — scrapbook state, journal dates and V5/V6-compatible imports/exports.
+- `src/bootstrap.js` — local or private-cloud app bootstrap; `src/auth/controller.js` and `src/auth/shell.js` — session/owner gate. Controller enforces **redirect URL origin === current page origin**.
+- `src/cloud/client*.js`, `src/cloud/repository.js`, `src/cloud/sync.js`, `src/cloud/owner-tools.js`, `src/cloud/mappers.js` — pinned Supabase client, owner repository, revision conflict/recovery, export/import.
+- `supabase/migrations/` and `supabase/tests/` — owner RLS, invoker functions, least privileges, pgTAP.
+- `scripts/build.mjs`, `scripts/build-release.mjs`, `scripts/verify-release.mjs`, `scripts/production-guard.mjs` — strict source/artifact/Production allowlist.
+- `.github/workflows/quality.yml`, `local-supabase-rls.yml`, `m6-release-dry-run.yml`, `m6-stage-only-production.yml`, `m6-anonymous-protection.yml` — checks; **the stage workflow requires manual dispatch and currently pins source `fc5af5a`**.
+- `docs/reference/V6_SOURCE_MANIFEST.json` — **immutable original V6 provenance**, not a current-file manifest. Keep original and reviewed current manifests distinct.
 
-Current sequence: **M2 conditionally accepted → M2.5 implementation complete,
-reviewable feature branch → M3 separately authorized release work**.
+## 4. What actually passed, and what did not
 
-## Historical handoff context
+| Test type | Evidence | Correct assessment |
+| --- | --- | --- |
+| Frontend/browser, cloud mocks, mobile viewport and motion | [full merged-main CI](https://github.com/DoorBlox/orbit/actions/runs/42336158353) | **PASS** at main `42448c4`, not a physical Safari test |
+| Hosted real owner sign-in / workspace | Owner feedback, [M6 release issue](https://github.com/DoorBlox/orbit/issues/2) | **Owner-confirmed PASS** at Preview and canonical Production |
+| Hosted nonowner session HTTP READ | Seven HEAD 200 with count 0 + server edge logs and admin SQL | **PASS**, nonowner sees zero records |
+| Hosted nonowner session HTTP INSERT | Seven POST 403/SQLSTATE 42501 + server edge logs and admin SQL | **PASS**, no inserted rows |
+| Local Supabase SQL policies | [local run](https://github.com/DoorBlox/orbit/actions/runs/42326076564) | **205/205 pgTAP PASS** |
+| Local Auth bearer HTTP write denial | Same isolated local run | **7 READ, 14 PATCH, 14 DELETE PASS**; synthetic fixtures unchanged |
+| Real hosted bearer HTTP PATCH/DELETE | No hosted fixture execution | **NOT RUN**; never claim local == hosted |
+| Production configured artifact/build | [staging run](https://github.com/DoorBlox/orbit/actions/runs/42334141388) | **PASS** at reviewed source `fc5af5a` |
+| Vercel unauthenticated access | [pre-promotion run](https://github.com/DoorBlox/orbit/actions/runs/42334961954), Vercel SSO setting | **PASS before alias switch**, each GET 302 to Vercel Auth; post-switch still SSO enabled |
+| Canonical owner login and secondary redirect | Explicit owner reports | **Owner-confirmed PASS after switching both aliases** |
+| CSP/security headers on authenticated app response | Redirect response has no application CSP | **NOT INDEPENDENTLY VERIFIED** |
+| Owner export file saved | Explicit owner reports | **Attested only**; no checksum/restore checked |
+| Mobile physical hardware, Google OAuth, email OTP delivery | Not fully tested | **NOT CERTIFIED** |
 
-The sections below preserve the original handoff and may describe capabilities as
-not built or not connected. Those historical status statements do not supersede
-the current acceptance record above or its linked evidence.
+Earlier CI, PRs and historical milestone decisions: [docs/PROJECT_HISTORY.md](docs/PROJECT_HISTORY.md). This was a **focused security and verification program**, not an independent comprehensive pentest.
 
-## 1. The product
-ORBIT is a single-user personal spatial scrapbook with an arbitrarily deep radial constellation, actionable tasks, Premiere-like timeline and milestones, floating rearrangeable glass widgets, and a dated paper-like journal. One continuous 2D space contains **six movable/resizable widgets**: `timeline`, `constellation`, `active`, `completed`, `space`, `journal`. Responsive mobile, drag/resize, glass effects, task colors, completed-task history, CSV/JSON backup, editable journal dates, timeline journal markers and Markdown exports are already implemented in the **browser-only prototype**.
+## 5. Tested build and development workflow
 
-## 2. Source of truth and repository
-- Original index, JS/CSS and SVG are checksum-recorded in `docs/reference/V6_SOURCE_MANIFEST.json` and preserved in Git commit `06f8039`. Current M1 sources, including new dates/backup helpers, are recorded in `docs/reference/M1_SOURCE_MANIFEST.json`.
-- `ORBIT_Offline_Preview.html`: original self-contained local preview; **not** deployed. `scripts_build_preview.py` can regenerate it.
-- `tests/test_csv.mjs` and `tests/qa_v6.py`: inherited baseline checks. `tests/cloud_mappers.test.mjs`: handoff adapter tests. `src/cloud/*`: isolated future cloud utilities **not wired** to runtime.
-- `package*.json`, `scripts/*`, `vercel.json`, `.github/workflows/quality.yml`: static build and CI preparation. `npm run build` copies public original sources/assets to `dist`; no compilation/framework migration.
-- `supabase/*`: seven-table draft schema and owner RLS, conditional synthetic development seed and pgTAP **presence** scaffold; no live deployment.
-- `docs/01-PROJECT-OVERVIEW.md` through `docs/15-DECISIONS-AND-ASSUMPTIONS.md`: contracts, feature census, architecture, security, roadmap, decision logs. Historical design docs remain in `docs/` and preserved originals in `docs/reference`.
+With Node 22 / npm and locked dependencies:
 
-## 3. Functional versus planned
-**WORKING ONLY LOCALLY:** world navigation, responsive spatial widgets, constellation, layout/elastic physics, quick capture, completion/reopen, editing, search, timeline/milestones, journal formatting/pages/autosave/date/timeline markers, CSV, JSON backup/restore.
-**PREPARED ONLY:** npm static reproducible build, GitHub quality workflow, Vercel config, Supabase schema/policy/seed/runbook and mapper functions.
-**NOT BUILT:** real sign-in/out, owner data authorization, remote persistence, real-device synchronization, error/retry/conflict control, online reminders, Google Classroom, Pomodoro, secure attachment storage, production monitoring. Do not claim production readiness.
+```sh
+npm ci --ignore-scripts
+npm run check
+# Optional targeted Chromium/browser regressions when Python + Playwright installed:
+python -m pip install -r tests/requirements-browser.txt
+python -m playwright install chromium
+python tests/qa_m1.py
+python tests/qa_m2.py
+python tests/qa_m25.py
+python tests/qa_m2_closeout.py
+```
 
-## 4. Architecture decision
-Keep static browser ES modules. At milestone M2 use exact-version Supabase JavaScript SDK and build-time public configuration; implement protected Auth gate before mounting any private data, then owner-RLS-backed repository methods. No sensitive secrets go to the browser; UI remains unchanged unless correcting a proven issue. Proposed SQL schema has composite FKs to avoid cross-owner branch references. No binary Storage bucket because V6 only links to external URLs.
+`npm run lint` is a **syntax** check, not ESLint or TypeScript. `npm run check` includes source/manifests verification and static build. For controlled release verification, provide the approved public environment inputs (without printing them) and use `npm run build:release` / `npm run verify:release`; neither command deploys. `package.json.private=true` blocks **npm registry publish**, not public GitHub visibility.
 
-## 5. Quality and safety gates
-1. M0: verify source hashes and build/unit/browser baselines (`CODEX_FIRST_TASK.md`). No design or infra changes.
-2. M1: accessibility/functional stabilization and actual-origin E2E.
-3. M2: disposable local Supabase database, execute and test **draft migration**, Auth and RLS owner-isolation tests; no remote writes.
-4. M3: vertical slices replacing `localStorage` for owner tasks, branches, journal, milestones, layout and preferences, with explicit data import consent.
-5. M4: security, failure/recovery, accessibility and stress tests; prevent XSS and cross-owner leaks.
-6. M5: private GitHub repo, checks and Vercel preview protection, manual prod checklist.
-7. M6: authorized staging/production release, verified smoke, monitoring, rollback.
+## 6. Exact authorization boundaries and next actions
 
-See every milestone's scope, dependencies, files, commands, acceptance and rollback in `docs/14-CODEX-IMPLEMENTATION-ROADMAP.md`.
+- **Do not modify Production** to make old test checklists green; it has been released and owner-accepted. Future app features and schema changes need their own approval and rollback plans.
+- **New deployment:** review SHA, backup, tests and config; update pinned SHA in manual stage workflow; stage with `--prod --skip-domain`; verify protection before alias assignment; get owner approval to change routing. A Preview is not a Production artifact and cannot be blindly promoted.
+- **Rollback:** Old `dpl_89ozqhgtoJL6FRVSanpZ8gKNknZW` is the *historical* prior deployment, not proven a safe modern recovery target. For a future release preserve the latest known-good serving deployment and use **alias-specific** reassignment. A code rollback cannot recover deleted journal data.
+- **Privacy:** The user wanted GitHub public + MIT, **not public scrapbook reads**. Never disable Vercel Authentication, weaken owner RLS, make wildcard OAuth redirects, log keys/backup files, or introduce permanent synthetic users without separate authorization.
+- **Costs:** Avoid paid Supabase branches and Pro-only leaked-password protection. Public GitHub CI plus disposable local Supabase tests are working no-new-subscription options.
+- **Follow-up improvements:** public repo main branch ruleset (was `protected=false` at last audit), post-auth CSP/header inspection, physical-device UX QA, owner-controlled encrypted backup/restore drill, optional hosted PATCH/DELETE fixture study. These are tracked gaps, not assumed release blockers retroactively.
 
-## 6. Known caveats
-- Node syntax check ≠ ESLint/TypeScript; only import/parse consistency.
-- Browser QA via `page.set_content` and mocked localStorage is not real HTTP-origin or physical Safari evidence. Add these.
-- Supabase CLI/Docker/psql not available in handoff authoring environment: migration, pgTAP, key/RLS/role isolation and Supabase config must be executed/validated later.
-- GitHub Actions itself, Vercel deployment, mobile hardware, OAuth, app data sync not yet verified.
-- V6 `document.execCommand` journal editing and HTML sanitization are functional prototype choices, but not security-reviewed enough for cloud-synced private diary.
-- `.env.example` is a documented future config only; currently ignored by frontend.
-- License is unspecified, therefore no LICENSE file was invented. Keep repository private.
+## 7. How to resume from a blank conversation
 
-## 7. Next safe action
-Review the M1 PR and evidence. Keep the deployment hold. Authorize the local-only M2 foundation separately when ready; no live database or deployment action is implicit.
+A copy/paste prompt for the next assistant:
+
+> We are continuing my ORBIT spatial scrapbook at https://github.com/DoorBlox/orbit. Start by reading `CODEX_HANDOFF.md`, `README.md`, `docs/OPERATIONS.md`, `docs/PROJECT_HISTORY.md`, and `AGENTS.md` on the repository's latest `main`. ORBIT 1.0.0 is already live on https://orbit.starscene.com/; https://orbit.allintime.space/ redirects there, and I confirmed both work. Serving release deployment `dpl_9rgHVEreGqspHtNY27WnPyMduFik` was built from source `fc5af5a`; `main` contains later CI and docs. Keep the six-widget V6 design, MIT public code but owner-private data, and free-tier constraints. Verify remote state and CI, then continue the task I give. Do not rerun onboarding or deploy/change database without permission. No credentials or private backups in chat.
+
+**Historical documents:** `docs/HANDOFF.md`, `CODEX_FIRST_TASK.md`, the original numbered roadmap, and pre-release M3/M6 decision records are intentionally retained for audit but **not current release status**. In doubt, verify live aliases and actual code rather than trusting an older paragraph.
