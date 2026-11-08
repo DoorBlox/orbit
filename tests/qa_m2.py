@@ -62,7 +62,7 @@ export async function createCloudClient(){
     },
     rpc(name,args){
       fixture.calls.push({type:'rpc',name,args});
-      if(name==='orbit_owner_access')return request(fixture.allowed);
+      if(name==='orbit_owner_access'||name==='orbit_workspace_access')return request(fixture.allowed);
       if(name==='load_owner_snapshot'){
         if(fixture.deferLoad)return new Promise(resolve=>{fixture.resolveLoad=()=>resolve({data:{revision:fixture.revision+1,snapshot:fixture.snapshot},error:null});});
         return request({revision:fixture.revision,snapshot:fixture.snapshot});
@@ -205,7 +205,7 @@ def gate_case(browser,size,mode,source):
 def owner_case(browser,size,source):
     ctx,page,errors=cloud_context(browser,size,'owner',source=source)
     try:
-        expect(page.locator('.cloud-mode')).to_have_text('Private owner space')
+        expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
         expect(page.locator('#app')).to_be_visible()
         expect(page.locator('#active-task-list')).to_contain_text(OWNER_SECRET)
         assert page.evaluate('window.orbitDebug.state.tasks')==1
@@ -266,7 +266,7 @@ def owner_lifecycle_case(browser,source):
     empty={'branches':[],'tasks':[],'journalEntries':[],'milestones':[],'spatialLayout':{},'preferences':{'colorMode':'deadline'}}
     ctx,page,errors=cloud_context(browser,(390,844),'owner',source=source,snapshot=empty)
     try:
-        expect(page.locator('.cloud-mode')).to_have_text('Private owner space')
+        expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
         assert page.evaluate('window.orbitDebug.state.tasks')==0
         expect(page.locator('#active-count')).to_have_text('0')
         assert not any(call.get('name')=='save_owner_snapshot' for call in page.evaluate('window.__m2Fixture.calls'))
@@ -283,7 +283,7 @@ def owner_lifecycle_case(browser,source):
 def owner_tools_case(browser,source):
     ctx,page,errors=cloud_context(browser,(1440,900),'owner',source=source)
     try:
-        expect(page.locator('.cloud-mode')).to_have_text('Private owner space')
+        expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
         assert_no_local_leak(page)
         page.locator('.cloud-owner-panel summary').click()
         page.get_by_role('button',name='Review local import',exact=True).click()
@@ -333,7 +333,7 @@ def owner_tools_case(browser,source):
 def journal_races(browser,source):
     ctx,page,errors=cloud_context(browser,(1440,900),'owner',source=source)
     try:
-        expect(page.locator('.cloud-mode')).to_have_text('Private owner space')
+        expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
         page.evaluate("window.orbitDebug.board.focus('journal',{initial:true});window.__m2Fixture.deferLoad=true;window.__m2Fixture.deferSave=true;window.dispatchEvent(new Event('focus'))")
         wait_until(page,'Boolean(window.__m2Fixture.resolveLoad)')
         page.locator('#journal-editor').fill('Synthetic typing newer than remote refresh')
@@ -356,7 +356,7 @@ def journal_races(browser,source):
 def failed_logout_recovery(browser,source):
     ctx,page,errors=cloud_context(browser,(390,844),'owner',source=source)
     try:
-        expect(page.locator('.cloud-mode')).to_have_text('Private owner space')
+        expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
         page.evaluate('window.__m2Fixture.failSignOutOnce=true')
         page.locator('.cloud-toolbar').get_by_role('button',name='Sign out',exact=True).click()
         expect(page.locator('.cloud-gate-message')).to_contain_text('session may still be active')
@@ -376,7 +376,7 @@ def failed_logout_recovery(browser,source):
 def immediate_logout_draft(browser,source):
     ctx,page,errors=cloud_context(browser,(390,844),'owner',source=source)
     try:
-        expect(page.locator('.cloud-mode')).to_have_text('Private owner space')
+        expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
         page.evaluate("window.orbitDebug.board.focus('journal',{initial:true});window.__m2Fixture.deferSave=true")
         dialogs=[]
         def cancel(dialog):dialogs.append(dialog.message);dialog.dismiss()
@@ -435,7 +435,7 @@ def otp_flow_case(browser,source):
         page.evaluate("window.__m2Fixture.otpVerifyError=null;window.__m2Fixture.allowed=true")
         page.get_by_label('Six-digit login code',exact=True).fill('123456')
         page.get_by_role('button',name='Verify and sign in',exact=True).click()
-        expect(page.locator('.cloud-mode')).to_have_text('Private owner space')
+        expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
         assert page.locator('#login-code').input_value()==''
         page.locator('.cloud-toolbar').get_by_role('button',name='Sign out',exact=True).click()
         expect(page.locator('#app')).to_be_hidden()
@@ -474,7 +474,7 @@ def password_case(browser,source):
                 expect(page.locator('.cloud-gate-message')).to_contain_text('Too many' if failure.get('status')==429 else 'Sign-in failed')
                 assert page.locator('#app').inner_text()==''
             else:
-                expect(page.locator('.cloud-mode')).to_have_text('Private owner space')
+                expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
                 page.locator('.cloud-toolbar').get_by_role('button',name='Sign out',exact=True).click()
                 expect(page.locator('#app')).to_be_hidden()
             assert page.get_by_label('Password',exact=True).input_value()==''

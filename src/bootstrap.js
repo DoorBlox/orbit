@@ -36,6 +36,7 @@ export async function bootstrapOrbit(config=runtimeConfig) {
   const publicRelease=config?.publicRelease===true;
   const shell=createAuthShell({publicRelease,
     onPasswordSignIn:(email,password)=>auth?.signInWithPassword(email,password),
+    onSignUp:(email,password)=>auth?.signUpWithPassword(email,password),
     onRequestOtp:email=>auth?.requestEmailOtp(email),
     onVerifyOtp:token=>auth?.verifyEmailOtp(token),
     onCancelOtp:()=>auth?.cancelEmailOtp(),
@@ -82,6 +83,7 @@ export async function bootstrapOrbit(config=runtimeConfig) {
       }catch(error){if(version===viewVersion&&error?.code!=='ABORTED')shell.showError('Published content could not be loaded. Try again later.');}
     }
     auth=new AuthController({client,redirectUrl:config.siteUrl,currentOrigin:location.origin,
+      ownerRpc:'orbit_workspace_access',
       onOtpState:state=>shell.setOtpState(state),
       clearPrivate,cancelPendingWrites:()=>sync?.dispose(),
       onState:state=>{
@@ -103,7 +105,11 @@ export async function bootstrapOrbit(config=runtimeConfig) {
             if(['AUTH_REQUIRED','FORBIDDEN'].includes(status.errorCode))void auth.refresh(false);
           }});
         app=mountOrbit({initialSnapshot:loaded.snapshot,persistLocally:false,onSnapshotChange:snapshot=>sync?.queue(snapshot)});
-        ownerTools=createOwnerTools({repository,app,sync,container:shell.ownerTools});
+        // The original owner alone may publish; other users still get private import tools.
+        let canPublish=false;
+        try{const result=await client.rpc('orbit_owner_access');canPublish=result?.data===true;}catch{}
+        if(!isCurrent())return;
+        ownerTools=createOwnerTools({repository,app,sync,container:shell.ownerTools,canPublish});
         if(!isCurrent()){clearPrivate();return;}
         appElement.hidden=false;appElement.inert=false;shell.showApp(true);
         app.setCloudStatus(sync.getState());shell.setSyncStatus(sync.getState());

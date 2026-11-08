@@ -20,15 +20,15 @@ export function readLocalImport(storage=globalThis.localStorage) {
 }
 
 /** Opt-in import/publication controls; user content is always assigned as text. */
-export function createOwnerTools({repository,app,sync,container}) {
+export function createOwnerTools({repository,app,sync,container,canPublish=true}) {
   const events=new AbortController();let disposed=false,importDraft=null;
   const root=document.createElement('details');root.className='cloud-owner-panel glass-widget';
-  const summary=document.createElement('summary');summary.textContent='Import & publishing';root.append(summary);
+  const summary=document.createElement('summary');summary.textContent=canPublish?'Import & publishing':'Import & backups';root.append(summary);
   const status=document.createElement('p');status.setAttribute('role','status');status.className='cloud-tool-status';
   function element(tag,text,parent=root){const el=document.createElement(tag);if(text)el.textContent=text;parent.append(el);return el;}
   function button(text,run,parent=root){const el=element('button',text,parent);el.type='button';el.className='glass-button';el.addEventListener('click',run,{signal:events.signal});return el;}
   function say(text){if(!disposed)status.textContent=text;}
-  element('p','All new content is private. Publishing copies only the title, chosen plain-text excerpt, and date. Public viewing remains disabled in development previews.');
+  element('p',canPublish?'All new content is private. Publishing copies only the title, chosen plain-text excerpt, and date. Public viewing remains disabled in development previews.':'All new content is private. Importing replaces only your own workspace after confirmation and backup review.');
   const importGroup=element('div');importGroup.className='cloud-tool-group';
   button('Review local import',()=>{
     try{importDraft=readLocalImport();say(`Local import ready: ${importDraft.tasks.length} tasks, ${importDraft.branches.length} branches, ${importDraft.journalEntries.length} journal pages, ${importDraft.milestones.length} milestones. Nothing has been uploaded.`);confirmImport.hidden=false;}
@@ -43,7 +43,7 @@ export function createOwnerTools({repository,app,sync,container}) {
     app.applySnapshot(snapshot);sync.queue(app.getSnapshot());
     const result=await sync.flush();say(result.ok?'Private import saved to the cloud. Local originals were preserved.':'Import is not saved. Your draft remains in this session; export a backup and retry.');
   },importGroup);confirmImport.hidden=true;
-  const form=element('form');form.className='cloud-publication-form';
+  const form=element('form');form.className='cloud-publication-form';form.hidden=!canPublish;
   function field(label,tag){const wrap=element('label',label,form);return element(tag,null,wrap);}
   const kind=field('Content type','select');
   for(const value of ['task','journal','milestone','branch']){const option=element('option',value,kind);option.value=value;}
@@ -56,7 +56,7 @@ export function createOwnerTools({repository,app,sync,container}) {
   function refreshSources(){const selected=source.value;source.replaceChildren();for(const item of sources()){const option=element('option',item.title||item.label||'Untitled',source);option.value=item.id;}if([...source.options].some(o=>o.value===selected))source.value=selected;renderPreview();}
   kind.addEventListener('change',refreshSources,{signal:events.signal});
   for(const input of [source,excerpt,date])input.addEventListener('input',renderPreview,{signal:events.signal});
-  root.addEventListener('toggle',()=>{if(root.open)refreshSources();},{signal:events.signal});
+  root.addEventListener('toggle',()=>{if(root.open&&canPublish)refreshSources();},{signal:events.signal});
   const publish=button('Publish reviewed fields',()=>form.requestSubmit(),form);
   const unpublish=button('Make source private',async()=>{
     if(!source.value||!window.confirm('Remove this source from public viewing?'))return;

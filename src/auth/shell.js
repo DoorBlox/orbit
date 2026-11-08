@@ -2,11 +2,13 @@ const textByState = {
   idle: 'Preparing your space…', restoring: 'Checking your private session…',
   'signing-in': 'Opening Google sign-in…',
   'password-signing-in': 'Signing in and checking your access…',
+  'signing-up': 'Creating your account securely…',
+  'signup-pending': 'Check your email for a verification link, then return to ORBIT to sign in.',
   'signed-out': 'Sign in to open your private ORBIT space.',
   unauthorized: 'This account cannot open the private space.',
   expired: 'Your session ended. Sign in again to continue.',
   error: 'Your private space could not be opened. Check your connection and try again.',
-  owner: 'Your private owner space.', disposed: 'Your private space is closed.',
+  owner: 'Your private ORBIT space.', disposed: 'Your private space is closed.',
 };
 const syncText = {
   saved: 'Saved to your cloud', pending: 'Changes waiting to save', saving: 'Saving to your cloud…',
@@ -15,7 +17,7 @@ const syncText = {
 };
 
 /** Small native shell around the unchanged spatial app; no user HTML is interpolated. */
-export function createAuthShell({ publicRelease, onPasswordSignIn, onRequestOtp, onVerifyOtp, onCancelOtp, onSignOut, onExport, onRetry, onReload } = {}) {
+export function createAuthShell({ publicRelease, onPasswordSignIn, onSignUp, onRequestOtp, onVerifyOtp, onCancelOtp, onSignOut, onExport, onRetry, onReload } = {}) {
   document.getElementById('cloud-shell')?.remove();
   const root=document.createElement('section');root.id='cloud-shell';root.className='cloud-shell';
   root.setAttribute('aria-label','Cloud access and saving');
@@ -23,7 +25,7 @@ export function createAuthShell({ publicRelease, onPasswordSignIn, onRequestOtp,
   const title=document.createElement('h1');title.textContent='Your ORBIT space';
   const description=document.createElement('p');description.className='cloud-gate-message';description.setAttribute('role','status');
   const release=document.createElement('p');release.className='cloud-release-note';
-  release.textContent=publicRelease?'Visitors can read only content explicitly published by the owner.':'Public viewing is not enabled. Your private space requires owner sign-in.';
+  release.textContent=publicRelease?'Only content intentionally published can be viewed without signing in.':'Your private workspace is accessible only after signing in. Account creation may require an invitation.';
   const toolbar=document.createElement('div');toolbar.className='cloud-toolbar glass-widget';toolbar.hidden=true;
   const mode=document.createElement('span');mode.className='cloud-mode';
   const status=document.createElement('span');status.className='cloud-sync-state';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
@@ -37,6 +39,7 @@ export function createAuthShell({ publicRelease, onPasswordSignIn, onRequestOtp,
   const passwordEmail=passwordField('Email address','password-email');passwordEmail.type='email';passwordEmail.autocomplete='username';passwordEmail.maxLength=254;passwordEmail.required=true;
   const password=passwordField('Password','login-password');password.type='password';password.autocomplete='current-password';password.maxLength=4096;password.required=true;
   const passwordSubmit=button('Sign in with password',null,passwordLogin);passwordSubmit.type='submit';
+  const createAccount=button('Create account',async()=>{const secret=password.value;password.value='';await onSignUp?.(passwordEmail.value,secret);},passwordLogin);
   passwordLogin.addEventListener('submit',async event=>{event.preventDefault();const secret=password.value;password.value='';await onPasswordSignIn?.(passwordEmail.value,secret);});
   const otpDetails=document.createElement('details');const otpSummary=document.createElement('summary');otpSummary.textContent='Email code (requires configured email delivery)';otpDetails.append(otpSummary);gate.append(otpDetails);
   const login=document.createElement('form');login.className='cloud-email-login';otpDetails.append(login);
@@ -52,7 +55,7 @@ export function createAuthShell({ publicRelease, onPasswordSignIn, onRequestOtp,
   let otp={status:'idle',busy:false,hasChallenge:false,resendAt:0,verifyAt:0};
   function setOtpState(next){
     const wasChallenge=otp.hasChallenge,wasBusy=otp.busy;otp=next;
-    const messages={sending:'Requesting a login code…',sent:'If this address is eligible, a login code has been sent. Check your inbox.',verifying:'Verifying your code…',verified:'Sign-in verified. Owner authorization is still required.'};
+    const messages={sending:'Requesting a login code…',sent:'If this address is eligible, a login code has been sent. Check your inbox.',verifying:'Verifying your code…',verified:'Sign-in verified. Private workspace access will be checked.'};
     const failures={INVALID_EMAIL:'Enter a valid email address.',INVALID_CODE:'The code is invalid or expired. Try again or request a new code.',RATE_LIMITED:'Too many attempts. Wait before trying again.',UNAVAILABLE:'Sign-in could not be completed. Check your connection or email setup and try again.'};
     feedback.textContent=next.status==='error'?(failures[next.code]||failures.UNAVAILABLE):(messages[next.status]||'');
     login.setAttribute('aria-busy',String(next.busy));email.readOnly=next.hasChallenge||next.busy;
@@ -65,8 +68,8 @@ export function createAuthShell({ publicRelease, onPasswordSignIn, onRequestOtp,
   }
   function updateCooldown(){
     const seconds=Math.max(0,Math.ceil((otp.resendAt-Date.now())/1000));
-    const locked=['idle','restoring','signing-in','password-signing-in','owner','disposed'].includes(state.status);
-    passwordSubmit.disabled=passwordEmail.disabled=password.disabled=locked||otp.busy;
+    const locked=['idle','restoring','signing-in','password-signing-in','signing-up','owner','disposed'].includes(state.status);
+    passwordSubmit.disabled=createAccount.disabled=passwordEmail.disabled=password.disabled=locked||otp.busy;
     passwordLogin.setAttribute('aria-busy',String(state.status==='password-signing-in'));
     send.disabled=resend.disabled=otp.busy||locked||seconds>0;
     resend.textContent=seconds?`Resend code (${seconds}s)`:'Resend code';
@@ -81,7 +84,7 @@ export function createAuthShell({ publicRelease, onPasswordSignIn, onRequestOtp,
   const retry=button('Retry save',onRetry);
   const reload=button('Reload cloud version',onReload);
   const signOut=button('Sign out',onSignOut);
-  const visitorSignIn=button('Owner sign-in',()=>{gate.hidden=false;email.focus();});
+  const visitorSignIn=button('Sign in',()=>{gate.hidden=false;email.focus();});
   const ownerTools=document.createElement('div');ownerTools.id='cloud-owner-tools';ownerTools.hidden=true;
   controls.append(ownerTools);toolbar.append(mode,status,controls);root.append(gate,toolbar);document.body.append(root);
   const measure=()=>{
@@ -94,6 +97,7 @@ export function createAuthShell({ publicRelease, onPasswordSignIn, onRequestOtp,
   function setState(next) {
     state=next;description.textContent=textByState[next.status]||textByState.error;
     if(next.code==='PASSWORD_SIGN_IN_FAILED')description.textContent='Sign-in failed. Check your credentials or connection and try again.';
+    if(next.code==='SIGN_UP_FAILED')description.textContent='Account creation could not be completed. Check invitation, email and password requirements or try again later.';
     if(next.code==='PASSWORD_RATE_LIMITED')description.textContent='Too many sign-in attempts. Wait before trying again.';
     // A failed SDK sign-out can leave a session stored even though the private
     // view was cleared. Do not present that state as confirmed signed out.
@@ -108,7 +112,7 @@ export function createAuthShell({ publicRelease, onPasswordSignIn, onRequestOtp,
     if(next.status!=='owner'){gate.hidden=false;toolbar.hidden=true;ownerTools.hidden=true;measure();}
   }
   function showApp(owner) {
-    gate.hidden=true;toolbar.hidden=false;mode.textContent=owner?'Private owner space':'Published space · read only';
+    gate.hidden=true;toolbar.hidden=false;mode.textContent=owner?'Private workspace':'Published space · read only';
     for(const control of [exportDraft,retry,reload])control.hidden=!owner;
     signOut.hidden=!owner&&state.status!=='unauthorized';
     visitorSignIn.hidden=owner;ownerTools.hidden=!owner;
