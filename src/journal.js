@@ -26,6 +26,12 @@ export function sanitizeJournal(html){
 }
 const id=()=>`journal-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;
 const empty=(date=todayKey())=>({id:id(),date:dateKey(date),title:'',html:'',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
+/** Sort by journal civil date; keep page identity stable on date edits. */
+export function orderJournalEntries(entries){
+  return [...entries].sort((a,b)=>dateKey(a.date).localeCompare(dateKey(b.date)) ||
+    String(a.createdAt||'').localeCompare(String(b.createdAt||'')) ||
+    String(a.id||'').localeCompare(String(b.id||'')));
+}
 export function normalizeEntries(input){
   if(!Array.isArray(input))return [empty()];
   const seen=new Set();const entries=[];
@@ -35,7 +41,7 @@ export function normalizeEntries(input){
     const date=dateKey(raw.date);
     entries.push({id:uid,date,title:String(raw.title||'').slice(0,120),html:sanitizeJournal(raw.html),createdAt:raw.createdAt||date,updatedAt:raw.updatedAt||date});
   }
-  return entries.length?entries:[empty()];
+  return entries.length?orderJournalEntries(entries):[empty()];
 }
 const save=(entries)=>{try{if(isStorageWriteBlocked(KEY))return false;localStorage.setItem(KEY,JSON.stringify(entries));return true;}catch{return false;}};
 function load(){
@@ -111,8 +117,10 @@ export class Journal {
     entry.html=sanitizeJournal(this.editor.innerHTML);
     if(!this.persistLocally&&beforeDate===entry.date&&beforeTitle===entry.title&&beforeHtml===entry.html)return this.saved;
     entry.updatedAt=new Date().toISOString();
+    if(beforeDate!==entry.date){this.entries=orderJournalEntries(this.entries);this.index=this.entries.findIndex(item=>item.id===entry.id);}
     this.saved=this.persistLocally?save(this.entries):false;this.saveIndicator.textContent=this.readOnly?'published content':this.persistLocally?(this.saved?'saved on this device':'not saved — export a backup'):(this.saved?'saved to cloud':'waiting to sync');
     document.getElementById('journal-date-label').textContent=fmtDate(entry.date).toUpperCase();
+    if(beforeDate!==entry.date)this.render();
     if(beforeDate!==entry.date||beforeTitle!==entry.title||beforeHtml!==entry.html)this.onEntriesChange(this.entries);
     return this.saved;
   }
@@ -127,11 +135,11 @@ export class Journal {
     this.saveIndicator.textContent=this.readOnly?'published content':this.persistLocally?(this.saved?'saved on this device':'not saved — export a backup'):(this.saved?'saved to cloud':'waiting to sync');this.updateCount();
   }
   newPage(date=todayKey()){if(this.readOnly||this.disposed)return;this.commit();if(this.entries.length>=MAX_ENTRIES){this.notify('Journal page limit reached. Export a backup before adding more.');return;}
-    this.entries.push(empty(date));this.index=this.entries.length-1;this.saved=this.persistLocally?save(this.entries):false;this.render();this.onEntriesChange(this.entries);this.title.focus();}
-  openEntry(entryId){const index=this.entries.findIndex(e=>e.id===entryId);if(index<0)return false;
-    this.commit();this.index=index;this.render();return true;}
-  go(step){const next=this.index+step;if(next<0||next>=this.entries.length)return;
-    this.commit();this.index=next;this.render();}
+    const page=empty(date);this.entries=orderJournalEntries([...this.entries,page]);this.index=this.entries.findIndex(item=>item.id===page.id);this.saved=this.persistLocally?save(this.entries):false;this.render();this.onEntriesChange(this.entries);this.title.focus();}
+  openEntry(entryId){this.commit();const index=this.entries.findIndex(e=>e.id===entryId);if(index<0)return false;
+    this.index=index;this.render();return true;}
+  go(step){this.commit();const next=this.index+step;if(next<0||next>=this.entries.length)return;
+    this.index=next;this.render();}
   format(kind){if(this.readOnly||this.disposed)return;this.editor.focus();
     // For the offline prototype, legacy editing commands supply clean native selection behavior.
     // The saved result is sanitized. Migrate to a structured editor (Tiptap) for production.

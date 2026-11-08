@@ -2,7 +2,7 @@ import { todayKey, addCivilDays } from './dates.js';
 
 // ORBIT V3 — a tree of named branches, never a fixed domain/role/project schema.
 // Keep legacy IDs: existing Phase 1 / V2 task assignments continue to resolve.
-export const DISPLAY_NAME = 'HISYAM';
+export const DISPLAY_NAME = 'My space';
 export const DEFAULT_BRANCHES = [
   {id:'learning', parentId:'root', label:'Learning', color:'#6597E6'},
   {id:'student', parentId:'learning', label:'School'},
@@ -58,6 +58,25 @@ export function descendantsOf(id,branches){
   }}
   return result;
 }
+/** Remove one branch and retain its tasks and descendants in the existing tree. */
+export function removeBranchPreservingContents(id,branches,tasks){
+  const branch=branches.find(item=>item.id===id);
+  if(!branch)throw Error('Branch not found.');
+  if(['inbox','just-because'].includes(id))throw Error('This essential branch cannot be removed.');
+  const parent=branch.parentId;
+  if(parent!=='root'&&!branches.some(item=>item.id===parent))throw Error('Parent branch not found.');
+  if(!branches.some(item=>item.id==='inbox'))throw Error('Unsorted branch is required.');
+  const destination=parent==='root'?'inbox':parent;
+  return {
+    branches:branches.filter(item=>item.id!==id).map(item=>
+      item.parentId===id?{...item,parentId:parent}:item),
+    tasks:tasks.map(task=>task.projectId===id?{...task,projectId:destination}:task),
+    movedTasks:tasks.filter(task=>task.projectId===id).length,
+    reparentedChildren:branches.filter(item=>item.parentId===id).length,
+    destination,
+  };
+}
+
 export function createBranch(label,parentId,branches){
   const text=String(label||'').trim().slice(0,72);
   if(!text)throw Error('Give the branch a name.');
