@@ -122,6 +122,7 @@ def cloud_context(browser,size,mode,public=False,source=False,snapshot=None,lega
     initial.update(legacy_seed or {})
     ctx.add_init_script('''(() => {
       window.__m2Fixture=%s;
+      window.__m2InitialUserId=window.__m2Fixture.user?.id ?? null;
       for(const [key,value] of Object.entries(%s))localStorage.setItem(key,value);
       window.__m2LocalAccess=[];
       for(const name of ['getItem','setItem','removeItem']){
@@ -174,8 +175,9 @@ def assert_no_local_leak(page):
     # Cloud content must never use legacy local keys. A signed-in user's
     # non-content branch disclosure preference is the sole allowed exception.
     accesses=page.evaluate('window.__m2LocalAccess')
-    user=page.evaluate('window.__m2Fixture.user')
-    allowed_key=f'orbit.v7.collapsed-branches.{OWNER_ID}' if user and user.get('id')==OWNER_ID else None
+    # Sign-out clears the mutable current user; preserve fixture origin for this audit.
+    initial_user_id=page.evaluate('window.__m2InitialUserId')
+    allowed_key=f'orbit.v7.collapsed-branches.{OWNER_ID}' if initial_user_id==OWNER_ID else None
     unexpected=[a for a in accesses if allowed_key is None or a.get('key')!=allowed_key or a.get('method') not in ('getItem','setItem')]
     assert not unexpected,f'Unexpected local-storage access: {unexpected}'
     calls=page.evaluate('window.__m2Fixture.calls')
