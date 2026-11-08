@@ -1,3 +1,5 @@
+> **Archived M0-only onboarding prompt.** ORBIT is already in protected Production as of 7 November 2026. This file is retained for historical M0 provenance and must **not** be used as the next task. To resume, read [CODEX_HANDOFF.md](CODEX_HANDOFF.md), [README.md](README.md) and [docs/OPERATIONS.md](docs/OPERATIONS.md).
+
 # Copy/paste into Codex — FIRST TASK (Milestone 0, read-only baseline)
 
 ## Objective
