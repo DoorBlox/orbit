@@ -20,7 +20,7 @@
       "reason": "Document owner/session gate and private lifecycle invariants."
     },
     "src/auth/controller.js": {
-      "sha256": "24612830680aad81f11c068c57d59db0f57e42943377a3c74156a9e965472171",
+      "sha256": "af8cde170ef58e61df8c464ee34249df4267812991392a95dae5c4d69f47ba20",
       "reason": "ORBIT 2.0 reviewed draft: verified-user workspace gate and signup while preserving tenant privacy; Production release requires staged migration."
     },
     "src/auth/shell.js": {

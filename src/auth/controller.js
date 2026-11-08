@@ -199,7 +199,7 @@ export class AuthController {
   async signUpWithPassword(email,password) {
     if(this.disposed||this.signingOut||this.otpPending||this.state.status==='owner')return false;
     const address=typeof email==='string'?email.trim():'';
-    if(address.length>254||!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(address)||
+    if(address.length>254||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)||
       typeof password!=='string'||password.length<8||password.length>4096){
       this.publish('signed-out',null,'SIGN_UP_FAILED');return false;
     }
