@@ -25,12 +25,12 @@ create policy orbit_media_owner_select on storage.objects
   for select to authenticated
   using (bucket_id='orbit-private-media'
     and split_part(name,'/',1)=(select auth.uid())::text
-    and name ~* '^[0-9a-f-]{36}/[0-9a-f-]{36}\\.(png|jpg|webp)$');
+    and name ~* '^[0-9a-f-]{36}/[0-9a-f-]{36}\.(png|jpg|webp)$');
 create policy orbit_media_owner_insert on storage.objects
   for insert to authenticated
   with check (bucket_id='orbit-private-media'
     and split_part(name,'/',1)=(select auth.uid())::text
-    and name ~* '^[0-9a-f-]{36}/[0-9a-f-]{36}\\.(png|jpg|webp)$');
+    and name ~* '^[0-9a-f-]{36}/[0-9a-f-]{36}\.(png|jpg|webp)$');
 -- Deliberately omit UPDATE/upsert: image replacement gets a new object path.
 -- Deletions require a separate reviewed garbage-collection policy.
 commit;
