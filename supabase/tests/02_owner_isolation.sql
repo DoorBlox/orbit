@@ -122,7 +122,7 @@ with changed as(delete from public.widget_layouts returning *) select is((select
 with changed as(delete from public.preferences returning *) select is((select count(*) from changed),1::bigint,'second user preferences delete touches only own row');
 
 -- A second user's same-ID deletion must NOT prune original-owner publications.
-select is((public.load_owner_snapshot()->'snapshot'->'tasks'->0->>'title'),'Second user task','second user snapshot only shows own task');
+select is(jsonb_array_length(public.load_owner_snapshot()->'snapshot'->'tasks'),0,'second user task deletion leaves no own task rows');
 select ok((public.load_owner_snapshot()->>'revision')::bigint>0,'second user direct DML advances own CAS revision');
 select throws_ok($update public.tasks set owner_id='11111111-1111-4111-8111-111111111111'$,'42501',null,'second user cannot steal original owner rows');
 select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
