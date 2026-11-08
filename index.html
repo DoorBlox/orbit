@@ -26,7 +26,7 @@
 <div class="ambient-wash"></div>
 </div>
 <div id="app" class="app-shell">
-  <header class="world-header"><div class="brand"><span class="brand-emblem" aria-hidden="true"><span class="emblem-dot"></span></span><span class="brand-wordmark">orbit<span class="brand-period">.</span></span><span class="world-header-note">your own little universe</span></div><div class="header-right"><span class="private-caption">LOCAL PROTOTYPE</span><span class="clock-container"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg><time id="clock">--:--</time><span class="time-zone">WIB</span></span></div></header>
+  <header class="world-header"><div class="brand"><span class="brand-emblem" aria-hidden="true"><span class="emblem-dot"></span></span><span class="brand-wordmark">orbit<span class="brand-period">.</span></span><span class="world-header-note">your own little universe</span></div><div class="header-right"><span class="clock-container"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg><time id="clock">--:--</time><span class="time-zone">WIB</span></span></div></header>
   <main class="spatial-viewport" id="spatial-viewport" aria-label="Infinite-feeling scrapbook. Drag empty space to travel between movable widgets; use the spatial navigator to jump to one.">
     <div class="spatial-world" id="spatial-world">
 <section aria-label="Timeline widget, draggable" aria-labelledby="continuum-title" class="glass-widget timeline-widget spatial-item" data-widget="timeline" id="timeline-widget">
@@ -102,6 +102,8 @@
 </form>
 <div class="space-actions">
 <button class="glass-button" id="rename-space" aria-controls="space-name-form" aria-expanded="false" type="button">Rename space</button>
+<button class="glass-button" id="expand-all-branches" type="button">Expand branches</button>
+<button class="glass-button" id="collapse-all-branches" type="button">Collapse branches</button>
 <button class="glass-button" id="backup-json" type="button">Backup</button>
 <button class="glass-button" id="import-csv" type="button" title="Import tasks or branches CSV, journal pages JSON, or an entire ORBIT backup">Import</button>
 <label class="visually-hidden" for="export-kind">Choose export content</label>

@@ -42,8 +42,18 @@ export function validateBackup(input, { sanitizeHtml } = {}) {
   // as authorization metadata.
   if(value.profile!==undefined&&(!object(value.profile)||typeof value.profile.displayName!=='string'||
     !value.profile.displayName.trim()||value.profile.displayName.trim().length>100))throw Error('Invalid workspace name.');
+  let collapsedBranchIds;
+  if(value.collapsedBranchIds!==undefined){
+    const ids=list(value.collapsedBranchIds,4000,'collapsed branch');const seen=new Set();
+    const parents=new Set(branches.map(b=>b.parentId).filter(id=>id!=='root'));
+    collapsedBranchIds=ids.map(id=>{
+      if(!safeId(id)||!byId.has(id)||!parents.has(id)||seen.has(id))throw Error('Invalid collapsed branch ID.');
+      seen.add(id);return id;
+    });
+  }
   const normalized = { format:'orbit-backup', version:value.version,
     ...(value.profile?{profile:{displayName:value.profile.displayName.trim()}}:{}),
+    ...(collapsedBranchIds!==undefined?{collapsedBranchIds}:{}),
     branches:branches.map(b => ({id:b.id,parentId:b.parentId,label:b.label,...(typeof b.color==='string'?{color:b.color.slice(0,24)}:{})})),
     tasks:tasks.map(t => cleanTask(t)), preferences:{colorMode:value.preferences?.colorMode === 'urgency'?'urgency':'deadline'},
     milestones:[] };

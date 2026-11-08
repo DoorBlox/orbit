@@ -4,7 +4,7 @@ A personal, infinite-feeling 2D scrapbook. Move through one zoomable world of ta
 
 **ORBIT 1.0.0 is live for its single owner.** The source is public and [MIT licensed](LICENSE); **the workspace is not public**.
 
-**In development:** 1.1 organization fixes, 2.0 tenant/signup source and the 2.1 Space control panel are merged to `main`, but **are not on the live site**. The hosted database has its 2.0 private tenant schema; Production still serves the original 1.0.0 owner-only app behind Vercel Authentication. New-user signup is **not yet publicly released**. See [Changelog](CHANGELOG.md), [Operations](docs/OPERATIONS.md) and [open development PRs](https://github.com/DoorBlox/orbit/pulls).
+**In development:** 1.1 organization fixes, 2.0 tenant/signup source, universal import/export and the 2.1 Space control panel are merged to `main`, but **are not on the live site**. A current feature branch removes the obsolete header caption and adds per-account branch collapse/expand (browser-local view preference, included in backups). The hosted database has its 2.0 private tenant schema; Production still serves the original 1.0.0 owner-only app behind Vercel Authentication. New-user signup is **not yet publicly released**. See [Changelog](CHANGELOG.md), [Operations](docs/OPERATIONS.md) and [open development PRs](https://github.com/DoorBlox/orbit/pulls).
 
 **[Open ORBIT](https://orbit.starscene.com/)** · [Release notes](docs/releases/1.0.0.md) · [Project history](docs/PROJECT_HISTORY.md) · [Operations & recovery](docs/OPERATIONS.md) · [Continue in a new chat](CODEX_HANDOFF.md)
 
@@ -12,7 +12,7 @@ A personal, infinite-feeling 2D scrapbook. Move through one zoomable world of ta
 
 One pannable/zoomable spatial world contains six independently draggable and resizable translucent widgets:
 
-- **Constellation:** arbitrary-depth radial branches and active tasks, with a separate internal camera.
+- **Constellation:** arbitrary-depth radial branches and active tasks, with a separate internal camera and collapsible branch groups.
 - **Continuum / Timeline:** deadlines, milestones and links to dated journal pages.
 - **Things to do** and **Already done:** active/completed views over shared task data.
 - **Your space:** personal workspace controls, layout and recovery features.

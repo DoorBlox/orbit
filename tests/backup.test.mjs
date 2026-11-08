@@ -39,3 +39,15 @@ test('unsafe profile payloads cannot overwrite a valid backup or local storage',
     assert.throws(()=>validateBackup(value),/workspace name/i);
   }
 });
+
+test('collapsed branch view state roundtrips only valid non-leaf branch IDs',()=>{
+  const value=fixture();value.branches.push({id:'work',parentId:'root',label:'Work'},{id:'notes',parentId:'work',label:'Notes'});
+  value.collapsedBranchIds=['work'];
+  assert.deepEqual(validateBackup(value).collapsedBranchIds,['work']);
+  for(const ids of [['missing'],['inbox'],['notes'],['work','work'],Array.from({length:4001},()=> 'work')]){
+    value.collapsedBranchIds=ids;assert.throws(()=>validateBackup(value),/collapsed branch/i);
+  }
+});
+test('legacy backups without collapsed branch state remain compatible',()=>{
+  const value=fixture();assert.equal(validateBackup(value).collapsedBranchIds,undefined);
+});

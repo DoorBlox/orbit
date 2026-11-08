@@ -1,5 +1,12 @@
 # ORBIT implementation history and evidence ledger
 
+## 9 Nov 2026 extension after the original M6 release
+
+- [PR #21](https://github.com/DoorBlox/orbit/pull/21) — preserves personalized Space names through full JSON backup/restore and local reload; four exact-head checks passed.
+- [PR #23](https://github.com/DoorBlox/orbit/pull/23) — universal import for task CSV, branch CSV, journal JSON and full backups; selective exports; branch CSV hierarchy validation; four exact-head checks passed.
+- Protected Vercel Preview `dpl_Bri19261zEWUzRGoEkx6EfAwDkwr` built source `11421a8` and reached READY; Production aliases were not changed.
+- Current branch work removes the LOCAL PROTOTYPE caption without changing the WIB clock and adds branch collapse/expand. This view preference is per-account/browser and exported in manual backups, not cloud-synced.
+
 ## 8 Nov 2026 extension after the original M6 release
 
 - [PR #12](https://github.com/DoorBlox/orbit/pull/12) — 1.1 foundation source: generic user center, safe branch removal with undo, dated journals and fullscreen fitting.

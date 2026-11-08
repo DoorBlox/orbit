@@ -124,6 +124,8 @@ def viewport_flow(browser, label, size):
 
 def normal_flows(browser):
     context,page,errors=open_page(browser)
+    assert page.locator('.private-caption').count()==0, 'Prototype caption must be removed'
+    assert page.locator('#clock').count()==1 and page.locator('#clock').inner_text().strip(), 'Clock remains visible'
     focus(page,'constellation')
     page.locator('#capture-name').fill('M1 captured task')
     page.locator('#capture-name').press('Enter')
@@ -165,6 +167,32 @@ def normal_flows(browser):
     assert page.locator('.node-label').filter(has_text='M1 renamed branch').count()==1
     renamed=page.locator('.graph-node').filter(has_text='M1 renamed branch').first
     branch_id=renamed.get_attribute('data-id')
+    # Nested branches collapse/expand by button and keyboard, then persist after reload.
+    renamed.focus();renamed.press('Insert')
+    page.get_by_role('textbox',name='New branch name').fill('M1 nested branch')
+    page.get_by_role('textbox',name='New branch name').press('Enter')
+    nested=page.locator('.graph-node').filter(has_text='M1 nested branch').first
+    nested_id=nested.get_attribute('data-id')
+    expect(renamed).to_have_attribute('aria-expanded','true')
+    renamed.get_by_role('button',name='Collapse branch').press('Enter')
+    expect(renamed).to_have_attribute('aria-expanded','false')
+    assert page.locator(f'.graph-node[data-id="{nested_id}"]').count()==0
+    assert page.evaluate("(id)=>JSON.parse(localStorage.getItem('orbit.v7.collapsed-branches.local')).includes(id)",branch_id)
+    reload_page(page)
+    renamed=page.locator(f'.graph-node[data-id="{branch_id}"]')
+    expect(renamed).to_have_attribute('aria-expanded','false')
+    assert page.locator(f'.graph-node[data-id="{nested_id}"]').count()==0
+    renamed.focus();renamed.press('ArrowRight')
+    expect(renamed).to_have_attribute('aria-expanded','true')
+    assert page.locator(f'.graph-node[data-id="{nested_id}"]').count()==1
+    renamed.focus();renamed.press('ArrowLeft')
+    expect(renamed).to_have_attribute('aria-expanded','false')
+    focus(page,'space');page.locator('#expand-all-branches').click()
+    expect(renamed).to_have_attribute('aria-expanded','true')
+    page.locator('#collapse-all-branches').click()
+    expect(renamed).to_have_attribute('aria-expanded','false')
+    page.locator('#expand-all-branches').click()
+    expect(renamed).to_have_attribute('aria-expanded','true')
     # Descendant candidates are absent when moving their ancestor; arbitrary reparenting persists.
     inbox=page.locator('.graph-node[data-id="inbox"]')
     inbox.focus();inbox.get_by_role('button',name='Move branch to another parent').press('Enter')

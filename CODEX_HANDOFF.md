@@ -1,5 +1,13 @@
 # ORBIT — current-session handoff for a future developer or ChatGPT session
 
+## Latest control-plane checkpoint — 9 Nov 2026, 00:15 WIB (supersedes earlier 8 Nov development-stage notes)
+
+- Latest merged source: PR #21 (`d96d920`) preserves personalized Space names through backup/restore; PR #23 (`11421a8`) adds universal import and selective export. All four exact-head CI checks passed for both. Protect-main ruleset remains active.
+- Protected Vercel Preview `dpl_Bri19261zEWUzRGoEkx6EfAwDkwr` is READY from `11421a861b5023d5305c1802b8993bca221dacdd`; Production aliases still point to owner-only `fc5af5a`, with SSO protection enabled for all deployments.
+- Current development branch `feat/2.1-branch-collapse-20261109` removes the obsolete LOCAL PROTOTYPE header caption (clock unchanged) and implements per-branch collapse/expand, keyboard disclosure, expand-all/collapse-all and per-account browser view state. The view preference is local to each device/account and included in manual full backups; it is not yet cloud-synced. Check PR/CI status before merging.
+- Universal import/export is now in `main`. Next feature work should target richer task context/multiple supporting links, then private image assets, sticky notes and Excalidraw journals. Do not repeat PR #21/#23 work.
+- User requests fewer Actions runs: batch related source edits and run exact-head checks once at the end; do not duplicate workflows.
+
 ## Latest control-plane checkpoint — 8 Nov 2026, 23:20 WIB (supersedes earlier 8 Nov development-stage notes)
 
 - **Source:** [PR #12](https://github.com/DoorBlox/orbit/pull/12) (1.1), [#13](https://github.com/DoorBlox/orbit/pull/13) (2.x plan), [#14](https://github.com/DoorBlox/orbit/pull/14) (tenant RLS), [#15](https://github.com/DoorBlox/orbit/pull/15) (stacked account creation), [#16](https://github.com/DoorBlox/orbit/pull/16) (ledger), and [#18](https://github.com/DoorBlox/orbit/pull/18) (Space controls) are **MERGED** into `main`. PR #19 proposes editable per-user center names; check actual PR/CI before treating it as merged.

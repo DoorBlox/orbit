@@ -1,5 +1,11 @@
 # ORBIT production operations and recovery
 
+## 9 Nov 2026 update — latest application source and protected Preview
+
+PR #21 and PR #23 are merged to `main`; their exact-head four-check CI runs passed. The protected Vercel Preview `dpl_Bri19261zEWUzRGoEkx6EfAwDkwr` is READY from source `11421a861b5023d5305c1802b8993bca221dacdd`. This is still not the Production site. Production remains `dpl_9rgHVEreGqspHtNY27WnPyMduFik` from `fc5af5a`, and Vercel Authentication remains enabled for all deployments.
+
+The current 2.1 branch work removes the LOCAL PROTOTYPE header caption without changing the WIB clock and adds collapsible branch navigation. Its view state is stored locally per account/browser and included in manual backups; it is not a server-synced preference. Do not claim cross-device persistence until a future approved schema/API change.
+
 ## 8 Nov 2026 update — separate live application and new tenant schema
 
 The **live application** remains Vercel's owner-only 1.0.0 build `fc5af5a` on `dpl_9rgHVEreGqspHtNY27WnPyMduFik`. SSO protection is still enabled for **all** deployments, and both custom domains still route to that build. Do not infer that `main` or the new tenant SQL is deployed client code.
