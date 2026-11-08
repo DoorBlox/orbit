@@ -1,6 +1,6 @@
 # ORBIT production operations and recovery
 
-> **Current operational record — 8 November 2026 (Asia/Jakarta).** This is the operational source of truth for ORBIT 1.0.0. Historic pre-launch runbooks are preserved under [decisions](decisions/) but their old "Production NO-GO" statements describe a past checkpoint. Recheck provider state before acting.
+> **Current operational record — 8 November 2026 (Asia/Jakarta).** This is the operational source of truth for ORBIT 1.0.0. Historic pre-launch runbooks are preserved under [decisions](decisions/README.md) but their old "Production NO-GO" statements describe a past checkpoint. Recheck provider state before acting.
 
 ## Live service inventory
 
