@@ -21,8 +21,8 @@ select lives_ok($$insert into public.branches(owner_id,id,label) values('aaaaaaa
 select lives_ok($$insert into public.tasks(owner_id,id,project_id,title) values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','shared-task','inbox','A private task')$$,'A creates a task');
 select lives_ok($$insert into public.journal_entries(owner_id,id,entry_date,title) values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','shared-journal','2026-11-08','A private journal')$$,'A creates a journal');
 select is((public.load_owner_snapshot()->'snapshot'->'tasks'->0->>'title'),'A private task','A load snapshot gets own task');
-select lives_ok($insert into public.preferences(owner_id,extensions) values
-  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','{"testMarker":"tenant-a"}'::jsonb)$,
+select lives_ok($$insert into public.preferences(owner_id,extensions) values
+  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','{"testMarker":"tenant-a"}'::jsonb)$$,
   'A can save private extension metadata');
 select is((public.load_owner_snapshot()->'snapshot'->'extensions'->>'testMarker'),
   'tenant-a','A loads only own extension metadata');
