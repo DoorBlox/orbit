@@ -5,6 +5,7 @@ export const STORAGE_KEYS = Object.freeze({
   tasks: 'orbit.phase1.tasks.v1', branches: 'orbit.phase1.branches.v1',
   preferences: 'orbit.phase1.preferences.v1', milestones: 'orbit-v4-milestones',
   journal: 'orbit.v5.journal', layout: 'orbit.v5.spatial-layout', sizes: 'orbit.v6.spatial-sizes',
+  profile: 'orbit.v7.profile',
 });
 let activeStorage;
 let issues = new Map();
@@ -114,6 +115,22 @@ export function readPreferences() {
     return { colorMode: 'deadline' };
   }
   return { colorMode: value.colorMode || 'deadline' };
+}
+export function readProfile() {
+  const loaded=read(STORAGE_KEYS.profile);
+  if(loaded.missing||loaded.failed)return {displayName:'My space'};
+  const value=loaded.value;
+  if(!value||typeof value!=='object'||Array.isArray(value)||
+    typeof value.displayName!=='string'||!value.displayName.trim()||value.displayName.trim().length>100){
+    block(STORAGE_KEYS.profile,'Saved Space name needs recovery.',loaded.raw);
+    return {displayName:'My space'};
+  }
+  return {displayName:value.displayName.trim()};
+}
+export function saveProfile(profile) {
+  if(!profile||typeof profile.displayName!=='string'||!profile.displayName.trim()||
+      profile.displayName.trim().length>100)return false;
+  return write(STORAGE_KEYS.profile,{displayName:profile.displayName.trim()});
 }
 export function saveTasks(tasks) { return write(STORAGE_KEYS.tasks, tasks); }
 export function saveBranches(branches) { return write(STORAGE_KEYS.branches, branches); }

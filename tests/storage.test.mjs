@@ -13,3 +13,18 @@ test('saved empty branches stay empty',()=>{fake({[BRANCH]:'[]'});assert.deepEqu
 test('preferences reject invalid enum without overwriting original',()=>{const bag=fake({[PREF]:'{"colorMode":"bad"}'});assert.equal(storage.readPreferences().colorMode,'deadline');assert.equal(storage.savePreferences({colorMode:'urgency'}),false);assert.equal(bag.get(PREF),'{"colorMode":"bad"}');});
 test('denied writes return false and inaccessible reads stay recoverable',()=>{fake({},true);assert.equal(storage.saveTasks([]),false);globalThis.localStorage={getItem(){throw Error('denied');},setItem(){throw Error('denied');}};assert.deepEqual(storage.readTasks(),[]);assert.equal(storage.getStorageStatus().recoveryRequired,true);});
 test('normal task branch and preference saves survive reload',()=>{fake();assert.equal(storage.saveTasks([{id:'x',title:'Keep'}]),true);assert.equal(storage.readTasks()[0].title,'Keep');assert.equal(storage.saveBranches([{id:'inbox',parentId:'root',label:'Inbox'}]),true);assert.equal(storage.readBranches()[0].label,'Inbox');assert.equal(storage.savePreferences({colorMode:'urgency'}),true);assert.equal(storage.readPreferences().colorMode,'urgency');});
+
+test('profile names persist locally, validate bounds and preserve corrupted originals',()=>{
+  const bag=fake();
+  assert.deepEqual(storage.readProfile(),{displayName:'My space'});
+  assert.equal(storage.saveProfile({displayName:'  Private Meadow '}),true);
+  assert.deepEqual(storage.readProfile(),{displayName:'Private Meadow'});
+  assert.equal(storage.saveProfile({displayName:'x'.repeat(101)}),false);
+  assert.deepEqual(storage.readProfile(),{displayName:'Private Meadow'});
+  const raw='{"displayName":""}';
+  const profileKey=storage.STORAGE_KEYS.profile;
+  bag.set(profileKey,raw);
+  assert.deepEqual(storage.readProfile(),{displayName:'My space'});
+  assert.equal(storage.saveProfile({displayName:'Restored'}),false);
+  assert.equal(bag.get(profileKey),raw);
+});

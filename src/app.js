@@ -1,6 +1,6 @@
 import { branchPath,descendantsOf,createBranch,removeBranchPreservingContents } from './data.js';
 import { cleanTask,taskSummary } from './model.js';
-import { readTasks,saveTasks,readPreferences,savePreferences,readBranches,saveBranches,STORAGE_KEYS,getStorageStatus,getRecoveryData,markStorageIssue,isStorageWriteBlocked,clearStorageIssues } from './storage.js';
+import { readTasks,saveTasks,readPreferences,savePreferences,readBranches,saveBranches,readProfile,saveProfile,STORAGE_KEYS,getStorageStatus,getRecoveryData,markStorageIssue,isStorageWriteBlocked,clearStorageIssues } from './storage.js';
 import { importCsv,exportCsv } from './csv.js';
 import { Constellation } from './constellation.js';
 import { ScrapWidgets } from './widgets.js';
@@ -18,7 +18,7 @@ const $=id=>document.getElementById(id);
 let restoreRecovery;
 try{restoreRecovery=persistLocally?recoverInterruptedRestore():{ok:true};}catch{restoreRecovery={ok:false};}
 if(!restoreRecovery.ok)for(const key of Object.values(STORAGE_KEYS))markStorageIssue(key,'Interrupted restore needs recovery.');
-const state={branches:initialSnapshot?structuredClone(initialSnapshot.branches):readBranches(),tasks:initialSnapshot?structuredClone(initialSnapshot.tasks):readTasks(),preferences:initialSnapshot?structuredClone(initialSnapshot.preferences):readPreferences(),profile:structuredClone(initialSnapshot?.profile||{displayName:'My space'}),selectedBranchId:'inbox',
+const state={branches:initialSnapshot?structuredClone(initialSnapshot.branches):readBranches(),tasks:initialSnapshot?structuredClone(initialSnapshot.tasks):readTasks(),preferences:initialSnapshot?structuredClone(initialSnapshot.preferences):readPreferences(),profile:structuredClone(initialSnapshot?.profile||(persistLocally?readProfile():{displayName:'My space'})),selectedBranchId:'inbox',
   selectedTaskId:'',captureMode:'capture',captureDraft:'',searchDraft:''};
 const capture=$('capture-form'),input=$('capture-name'),target=$('capture-target');
 const milestoneKey='orbit-v4-milestones';
@@ -176,8 +176,9 @@ function switchCaptureMode(mode){
 function sync({persist=true}={}){
   if(disposed)return false;
   if(persist&&persistLocally&&!readOnly){
-    const tasksOk=saveTasks(state.tasks),branchesOk=saveBranches(state.branches);lastSaveOk=tasksOk&&branchesOk;
-    for(const [key,ok] of [[STORAGE_KEYS.tasks,tasksOk],[STORAGE_KEYS.branches,branchesOk]]){if(ok)pendingWrites.delete(key);else pendingWrites.add(key);}
+    const tasksOk=saveTasks(state.tasks),branchesOk=saveBranches(state.branches),profileOk=saveProfile(state.profile);
+    lastSaveOk=tasksOk&&branchesOk&&profileOk;
+    for(const [key,ok] of [[STORAGE_KEYS.tasks,tasksOk],[STORAGE_KEYS.branches,branchesOk],[STORAGE_KEYS.profile,profileOk]]){if(ok)pendingWrites.delete(key);else pendingWrites.add(key);}
   }
   scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'),state.preferences.colorMode,state.profile.displayName);
   widgets.setData(state.branches,state.tasks,state.preferences.colorMode,milestones);
@@ -224,7 +225,9 @@ function restoreBackup(contents){
     throw Error(result.error);
   }
   clearStorageIssues(result.writtenKeys);for(const key of result.writtenKeys)pendingWrites.delete(key);lastSaveOk=true;
-  state.branches=snapshot.branches;state.tasks=snapshot.tasks;state.preferences=snapshot.preferences;milestones=snapshot.milestones;
+  state.branches=snapshot.branches;state.tasks=snapshot.tasks;state.preferences=snapshot.preferences;
+  if(snapshot.profile)state.profile=structuredClone(snapshot.profile);
+  milestones=snapshot.milestones;
   if(snapshot.spatialLayout)board.setLayout(snapshot.spatialLayout,{persist:false});
   if(snapshot.journalEntries)journal.replaceEntries(snapshot.journalEntries,{persist:false});
   state.selectedBranchId='inbox';sync({persist:false});scene.fitAll();

@@ -37,7 +37,13 @@ export function validateBackup(input, { sanitizeHtml } = {}) {
     if (typeof t.title !== 'string' || !t.title.trim() || !byId.has(t.projectId || t.branchId) ||
         (t.dueDate && !validDateKey(t.dueDate))) throw Error('Invalid task fields or branch.');
   }
+  // Preserve an explicitly exported identity; older V5/V6 backups may omit it.
+  // Validate BEFORE any state change, and never treat user-controlled profile text
+  // as authorization metadata.
+  if(value.profile!==undefined&&(!object(value.profile)||typeof value.profile.displayName!=='string'||
+    !value.profile.displayName.trim()||value.profile.displayName.trim().length>100))throw Error('Invalid workspace name.');
   const normalized = { format:'orbit-backup', version:value.version,
+    ...(value.profile?{profile:{displayName:value.profile.displayName.trim()}}:{}),
     branches:branches.map(b => ({id:b.id,parentId:b.parentId,label:b.label,...(typeof b.color==='string'?{color:b.color.slice(0,24)}:{})})),
     tasks:tasks.map(t => cleanTask(t)), preferences:{colorMode:value.preferences?.colorMode === 'urgency'?'urgency':'deadline'},
     milestones:[] };
@@ -96,6 +102,8 @@ export function persistBackup(snapshot, storage = globalThis.localStorage) {
     [STORAGE_KEYS.tasks]:snapshot.tasks, [STORAGE_KEYS.branches]:snapshot.branches,
     [STORAGE_KEYS.preferences]:snapshot.preferences, [STORAGE_KEYS.milestones]:snapshot.milestones,
   };
+  // An older backup without profile must not reset the current Space name.
+  if(snapshot.profile!==undefined)values[STORAGE_KEYS.profile]=snapshot.profile;
   if (snapshot.journalEntries !== undefined) values[STORAGE_KEYS.journal] = snapshot.journalEntries;
   if (snapshot.spatialLayout !== undefined) {
     values[STORAGE_KEYS.layout] = Object.fromEntries(Object.entries(snapshot.spatialLayout).map(([id,p])=>[id,{x:p.x,y:p.y}]));

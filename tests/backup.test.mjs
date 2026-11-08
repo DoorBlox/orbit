@@ -15,3 +15,27 @@ test('failed rollback retains durable recovery marker and originals',()=>{const 
 test('interrupted restore recovers originals on startup',()=>{const originals={[STORAGE_KEYS.tasks]:'old',[STORAGE_KEYS.preferences]:null};const store=fake({[STORAGE_KEYS.tasks]:'partial',[STORAGE_KEYS.preferences]:'changed',[RESTORE_RECOVERY_KEY]:JSON.stringify({version:1,originals})});const result=recoverInterruptedRestore(store);assert.equal(result.ok,true);assert.equal(result.recovered,true);assert.equal(store.getItem(STORAGE_KEYS.tasks),'old');assert.equal(store.getItem(STORAGE_KEYS.preferences),null);assert.equal(store.getItem(RESTORE_RECOVERY_KEY),null);});
 test('corrupt recovery marker is retained and prevents a new restore',()=>{const store=fake({[RESTORE_RECOVERY_KEY]:'{broken',[STORAGE_KEYS.tasks]:'prior'});const result=persistBackup(validateBackup(fixture()),store);assert.equal(result.ok,false);assert.equal(store.getItem(STORAGE_KEYS.tasks),'prior');assert.equal(store.getItem(RESTORE_RECOVERY_KEY),'{broken');});
 test('marker cannot direct rollback outside allowlisted app keys',()=>{const store=fake({[RESTORE_RECOVERY_KEY]:JSON.stringify({version:1,originals:{foreign:'overwrite'}}),foreign:'retain'});assert.equal(recoverInterruptedRestore(store).ok,false);assert.equal(store.getItem('foreign'),'retain');});
+
+test('a personalized Space name roundtrips through a full backup and local restore',()=>{
+  const value=fixture();value.profile={displayName:'  My Starfield  '};
+  const parsed=validateBackup(JSON.stringify(value));
+  assert.deepEqual(parsed.profile,{displayName:'My Starfield'});
+  const store=fake();
+  const result=persistBackup(parsed,store);
+  assert.equal(result.ok,true);
+  assert.deepEqual(JSON.parse(store.getItem(STORAGE_KEYS.profile)),{displayName:'My Starfield'});
+});
+test('legacy backups without a profile retain an existing locally saved Space name',()=>{
+  const value=fixture();const previous={displayName:'Existing title'};
+  const store=fake({[STORAGE_KEYS.profile]:JSON.stringify(previous)});
+  const parsed=validateBackup(value);
+  assert.equal(parsed.profile,undefined);
+  assert.equal(persistBackup(parsed,store).ok,true);
+  assert.deepEqual(JSON.parse(store.getItem(STORAGE_KEYS.profile)),previous);
+});
+test('unsafe profile payloads cannot overwrite a valid backup or local storage',()=>{
+  for(const profile of [{displayName:''},{displayName:'x'.repeat(101)},{displayName:11},[],null]){
+    const value=fixture();value.profile=profile;
+    assert.throws(()=>validateBackup(value),/workspace name/i);
+  }
+});
