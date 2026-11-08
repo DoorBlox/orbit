@@ -1,6 +1,6 @@
 import { createLayout,getDisplayBounds } from './layout.js';
 import { branchPath,descendantsOf } from './data.js';
-import { taskColor,sortedProjectTasks,dueLabel,formatDate,STATUS,STATUS_LABEL,validateHttpUrl } from './model.js';
+import { taskColor,sortedProjectTasks,dueLabel,formatDate,STATUS,STATUS_LABEL,validateHttpUrl,parseTaskLinks } from './model.js';
 
 const node=(tag,className='',text=null)=>{const el=document.createElement(tag);if(className)el.className=className;if(text!==null)el.textContent=text;return el;};
 const clamp=(n,low,high)=>Math.min(high,Math.max(low,n));
@@ -10,8 +10,8 @@ const hoverPossible=()=>matchMedia('(hover:hover) and (pointer:fine)').matches;
 const NS='http://www.w3.org/2000/svg';
 
 export class Constellation {
-  constructor({viewport,world,edgesEl,nodesEl,decorEl,onBranchSelected,onBranchAdd,onBranchRename,onBranchMove,onBranchDelete,onBranchToggle,onTaskSelected,onTaskUpdate,onTaskDelete}) {
-    Object.assign(this,{viewport,world,edgesEl,nodesEl,decorEl,onBranchSelected,onBranchAdd,onBranchRename,onBranchMove,onBranchDelete,onBranchToggle,onTaskSelected,onTaskUpdate,onTaskDelete});
+  constructor({viewport,world,edgesEl,nodesEl,decorEl,onBranchSelected,onBranchAdd,onBranchRename,onBranchMove,onBranchDelete,onBranchToggle,onTaskSelected,onTaskUpdate,onTaskDelete,onTaskError}) {
+    Object.assign(this,{viewport,world,edgesEl,nodesEl,decorEl,onBranchSelected,onBranchAdd,onBranchRename,onBranchMove,onBranchDelete,onBranchToggle,onTaskSelected,onTaskUpdate,onTaskDelete,onTaskError});
     this.branches=[];this.tasks=[];this.mode='deadline';this.displayName='My space';this.collapsedBranchIds=[];this.layout=createLayout([],[],this.displayName);this.bounds=getDisplayBounds(this.layout);
     this.nodeMap=new Map();this.stackMap=new Map();this.domNodes=new Map();this.domStacks=new Map();this.edgeEntries=[];
     this.camera={x:0,y:0,scale:.2};this.cameraAnimation=0;this.springAnimation=0;
@@ -371,6 +371,11 @@ export class Constellation {
     view.append(metadata);
     const href=validateHttpUrl(task.resourceUrl);
     if(href){const a=node('a','detail-link','↗  Supporting link');a.href=href;a.target='_blank';a.rel='noopener noreferrer';a.addEventListener('click',e=>e.stopPropagation());view.append(a);}
+    for(const link of task.links||[]){
+      const safe=validateHttpUrl(link.url);if(!safe)continue;
+      const a=node('a','detail-link','↗  '+link.label);a.href=safe;a.target='_blank';a.rel='noopener noreferrer';
+      a.addEventListener('click',e=>e.stopPropagation());view.append(a);
+    }
     const actions=node('div','task-actions');
     const act=(label,callback)=>{const button=node('button','task-action',label);button.type='button';button.addEventListener('click',e=>{e.stopPropagation();callback();});actions.append(button);};
     act('Edit',()=>this.openTaskEditor(row,task));
@@ -419,6 +424,8 @@ export class Constellation {
     const effort=node('label','inline-field');effort.append(node('span','inline-field-title','Minutes'));const mins=node('input','inline-input');mins.type='number';mins.min='0';mins.max='1440';mins.name='effortMinutes';mins.value=String(task.effortMinutes||'');effort.append(mins);pair2.append(effort);
     const statusWrap=node('label','inline-field');statusWrap.append(node('span','inline-field-title','Status'));const status=node('select','inline-input');status.name='status';for(const s of STATUS){const opt=node('option','',STATUS_LABEL[s]);opt.value=s;status.append(opt);}status.value=task.status;statusWrap.append(status);pair2.append(statusWrap);form.append(pair2);
     field('Supporting link','resourceUrl');
+    const links=field('More links (one per line: Name | https://url)','extraLinks','textarea');
+    links.rows=3;links.value=(task.links||[]).map(link=>link.label+' | '+link.url).join('\n');
     const actions=node('div','editor-actions');const save=node('button','node-mini-primary','Save changes');save.type='submit';const cancel=node('button','node-mini-secondary','Cancel');cancel.type='button';actions.append(save,cancel);form.append(actions);
     const dismiss=()=>{form.remove();view.hidden=false;row.focus({preventScroll:true});};
     cancel.addEventListener('click',e=>{e.stopPropagation();dismiss();});
@@ -426,6 +433,9 @@ export class Constellation {
     form.addEventListener('click',e=>e.stopPropagation());form.addEventListener('pointerdown',e=>e.stopPropagation());
     form.addEventListener('submit',e=>{e.preventDefault();e.stopPropagation();const data=new FormData(form);const patch=Object.fromEntries(data.entries());
       patch.urgency=Number(patch.urgency)||1;patch.effortMinutes=Number(patch.effortMinutes)||0;
+      try{patch.links=parseTaskLinks(String(patch.extraLinks||''));}
+      catch(error){this.onTaskError?.(error.message);return;}
+      delete patch.extraLinks;
       if(!String(patch.title).trim()){title.focus();return;}
       this.onTaskUpdate?.(task.id,patch);
     });
