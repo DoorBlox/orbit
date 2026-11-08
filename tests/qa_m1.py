@@ -190,7 +190,9 @@ def normal_flows(browser):
     focus(page,'space');page.locator('#expand-all-branches').click()
     expect(renamed).to_have_attribute('aria-expanded','true')
     page.locator('#collapse-all-branches').click()
-    expect(renamed).to_have_attribute('aria-expanded','false')
+    # A collapsed ancestor deliberately removes this descendant from the graph.
+    expect(renamed).to_have_count(0)
+    assert page.locator('.graph-node[data-depth="1"][aria-expanded="false"]').count()>0
     page.locator('#expand-all-branches').click()
     expect(renamed).to_have_attribute('aria-expanded','true')
     # Descendant candidates are absent when moving their ancestor; arbitrary reparenting persists.
