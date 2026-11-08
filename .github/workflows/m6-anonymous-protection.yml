@@ -1,4 +1,4 @@
-name: ORBIT M6 unauthenticated hosted-access smoke
+name: ORBIT 2.2 anonymous sign-in boundary and deployment protection smoke
 
 on:
   pull_request:
@@ -18,57 +18,92 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Verify both exact hostnames reject anonymous app access
+      - name: Verify canonical sign-in shell while raw deployments and Previews remain protected
         shell: bash
         run: |
           set -euo pipefail
           node --input-type=module <<'NODE'
-          const targets = [
-            { label: 'staged-production-no-alias', url: 'https://orbit-n29h3lpcz-doorbloxs-projects.vercel.app/' },
-            { label: 'existing-canonical-domain', url: 'https://orbit.starscene.com/' },
+          const canonical='https://orbit.starscene.com/';
+          const protectedTargets=[
+            ['current-production-deployment','https://orbit-bq6xvk5gr-doorbloxs-projects.vercel.app/'],
+            ['current-preview','https://orbit-scl8stgne-doorbloxs-projects.vercel.app/']
           ];
-          let failures = 0;
-          for (const target of targets) {
-            let status, result = 'INCONCLUSIVE', redirectHost = null, hasCsp = false;
-            try {
-              const response = await fetch(target.url, {
-                method: 'GET', redirect: 'manual', cache: 'no-store',
-                signal: AbortSignal.timeout(12000),
-              });
-              status = response.status;
-              hasCsp = response.headers.has('content-security-policy');
-              if ([401, 403].includes(status)) {
-                result = 'PASS_AUTH_GATE';
-              } else if ([301,302,303,307,308].includes(status)) {
-                const location = response.headers.get('location');
-                if (location) {
-                  const redirect = new URL(location, target.url);
-                  redirectHost = redirect.hostname;
-                  const isVercelAuth = (redirectHost === 'vercel.com' || redirectHost.endsWith('.vercel.com')) ||
-                    (redirectHost === new URL(target.url).hostname && /auth|login|sso|_vercel/i.test(redirect.pathname));
-                  result = redirect.protocol === 'https:' && isVercelAuth ? 'PASS_AUTH_REDIRECT' : 'INCONCLUSIVE_REDIRECT';
+          const get=async url=>fetch(url,{
+            method:'GET',redirect:'manual',cache:'no-store',signal:AbortSignal.timeout(12000)
+          });
+          let failures=0;
+          const check=(label,passed,status,detail='')=>{
+            console.log(JSON.stringify({target:label,status,result:passed?'PASS':'FAIL',detail}));
+            if(!passed)failures++;
+          };
+          for(const [label,url] of protectedTargets){
+            try{
+              const response=await get(url);
+              let protectedResponse=[401,403].includes(response.status);
+              if([301,302,303,307,308].includes(response.status)){
+                const location=response.headers.get('location');
+                if(location){
+                  const u=new URL(location,url);
+                  protectedResponse=u.protocol==='https:'&&(
+                    u.hostname==='vercel.com'||u.hostname.endsWith('.vercel.com')||
+                    (u.origin===new URL(url).origin&&/auth|login|sso|_vercel/i.test(u.pathname))
+                  );
                 }
-              } else if (status === 200) {
-                const body = (await response.text()).slice(0,160000);
-                result = /(?:\.\/)?src\/bootstrap\.js/.test(body) ? 'FAIL_ANONYMOUS_APP_SHELL' : 'INCONCLUSIVE_200';
-              } else {
-                result = 'INCONCLUSIVE_STATUS';
               }
-            } catch (error) {
-              result = 'INCONCLUSIVE_NETWORK';
-              // Do not log request bodies, query strings, or credential-like headers.
+              check(label,protectedResponse,response.status,protectedResponse?'authentication required':'unexpected unprotected deployment');
+            }catch{
+              check(label,false,null,'network failure');
             }
-            // Output only status and benign summary flags, never cookies or URLs with query parameters.
-            console.log(JSON.stringify({target: target.label, status: status ?? null,
-              result, redirectHost, responseHasCsp: hasCsp}));
-            if (!result.startsWith('PASS_')) failures++;
           }
-          if (failures) {
-            console.error('Anonymous host gate not fully verified; inspect deployment protection without weakening it.');
-            process.exitCode = 1;
+          try{
+            const response=await get(canonical);
+            const csp=response.headers.get('content-security-policy')||'';
+            const body=response.status===200?(await response.text()).slice(0,200000):'';
+            const validShell=response.status===200&&
+              /<div id="app"/.test(body)&&/src\/bootstrap\.js/.test(body)&&
+              csp.includes("default-src 'self'")&&
+              csp.includes("script-src 'self'")&&
+              csp.includes("frame-ancestors 'none'")&&
+              csp.includes("object-src 'none'")&&
+              csp.includes('https://ixfgavgtwuzdgucjriec.supabase.co');
+            check('public-canonical-sign-in-shell',validShell,response.status,
+              validShell?'shell present, restrictive CSP':'shell or CSP unexpectedly missing');
+            if(validShell){
+              const configResponse=await get(canonical+'src/runtime-config.js');
+              const text=configResponse.status===200?await configResponse.text():'';
+              const match=text.match(/^export const runtimeConfig = (.+);$/m);
+              let cfg=null;
+              try{cfg=JSON.parse(match?.[1]||'null');}catch{}
+              const validConfig=!!cfg&&cfg.siteUrl===canonical&&
+                cfg.supabaseUrl==='https://ixfgavgtwuzdgucjriec.supabase.co'&&
+                cfg.publicRelease===false&&
+                typeof cfg.publishableKey==='string'&&!cfg.publishableKey.startsWith('sb_secret_');
+              check('canonical-public-runtime-config',validConfig,configResponse.status,
+                validConfig?'exact canonical Supabase Auth config':'invalid or missing public config');
+            }
+          }catch{
+            check('public-canonical-sign-in-shell',false,null,'network failure');
+          }
+          try{
+            const response=await get('https://orbit.allintime.space/');
+            const location=response.headers.get('location');
+            const redirect=location?new URL(location,'https://orbit.allintime.space/'):null;
+            check('secondary-canonical-redirect',
+              [301,302,303,307,308].includes(response.status)&&
+              redirect?.origin===new URL(canonical).origin,
+              response.status,'must redirect to canonical');
+          }catch{
+            check('secondary-canonical-redirect',false,null,'network failure');
+          }
+          if(failures){
+            console.error('ORBIT 2.2 public sign-in/protected deployment boundary failed.');
+            process.exitCode=1;
           }
           NODE
 
-# This is a READ-ONLY, unauthenticated GET check against exactly two known ORBIT hosts.
-# It cannot verify protected-app CSP, Supabase RLS, owner login, or other routes.
-# It never sends user credentials, bearer tokens or private data.
+# Read-only unauthenticated HTTP smoke against exact ORBIT-owned endpoints.
+# A 200 HTML shell is EXPECTED on the public custom Production domain.
+# Supabase tenant RLS protects private records; this check cannot replace
+# real bearer-token isolation tests or browser rendering checks.
+# Raw Production deployment URLs and Preview deployments must remain Vercel protected.
+# Never print user session state, publishable keys, access tokens or private data.
