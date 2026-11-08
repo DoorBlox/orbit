@@ -83,9 +83,10 @@ export class StickyNotes {
       editor.addEventListener('blur',()=>{clearTimeout(timer);this.changed();});
       const preview=document.createElement('div');preview.className='sticky-drawing';
       renderScene(n.scene,preview);
+      let image=null;
       if(n.imagePath&&this.media){
-        const image=document.createElement('img');image.className='sticky-image';image.alt='Private image attached to '+n.title;
-        image.loading='lazy';article.append(image);
+        image=document.createElement('img');image.className='sticky-image';image.alt='Private image attached to '+n.title;
+        image.loading='lazy';
         this.media.signedUrl(n.imagePath).then(url=>{if(!this.disposed&&image.isConnected)image.src=url;})
           .catch(()=>{if(image.isConnected)image.alt='Private image unavailable';});
       }
@@ -126,7 +127,7 @@ export class StickyNotes {
         article.style.width=n.width+'px';article.style.height=n.height+'px';this.changed();
       });
       article.addEventListener('pointerdown',e=>e.stopPropagation());
-      article.append(head,editor,preview,actions,resizer);this.layer.append(article);
+      article.append(head,editor,preview);if(image)article.append(image);article.append(actions,resizer);this.layer.append(article);
     }
   }
   dispose(){this.disposed=true;this.layer.remove();this.notes=[];}

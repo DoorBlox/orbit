@@ -874,3 +874,8 @@ body.cloud-space-mounted .app-shell{height:100dvh!important}
 .cloud-password-label{font-size:12px;margin:12px 0 4px;color:var(--text-muted,#68717d)}
 @media(max-width:560px){.orbit-scene-dialog{max-height:96dvh;width:97vw}.orbit-scene-tools .glass-button{font-size:11px;padding:7px 8px}}
 @media(prefers-reduced-motion:reduce){.sticky-note,.orbit-scene-dialog{animation:none!important;transition:none!important}}
+
+/* Signed private media; URLs remain in-memory and expire. */
+.sticky-image{display:block;max-width:100%;max-height:145px;object-fit:contain;border-radius:7px;margin:0 auto}
+.journal-image-preview{display:block;max-width:calc(100% - 32px);max-height:320px;object-fit:contain;margin:12px auto;border-radius:8px}
+.journal-image-preview[hidden]{display:none}

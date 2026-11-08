@@ -8,7 +8,7 @@ import { assertProductionConfig } from './production-guard.mjs';
 export const browserModules = [
   'app.js','board.js','constellation.js','csv.js','data.js','journal.js','scene.js','stickies.js',
   'backup.js','dates.js','layout.js','model.js','storage.js','widgets.js','styles.css',
-  'bootstrap.js','auth/controller.js','auth/shell.js','cloud/client-config.js',
+  'bootstrap.js','auth/controller.js','auth/shell.js','cloud/media.js','cloud/client-config.js',
   'cloud/mappers.js','cloud/repository.js','cloud/sync.js','cloud/owner-tools.js',
 ];
 export const sdkBuildOptions=(root,outdir)=>({

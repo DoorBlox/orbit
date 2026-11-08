@@ -30,5 +30,5 @@ test('extensions reject invalid note IDs, oversize text and malicious task refer
     {taskLinks:{task_1:[{label:'Credentials',url:'https://user:password@example.com/private'}]}},
     {journalScenes:{bad: {...emptyScene(),files:{file:{}}}}}
   ])assert.throws(()=>normalizeExtensions(invalid));
-  assert.deepEqual(normalizeExtensions({}),{notes:[],taskLinks:{},journalScenes:{}});
+  assert.deepEqual(normalizeExtensions({}),{notes:[],taskLinks:{},journalScenes:{},journalImages:{}});
 });
