@@ -72,7 +72,7 @@ $$;
 
 -- Each verified user can load only their own owner_id-scoped data and revision.
 create or replace function public.load_owner_snapshot() returns jsonb language plpgsql security invoker
-set search_path = '' as $
+set search_path = '' as $$
 declare owner_uuid uuid:=auth.uid(); result jsonb;
 begin
   if owner_uuid is null then raise exception using errcode='42501',message='Authenticated workspace required'; end if;
@@ -89,7 +89,7 @@ begin
     )) into result;
   return result;
 end;
-$;
+$$;
 
 -- Preserve exactly the last reviewed snapshot algorithm, PT409 CAS semantics,
 -- owner_id-scoped DELETE/INSERT, composite FKs and owner-only publication cleanup.
