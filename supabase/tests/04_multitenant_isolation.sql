@@ -3,6 +3,10 @@
 begin;
 set local search_path=public,extensions;
 select no_plan();
+select is((select public from storage.buckets where id='orbit-private-media'),false,'Private media bucket is not public');
+select ok((select count(*) from pg_policies where schemaname='storage'
+  and tablename='objects' and policyname in ('orbit_media_owner_select','orbit_media_owner_insert'))=2,
+  'Private media has authenticated RLS read and upload policies');
 insert into auth.users(id,email) values
  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','orbit-a@example.invalid'),
  ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','orbit-b@example.invalid'),
