@@ -1,5 +1,16 @@
 # ORBIT implementation history and evidence ledger
 
+## 8 Nov 2026 extension after the original M6 release
+
+- [PR #12](https://github.com/DoorBlox/orbit/pull/12) — 1.1 foundation source: generic user center, safe branch removal with undo, dated journals and fullscreen fitting.
+- [PR #13](https://github.com/DoorBlox/orbit/pull/13) — dependency-ordered 2.x blueprint covering accounts, controls, Excalidraw, private assets, sticky notes, notifications, MCP and integrations.
+- [PR #14](https://github.com/DoorBlox/orbit/pull/14), stacked [#15](https://github.com/DoorBlox/orbit/pull/15) — 2.0 tenant-isolated database and Supabase Auth signup source; the merged implementation passed all four CI checks.
+- Hosted Supabase migration `20261108161935 orbit_tenant_private_workspaces` applied successfully; exact original owner's data row counts unchanged in immediate before/after read-only checks.
+- GitHub [Protect main](https://github.com/DoorBlox/orbit/rules/26803051) branch ruleset became active; [issue #17](https://github.com/DoorBlox/orbit/issues/17) closed.
+- [PR #18](https://github.com/DoorBlox/orbit/pull/18) — cloud controls moved to the movable Space widget, removing the signed-in bottom dock. Exact-head CI passed.
+- **Not a 2.0 Production release:** the owner-confirmed live Vercel application is still source `fc5af5a`, with Vercel Authentication on all deployments. Public multi-user login and hosted browser isolation have not yet been accepted.
+
+
 > **Consolidated 8 November 2026.** This ledger explains *how* ORBIT progressed from V6 to a working owner-only Production release. Earlier per-milestone docs remain in `docs/decisions/` as dated evidence; they may correctly say "not released" **at their historical checkpoint**. For what is live now, use [OPERATIONS.md](OPERATIONS.md).
 
 ## Product and design invariants

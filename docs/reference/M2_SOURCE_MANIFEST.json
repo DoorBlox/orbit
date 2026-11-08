@@ -1,19 +1,19 @@
 {
   "baselineCommit": "846ad7df3fa3fdf4c63fd22f2830fed56f83a06e",
   "milestone": "M2",
-  "review": "Current source hashes include the Space panel and 2.0 auth; immutable original V6 and historical M1 manifests unchanged.",
+  "review": "Reviewed 2.1 Space control panel and user-specific naming; original V6 and M1 historical manifests unchanged.",
   "files": {
     "assets/orbit.svg": {
       "sha256": "97eb19dd4e0773d0b6489b1f49d794ffd272fb3bc2d42af4faffd6a1adca78c3",
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "index.html": {
-      "sha256": "be6b092dc61d9fd2a7e7dad12eb4aaa4adbb644fa0bc12662fdd7e54344166be",
-      "reason": "Use the explicit local/protected-cloud bootstrap entry while preserving V6 spatial DOM."
+      "sha256": "cb52bcd0f431efb4cac6a6dd60fd3bc1a1d82487e71d76a5b537e411cd7e9bd9",
+      "reason": "2.1 reviewed: per-account editable space name and constellation center reflected in cloud snapshot"
     },
     "src/app.js": {
-      "sha256": "961e08c2acf83cb943f0483850d4fe2d932dd17bc261a0d9c2fc43e61f0e0a8f",
-      "reason": "1.1 reviewed: user-specific center, non-destructive branch removal, chronological journal or viewport fullscreen fix."
+      "sha256": "db416cea33893662b74f387a19c849ce33f191a473a25ea4e8097d3664c1dcc2",
+      "reason": "2.1 reviewed: per-account editable space name and constellation center reflected in cloud snapshot"
     },
     "src/auth/README.md": {
       "sha256": "1ec9f199e2ab8b76ff9a7d462f1804d6653706a8eb4b005e23311d76c9d1f7d5",
@@ -104,8 +104,8 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "src/styles.css": {
-      "sha256": "2f8d02887922af4a41a5e0cb00d74c2127986ded6de35a07e7017d0c293f0137",
-      "reason": "2.1 reviewed: Space panel cloud controls replace the fixed dock; owner state and signed-out teardown remain gated."
+      "sha256": "22a2fa6e7ee3022b5bbc93bc5a5aac791467abed5b96b9b0bc340a3e4fb47604",
+      "reason": "2.1 reviewed: per-account editable space name and constellation center reflected in cloud snapshot"
     },
     "src/widgets.js": {
       "sha256": "aee68a4ce8a37edbb2de2fa1b0a2fc4589fcaf28a00603db2b148c6875a8ec58",

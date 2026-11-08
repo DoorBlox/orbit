@@ -820,3 +820,12 @@ body.cloud-space-mounted #space-widget #backup-json{display:none}
 body.cloud-space-mounted .app-shell{height:100dvh!important}
 @media(max-width:700px){body.cloud-space-mounted #space-widget>.cloud-toolbar{padding:12px 10px}}
 @media(prefers-reduced-transparency:reduce){body.cloud-space-mounted #space-widget>.cloud-toolbar{background:#f5f4ef}}
+
+/* A restrained inline title editor for each account's spatial Space panel. */
+.space-name-form[hidden]{display:none!important}
+.space-name-form{margin:12px 0;display:grid;gap:9px;padding:12px;border:1px solid rgba(96,114,137,.22);border-radius:15px;background:rgba(250,247,240,.6)}
+.space-name-form label{font-size:12px;font-weight:650;color:var(--text)}
+.space-name-form input{width:100%;min-height:44px;border:1px solid rgba(94,110,130,.36);border-radius:11px;padding:9px 12px;background:rgba(255,255,255,.88);color:var(--text);font:inherit}
+.space-name-form input:focus-visible{outline:3px solid rgba(91,132,190,.5);outline-offset:2px}
+.space-name-actions{display:flex;gap:8px;flex-wrap:wrap}
+.space-name-actions button{min-height:44px;flex:1 1 105px}

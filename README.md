@@ -4,7 +4,7 @@ A personal, infinite-feeling 2D scrapbook. Move through one zoomable world of ta
 
 **ORBIT 1.0.0 is live for its single owner.** The source is public and [MIT licensed](LICENSE); **the workspace is not public**.
 
-**In development:** Source-only 1.1.0 foundations are merged but **not deployed**; the 2.0 multi-user change is in review, not available to visitors. See [Changelog](CHANGELOG.md) and [open development PRs](https://github.com/DoorBlox/orbit/pulls).
+**In development:** 1.1 organization fixes, 2.0 tenant/signup source and the 2.1 Space control panel are merged to `main`, but **are not on the live site**. The hosted database has its 2.0 private tenant schema; Production still serves the original 1.0.0 owner-only app behind Vercel Authentication. New-user signup is **not yet publicly released**. See [Changelog](CHANGELOG.md), [Operations](docs/OPERATIONS.md) and [open development PRs](https://github.com/DoorBlox/orbit/pulls).
 
 **[Open ORBIT](https://orbit.starscene.com/)** · [Release notes](docs/releases/1.0.0.md) · [Project history](docs/PROJECT_HISTORY.md) · [Operations & recovery](docs/OPERATIONS.md) · [Continue in a new chat](CODEX_HANDOFF.md)
 

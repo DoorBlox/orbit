@@ -231,6 +231,27 @@ function restoreBackup(contents){
   message('Backup restored, including journal and widget positions (when available).');
 }
 function initTools(){
+  // A per-account center name can be edited without changing other users' profiles.
+  const rename=$('rename-space'),nameForm=$('space-name-form'),nameField=$('space-name-input');
+  const closeName=()=>{nameForm.hidden=true;rename.setAttribute('aria-expanded','false');};
+  rename.addEventListener('click',()=>{
+    if(readOnly||disposed)return;
+    nameField.value=state.profile.displayName;
+    nameForm.hidden=false;rename.setAttribute('aria-expanded','true');nameField.focus();
+  });
+  nameForm.addEventListener('submit',e=>{
+    e.preventDefault();if(readOnly||disposed)return;
+    const value=nameField.value.trim().slice(0,100);
+    if(!value){nameField.setCustomValidity('Name your space.');nameField.reportValidity();return;}
+    nameField.setCustomValidity('');
+    closeName();
+    if(value!==state.profile.displayName){
+      state.profile.displayName=value;sync();message('Your space has a new name.');
+    }
+    rename.focus();
+  });
+  nameField.addEventListener('input',()=>nameField.setCustomValidity(''));
+  $('cancel-space-name').addEventListener('click',()=>{closeName();rename.focus();});
   capture.addEventListener('submit',quickCapture);
   $('capture-mode').addEventListener('click',()=>switchCaptureMode(state.captureMode==='capture'?'find':'capture'));
   input.addEventListener('input',()=>{if(state.captureMode==='find'){state.searchDraft=input.value;updateSearch();}else state.captureDraft=input.value;});
@@ -316,7 +337,7 @@ if(persistLocally&&getStorageStatus().recoveryRequired)message('Saved data needs
 showClock();const clockTimer=setInterval(showClock,30000);
 hydrating=false;
 $('app').dataset.readOnly=String(readOnly);
-if(readOnly){for(const id of ['capture-name','capture-mode','capture-submit','import-csv','clear-demo','csv-file'])$(id).disabled=true;}
+if(readOnly){for(const id of ['capture-name','capture-mode','capture-submit','import-csv','clear-demo','csv-file','rename-space'])$(id).disabled=true;}
 window.orbitDebug={get state(){return {tasks:state.tasks.length,branches:state.branches.length,selectedBranchId:state.selectedBranchId,camera:scene.getCamera(),boardScale:board.scale,boardPan:{...board.pan},mode:state.preferences.colorMode,milestones:milestones.length,journalPages:journal.entries.length,widgetSizes:structuredClone(board.sizes)};},fit:()=>scene.fitAll(),focusWidget:id=>board.focus(id),board,scene,journal};
 // SpatialBoard establishes the initial camera position.
 
