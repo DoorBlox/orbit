@@ -92,7 +92,16 @@
 </section><section aria-label="Space and backup" class="glass-widget space-widget spatial-item" data-widget="space" id="space-widget">
 <header class="widget-heading space-heading"><button aria-label="Move Your space widget. Arrow keys move it." class="widget-grip" title="Drag to move. Arrow keys also work." type="button"><svg aria-hidden="true" class="icon"><use href="#i-grip"></use></svg></button><span class="eyebrow">YOUR SPACE</span></header>
 <p class="summary-text" id="task-summary">Everything accounted for.</p>
+<form class="space-name-form" id="space-name-form" hidden>
+<label for="space-name-input">Name of your space</label>
+<input type="text" id="space-name-input" maxlength="100" autocomplete="off" required/>
+<div class="space-name-actions">
+<button class="glass-button" type="submit">Save name</button>
+<button class="glass-button subtle" id="cancel-space-name" type="button">Cancel</button>
+</div>
+</form>
 <div class="space-actions">
+<button class="glass-button" id="rename-space" aria-controls="space-name-form" aria-expanded="false" type="button">Rename space</button>
 <button class="glass-button" id="backup-json" type="button">Backup</button>
 <button class="glass-button" id="import-csv" type="button">Import</button>
 <button class="glass-button" id="export-csv" type="button">Export CSV</button>

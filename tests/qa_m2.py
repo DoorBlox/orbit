@@ -209,6 +209,12 @@ def owner_case(browser,size,source):
         expect(page.locator('#app')).to_be_visible()
         assert page.locator('#space-widget > .cloud-toolbar').count()==1
         assert not page.evaluate("document.body.classList.contains('cloud-connected')"), 'No viewport height is reserved for the removed dock'
+        page.evaluate("window.orbitDebug.board.focus('space',{initial:true})")
+        page.locator('#rename-space').click()
+        page.locator('#space-name-input').fill('My Starfield')
+        page.locator('#space-name-form').get_by_role('button',name='Save name').click()
+        expect(page.locator('.root-name')).to_have_text('My Starfield')
+        wait_until(page,"window.__m2Fixture.calls.some(c=>c.name==='save_owner_snapshot' && c.args.p_snapshot.profile.displayName==='My Starfield')")
         expect(page.locator('#active-task-list')).to_contain_text(OWNER_SECRET)
         assert page.evaluate('window.orbitDebug.state.tasks')==1
         assert_pointer_reachable(page,'#board-zoom-in')
