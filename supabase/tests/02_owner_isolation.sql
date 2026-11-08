@@ -79,7 +79,7 @@ select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222'
 select ok(not public.orbit_owner_access(),'original-owner-only publishing authority remains unavailable');
 select ok(public.orbit_workspace_access(),'authenticated second user has workspace access');
 select is((public.load_owner_snapshot()->>'revision')::bigint,0::bigint,'new user initially owns an empty revision');
-select throws_ok($$select public.save_owner_snapshot('{}',0)$,'22023',null,'second-user malformed snapshot rejected');
+select throws_ok($$select public.save_owner_snapshot('{}',0)$$,'22023',null,'second-user malformed snapshot rejected');
 select throws_ok($$select public.publish_content('task','secret-task','Updated chosen task title','steal',null)$$,'42501',null,'stranger publication denied');
 select throws_ok($$select public.unpublish_content('task','secret-task')$$,'42501',null,'stranger unpublish denied');
 select is((select count(*) from public.profiles),0::bigint,'stranger profiles filtered');
@@ -90,13 +90,13 @@ select is((select count(*) from public.milestones),0::bigint,'stranger milestone
 select is((select count(*) from public.widget_layouts),0::bigint,'stranger layout filtered');
 select is((select count(*) from public.preferences),0::bigint,'stranger preferences filtered');
 select is((select count(*) from public.published_content),0::bigint,'protected preview stranger sees no publication');
-select lives_ok($$insert into public.profiles(user_id) values('22222222-2222-4222-8222-222222222222')$,'second user creates own profile');
-select lives_ok($$insert into public.branches(owner_id,id,label) values('22222222-2222-4222-8222-222222222222','inbox','Second user inbox')$,'second user creates same branch ID independently');
-select lives_ok($$insert into public.tasks(owner_id,id,project_id,title) values('22222222-2222-4222-8222-222222222222','secret-task','inbox','Second user task')$,'second user creates a same-ID task privately');
-select lives_ok($$insert into public.journal_entries(owner_id,id,entry_date) values('22222222-2222-4222-8222-222222222222','secret-journal','2026-11-01')$,'second user creates a same-ID private journal');
-select lives_ok($$insert into public.milestones(owner_id,id,title,marker_date) values('22222222-2222-4222-8222-222222222222','m','Second milestone','2026-11-01')$,'second user creates a private milestone');
-select lives_ok($$insert into public.widget_layouts(owner_id,widget_key,x,y) values('22222222-2222-4222-8222-222222222222','timeline',0,0)$,'second user creates own layout');
-select lives_ok($$insert into public.preferences(owner_id) values('22222222-2222-4222-8222-222222222222')$,'second user creates own preferences');
+select lives_ok($$insert into public.profiles(user_id) values('22222222-2222-4222-8222-222222222222')$$,'second user creates own profile');
+select lives_ok($$insert into public.branches(owner_id,id,label) values('22222222-2222-4222-8222-222222222222','inbox','Second user inbox')$$,'second user creates same branch ID independently');
+select lives_ok($$insert into public.tasks(owner_id,id,project_id,title) values('22222222-2222-4222-8222-222222222222','secret-task','inbox','Second user task')$$,'second user creates a same-ID task privately');
+select lives_ok($$insert into public.journal_entries(owner_id,id,entry_date) values('22222222-2222-4222-8222-222222222222','secret-journal','2026-11-01')$$,'second user creates a same-ID private journal');
+select lives_ok($$insert into public.milestones(owner_id,id,title,marker_date) values('22222222-2222-4222-8222-222222222222','m','Second milestone','2026-11-01')$$,'second user creates a private milestone');
+select lives_ok($$insert into public.widget_layouts(owner_id,widget_key,x,y) values('22222222-2222-4222-8222-222222222222','timeline',0,0)$$,'second user creates own layout');
+select lives_ok($$insert into public.preferences(owner_id) values('22222222-2222-4222-8222-222222222222')$$,'second user creates own preferences');
 select throws_ok($$insert into public.tasks(owner_id,id,project_id,title) values('11111111-1111-4111-8111-111111111111','forged','inbox','Foreign')$$,'42501',null,'forged owner task denied');
 select throws_ok($$insert into public.profiles(user_id) values('11111111-1111-4111-8111-111111111111')$$,'42501',null,'forged owner profiles insert denied');
 select throws_ok($$insert into public.branches(owner_id,id,label) values('11111111-1111-4111-8111-111111111111','forged','Forged')$$,'42501',null,'forged owner branches insert denied');
@@ -124,7 +124,7 @@ with changed as(delete from public.preferences returning *) select is((select co
 -- A second user's same-ID deletion must NOT prune original-owner publications.
 select is(jsonb_array_length(public.load_owner_snapshot()->'snapshot'->'tasks'),0,'second user task deletion leaves no own task rows');
 select ok((public.load_owner_snapshot()->>'revision')::bigint>0,'second user direct DML advances own CAS revision');
-select throws_ok($$update public.tasks set owner_id='11111111-1111-4111-8111-111111111111'$,'42501',null,'second user cannot steal original owner rows');
+select throws_ok($$update public.tasks set owner_id='11111111-1111-4111-8111-111111111111'$$,'42501',null,'second user cannot steal original owner rows');
 select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
 select is((public.load_owner_snapshot()->'snapshot'->'tasks'->0->>'title'),'Updated chosen task title','original owner task untouched after second user DML');
 select is((select count(*) from public.published_content where kind='task'),1::bigint,'second user same-ID deletion cannot prune original owner publication');
