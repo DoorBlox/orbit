@@ -4,9 +4,9 @@ A personal, infinite-feeling 2D scrapbook. Move through one zoomable world of ta
 
 **ORBIT 1.0.0 is live for its single owner.** The source is public and [MIT licensed](LICENSE); **the workspace is not public**.
 
-**In development:** 1.1 organization fixes, 2.0 tenant/signup source, universal import/export and the 2.1 Space control panel are merged to `main`, but **are not on the live site**. A current feature branch removes the obsolete header caption and adds per-account branch collapse/expand (browser-local view preference, included in backups). The hosted database has its 2.0 private tenant schema; Production still serves the original 1.0.0 owner-only app behind Vercel Authentication. New-user signup is **not yet publicly released**. See [Changelog](CHANGELOG.md), [Operations](docs/OPERATIONS.md) and [open development PRs](https://github.com/DoorBlox/orbit/pulls).
+**In development:** 1.1 organization fixes, 2.0 tenant/signup source, universal import/export and the 2.1 Space control panel are merged to `main`, but **are not on the live site**. PR #24 merged branch collapse/expand (browser-local preference, included in backups); an unreleased 2.2 feature branch adds Google-first login, multiple task references, floating stickies, a shared journal/sticky drawing scene bridge and private images. The hosted database has its 2.0 private tenant schema; Production still serves the original 1.0.0 owner-only app behind Vercel Authentication. New-user signup is **not yet publicly released**. See [Changelog](CHANGELOG.md), [Operations](docs/OPERATIONS.md) and [open development PRs](https://github.com/DoorBlox/orbit/pulls).
 
-**[Open ORBIT](https://orbit.starscene.com/)** · [Release notes](docs/releases/1.0.0.md) · [Project history](docs/PROJECT_HISTORY.md) · [Operations & recovery](docs/OPERATIONS.md) · [Continue in a new chat](CODEX_HANDOFF.md)
+**[Open ORBIT](https://orbit.starscene.com/)** · [2.2 Google sign-in & rollout](docs/OAUTH_2_2_ROLLOUT.md) · [Release notes](docs/releases/1.0.0.md) · [Project history](docs/PROJECT_HISTORY.md) · [Operations & recovery](docs/OPERATIONS.md) · [Continue in a new chat](CODEX_HANDOFF.md)
 
 ## What ORBIT does
 
@@ -17,6 +17,8 @@ One pannable/zoomable spatial world contains six independently draggable and res
 - **Things to do** and **Already done:** active/completed views over shared task data.
 - **Your space:** personal workspace controls, layout and recovery features.
 - **Journal:** paper-like dated rich-text pages, autosave, undo and Markdown export.
+
+**In 2.2 source-only development:** paper sticky notes in the spatial world and dated journal pages both support a native pen editor with portable `.excalidraw` exchange. The full upstream React Excalidraw editor is not embedded. Private images use short-lived signed URLs and an unapplied per-user Supabase Storage policy; JSON backups include media references, not binary files.
 
 The app also supports keyboard controls, touch/pinch navigation, responsive phone layouts, reduced motion, CSV task/branch imports and selective exports, and full JSON backup/restore (with V5/V6 compatibility). The V6 visual identity and single-world navigation are intentionally preserved.
 
