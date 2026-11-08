@@ -96,8 +96,8 @@ select lives_ok($$insert into public.tasks(owner_id,id,project_id,title) values(
 select lives_ok($$insert into public.journal_entries(owner_id,id,entry_date) values('22222222-2222-4222-8222-222222222222','secret-journal','2026-11-01')$$,'second user creates a same-ID private journal');
 select lives_ok($$insert into public.milestones(owner_id,id,title,marker_date) values('22222222-2222-4222-8222-222222222222','m','Second milestone','2026-11-01')$$,'second user creates a private milestone');
 select lives_ok($$insert into public.widget_layouts(owner_id,widget_key,x,y) values('22222222-2222-4222-8222-222222222222','timeline',0,0)$$,'second user creates own layout');
-select lives_ok($insert into public.preferences(owner_id) values('22222222-2222-4222-8222-222222222222')$,'second user creates own preferences');
-select throws_ok($update public.tasks set owner_id='11111111-1111-4111-8111-111111111111'$,'42501',null,'second user cannot steal original owner rows');
+select lives_ok($$insert into public.preferences(owner_id) values('22222222-2222-4222-8222-222222222222')$$,'second user creates own preferences');
+select throws_ok($$update public.tasks set owner_id='11111111-1111-4111-8111-111111111111'$$,'42501',null,'second user cannot steal original owner rows');
 select throws_ok($$insert into public.tasks(owner_id,id,project_id,title) values('11111111-1111-4111-8111-111111111111','forged','inbox','Foreign')$$,'42501',null,'forged owner task denied');
 select throws_ok($$insert into public.profiles(user_id) values('11111111-1111-4111-8111-111111111111')$$,'42501',null,'forged owner profiles insert denied');
 select throws_ok($$insert into public.branches(owner_id,id,label) values('11111111-1111-4111-8111-111111111111','forged','Forged')$$,'42501',null,'forged owner branches insert denied');
