@@ -1,7 +1,7 @@
 {
   "baselineCommit": "846ad7df3fa3fdf4c63fd22f2830fed56f83a06e",
   "milestone": "M2",
-  "review": "Merged reviewed ORBIT 1.1 foundations from main with ORBIT 2.0 tenant/auth source hashes. Original V6 and historical M1 provenance remain immutable; multi-user migration remains unapproved for hosted use.",
+  "review": "Current source hashes include the Space panel and 2.0 auth; immutable original V6 and historical M1 manifests unchanged.",
   "files": {
     "assets/orbit.svg": {
       "sha256": "97eb19dd4e0773d0b6489b1f49d794ffd272fb3bc2d42af4faffd6a1adca78c3",
@@ -24,8 +24,8 @@
       "reason": "ORBIT 2.0 reviewed draft: verified-user workspace gate and signup while preserving tenant privacy; Production release requires staged migration."
     },
     "src/auth/shell.js": {
-      "sha256": "64dbb79cded761b3c367760f5ec06b853b20ac45ce0b2cd44964601adbbb46c8",
-      "reason": "ORBIT 2.0 reviewed draft: verified-user workspace gate and signup while preserving tenant privacy; Production release requires staged migration."
+      "sha256": "ba20d4eb1e36224d60062798aaed2cda19225e122c6821192a1d82782ae1cc61",
+      "reason": "2.1 reviewed: Space panel cloud controls replace the fixed dock; owner state and signed-out teardown remain gated."
     },
     "src/backup.js": {
       "sha256": "f03df9680e644d694f998182907f5c37ce5c5d342ec6c9359a561640619fa02a",
@@ -36,8 +36,8 @@
       "reason": "M2.5 P0-A/B reviewed: manual input owns the camera; active navigation resolves immediately on reduced motion; initialization/navigation handles cancel on disposal. Layout and cloud behavior unchanged."
     },
     "src/bootstrap.js": {
-      "sha256": "b2705864c4fe5aab3e8110cb3aa48a5cb01f7d4d3ca5f6056f3ef690aa0fb0ad",
-      "reason": "ORBIT 2.0 reviewed draft: verified-user workspace gate and signup while preserving tenant privacy; Production release requires staged migration."
+      "sha256": "7eb6f78590ef015465cfd00a29a630b21f726d5b04cf521ef132993dc250a2e6",
+      "reason": "2.1 reviewed: Space panel cloud controls replace the fixed dock; owner state and signed-out teardown remain gated."
     },
     "src/cloud/README.md": {
       "sha256": "2fa23ecebff7de9fa7e5463f3c77031e97850cf192398ea0da66c2f6cd19a4af",
@@ -104,8 +104,8 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "src/styles.css": {
-      "sha256": "a874c4eac3d14fb9cc29a8f02829cf244c22d3333663e6beb7b94550a6259116",
-      "reason": "Minimal authentication/status controls retaining spatial scrapbook identity."
+      "sha256": "2f8d02887922af4a41a5e0cb00d74c2127986ded6de35a07e7017d0c293f0137",
+      "reason": "2.1 reviewed: Space panel cloud controls replace the fixed dock; owner state and signed-out teardown remain gated."
     },
     "src/widgets.js": {
       "sha256": "aee68a4ce8a37edbb2de2fa1b0a2fc4589fcaf28a00603db2b148c6875a8ec58",

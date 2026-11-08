@@ -791,3 +791,32 @@ body.cloud-connected .space-navigator{bottom:calc(19px + var(--cloud-dock-height
 .cloud-email-login input{width:100%;min-width:0;border:1px solid #CBD9EB;border-radius:10px;padding:10px;background:#fff;color:var(--text)}
 .cloud-email-login button{margin:0}.cloud-email-login p{margin:0;font-size:13px}
 .cloud-email-login :disabled{cursor:default;opacity:.65}
+
+/* ORBIT 2.1: cloud account and sync controls inhabit the existing spatial
+   Space widget. Keep the authentication gate fixed only while signed out. */
+body.cloud-space-mounted .space-widget{overflow:auto;scrollbar-gutter:stable}
+body.cloud-space-mounted #space-widget>.cloud-toolbar{
+  position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+  inset:auto!important;display:block;flex:none;width:100%;max-width:100%;margin:14px 0 0;
+  padding:14px 13px;border:1px solid rgba(99,118,143,.22);border-radius:17px;
+  background:linear-gradient(145deg,rgba(254,252,247,.74),rgba(233,240,250,.78));
+  box-shadow:inset 0 1px rgba(255,255,255,.55);backdrop-filter:none;-webkit-backdrop-filter:none;
+}
+body.cloud-space-mounted #space-widget>.cloud-toolbar[hidden]{display:none}
+body.cloud-space-mounted #space-widget .cloud-mode{font-size:13px;line-height:1.4}
+body.cloud-space-mounted #space-widget .cloud-sync-state{margin-top:4px;min-height:18px;font-size:12px}
+body.cloud-space-mounted #space-widget .cloud-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+body.cloud-space-mounted #space-widget .cloud-controls>.glass-button{
+  min-width:0;min-height:44px;white-space:normal;line-height:1.35;padding:9px 7px;font-size:12px;
+}
+body.cloud-space-mounted #space-widget #cloud-owner-tools{position:static;grid-column:1/-1;width:100%;max-width:none;min-width:0}
+body.cloud-space-mounted #space-widget .cloud-owner-panel{width:100%;max-height:none;background:transparent}
+body.cloud-space-mounted #space-widget .cloud-owner-panel[open]{
+  position:relative!important;inset:auto!important;width:100%;max-height:360px;overflow-y:auto;
+  margin-top:7px;padding:12px;border:1px solid rgba(99,118,143,.23);border-radius:14px;
+  background:rgba(249,249,248,.96);
+}
+body.cloud-space-mounted #space-widget #backup-json{display:none}
+body.cloud-space-mounted .app-shell{height:100dvh!important}
+@media(max-width:700px){body.cloud-space-mounted #space-widget>.cloud-toolbar{padding:12px 10px}}
+@media(prefers-reduced-transparency:reduce){body.cloud-space-mounted #space-widget>.cloud-toolbar{background:#f5f4ef}}

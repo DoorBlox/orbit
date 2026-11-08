@@ -207,6 +207,8 @@ def owner_case(browser,size,source):
     try:
         expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
         expect(page.locator('#app')).to_be_visible()
+        assert page.locator('#space-widget > .cloud-toolbar').count()==1
+        assert not page.evaluate("document.body.classList.contains('cloud-connected')"), 'No viewport height is reserved for the removed dock'
         expect(page.locator('#active-task-list')).to_contain_text(OWNER_SECRET)
         assert page.evaluate('window.orbitDebug.state.tasks')==1
         assert_pointer_reachable(page,'#board-zoom-in')
@@ -224,6 +226,7 @@ def owner_case(browser,size,source):
         assert LOCAL_SECRET not in json.dumps(saved)
         assert_no_local_leak(page)
         page.screenshot(path=str(OUT/f'm2-owner-{size[0]}.png'))
+        page.evaluate("window.orbitDebug.board.focus('space',{initial:true})")
         page.locator('.cloud-toolbar').get_by_role('button',name='Sign out',exact=True).click()
         expect(page.locator('#app')).to_be_hidden()
         expect(page.locator('.cloud-gate-message')).to_contain_text('Sign in to open')
@@ -358,6 +361,7 @@ def failed_logout_recovery(browser,source):
     try:
         expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
         page.evaluate('window.__m2Fixture.failSignOutOnce=true')
+        page.evaluate("window.orbitDebug.board.focus('space',{initial:true})")
         page.locator('.cloud-toolbar').get_by_role('button',name='Sign out',exact=True).click()
         expect(page.locator('.cloud-gate-message')).to_contain_text('session may still be active')
         expect(page.locator('.cloud-gate').get_by_role('button',name='Retry sign-out')).to_be_visible()
@@ -392,6 +396,7 @@ def immediate_logout_draft(browser,source):
         expect(page.locator('#app')).to_be_visible()
         assert not any(call['type']=='logout' for call in page.evaluate('window.__m2Fixture.calls'))
         with page.expect_download() as download:
+            page.evaluate("window.orbitDebug.board.focus('space',{initial:true})")
             page.locator('.cloud-toolbar').get_by_role('button',name='Export backup',exact=True).click()
         backup=json.loads(Path(download.value.path()).read_text())
         assert 'Synthetic immediate logout draft' in json.dumps(backup['journalEntries'])
@@ -437,6 +442,7 @@ def otp_flow_case(browser,source):
         page.get_by_role('button',name='Verify and sign in',exact=True).click()
         expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
         assert page.locator('#login-code').input_value()==''
+        page.evaluate("window.orbitDebug.board.focus('space',{initial:true})")
         page.locator('.cloud-toolbar').get_by_role('button',name='Sign out',exact=True).click()
         expect(page.locator('#app')).to_be_hidden()
         assert page.get_by_label('Email address for email code',exact=True).input_value()==''
@@ -475,6 +481,7 @@ def password_case(browser,source):
                 assert page.locator('#app').inner_text()==''
             else:
                 expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
+                page.evaluate("window.orbitDebug.board.focus('space',{initial:true})")
                 page.locator('.cloud-toolbar').get_by_role('button',name='Sign out',exact=True).click()
                 expect(page.locator('#app')).to_be_hidden()
             assert page.get_by_label('Password',exact=True).input_value()==''

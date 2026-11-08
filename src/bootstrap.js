@@ -54,6 +54,8 @@ export async function bootstrapOrbit(config=runtimeConfig) {
     },
   });
   function clearPrivate(){
+    // Return workspace controls to the auth shell before clearing private DOM.
+    shell.detachSpaceControls();
     ++viewVersion;readRequest?.abort();readRequest=null;
     sync?.dispose();sync=null;ownerTools?.dispose();ownerTools=null;
     app?.dispose();app=null;
@@ -79,7 +81,8 @@ export async function bootstrapOrbit(config=runtimeConfig) {
         const {mountOrbit}=await import('./app.js');
         if(version!==viewVersion)return;
         restoreApp();app=mountOrbit({initialSnapshot:publicSnapshot(rows),readOnly:true,persistLocally:false});
-        appElement.hidden=false;appElement.inert=false;shell.showApp(false);
+        appElement.hidden=false;appElement.inert=false;
+        shell.attachSpaceControls(appElement.querySelector('#space-widget'));shell.showApp(false);
       }catch(error){if(version===viewVersion&&error?.code!=='ABORTED')shell.showError('Published content could not be loaded. Try again later.');}
     }
     auth=new AuthController({client,redirectUrl:config.siteUrl,currentOrigin:location.origin,
@@ -111,7 +114,8 @@ export async function bootstrapOrbit(config=runtimeConfig) {
         if(!isCurrent())return;
         ownerTools=createOwnerTools({repository,app,sync,container:shell.ownerTools,canPublish});
         if(!isCurrent()){clearPrivate();return;}
-        appElement.hidden=false;appElement.inert=false;shell.showApp(true);
+        appElement.hidden=false;appElement.inert=false;
+        shell.attachSpaceControls(appElement.querySelector('#space-widget'));shell.showApp(true);
         app.setCloudStatus(sync.getState());shell.setSyncStatus(sync.getState());
       }});
     await auth.start();
