@@ -104,6 +104,7 @@
 <button class="glass-button" id="rename-space" aria-controls="space-name-form" aria-expanded="false" type="button">Rename space</button>
 <button class="glass-button" id="expand-all-branches" type="button">Expand branches</button>
 <button class="glass-button" id="collapse-all-branches" type="button">Collapse branches</button>
+<button class="glass-button" id="new-sticky" type="button">+ sticky note</button>
 <button class="glass-button" id="backup-json" type="button">Backup</button>
 <button class="glass-button" id="import-csv" type="button" title="Import tasks or branches CSV, journal pages JSON, or an entire ORBIT backup">Import</button>
 <label class="visually-hidden" for="export-kind">Choose export content</label>
@@ -135,9 +136,11 @@
                 <button type="button" class="journal-tool italic" data-format="italic" aria-label="Italic" title="Italic (Ctrl/⌘ I)">I</button>
                 <button type="button" class="journal-tool" data-format="heading" aria-label="Heading">H</button>
                 <button type="button" class="journal-tool" data-format="list" aria-label="Bullet list">≡</button>
+                <button type="button" class="journal-tool" id="journal-draw" aria-label="Open journal drawing" title="Sketch on this journal page">✎ draw</button>
                 <span class="format-divider"></span><span class="journal-save-state" id="journal-save-state" aria-live="polite">All thoughts stay here</span>
               </div>
               <div id="journal-editor" class="journal-editor" contenteditable="true" role="textbox" aria-label="Journal entry" aria-multiline="true" data-placeholder="Write whatever comes to mind…"></div>
+              <div id="journal-drawing-preview" class="journal-drawing-preview" aria-label="Journal drawing" hidden></div>
               <footer class="journal-page-footer"><span id="journal-wordcount">0 words</span><div class="journal-page-nav"><button id="journal-prev" type="button" aria-label="Previous journal page">←</button><span id="journal-page-label">Page 1 of 1</span><button id="journal-next" type="button" aria-label="Next journal page">→</button></div><button id="journal-delete" type="button" class="journal-export journal-delete" title="Delete this page (Undo available)">delete page</button><button id="journal-export" type="button" class="journal-export" title="Save this page as Markdown">export .md</button></footer>
               <svg class="journal-quill" viewBox="0 0 120 120" aria-hidden="true"><path d="M101 8C50 17 17 50 22 108 46 84 79 50 101 8Z" fill="#C0A47C" fill-opacity=".13" stroke="#9C785E" stroke-opacity=".34" stroke-width="1.2"/><path d="M23 106Q55 53 101 8" fill="none" stroke="#8C6F57" stroke-opacity=".47" stroke-width="1.5"/></svg>
             </div>

@@ -525,5 +525,5 @@ function applySnapshot(snapshot){
 }
 function setCloudStatus(status){cloudStatus=status;journal.setCloudStatus(status);}
 function dispose(){if(disposed)return;disposed=true;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);board.dispose();journal.dispose();stickies.dispose();scene.dispose();window.orbitDebug=null;}
-return {getSnapshot,applySnapshot,setCloudStatus,dispose,flushEditor:()=>{journal.commit();extensionsChanged();},exportBackup:backupJson};
+return {getSnapshot,applySnapshot,setCloudStatus,dispose,flushEditor:()=>journal.commit(),exportBackup:backupJson};
 }
