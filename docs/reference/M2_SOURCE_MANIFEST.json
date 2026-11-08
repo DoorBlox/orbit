@@ -84,8 +84,8 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "src/journal.js": {
-      "sha256": "c7ee6dede782dbf37dec611ae1793009fc34dc96348df71f131da32f28492e38",
-      "reason": "1.1 reviewed: user-specific center, non-destructive branch removal, chronological journal or viewport fullscreen fix."
+      "sha256": "e131e4cf8ae9d35a17a023d9bd1209416a350b63f223afc9b481d687ffac5b48",
+      "reason": "Reviewed 1.1: date reordering immediately updates navigation control disabled states and page labels."
     },
     "src/layout.js": {
       "sha256": "5d707732bbbed368235e47387bac3811316ae38fdb48f6a998f4399dd345c239",
