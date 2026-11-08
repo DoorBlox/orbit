@@ -1,19 +1,19 @@
 {
   "baselineCommit": "846ad7df3fa3fdf4c63fd22f2830fed56f83a06e",
   "milestone": "M2",
-  "review": "Current reviewed sources preserve personalized Space names in complete backup recovery; original V6 and M1 provenance remain immutable.",
+  "review": "Selective export and multi-format import; V6/M1 provenance immutable.",
   "files": {
     "assets/orbit.svg": {
       "sha256": "97eb19dd4e0773d0b6489b1f49d794ffd272fb3bc2d42af4faffd6a1adca78c3",
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "index.html": {
-      "sha256": "cb52bcd0f431efb4cac6a6dd60fd3bc1a1d82487e71d76a5b537e411cd7e9bd9",
-      "reason": "2.1 reviewed: per-account editable space name and constellation center reflected in cloud snapshot"
+      "sha256": "fc1f2db58777044991359974c2079111709e91289a30481258b6cf7d44f41e67",
+      "reason": "2.1 reviewed: typed branch CSV import/export, journal selective JSON and single Space import control"
     },
     "src/app.js": {
-      "sha256": "41fc113751a666439b811a1049475fa97b1bfe1919b765562b7567101373767f",
-      "reason": "2.1 reviewed: private Space profile validation and profile-preserving backup/local restore"
+      "sha256": "4c447a8c9b432ee19be32c36ca895f7a5dfa1d6ae87a730ea4f74750266a7be3",
+      "reason": "2.1 reviewed: typed branch CSV import/export, journal selective JSON and single Space import control"
     },
     "src/auth/README.md": {
       "sha256": "1ec9f199e2ab8b76ff9a7d462f1804d6653706a8eb4b005e23311d76c9d1f7d5",
@@ -72,8 +72,8 @@
       "reason": "1.1 reviewed: user-specific center, non-destructive branch removal, chronological journal or viewport fullscreen fix."
     },
     "src/csv.js": {
-      "sha256": "43bd69daa75c06e88a42cd71d34f4847068997562219db25d5f2ee4d728be109",
-      "reason": "Unchanged from reviewed M1; retained and integrity checked."
+      "sha256": "e5de107e78d76d26553d25dca1b200765aaafeb2b836216b1ae11f57e5499178",
+      "reason": "2.1 reviewed: typed branch CSV import/export, journal selective JSON and single Space import control"
     },
     "src/data.js": {
       "sha256": "200b2b3e40a2bea4a85ca324371a33724d800b4f2bf0bf69147b73bd436c590b",
@@ -104,8 +104,8 @@
       "reason": "2.1 reviewed: private Space profile validation and profile-preserving backup/local restore"
     },
     "src/styles.css": {
-      "sha256": "22a2fa6e7ee3022b5bbc93bc5a5aac791467abed5b96b9b0bc340a3e4fb47604",
-      "reason": "2.1 reviewed: per-account editable space name and constellation center reflected in cloud snapshot"
+      "sha256": "ca949bbdca5aafb36c305c518579630ef7406974b5992eeef51e7184c82268a8",
+      "reason": "2.1 reviewed: typed branch CSV import/export, journal selective JSON and single Space import control"
     },
     "src/widgets.js": {
       "sha256": "aee68a4ce8a37edbb2de2fa1b0a2fc4589fcaf28a00603db2b148c6875a8ec58",

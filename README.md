@@ -18,7 +18,7 @@ One pannable/zoomable spatial world contains six independently draggable and res
 - **Your space:** personal workspace controls, layout and recovery features.
 - **Journal:** paper-like dated rich-text pages, autosave, undo and Markdown export.
 
-The app also supports keyboard controls, touch/pinch navigation, responsive phone layouts, reduced motion, CSV task import/export, and full JSON backup/restore (with V5/V6 compatibility). The V6 visual identity and single-world navigation are intentionally preserved.
+The app also supports keyboard controls, touch/pinch navigation, responsive phone layouts, reduced motion, CSV task/branch imports and selective exports, and full JSON backup/restore (with V5/V6 compatibility). The V6 visual identity and single-world navigation are intentionally preserved.
 
 ## Current deployment
 
