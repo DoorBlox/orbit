@@ -70,6 +70,27 @@ begin
 end;
 $$;
 
+-- Each verified user can load only their own owner_id-scoped data and revision.
+create or replace function public.load_owner_snapshot() returns jsonb language plpgsql security invoker
+set search_path = '' as $
+declare owner_uuid uuid:=auth.uid(); result jsonb;
+begin
+  if owner_uuid is null then raise exception using errcode='42501',message='Authenticated workspace required'; end if;
+  -- One SQL statement uses one MVCC snapshot for revision and all projections.
+  select jsonb_build_object('revision',coalesce((select revision from private.workspace_revisions where owner_id=owner_uuid),0),
+    'snapshot',jsonb_build_object(
+      'branches',coalesce((select jsonb_agg(jsonb_strip_nulls(jsonb_build_object('id',id,'parentId',coalesce(parent_id,'root'),'label',label,'color',color)) order by created_at,id) from public.branches where owner_id=owner_uuid),'[]'),
+      'tasks',coalesce((select jsonb_agg(jsonb_build_object('id',id,'projectId',project_id,'title',title,'dueDate',coalesce(due_date::text,''),'urgency',urgency,'effortMinutes',effort_minutes,'status',status,'criteria',criteria,'description',description,'resourceUrl',coalesce(resource_url,''),'createdAt',created_at,'completedAt',coalesce(completed_at::text,'')) order by created_at,id) from public.tasks where owner_id=owner_uuid),'[]'),
+      'journalEntries',coalesce((select jsonb_agg(jsonb_build_object('id',id,'date',entry_date,'title',title,'html',body_html,'createdAt',created_at,'updatedAt',updated_at) order by created_at,id) from public.journal_entries where owner_id=owner_uuid),'[]'),
+      'milestones',coalesce((select jsonb_agg(jsonb_build_object('id',id,'date',marker_date,'title',title) order by created_at,id) from public.milestones where owner_id=owner_uuid),'[]'),
+      'spatialLayout',coalesce((select jsonb_object_agg(widget_key,jsonb_strip_nulls(jsonb_build_object('x',x,'y',y,'width',width,'height',height))) from public.widget_layouts where owner_id=owner_uuid),'{}'),
+      'preferences',coalesce((select jsonb_build_object('colorMode',color_mode,'timezone',timezone) from public.preferences where owner_id=owner_uuid),'{"colorMode":"deadline","timezone":"Asia/Jakarta"}'),
+      'profile',coalesce((select jsonb_build_object('displayName',display_name) from public.profiles where user_id=owner_uuid),'{"displayName":"My space"}')
+    )) into result;
+  return result;
+end;
+$;
+
 -- Preserve exactly the last reviewed snapshot algorithm, PT409 CAS semantics,
 -- owner_id-scoped DELETE/INSERT, composite FKs and owner-only publication cleanup.
 create or replace function public.save_owner_snapshot(p_snapshot jsonb,p_expected_revision bigint) returns jsonb language plpgsql security invoker
