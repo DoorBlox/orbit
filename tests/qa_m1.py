@@ -201,6 +201,7 @@ def normal_flows(browser):
     page.locator('#toast button').click()
     expect(page.locator('#toast')).to_contain_text('Imported 2 branches')
     assert page.evaluate("JSON.parse(localStorage.getItem('orbit.phase1.branches.v1')).some(b=>b.id==='new-class'&&b.parentId==='new-work')")
+    focus(page,'space')
     page.locator('#export-kind').select_option('branches')
     with page.expect_download() as branch_export:page.locator('#export-csv').evaluate('e=>e.click()')
     assert b'new-class' in Path(branch_export.value.path()).read_bytes()
