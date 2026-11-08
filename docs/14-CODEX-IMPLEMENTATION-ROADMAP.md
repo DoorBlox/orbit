@@ -1,3 +1,5 @@
+> **Historical milestone plan, written before launch.** ORBIT 1.0.0 is now owner-confirmed working in Production (7 November 2026), although some scoped tests remain unverified. This file preserves the original M0 → M1 → M2 → M2.5 → M3 → M4 → M5 → M6 plan; for *actual results* see [PROJECT_HISTORY.md](PROJECT_HISTORY.md) and [OPERATIONS.md](OPERATIONS.md). Do not treat the old NO-GO status below as current.
+
 # 14 — Codex implementation roadmap (incremental, reviewable)
 
 ## Current approved delivery sequence
