@@ -210,7 +210,8 @@ def normal_flows(browser):
     assert page.evaluate('window.orbitDebug.state.tasks')==before
     bad={**backup,'version':999}
     page.locator('#csv-file').set_input_files({'name':'invalid.json','mimeType':'application/json','buffer':json.dumps(bad).encode()})
-    page.locator('#toast button').click()
+    # Invalid files are rejected before showing any destructive Restore action.
+    expect(page.locator('#toast button')).to_have_count(0)
     expect(page.locator('#toast')).to_contain_text('Unsupported')
     assert page.evaluate('window.orbitDebug.state.tasks')==before
     path.unlink()
