@@ -4,6 +4,8 @@ A personal, infinite-feeling 2D scrapbook. Move through one zoomable world of ta
 
 **ORBIT 1.0.0 is live for its single owner.** The source is public and [MIT licensed](LICENSE); **the workspace is not public**.
 
+**In development:** Source-only 1.1.0 foundations are merged but **not deployed**; the 2.0 multi-user change is in review, not available to visitors. See [Changelog](CHANGELOG.md) and [open development PRs](https://github.com/DoorBlox/orbit/pulls).
+
 **[Open ORBIT](https://orbit.starscene.com/)** · [Release notes](docs/releases/1.0.0.md) · [Project history](docs/PROJECT_HISTORY.md) · [Operations & recovery](docs/OPERATIONS.md) · [Continue in a new chat](CODEX_HANDOFF.md)
 
 ## What ORBIT does

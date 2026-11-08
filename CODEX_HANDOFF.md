@@ -1,6 +1,8 @@
 # ORBIT — current-session handoff for a future developer or ChatGPT session
 
-**Checkpoint:** 8 November 2026, Asia/Jakarta. **Status:** ORBIT **1.0.0 is deployed and owner-confirmed working in Production**. This file supersedes the older M0–M6 prelaunch-status paragraphs in Git history and historical `docs/` materials. **Re-verify current remote state** when resuming; this is a checkpoint, not a live API.
+**Checkpoint:** 8 November 2026, Asia/Jakarta. **Status:** ORBIT **1.0.0 is deployed and owner-confirmed working in Production**.
+
+**Source-only update, later on 8 Nov:** [PR #12](https://github.com/DoorBlox/orbit/pull/12) merged reviewed **1.1.0-unreleased** organization fixes into `main` (dynamic profile center, safe branch deletion with undo, dated journal ordering, fullscreen fitting). This did **not** deploy or change hosted auth/database. Next multi-user work is tracked in [PR #14](https://github.com/DoorBlox/orbit/pull/14) (tenant SQL), stacked [PR #15](https://github.com/DoorBlox/orbit/pull/15) (signup), and [the 2.x blueprint](plans/ORBIT_2_0_BLUEPRINT.md) pending [PR #13](https://github.com/DoorBlox/orbit/pull/13). The release identities in this handoff remain authoritative until a verified new release. This file supersedes the older M0–M6 prelaunch-status paragraphs in Git history and historical `docs/` materials. **Re-verify current remote state** when resuming; this is a checkpoint, not a live API.
 
 ## 0. First five minutes in a new session
 
