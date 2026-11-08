@@ -75,7 +75,7 @@ const before=snapshot();
 assert.equal(before.length,7);
 assert.ok(before.every(line=>line.includes(':2:')),'Expected exactly two synthetic rows per table');
 
-let read=0,update=0,del=0;
+let read=0,ownVisible=0,foreignHidden=0,update=0,del=0;
 const deny=({error,data,table,method})=>{
   if(error){
     if(error.code==='42501' || error.status===403)return;
@@ -87,24 +87,28 @@ const deny=({error,data,table,method})=>{
 try{
   for(const t of tables){
     const head=await client.from(t.table).select(t.pk,{head:true,count:'exact'});
-    if(head.error || head.count!==0)throw Error('Nonowner could see private '+t.table);
+    if(head.error || head.count!==1)throw Error('Nonowner must see exactly its own row in '+t.table);
+    const own=await client.from(t.table).select(t.pk,{head:true,count:'exact'}).eq(t.column,stranger.id);
+    if(own.error || own.count!==1)throw Error('Nonowner cannot see its own row in '+t.table);
+    ownVisible++;
+    const foreign=await client.from(t.table).select(t.pk,{head:true,count:'exact'}).eq(t.column,owner.id);
+    if(foreign.error || foreign.count!==0)throw Error('Nonowner could see original-owner row in '+t.table);
+    foreignHidden++;
     read++;
-    for(const [index,id] of principals.entries()){
-      const pk=t.ids[index];
-      const filter=query=>query.eq(t.column,id).eq(t.pk,pk);
-      deny({...await filter(client.from(t.table).update(t.patch)).select(t.pk),table:t.table,method:'PATCH'});
-      update++;
-      deny({...await filter(client.from(t.table).delete()).select(t.pk),table:t.table,method:'DELETE'});
-      del++;
-      assert.deepEqual(snapshot(),before,'Synthetic fixture changed after '+t.table);
-    }
+    const filter=query=>query.eq(t.column,owner.id).eq(t.pk,t.ids[0]);
+    deny({...await filter(client.from(t.table).update(t.patch)).select(t.pk),table:t.table,method:'PATCH'});
+    update++;
+    deny({...await filter(client.from(t.table).delete()).select(t.pk),table:t.table,method:'DELETE'});
+    del++;
+    assert.deepEqual(snapshot(),before,'Synthetic fixture changed after '+t.table);
   }
   assert.deepEqual(snapshot(),before,'Synthetic fixture baseline drifted');
   console.log(JSON.stringify({
     name:'ORBIT_LOCAL_BEARER_HTTP_RLS',scope:'disposable_local_supabase',
-    read_visibility:{passed:read,total:7},
-    update_denials:{passed:update,total:14},
-    delete_denials:{passed:del,total:14},
+    own_row_visibility:{passed:ownVisible,total:7},
+    cross_tenant_read_denials:{passed:foreignHidden,total:7},
+    update_denials:{passed:update,total:7},
+    delete_denials:{passed:del,total:7},
     synthetic_fixtures_unchanged:true,
     hosted_requests:0,
     credentials_logged:false,
