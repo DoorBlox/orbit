@@ -19,6 +19,26 @@ export function taskColor(task,mode='deadline'){
 }
 export function dueLabel(date){const d=daysUntil(date);if(d===null)return 'No deadline';if(d<0)return `${-d}d overdue`;if(d===0)return 'Due today';if(d===1)return 'Due tomorrow';return `In ${d} days`;}
 export function formatDate(date){return dateLabel(date)||'Anytime';}
+export function normalizeTaskLinks(input=[]){
+  if(input==null)return [];
+  if(!Array.isArray(input)||input.length>12)throw Error('A task supports at most 12 links.');
+  return input.map(link=>{
+    if(!link||typeof link!=='object'||typeof link.url!=='string'||
+       typeof link.label!=='string')throw Error('Invalid supporting link.');
+    const url=validateHttpUrl(link.url);
+    if(!url||url.length>1000)throw Error('Use only valid HTTP(S) links.');
+    return {label:link.label.trim().slice(0,120)||new URL(url).hostname,url};
+  });
+}
+export function parseTaskLinks(lines){
+  if(typeof lines!=='string'||lines.length>12000)throw Error('Supporting links are too long.');
+  const values=lines.split(/\r?\n/).map(v=>v.trim()).filter(Boolean);
+  if(values.length>12)throw Error('A task supports at most 12 links.');
+  return normalizeTaskLinks(values.map(line=>{
+    const split=line.indexOf('|');
+    return split<0?{label:'',url:line}:{label:line.slice(0,split).trim(),url:line.slice(split+1).trim()};
+  }));
+}
 export function cleanTask(raw,fallbackBranch='inbox'){
   const title=String(raw.title||'').trim().slice(0,180);if(!title)throw Error('A task needs a name.');
   let dueDate=String(raw.dueDate||'').trim();if(dueDate&&daysUntil(dueDate)===null)dueDate='';
@@ -28,11 +48,11 @@ export function cleanTask(raw,fallbackBranch='inbox'){
     urgency:clamp(Number(raw.urgency)||1,1,5),effortMinutes:clamp(Number(raw.effortMinutes)||0,0,1440),
     status:STATUS.includes(raw.status)?raw.status:'captured',
     criteria:String(raw.criteria||'').slice(0,1200),description:String(raw.description||'').slice(0,3000),
-    resourceUrl:String(raw.resourceUrl||'').slice(0,600),
+    resourceUrl:String(raw.resourceUrl||'').slice(0,600),links:normalizeTaskLinks(raw.links),
     createdAt:raw.createdAt||new Date().toISOString(),completedAt:raw.completedAt||'',
   };
 }
-export function validateHttpUrl(value){if(!value)return '';try{const u=new URL(value);return ['https:','http:'].includes(u.protocol)?u.href:'';}catch{return '';}}
+export function validateHttpUrl(value){if(!value)return '';try{const u=new URL(value);return ['https:','http:'].includes(u.protocol)&&!u.username&&!u.password?u.href:'';}catch{return '';}}
 export function sortedProjectTasks(tasks,branchId,mode='deadline'){
   const matching=tasks.filter(t=>t.projectId===branchId);
   return matching.sort((a,b)=>{

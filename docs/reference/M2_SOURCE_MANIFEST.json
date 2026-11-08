@@ -1,19 +1,19 @@
 {
   "baselineCommit": "846ad7df3fa3fdf4c63fd22f2830fed56f83a06e",
   "milestone": "M2",
-  "review": "2.1 reviewed: branch hierarchy disclosure, keyboard controls, per-account browser-local view state, backup validation and header caption removal. Historical V6/M1 provenance remains immutable.",
+  "review": "2.2 source staged for exact-head CI: Google-first account UI, tenant-private extensions, media, labeled task links, journal and sticky shared Excalidraw-compatible scenes; original V6/M1 provenance immutable.",
   "files": {
     "assets/orbit.svg": {
       "sha256": "97eb19dd4e0773d0b6489b1f49d794ffd272fb3bc2d42af4faffd6a1adca78c3",
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "index.html": {
-      "sha256": "8c6ae00355768cf36c6ef15e614c404f92eaff4110bbd769b6e9e48541676641",
-      "reason": "2.1 reviewed: obsolete LOCAL PROTOTYPE header caption removed; WIB clock unchanged"
+      "sha256": "bf49f3893642b5d99374bb5931eebc3a98063da8dd91121609495a9a6cab32d4",
+      "reason": "2.2: new sticky and journal drawing/private-image controls"
     },
     "src/app.js": {
-      "sha256": "09c87caeeb65f1787b482a83e8efd79f2c58e4e6fef4c25e2f8c1a9010f189ad",
-      "reason": "2.1 reviewed: account-scoped collapsed branch preference, read-only visitor storage isolation, branch hierarchy disclosure and backup compatibility."
+      "sha256": "76e76f91a0a170f2f1fa74377c5955504b2707764af9c9ef05d2c290f4b9d2f4",
+      "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/auth/README.md": {
       "sha256": "1ec9f199e2ab8b76ff9a7d462f1804d6653706a8eb4b005e23311d76c9d1f7d5",
@@ -24,20 +24,20 @@
       "reason": "ORBIT 2.0 reviewed draft: verified-user workspace gate and signup while preserving tenant privacy; Production release requires staged migration."
     },
     "src/auth/shell.js": {
-      "sha256": "ba20d4eb1e36224d60062798aaed2cda19225e122c6821192a1d82782ae1cc61",
-      "reason": "2.1 reviewed: Space panel cloud controls replace the fixed dock; owner state and signed-out teardown remain gated."
+      "sha256": "80174ff8b9ac15b86218acc0c5742dadc22c30d386302428a7210e2c85ff532c",
+      "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/backup.js": {
-      "sha256": "0174da6c50fa86973c83adc0002f5281632dbd2cfd8ab6162edf6bb57559a3f1",
-      "reason": "2.1 reviewed: branch collapse/expand, keyboard disclosure and per-account local view state with backup support"
+      "sha256": "9554bc90d1ac3fcaf7b371e29b39de3f7bd1c019e377937c678989817f44675e",
+      "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/board.js": {
       "sha256": "0e079b6e4817dd0ae2829d95698d9847e7d0e82b19e3186c419577216d4ce57e",
       "reason": "M2.5 P0-A/B reviewed: manual input owns the camera; active navigation resolves immediately on reduced motion; initialization/navigation handles cancel on disposal. Layout and cloud behavior unchanged."
     },
     "src/bootstrap.js": {
-      "sha256": "e71536bd7b58bb13a09a4803e5ee520c3834dc040622cf399b3e7b411318edc5",
-      "reason": "2.1 reviewed: branch collapse/expand, keyboard disclosure and per-account local view state with backup support"
+      "sha256": "4dd54de38a025baf940d597e7727e52f847fc0e4300ea6518db05b5a9991b7a3",
+      "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/cloud/README.md": {
       "sha256": "2fa23ecebff7de9fa7e5463f3c77031e97850cf192398ea0da66c2f6cd19a4af",
@@ -60,16 +60,16 @@
       "reason": "ORBIT 2.0 reviewed draft: verified-user workspace gate and signup while preserving tenant privacy; Production release requires staged migration."
     },
     "src/cloud/repository.js": {
-      "sha256": "ac75a7acf2ae390f8e402a5db57f1cea221ec6f762529a4de9ab9db61289d63f",
-      "reason": "Owner-scoped snapshot persistence and reviewed publication projection."
+      "sha256": "d525d05e0fab6811ae0dde88e483e42f7c245cfe1276e82ccefe4ac2073c2f13",
+      "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/cloud/sync.js": {
       "sha256": "869732ccb58424bd9d6ca7eaef4e8259ca5bfb835ff95e7fd29a44441960c773",
       "reason": "Queue writes with honest pending/retry/conflict states and revision checks."
     },
     "src/constellation.js": {
-      "sha256": "76b77a5f86c0200141e08f65e849e99087da7f17cbba027188a45a5054db9e84",
-      "reason": "2.1 reviewed: branch collapse/expand, keyboard disclosure and per-account local view state with backup support"
+      "sha256": "25eef51b5a36dd062971a156c216e81b87f8f397e2ff0525f2b39e815e78a679",
+      "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/csv.js": {
       "sha256": "e5de107e78d76d26553d25dca1b200765aaafeb2b836216b1ae11f57e5499178",
@@ -84,32 +84,44 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "src/journal.js": {
-      "sha256": "e131e4cf8ae9d35a17a023d9bd1209416a350b63f223afc9b481d687ffac5b48",
-      "reason": "Reviewed 1.1: date reordering immediately updates navigation control disabled states and page labels."
+      "sha256": "2506c5d20f1533bb70e7a290cb28ae9832cdf9de8944b310b11e32b7f33faf86",
+      "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/layout.js": {
       "sha256": "1895015e94741e987e696be8ab1d77ab348560dc847a70a41bd7c6ca74626ee3",
       "reason": "2.1 reviewed: branch collapse/expand, keyboard disclosure and per-account local view state with backup support"
     },
     "src/model.js": {
-      "sha256": "b18a313f200439b5f7f9d0eb11c12e970a0a844ff804091c3bc0a1959e1eb352",
-      "reason": "Unchanged from reviewed M1; retained and integrity checked."
+      "sha256": "93854e0692bdb75d1f3bbe50abe9848a7d2764fe3147aae0220029a2dc02095c",
+      "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/runtime-config.js": {
       "sha256": "667beee515a5681ff91676cd5d7d5f4c53ed01aa6304163eb8919d2f4b20f2e8",
       "reason": "Null local default; only build-generated allowlisted public configuration activates cloud."
     },
     "src/storage.js": {
-      "sha256": "fd3ee20737e1e13842b4436b4baf7647478b50c24ea95a7b8b5983ef1b6dabcf",
-      "reason": "2.1 reviewed: private Space profile validation and profile-preserving backup/local restore"
+      "sha256": "ce630445a0191678fc845349efaeb34b7c057fb791b841c17c32914afd6d1838",
+      "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "96a5a6be8403957fd6aa872bab4649f4755b3f4284f403611bef1e6f6820692f",
-      "reason": "2.1 reviewed: branch collapse/expand, keyboard disclosure and per-account local view state with backup support"
+      "sha256": "bf03a7f3760fe6b4dcf3e294c2da613d0de4439b4efaf2f4991f7ef6f433dc22",
+      "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/widgets.js": {
       "sha256": "aee68a4ce8a37edbb2de2fa1b0a2fc4589fcaf28a00603db2b148c6875a8ec58",
       "reason": "Preserve task/timeline projection over canonical owner snapshots and read-only controls."
+    },
+    "src/scene.js": {
+      "sha256": "4e4c9c8553e15141a0528095a172944c09ad80675669dbc192b0ede4ab34a556",
+      "reason": "2.2: bounded, validated Excalidraw scene and sticky extension representation"
+    },
+    "src/stickies.js": {
+      "sha256": "df9dab73baebc232cba3577d668baaba640fbe8e6251c53c72c0ba2e39858626",
+      "reason": "2.2: spatial keyboard/touch sticky cards, notes and drawings"
+    },
+    "src/cloud/media.js": {
+      "sha256": "b1b60556ac986e79ae5e5be93b3539c0b7b549fc8fcc5ec0a3655045dd3b3ddc",
+      "reason": "2.2: signed private image upload/read with per-user path and magic-byte validation"
     }
   }
 }

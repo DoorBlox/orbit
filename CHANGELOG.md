@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.2.0 — Unreleased, development branch (9 November 2026)
+
+- Added Google-first sign-in button with existing legacy password login preserved; Google Cloud OAuth client and Supabase Google provider are not configured by repository code and remain owner setup.
+- Tasks can carry several validated labeled supporting URLs; sticky notes are freeform editable draggable/resizable paper cards with four colors, shared drawing and optional images.
+- Journal pages and sticky notes exchange the same validated .excalidraw JSON through a built-in native pen modal and external Excalidraw.com import/export. Full upstream embedded Excalidraw React editor is **not** included yet.
+- Proposed additive tenant-private preferences extensions and per-user Storage bucket (5 MiB PNG/JPEG/WebP, short-lived signed URLs), pending hosted migration and real A/B isolation. Backups contain image reference paths but not image bytes.
+- **Source only**: no hosted migration, OAuth credential change, Vercel Production release or custom alias change. [Operator/owner rollout](docs/OAUTH_2_2_ROLLOUT.md).
+
+
 ## 2.1.0 — Unreleased, source-only development (9 November 2026)
 
 - Removed the obsolete LOCAL PROTOTYPE header caption without changing the WIB clock.

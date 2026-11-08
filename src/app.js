@@ -1,6 +1,6 @@
 import { branchPath,descendantsOf,createBranch,removeBranchPreservingContents } from './data.js';
 import { cleanTask,taskSummary } from './model.js';
-import { readTasks,saveTasks,readPreferences,savePreferences,readBranches,saveBranches,readProfile,saveProfile,STORAGE_KEYS,getStorageStatus,getRecoveryData,markStorageIssue,isStorageWriteBlocked,clearStorageIssues } from './storage.js';
+import { readTasks,saveTasks,readPreferences,savePreferences,readBranches,saveBranches,readProfile,saveProfile,readExtensions,saveExtensions,STORAGE_KEYS,getStorageStatus,getRecoveryData,markStorageIssue,isStorageWriteBlocked,clearStorageIssues } from './storage.js';
 import { importCsv,exportCsv,parseCsv,importBranchesCsv,exportBranchesCsv } from './csv.js';
 import { Constellation } from './constellation.js';
 import { ScrapWidgets } from './widgets.js';
@@ -8,9 +8,11 @@ import { SpatialBoard } from './board.js';
 import { validateBackup,persistBackup,recoverInterruptedRestore,RESTORE_RECOVERY_KEY } from './backup.js';
 import { validDateKey } from './dates.js';
 import { Journal,sanitizeJournal } from './journal.js';
+import { StickyNotes } from './stickies.js';
+import { normalizeExtensions,openSceneEditor,renderScene } from './scene.js';
 
 /** Mount the same spatial scrapbook over either local or authenticated owner state. */
-export function mountOrbit({initialSnapshot=null,readOnly=false,persistLocally=true,onSnapshotChange=()=>{},viewStateKey='local'}={}){
+export function mountOrbit({initialSnapshot=null,readOnly=false,persistLocally=true,onSnapshotChange=()=>{},viewStateKey='local',media=null}={}){
 let disposed=false,hydrating=true,cloudStatus={state:'saved',hasPending:false};
 const events=new AbortController();
 const $=id=>document.getElementById(id);
@@ -32,9 +34,16 @@ function readCollapsedBranches(){
   }catch{return [];}
 }
 function saveCollapsedBranches(){if(readOnly)return true;try{localStorage.setItem(collapsedStorageKey,JSON.stringify(state.collapsedBranchIds));return true;}catch{return false;}}
-const state={branches:initialBranches,tasks:initialSnapshot?structuredClone(initialSnapshot.tasks):readTasks(),preferences:initialSnapshot?structuredClone(initialSnapshot.preferences):readPreferences(),profile:structuredClone(initialSnapshot?.profile||(persistLocally?readProfile():{displayName:'My space'})),selectedBranchId:'inbox',
+const initialExtensions=normalizeExtensions(initialSnapshot?.extensions??(persistLocally?readExtensions():{}));
+const state={extensions:initialExtensions,branches:initialBranches,tasks:initialSnapshot?structuredClone(initialSnapshot.tasks):readTasks(),preferences:initialSnapshot?structuredClone(initialSnapshot.preferences):readPreferences(),profile:structuredClone(initialSnapshot?.profile||(persistLocally?readProfile():{displayName:'My space'})),selectedBranchId:'inbox',
   collapsedBranchIds:[],selectedTaskId:'',captureMode:'capture',captureDraft:'',searchDraft:''};
 state.collapsedBranchIds=normalizeCollapsedBranches(initialSnapshot?.collapsedBranchIds??(readOnly?[]:readCollapsedBranches()),state.branches);
+function applyTaskLinks(){for(const task of state.tasks)if(Object.hasOwn(state.extensions.taskLinks,task.id))task.links=structuredClone(state.extensions.taskLinks[task.id]);}
+function collectExtensions(){
+  state.extensions.taskLinks=Object.fromEntries(state.tasks.filter(t=>t.links?.length).map(t=>[t.id,t.links]));
+  return normalizeExtensions(state.extensions);
+}
+applyTaskLinks();
 const capture=$('capture-form'),input=$('capture-name'),target=$('capture-target');
 const milestoneKey='orbit-v4-milestones';
 let milestones=structuredClone(initialSnapshot?.milestones||[]);
@@ -86,6 +95,7 @@ const scene=new Constellation({viewport:$('map-viewport'),world:$('map-world'),e
     }));
     return true;
   },
+  onTaskError(error){message(error,6500);},
   onTaskSelected(id){
     state.selectedTaskId=id;const task=state.tasks.find(t=>t.id===id);if(task){expandBranchPath(task.projectId);setBranch(task.projectId);}
   },
@@ -138,8 +148,40 @@ const widgets=new ScrapWidgets({
 
 const board=new SpatialBoard({notify:(...args)=>message(...args),initialLayout:initialSnapshot?(initialSnapshot.spatialLayout||{}):undefined,readOnly,persistLocally,onLayoutChange:()=>emitChange()});
 board.onWidgetResize=id=>{if(id==='constellation')requestAnimationFrame(()=>scene.onResize());};
+const stickies=new StickyNotes({world:$('spatial-world'),notes:state.extensions.notes,readOnly,
+  getScale:()=>board.scale,media,notify:(...args)=>message(...args),
+  onChange:notes=>{state.extensions.notes=notes;extensionsChanged();}});
 const journal=new Journal({initialEntries:initialSnapshot?(initialSnapshot.journalEntries||[]):undefined,readOnly,persistLocally,notify:(s,...args)=>message(s,...args),onEntriesChange:entries=>{widgets.setJournalEntries(entries);emitChange();}});
 widgets.setJournalEntries(journal.entries);
+journal.onPageChange=()=>{refreshJournalDrawing();refreshJournalImage();};
+refreshJournalDrawing();refreshJournalImage();
+function refreshJournalDrawing(){
+  const holder=$('journal-drawing-preview');if(!holder)return;
+  const page=journal.entries[journal.index];
+  const drawing=page?state.extensions.journalScenes[page.id]:null;
+  holder.hidden=!drawing;renderScene(drawing,holder);
+}
+function refreshJournalImage(){
+  const element=$('journal-image-preview');if(!element)return;
+  const entry=journal.entries[journal.index],path=entry?state.extensions.journalImages[entry.id]:null;
+  element.hidden=true;element.removeAttribute('src');
+  if(!path||!media)return;
+  media.signedUrl(path).then(url=>{
+    if(!disposed&&journal.entries[journal.index]?.id===entry.id){
+      element.src=url;element.hidden=false;
+    }
+  }).catch(()=>{if(!disposed)message('A private journal image could not be loaded.',4500);});
+}
+function extensionsChanged(){
+  if(disposed||readOnly)return;
+  try{state.extensions=collectExtensions();}
+  catch(error){message('Drawing or sticky note exceeded its limits: '+error.message,6500);return;}
+  if(persistLocally){
+    const ok=saveExtensions(state.extensions);
+    if(ok)pendingWrites.delete(STORAGE_KEYS.extensions);else pendingWrites.add(STORAGE_KEYS.extensions);
+    if(!ok)message('Notes or drawings are not saved on this device. Export a backup.',6500);
+  }else emitChange();
+}
 
 // Previously saved task IDs are never discarded. An orphaned assignment is
 // placed into Unsorted, but its content and all other fields remain intact.
@@ -220,10 +262,13 @@ function sync({persist=true}={}){
   if(normalizedCollapsed.length!==state.collapsedBranchIds.length||normalizedCollapsed.some((id,i)=>id!==state.collapsedBranchIds[i])){
     state.collapsedBranchIds=normalizedCollapsed;saveCollapsedBranches();
   }
-  if(persist&&persistLocally&&!readOnly){
-    const tasksOk=saveTasks(state.tasks),branchesOk=saveBranches(state.branches),profileOk=saveProfile(state.profile);
-    lastSaveOk=tasksOk&&branchesOk&&profileOk;
-    for(const [key,ok] of [[STORAGE_KEYS.tasks,tasksOk],[STORAGE_KEYS.branches,branchesOk],[STORAGE_KEYS.profile,profileOk]]){if(ok)pendingWrites.delete(key);else pendingWrites.add(key);}
+  if(persist&&!readOnly){
+    state.extensions=collectExtensions();
+    if(persistLocally){
+      const tasksOk=saveTasks(state.tasks),branchesOk=saveBranches(state.branches),profileOk=saveProfile(state.profile),extensionsOk=saveExtensions(state.extensions);
+      lastSaveOk=tasksOk&&branchesOk&&profileOk&&extensionsOk;
+      for(const [key,ok] of [[STORAGE_KEYS.tasks,tasksOk],[STORAGE_KEYS.branches,branchesOk],[STORAGE_KEYS.profile,profileOk],[STORAGE_KEYS.extensions,extensionsOk]]){if(ok)pendingWrites.delete(key);else pendingWrites.add(key);}
+    }
   }
   scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'),state.preferences.colorMode,state.profile.displayName,state.collapsedBranchIds);
   widgets.setData(state.branches,state.tasks,state.preferences.colorMode,milestones);
@@ -252,10 +297,10 @@ function quickCapture(e){
 }
 function backupJson(){
   journal.commit();
-  const backup={format:'orbit-backup',version:6,exportedAt:new Date().toISOString(),branches:state.branches,tasks:state.tasks,preferences:state.preferences,profile:state.profile,collapsedBranchIds:state.collapsedBranchIds,milestones,spatialLayout:board.getLayout(),journalEntries:journal.getEntries()};
+  const backup={format:'orbit-backup',version:6,exportedAt:new Date().toISOString(),branches:state.branches,tasks:state.tasks,preferences:state.preferences,profile:state.profile,collapsedBranchIds:state.collapsedBranchIds,milestones,spatialLayout:board.getLayout(),journalEntries:journal.getEntries(),extensions:collectExtensions()};
   if(persistLocally&&getStorageStatus().recoveryRequired){backup.recoveryData=getRecoveryData();try{backup.restoreRecovery=localStorage.getItem(RESTORE_RECOVERY_KEY);}catch{}}
   download(JSON.stringify(backup,null,2),`orbit-complete-backup-${new Date().toISOString().slice(0,10)}.json`,'application/json');
-  message('Complete backup: tasks, branches, journal pages, milestones and widget positions.');
+  message('Backup exported: notes, drawings, tasks and journals. Uploaded image files are not embedded in JSON; retain your Supabase Storage copies.',6500);
 }
 function download(contents,filename,type){const blob=new Blob([contents],{type});const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1800);}
@@ -271,12 +316,15 @@ function restoreBackup(contents){
   }
   clearStorageIssues(result.writtenKeys);for(const key of result.writtenKeys)pendingWrites.delete(key);lastSaveOk=true;
   state.branches=snapshot.branches;state.tasks=snapshot.tasks;state.preferences=snapshot.preferences;
+  if(snapshot.extensions)state.extensions=normalizeExtensions(snapshot.extensions);
+  applyTaskLinks();stickies.setNotes(state.extensions.notes);
   if(snapshot.profile)state.profile=structuredClone(snapshot.profile);
   if(snapshot.collapsedBranchIds!==undefined)state.collapsedBranchIds=normalizeCollapsedBranches(snapshot.collapsedBranchIds,state.branches);
   saveCollapsedBranches();
   milestones=snapshot.milestones;
   if(snapshot.spatialLayout)board.setLayout(snapshot.spatialLayout,{persist:false});
   if(snapshot.journalEntries)journal.replaceEntries(snapshot.journalEntries,{persist:false});
+  refreshJournalDrawing();refreshJournalImage();
   state.selectedBranchId='inbox';sync({persist:false});scene.fitAll();
   message('Backup restored, including journal and widget positions (when available).');
 }
@@ -320,6 +368,26 @@ function initTools(){
   $('fit-all').addEventListener('click',()=>scene.fitAll());
   $('import-csv').addEventListener('click',()=>$('csv-file').click());
   $('backup-json').addEventListener('click',backupJson);
+  $('new-sticky').addEventListener('click',()=>stickies.add());
+  const imagePicker=$('journal-image-file');
+  $('journal-image').addEventListener('click',()=>{if(media&&!readOnly)imagePicker.click();});
+  imagePicker.addEventListener('change',async()=>{
+    const file=imagePicker.files?.[0];if(!file||!media||disposed||readOnly)return;
+    journal.commit();const pageId=journal.entries[journal.index]?.id;if(!pageId)return;
+    try{const path=await media.upload(file);
+      if(disposed)return;
+      state.extensions.journalImages[pageId]=path;extensionsChanged();
+      refreshJournalImage();message('Private journal image attached.');
+    }catch(error){message(error.message,6500);}finally{imagePicker.value='';}
+  });
+  $('journal-draw').addEventListener('click',()=>{
+    if(readOnly||disposed)return;
+    journal.commit();const page=journal.entries[journal.index];if(!page)return;
+    openSceneEditor(state.extensions.journalScenes[page.id],{title:'Journal drawing — '+(page.title||page.date),
+      notify:(...args)=>message(...args),onSave:drawing=>{
+        state.extensions.journalScenes[page.id]=drawing;refreshJournalDrawing();extensionsChanged();
+      }});
+  });
   $('expand-all-branches').addEventListener('click',()=>{setCollapsedBranches([]);scene.fitAll();message('All branches expanded.');});
   $('collapse-all-branches').addEventListener('click',()=>{
     const parents=state.branches.filter(branch=>state.branches.some(child=>child.parentId===branch.id)).map(branch=>branch.id);
@@ -452,30 +520,33 @@ if(persistLocally&&getStorageStatus().recoveryRequired)message('Saved data needs
 showClock();const clockTimer=setInterval(showClock,30000);
 hydrating=false;
 $('app').dataset.readOnly=String(readOnly);
-if(readOnly){for(const id of ['capture-name','capture-mode','capture-submit','import-csv','clear-demo','csv-file','rename-space','expand-all-branches','collapse-all-branches'])$(id).disabled=true;}
-window.orbitDebug={get state(){return {tasks:state.tasks.length,branches:state.branches.length,collapsedBranches:state.collapsedBranchIds.length,selectedBranchId:state.selectedBranchId,camera:scene.getCamera(),boardScale:board.scale,boardPan:{...board.pan},mode:state.preferences.colorMode,milestones:milestones.length,journalPages:journal.entries.length,widgetSizes:structuredClone(board.sizes)};},fit:()=>scene.fitAll(),focusWidget:id=>board.focus(id),board,scene,journal};
+if(readOnly){for(const id of ['capture-name','capture-mode','capture-submit','import-csv','clear-demo','csv-file','rename-space','expand-all-branches','collapse-all-branches','new-sticky','journal-draw','journal-image'])$(id).disabled=true;}
+$('journal-image').disabled=readOnly||!media;
+window.orbitDebug={get state(){return {tasks:state.tasks.length,notes:stickies.notes.length,branches:state.branches.length,collapsedBranches:state.collapsedBranchIds.length,selectedBranchId:state.selectedBranchId,camera:scene.getCamera(),boardScale:board.scale,boardPan:{...board.pan},mode:state.preferences.colorMode,milestones:milestones.length,journalPages:journal.entries.length,widgetSizes:structuredClone(board.sizes)};},fit:()=>scene.fitAll(),focusWidget:id=>board.focus(id),board,scene,journal};
 // SpatialBoard establishes the initial camera position.
 
 function getSnapshot(){return {
   format:'orbit-backup',version:6,branches:structuredClone(state.branches),tasks:structuredClone(state.tasks),
   preferences:structuredClone(state.preferences),profile:structuredClone(state.profile),milestones:structuredClone(milestones),
-  journalEntries:structuredClone(journal.entries),spatialLayout:board.getLayout(),
+  journalEntries:structuredClone(journal.entries),spatialLayout:board.getLayout(),extensions:collectExtensions(),
 };}
 function emitChange(){if(disposed||hydrating||persistLocally||readOnly)return;onSnapshotChange(getSnapshot());}
 function applySnapshot(snapshot){
   if(disposed)return;hydrating=true;
   state.branches=structuredClone(snapshot.branches);state.tasks=structuredClone(snapshot.tasks);
+  state.extensions=normalizeExtensions(snapshot.extensions??state.extensions);
+  applyTaskLinks();stickies.setNotes(state.extensions.notes);
   state.preferences=structuredClone(snapshot.preferences);state.profile=structuredClone(snapshot.profile||state.profile);
   if(snapshot.collapsedBranchIds!==undefined)state.collapsedBranchIds=normalizeCollapsedBranches(snapshot.collapsedBranchIds,state.branches);
   saveCollapsedBranches();
   milestones=structuredClone(snapshot.milestones||[]);
   board.setLayout(snapshot.spatialLayout||{},{persist:false});
-  journal.replaceEntries(snapshot.journalEntries||[],{persist:false});
+  journal.replaceEntries(snapshot.journalEntries||[],{persist:false});refreshJournalDrawing();refreshJournalImage();
   if(!state.branches.some(b=>b.id==='inbox'))state.branches.push({id:'inbox',parentId:'root',label:'Unsorted'});
   if(!state.branches.some(b=>b.id==='just-because'))state.branches.push({id:'just-because',parentId:'root',label:'Just Because'});
   sync({persist:false});hydrating=false;
 }
 function setCloudStatus(status){cloudStatus=status;journal.setCloudStatus(status);}
-function dispose(){if(disposed)return;disposed=true;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);board.dispose();journal.dispose();scene.dispose();window.orbitDebug=null;}
+function dispose(){if(disposed)return;disposed=true;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);board.dispose();journal.dispose();stickies.dispose();scene.dispose();window.orbitDebug=null;}
 return {getSnapshot,applySnapshot,setCloudStatus,dispose,flushEditor:()=>journal.commit(),exportBackup:backupJson};
 }

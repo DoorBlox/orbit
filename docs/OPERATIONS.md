@@ -1,5 +1,9 @@
 # ORBIT production operations and recovery
 
+## 9 Nov 2026 — 2.2 Google-first creative beta (SOURCE ONLY)
+
+PR #24 (collapsible branches, browser-local view state) is merged at `bc910fbc`. New branch `feat/2.2-google-oauth-notes-20261109` adds **Continue with Google** UI, labeled task URLs, floating sticky notes with text/color/drag/resize, journal AND sticky drawings through the same native `.excalidraw` import/export bridge, plus private image attachments. The editor is an interoperable native pen editor, **not full embedded Excalidraw React**. Both source migrations (`20261109015000_orbit_private_extensions`, `20261109020000_orbit_private_media`) remain **UNAPPLIED** to hosted Supabase; no hosted Google Auth provider, Production domain, or protection changed. Current Production is still `fc5af5a` at `dpl_9rgHVEreGqspHtNY27WnPyMduFik`, Vercel Authentication on all deployments. Source feature branch not yet CI-reviewed/deployed. See [owner setup + rollout](OAUTH_2_2_ROLLOUT.md). Owner must configure Google OAuth credentials directly in Google/Supabase (never chat), verify offline backup and A/B tenant/media isolation before hosted migration or Production switch. JSON backups include image paths, NOT image file bytes. Batch code/doc changes before a single protected PR run; no repetitive Actions.
+
 ## 9 Nov 2026 update — latest application source and protected Preview
 
 PR #21 and PR #23 are merged to `main`; their exact-head four-check CI runs passed. The protected Vercel Preview `dpl_Bri19261zEWUzRGoEkx6EfAwDkwr` is READY from source `11421a861b5023d5305c1802b8993bca221dacdd`. This is still not the Production site. Production remains `dpl_9rgHVEreGqspHtNY27WnPyMduFik` from `fc5af5a`, and Vercel Authentication remains enabled for all deployments.

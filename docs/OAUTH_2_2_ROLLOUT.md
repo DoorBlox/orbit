@@ -1,0 +1,34 @@
+# ORBIT 2.2 — Google sign-in, creative features and guarded rollout
+
+**Status 9 Nov 2026: source-only development, NOT deployed.** Production `https://orbit.starscene.com/` still serves original-owner 1.0.0 (`fc5af5a`, Vercel Authentication enabled for all deployments). This is an operator runbook, not authorization to deploy or modify hosted credentials.
+
+## User experience under development
+
+- **Continue with Google** creates a separate private ORBIT workspace for each Supabase authenticated user. The original password sign-in remains for existing owner compatibility; Google OAuth provider configuration is not yet active.
+- Tasks gain multiple labeled links. Freeform sticky paper notes support dragging, resizing, editing, tints, drawing and private images; dated journal pages gain the same drawing flow and private images.
+- **Drawing limitation:** this beta uses a dependency-free native pen editor and valid `.excalidraw` JSON export/import for both journal pages and notes, including an **Edit in Excalidraw** external workflow. It is **not the full embedded React Excalidraw editor** (complex elements, connectors, image files). Do not advertise it as full Excalidraw embedding.
+- Images: PNG/JPEG/WebP up to **5 MiB** under the **private** Supabase Storage bucket `orbit-private-media`; ownership keyed by an authenticated user's UUID path; read via signed URLs valid for 600 seconds. Never expose a service key or public bucket.
+- Extensions for notes, drawings, task links and media path references use an additive `public.preferences.extensions` JSONB column with existing tenant RLS; legacy snapshot RPC calls that omit extensions preserve current extension data.
+
+## Owner action: enable Google OAuth without SMTP
+
+1. Open [Google Auth Platform](https://console.cloud.google.com/auth/overview). Select/create a project, configure **External** audience and ORBIT branding. Use only the basic scopes `openid`, `userinfo.email`, `userinfo.profile`. While testing, add controlled test accounts; move consent screen to Production when wider signups are intended.
+2. Create an OAuth **Web application** client. Authorized JavaScript origin: **`https://orbit.starscene.com`**. Authorized redirect URI: **`https://ixfgavgtwuzdgucjriec.supabase.co/auth/v1/callback`**. Confirm the exact callback displayed on your Supabase Google provider screen.
+3. In [Supabase Auth Providers](https://supabase.com/dashboard/project/ixfgavgtwuzdgucjriec/auth/providers), enable Google and paste the Web client ID + secret **directly into Supabase**, never into chat, a GitHub issue, an app source file, or a browser environment variable.
+4. In [Supabase Auth URL Configuration](https://supabase.com/dashboard/project/ixfgavgtwuzdgucjriec/auth/url-configuration), use exact Site URL **`https://orbit.starscene.com/`**. Permit only exact authorized redirect origins. For stage testing, add one **exact** protected Preview URL temporarily; remove it later. Do not use wildcard Vercel hosts.
+5. Google sign-in does **not require SMTP**. Password recovery for legacy email/password accounts does require working email delivery; don't claim password recovery is available without a provider.
+
+## Source and rollout gates
+
+- Feature branch `feat/2.2-google-oauth-notes-20261109`: batch code/docs/tests first, then open one protected PR and require the four exact-head CI checks (`static-quality`, `local-postgres-rls`, `production-artifact-dry-run`, `unauthenticated-protection`). Avoid duplicate Actions runs and workflow dispatch.
+- **Unapplied migrations:** `supabase/migrations/20261109015000_orbit_private_extensions.sql` and `20261109020000_orbit_private_media.sql`. Run in disposable local Supabase first; verify three-account RLS, owner-only extension and media access, old-client extension preservation, protected bucket/MIME-size checks and unchanged original-owner behavior. Do not apply to hosted Supabase until owner approves a verified-backup rollout.
+- Owner ensures an **encrypted offline JSON backup** and a **separate Storage file recovery/export plan**. ORBIT JSON exports include image **paths**, not the actual image bytes; they are not complete media backups. Replaced/removed images are intentionally not automatically deleted yet.
+- With controlled Google test users A and B, verify hosted signup, exact-origin callback, private empty space, per-account CRUD, real bearer cross-user read/write denial, workspace revision CAS conflict, signout/DOM cleanup, owner data unchanged and inability to read the other's image.
+- Stage a **Production-targeted build** of the reviewed exact SHA with **no domain assignment** (`--skip-domain`). Version the currently pinned 1.0.0 release scripts through review rather than running them on an unapproved SHA. Verify actual build config, CSP and backup rollback mapping.
+- **Only with owner approval:** remove Vercel Authentication for **Production sign-in shell only**, retain protected Previews, promote the tested staged Production deployment to `orbit.starscene.com`, preserve `orbit.allintime.space` canonical redirect. On failure, restore Production protection and the last known-good alias `dpl_9rgHVEreGqspHtNY27WnPyMduFik` immediately.
+
+## Not yet delivered
+
+Full embedded Excalidraw, arbitrary images inside imported drawing scenes, image object garbage collection, remote notification push, structured task checklists, dark themes, Google Calendar/Drive, ChatGPT MCP connector and other 2.3 integrations remain separate future work. Do not conflate source-only features with live capabilities.
+
+Official references: [Supabase Google OAuth](https://supabase.com/docs/guides/auth/social-sign-in/auth-google), [Auth redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls), [Storage private buckets](https://supabase.com/docs/guides/storage/buckets/fundamentals), [Storage RLS](https://supabase.com/docs/guides/storage/security/access-control).

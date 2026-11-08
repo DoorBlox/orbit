@@ -52,10 +52,13 @@ export function createCloudRepository(client, { sanitizeHtml, ownerId } = {}) {
       }
       const normalized = validateBackup({ ...input, format:'orbit-backup', version:6,
         branches:emptyBranches?[{id:'inbox',parentId:'root',label:'Unsorted'}]:input.branches }, {sanitizeHtml});
-      return { branches:emptyBranches?[]:normalized.branches, tasks:normalized.tasks,
+      const links=normalized.extensions?.taskLinks||{};
+      return { branches:emptyBranches?[]:normalized.branches,
+        tasks:normalized.tasks.map(task=>({...task,links:links[task.id]||task.links})),
         journalEntries:normalized.journalEntries, milestones:normalized.milestones,
         spatialLayout:normalized.spatialLayout, preferences:{...normalized.preferences,...(timezone?{timezone}:{})},
-        ...(input.profile?{profile:{displayName:input.profile.displayName}}:{}) };
+        ...(input.profile?{profile:{displayName:input.profile.displayName}}:{}),
+        ...(normalized.extensions?{extensions:normalized.extensions}:{}) };
     } catch { throw new CloudError('VALIDATION'); }
   };
   async function verifyOwner(signal) {

@@ -1,6 +1,10 @@
 # ORBIT — current-session handoff for a future developer or ChatGPT session
 
-## Latest control-plane checkpoint — 9 Nov 2026, 00:15 WIB (supersedes earlier 8 Nov development-stage notes)
+## 9 Nov 2026 — 2.2 Google-first creative beta (SOURCE ONLY)
+
+PR #24 (collapsible branches, browser-local view state) is merged at `bc910fbc`. New branch `feat/2.2-google-oauth-notes-20261109` adds **Continue with Google** UI, labeled task URLs, floating sticky notes with text/color/drag/resize, journal AND sticky drawings through the same native `.excalidraw` import/export bridge, plus private image attachments. The editor is an interoperable native pen editor, **not full embedded Excalidraw React**. Both source migrations (`20261109015000_orbit_private_extensions`, `20261109020000_orbit_private_media`) remain **UNAPPLIED** to hosted Supabase; no hosted Google Auth provider, Production domain, or protection changed. Current Production is still `fc5af5a` at `dpl_9rgHVEreGqspHtNY27WnPyMduFik`, Vercel Authentication on all deployments. Source feature branch not yet CI-reviewed/deployed. See [owner setup + rollout](docs/OAUTH_2_2_ROLLOUT.md). Owner must configure Google OAuth credentials directly in Google/Supabase (never chat), verify offline backup and A/B tenant/media isolation before hosted migration or Production switch. JSON backups include image paths, NOT image file bytes. Batch code/doc changes before a single protected PR run; no repetitive Actions.
+
+ — 9 Nov 2026, 00:15 WIB (supersedes earlier 8 Nov development-stage notes)
 
 - Latest merged source: PR #21 (`d96d920`) preserves personalized Space names through backup/restore; PR #23 (`11421a8`) adds universal import and selective export. All four exact-head CI checks passed for both. Protect-main ruleset remains active.
 - Protected Vercel Preview `dpl_Bri19261zEWUzRGoEkx6EfAwDkwr` is READY from `11421a861b5023d5305c1802b8993bca221dacdd`; Production aliases still point to owner-only `fc5af5a`, with SSO protection enabled for all deployments.

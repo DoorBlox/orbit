@@ -2,6 +2,10 @@
 
 Date: 2026-11-08 (Asia/Jakarta). Source of truth: `CODEX_HANDOFF.md`, `AGENTS.md`, `docs/OPERATIONS.md` and `docs/PROJECT_HISTORY.md`. Base release 1.0.0 remains owner-only and serving from source `fc5af5a`. **This plan is not a deployment order**.
 
+## 9 Nov 2026 implementation addendum
+
+PR #24 (B01 collapse) merged. Source-only branch `feat/2.2-google-oauth-notes-20261109` advances A01 (Google OAuth-first UI), T01 (several labeled task links, not full checklists), J01 (shared native pen editor and `.excalidraw` external interchange for journal AND notes), K01 (paper stickies), and M01 (private signed image attachments with proposed per-user Storage RLS). **Not** a Production release; upstream embedded Excalidraw editor, themes, notifications, remote MCP, calendar/Drive and structured checklists remain separately scoped. Binary image backups and automatic cleanup remain future operations. The two additive migrations are pending and must preserve original owner content plus older client saves. [Google-first rollout & owner setup](../docs/OAUTH_2_2_ROLLOUT.md). Batch tests and avoid repeated GitHub Actions.
+
 ## Product constraints
 
 Keep one zoomable/pannable spatial world, six original draggable/resizable windows, radial task organization, brown notebook paper, and the V6 identity. Native HTML/CSS/JS ES modules remain the host; add isolated packages only when a feature warrants them. Source stays public and MIT; workspace, journals, uploaded media and task details remain private per account. No default paid subscription and no silent migration of existing owner content.

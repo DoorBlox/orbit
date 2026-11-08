@@ -197,7 +197,7 @@ def gate_case(browser,size,mode,source):
         assert not any(call.get('name') in ['load_owner_snapshot','save_owner_snapshot'] for call in calls)
         assert_no_local_leak(page)
         screenshot=OUT/f'm2-{mode}-{size[0]}.png';page.screenshot(path=str(screenshot))
-        assert page.get_by_role('button',name='Sign in with Google').count()==0
+        expect(page.get_by_role('button',name='Continue with Google',exact=True)).to_be_enabled()
         page.get_by_label('Email address',exact=True).fill('synthetic@example.invalid')
         page.get_by_label('Password',exact=True).fill('synthetic-password')
         page.get_by_role('button',name='Sign in with password',exact=True).click()
