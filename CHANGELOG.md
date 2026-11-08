@@ -1,4 +1,17 @@
-## 1.0.0 private release candidate — 2026-11-06 (not Production-published)
+# Changelog
+
+## 1.0.0 — 7 November 2026 — Protected Production release
+
+- Shipped the reviewed spatial scrapbook to `https://orbit.starscene.com/` with Vercel Authentication enabled and owner-only Supabase RLS. The secondary `https://orbit.allintime.space/` redirects to canonical. Owner verified sign-in, private workspace and redirect.
+- Preserved original six-window V6 identity, cloud-backed private journal/task state, V5/V6 JSON recovery and M2.5 motion fixes.
+- Merged reviewed source/artifact security guards, least-privilege database migration, failure-safe sign-out recovery, and controlled manual Production staging (`--prod --skip-domain`).
+- Verified hosted nonowner seven READ / seven INSERT rejections; separately added free disposable local Supabase CI with 205 SQL checks and authenticated 7 READ / 14 PATCH / 14 DELETE denials.
+- Published source under the MIT License (copyright 2026 DoorBlox) **without publishing owner data**; added Production artifact and anonymous-access CI checks.
+- Recorded remaining test limitations rather than claiming full hosted PATCH/DELETE, physical-device, Google OAuth/OTP or post-auth security-header certification. See [current release record](docs/releases/1.0.0.md) and [operations](docs/OPERATIONS.md).
+
+## Historical release preparation and earlier versions
+
+## 1.0.0 prelaunch candidate — 2026-11-06 (historical checkpoint)
 
 - Preserve accepted M2 private cloud functionality and M2.5 motion fixes.
 - Fail closed when Production cloud configuration is absent, unreviewed, mismatched or development-scoped; enforce exact private CSP before artifact replacement.
@@ -35,7 +48,7 @@
 - Add actual-origin regression tests, dual original/current source integrity and browser CI.
 - Preserve vanilla spatial scrapbook UX; disable automatic Git deployment pending approval.
 
-# Changelog
+## Additional historical history
 
 ## 0.5.0 — 2026-11-01
 - Replaced fixed page/grid scrapbook composition with independent draggable widgets on one spatial canvas.
