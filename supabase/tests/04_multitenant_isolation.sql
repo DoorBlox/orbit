@@ -17,6 +17,11 @@ select lives_ok($$insert into public.branches(owner_id,id,label) values('aaaaaaa
 select lives_ok($$insert into public.tasks(owner_id,id,project_id,title) values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','shared-task','inbox','A private task')$$,'A creates a task');
 select lives_ok($$insert into public.journal_entries(owner_id,id,entry_date,title) values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','shared-journal','2026-11-08','A private journal')$$,'A creates a journal');
 select is((public.load_owner_snapshot()->'snapshot'->'tasks'->0->>'title'),'A private task','A load snapshot gets own task');
+select lives_ok($insert into public.preferences(owner_id,extensions) values
+  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','{"testMarker":"tenant-a"}'::jsonb)$,
+  'A can save private extension metadata');
+select is((public.load_owner_snapshot()->'snapshot'->'extensions'->>'testMarker'),
+  'tenant-a','A loads only own extension metadata');
 
 select set_config('request.jwt.claim.sub','bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',true);
 select ok(public.orbit_workspace_access(),'B has verified workspace access');
@@ -24,6 +29,7 @@ select ok(not public.orbit_owner_access(),'B cannot publish via original-owner a
 select is((select count(*) from public.tasks),0::bigint,'B cannot view A task');
 select is((select count(*) from public.journal_entries),0::bigint,'B cannot view A journal');
 select is((public.load_owner_snapshot()->>'revision')::bigint,0::bigint,'B begins at revision zero');
+select is((public.load_owner_snapshot()->'snapshot'->'extensions')::text,'{}','B cannot read A private extension metadata');
 select lives_ok($$insert into public.branches(owner_id,id,label) values('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','inbox','B private inbox')$$,'B creates same-ID inbox');
 select lives_ok($$insert into public.tasks(owner_id,id,project_id,title) values('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','shared-task','inbox','B private task')$$,'B creates same-ID task');
 select lives_ok($$insert into public.journal_entries(owner_id,id,entry_date,title) values('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','shared-journal','2026-11-08','B private journal')$$,'B creates same-ID journal');
@@ -52,6 +58,8 @@ select is((select count(*) from public.tasks),1::bigint,'A still sees exactly ow
 select is((select title from public.tasks where id='shared-task'),'A private task','B cannot alter A title');
 select is((select title from public.journal_entries where id='shared-journal'),'A private journal','B cannot delete A journal');
 select is((select count(*) from public.profiles),0::bigint,'A cannot see C private profile');
+select is((public.load_owner_snapshot()->'snapshot'->'extensions'->>'testMarker'),
+  'tenant-a','A notes survive B and C activity');
 
 set local role anon;
 select set_config('request.jwt.claim.sub','',true);
