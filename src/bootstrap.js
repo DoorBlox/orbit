@@ -35,6 +35,7 @@ export async function bootstrapOrbit(config=runtimeConfig) {
   },{signal:lifecycle.signal});
   const publicRelease=config?.publicRelease===true;
   const shell=createAuthShell({publicRelease,
+    onGoogleSignIn:()=>auth?.signInWithGoogle(),
     onPasswordSignIn:(email,password)=>auth?.signInWithPassword(email,password),
     onSignUp:(email,password)=>auth?.signUpWithPassword(email,password),
     onRequestOtp:email=>auth?.requestEmailOtp(email),

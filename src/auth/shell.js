@@ -17,7 +17,7 @@ const syncText = {
 };
 
 /** Small native shell around the unchanged spatial app; no user HTML is interpolated. */
-export function createAuthShell({ publicRelease, onPasswordSignIn, onSignUp, onRequestOtp, onVerifyOtp, onCancelOtp, onSignOut, onExport, onRetry, onReload } = {}) {
+export function createAuthShell({ publicRelease, onGoogleSignIn, onPasswordSignIn, onSignUp, onRequestOtp, onVerifyOtp, onCancelOtp, onSignOut, onExport, onRetry, onReload } = {}) {
   document.getElementById('cloud-shell')?.remove();
   const root=document.createElement('section');root.id='cloud-shell';root.className='cloud-shell';
   root.setAttribute('aria-label','Cloud access and saving');
@@ -25,7 +25,7 @@ export function createAuthShell({ publicRelease, onPasswordSignIn, onSignUp, onR
   const title=document.createElement('h1');title.textContent='Your ORBIT space';
   const description=document.createElement('p');description.className='cloud-gate-message';description.setAttribute('role','status');
   const release=document.createElement('p');release.className='cloud-release-note';
-  release.textContent=publicRelease?'Only content intentionally published can be viewed without signing in.':'Your private workspace is accessible only after signing in. Account creation may require an invitation.';
+  release.textContent=publicRelease?'Only content intentionally published can be viewed without signing in.':'Each Google account opens its own private ORBIT space. Nothing is shared between accounts.';
   const toolbar=document.createElement('div');toolbar.className='cloud-toolbar glass-widget';toolbar.hidden=true;
   toolbar.setAttribute('role','group');toolbar.setAttribute('aria-label','Workspace status and controls');
   const mode=document.createElement('span');mode.className='cloud-mode';
@@ -35,12 +35,16 @@ export function createAuthShell({ publicRelease, onPasswordSignIn, onSignUp, onR
     const element=document.createElement('button');element.type='button';element.className='glass-button';element.textContent=label;
     element.addEventListener('click',()=>{void handler?.();});parent.append(element);return element;
   }
-  const passwordLogin=document.createElement('form');passwordLogin.className='cloud-email-login';gate.append(passwordLogin);
+  const googleSignIn=button('Continue with Google',onGoogleSignIn,gate);
+  googleSignIn.id='google-sign-in';googleSignIn.classList.add('cloud-google-sign-in');
+  const passwordDetails=document.createElement('details');passwordDetails.className='cloud-password-details';
+  const passwordSummary=document.createElement('summary');passwordSummary.textContent='Existing account? Sign in with email and password';
+  passwordDetails.append(passwordSummary);gate.append(passwordDetails);
+  const passwordLogin=document.createElement('form');passwordLogin.className='cloud-email-login';passwordDetails.append(passwordLogin);
   function passwordField(label,id){const wrap=document.createElement('label');wrap.textContent=label;const input=document.createElement('input');input.id=id;wrap.append(input);passwordLogin.append(wrap);return input;}
   const passwordEmail=passwordField('Email address','password-email');passwordEmail.type='email';passwordEmail.autocomplete='username';passwordEmail.maxLength=254;passwordEmail.required=true;
   const password=passwordField('Password','login-password');password.type='password';password.autocomplete='current-password';password.maxLength=4096;password.required=true;
   const passwordSubmit=button('Sign in with password',null,passwordLogin);passwordSubmit.type='submit';
-  const createAccount=button('Create account',async()=>{const secret=password.value;password.value='';await onSignUp?.(passwordEmail.value,secret);},passwordLogin);
   passwordLogin.addEventListener('submit',async event=>{event.preventDefault();const secret=password.value;password.value='';await onPasswordSignIn?.(passwordEmail.value,secret);});
   const otpDetails=document.createElement('details');const otpSummary=document.createElement('summary');otpSummary.textContent='Email code (requires configured email delivery)';otpDetails.append(otpSummary);gate.append(otpDetails);
   const login=document.createElement('form');login.className='cloud-email-login';otpDetails.append(login);
@@ -70,7 +74,8 @@ export function createAuthShell({ publicRelease, onPasswordSignIn, onSignUp, onR
   function updateCooldown(){
     const seconds=Math.max(0,Math.ceil((otp.resendAt-Date.now())/1000));
     const locked=['idle','restoring','signing-in','password-signing-in','signing-up','owner','disposed'].includes(state.status);
-    passwordSubmit.disabled=createAccount.disabled=passwordEmail.disabled=password.disabled=locked||otp.busy;
+    googleSignIn.disabled=locked||otp.busy;
+    passwordSubmit.disabled=passwordEmail.disabled=password.disabled=locked||otp.busy;
     passwordLogin.setAttribute('aria-busy',String(state.status==='password-signing-in'));
     send.disabled=resend.disabled=otp.busy||locked||seconds>0;
     resend.textContent=seconds?`Resend code (${seconds}s)`:'Resend code';
@@ -113,7 +118,7 @@ export function createAuthShell({ publicRelease, onPasswordSignIn, onSignUp, onR
   function setState(next) {
     state=next;description.textContent=textByState[next.status]||textByState.error;
     if(next.code==='PASSWORD_SIGN_IN_FAILED')description.textContent='Sign-in failed. Check your credentials or connection and try again.';
-    if(next.code==='SIGN_UP_FAILED')description.textContent='Account creation could not be completed. Check invitation, email and password requirements or try again later.';
+    if(next.code==='SIGN_UP_FAILED')description.textContent='Email account creation is not enabled in this Google-first beta. Choose Continue with Google.';
     if(next.code==='PASSWORD_RATE_LIMITED')description.textContent='Too many sign-in attempts. Wait before trying again.';
     // A failed SDK sign-out can leave a session stored even though the private
     // view was cleared. Do not present that state as confirmed signed out.
@@ -143,7 +148,7 @@ export function createAuthShell({ publicRelease, onPasswordSignIn, onSignUp, onR
     if(next.errorCode==='AUTH_REQUIRED')status.textContent='Session verification required — this draft is not saved';
   }
   function showError(message='Cloud setup is unavailable. Your private space remains closed.') {
-    setState({status:'error'});login.hidden=true;passwordLogin.hidden=true;description.textContent=message;
+    setState({status:'error'});login.hidden=true;passwordLogin.hidden=true;googleSignIn.hidden=true;description.textContent=message;
   }
   setState(state);
   setOtpState(otp);
