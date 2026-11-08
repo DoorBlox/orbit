@@ -17,17 +17,47 @@ jobs:
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
           persist-credentials: false
+          fetch-depth: 2
+      - name: Determine whether tenant-security tests are needed
+        id: scope
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          # Always run for manual dispatch and uncertain merge-base ancestry.
+          # PR checkout uses GitHub's merge commit: HEAD^1 is the target base.
+          if [[ "$EVENT_NAME" != "pull_request" ]] || ! git rev-parse --verify HEAD^1 >/dev/null 2>&1; then
+            echo "security=true" >> "$GITHUB_OUTPUT"
+            echo "Full isolated tenant checks required (manual or unknown diff)."
+            exit 0
+          fi
+          paths="$(git diff --name-only HEAD^1 HEAD)"
+          # Fail closed for changes to SQL/auth/snapshot/schema/dependency/security.
+          # Visual-only and documentation PRs still pass this required status,
+          # without spending minutes starting a disposable Docker stack.
+          if printf '%s\n' "$paths" | grep -Eq '^(supabase/|src/auth/|src/cloud/|src/bootstrap\.js$|src/app\.js$|src/data\.js$|src/model\.js$|src/backup\.js$|src/storage\.js$|src/runtime-config\.js$|tests/integration/|\.github/workflows/|package(-lock)?\.json$|scripts/build-release\.mjs$|scripts/production-guard\.mjs$)'; then
+            echo "security=true" >> "$GITHUB_OUTPUT"
+            echo "Security-impacting paths changed; run full isolated checks."
+          else
+            echo "security=false" >> "$GITHUB_OUTPUT"
+            echo "No security-impacting files changed; skip local Docker and pgTAP."
+          fi
       - name: Node 22 for fixed Supabase CLI
+        if: steps.scope.outputs.security == 'true'
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: '22'
       - name: Install pinned application SDK for local HTTP checks
+        if: steps.scope.outputs.security == 'true'
         run: npm ci --ignore-scripts
       - name: Install pinned Supabase CLI
+        if: steps.scope.outputs.security == 'true'
         uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3, reviewed commit
         with:
           version: 2.84.2
       - name: Start isolated local Supabase services and apply repository migrations
+        if: steps.scope.outputs.security == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -39,8 +69,10 @@ jobs:
           fi
           echo "Isolated local Supabase stack started; repository migrations applied."
       - name: Execute transaction-rolled-back pgTAP isolation tests
+        if: steps.scope.outputs.security == 'true'
         run: supabase test db
       - name: Test real local Auth bearer-session HTTP authorization
+        if: steps.scope.outputs.security == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -52,7 +84,7 @@ jobs:
           node tests/integration/local_http_rls.mjs
           rm -f "$RUNNER_TEMP/orbit-local-api.env"
       - name: Stop and discard disposable local database
-        if: always()
+        if: always() && steps.scope.outputs.security == 'true'
         shell: bash
         run: supabase stop --no-backup > /dev/null 2>&1 || true
 

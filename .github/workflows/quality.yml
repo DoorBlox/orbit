@@ -1,8 +1,7 @@
 name: ORBIT quality
 on:
-  push:
-    branches: [main, codex/m3-release-readiness]
   pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
