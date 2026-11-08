@@ -37,10 +37,10 @@ export function createAuthShell({ publicRelease, onGoogleSignIn, onPasswordSignI
   }
   const googleSignIn=button('Continue with Google',onGoogleSignIn,gate);
   googleSignIn.id='google-sign-in';googleSignIn.classList.add('cloud-google-sign-in');
-  const passwordDetails=document.createElement('details');passwordDetails.className='cloud-password-details';
-  const passwordSummary=document.createElement('summary');passwordSummary.textContent='Existing account? Sign in with email and password';
-  passwordDetails.append(passwordSummary);gate.append(passwordDetails);
-  const passwordLogin=document.createElement('form');passwordLogin.className='cloud-email-login';passwordDetails.append(passwordLogin);
+  const passwordLabel=document.createElement('p');passwordLabel.className='cloud-password-label';
+  passwordLabel.textContent='Or sign in with your existing email and password';
+  gate.append(passwordLabel);
+  const passwordLogin=document.createElement('form');passwordLogin.className='cloud-email-login';gate.append(passwordLogin);
   function passwordField(label,id){const wrap=document.createElement('label');wrap.textContent=label;const input=document.createElement('input');input.id=id;wrap.append(input);passwordLogin.append(wrap);return input;}
   const passwordEmail=passwordField('Email address','password-email');passwordEmail.type='email';passwordEmail.autocomplete='username';passwordEmail.maxLength=254;passwordEmail.required=true;
   const password=passwordField('Password','login-password');password.type='password';password.autocomplete='current-password';password.maxLength=4096;password.required=true;
