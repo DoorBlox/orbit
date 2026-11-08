@@ -133,6 +133,7 @@ export class Journal {
     document.getElementById('journal-prev').disabled=this.index===0;
     document.getElementById('journal-next').disabled=this.index===this.entries.length-1;
     this.saveIndicator.textContent=this.readOnly?'published content':this.persistLocally?(this.saved?'saved on this device':'not saved — export a backup'):(this.saved?'saved to cloud':'waiting to sync');this.updateCount();
+    this.onPageChange?.(entry);
   }
   newPage(date=todayKey()){if(this.readOnly||this.disposed)return;this.commit();if(this.entries.length>=MAX_ENTRIES){this.notify('Journal page limit reached. Export a backup before adding more.');return;}
     const page=empty(date);this.entries=orderJournalEntries([...this.entries,page]);this.index=this.entries.findIndex(item=>item.id===page.id);this.saved=this.persistLocally?save(this.entries):false;this.render();this.onEntriesChange(this.entries);this.title.focus();}

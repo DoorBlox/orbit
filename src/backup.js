@@ -1,6 +1,7 @@
 import { cleanTask } from './model.js';
 import { validDateKey, dateKey } from './dates.js';
 import { STORAGE_KEYS } from './storage.js';
+import { normalizeExtensions } from './scene.js';
 export const RESTORE_RECOVERY_KEY = 'orbit.v6.restore-recovery';
 const keys = new Set(Object.values(STORAGE_KEYS));
 const widgets = new Set(['timeline','constellation','active','completed','space','journal']);
@@ -42,6 +43,7 @@ export function validateBackup(input, { sanitizeHtml } = {}) {
   // as authorization metadata.
   if(value.profile!==undefined&&(!object(value.profile)||typeof value.profile.displayName!=='string'||
     !value.profile.displayName.trim()||value.profile.displayName.trim().length>100))throw Error('Invalid workspace name.');
+  const extensions=value.extensions===undefined?undefined:normalizeExtensions(value.extensions);
   let collapsedBranchIds;
   if(value.collapsedBranchIds!==undefined){
     const ids=list(value.collapsedBranchIds,4000,'collapsed branch');const seen=new Set();
@@ -54,6 +56,7 @@ export function validateBackup(input, { sanitizeHtml } = {}) {
   const normalized = { format:'orbit-backup', version:value.version,
     ...(value.profile?{profile:{displayName:value.profile.displayName.trim()}}:{}),
     ...(collapsedBranchIds!==undefined?{collapsedBranchIds}:{}),
+    ...(extensions!==undefined?{extensions}:{}),
     branches:branches.map(b => ({id:b.id,parentId:b.parentId,label:b.label,...(typeof b.color==='string'?{color:b.color.slice(0,24)}:{})})),
     tasks:tasks.map(t => cleanTask(t)), preferences:{colorMode:value.preferences?.colorMode === 'urgency'?'urgency':'deadline'},
     milestones:[] };
@@ -114,6 +117,7 @@ export function persistBackup(snapshot, storage = globalThis.localStorage) {
   };
   // An older backup without profile must not reset the current Space name.
   if(snapshot.profile!==undefined)values[STORAGE_KEYS.profile]=snapshot.profile;
+  if(snapshot.extensions!==undefined)values[STORAGE_KEYS.extensions]=snapshot.extensions;
   if (snapshot.journalEntries !== undefined) values[STORAGE_KEYS.journal] = snapshot.journalEntries;
   if (snapshot.spatialLayout !== undefined) {
     values[STORAGE_KEYS.layout] = Object.fromEntries(Object.entries(snapshot.spatialLayout).map(([id,p])=>[id,{x:p.x,y:p.y}]));

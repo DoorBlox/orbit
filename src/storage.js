@@ -1,11 +1,12 @@
 import { DEFAULT_BRANCHES, getSampleTasks } from './data.js';
 import { cleanTask } from './model.js';
+import { normalizeExtensions } from './scene.js';
 
 export const STORAGE_KEYS = Object.freeze({
   tasks: 'orbit.phase1.tasks.v1', branches: 'orbit.phase1.branches.v1',
   preferences: 'orbit.phase1.preferences.v1', milestones: 'orbit-v4-milestones',
   journal: 'orbit.v5.journal', layout: 'orbit.v5.spatial-layout', sizes: 'orbit.v6.spatial-sizes',
-  profile: 'orbit.v7.profile',
+  profile: 'orbit.v7.profile', extensions: 'orbit.v8.extensions',
 });
 let activeStorage;
 let issues = new Map();
@@ -135,3 +136,13 @@ export function saveProfile(profile) {
 export function saveTasks(tasks) { return write(STORAGE_KEYS.tasks, tasks); }
 export function saveBranches(branches) { return write(STORAGE_KEYS.branches, branches); }
 export function savePreferences(preferences) { return write(STORAGE_KEYS.preferences, preferences); }
+
+export function readExtensions(){
+  const loaded=read(STORAGE_KEYS.extensions);
+  if(loaded.missing||loaded.failed)return normalizeExtensions({});
+  try{return normalizeExtensions(loaded.value);}
+  catch{block(STORAGE_KEYS.extensions,'Saved drawings or sticky notes need recovery.',loaded.raw);return normalizeExtensions({});}
+}
+export function saveExtensions(value){
+  try{return write(STORAGE_KEYS.extensions,normalizeExtensions(value));}catch{return false;}
+}
