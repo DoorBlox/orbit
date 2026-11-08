@@ -2,8 +2,8 @@ import { normalizeExtensions, renderScene, openSceneEditor } from './scene.js';
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
 const randomId=()=>('note_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8));
 export class StickyNotes {
-  constructor({world,notes=[],readOnly=false,onChange=()=>{},getScale=()=>1,notify=()=>{}}={}){
-    this.world=world;this.readOnly=readOnly;this.onChange=onChange;this.getScale=getScale;
+  constructor({world,notes=[],readOnly=false,onChange=()=>{},getScale=()=>1,notify=()=>{},media=null}={}){
+    this.world=world;this.readOnly=readOnly;this.onChange=onChange;this.getScale=getScale;this.media=media;
     this.notify=notify;this.disposed=false;this.notes=normalizeExtensions({notes}).notes;
     this.layer=document.createElement('div');this.layer.id='sticky-layer';this.layer.className='sticky-layer';
     this.layer.setAttribute('aria-label','Floating sticky notes');world.append(this.layer);this.render();
@@ -83,6 +83,12 @@ export class StickyNotes {
       editor.addEventListener('blur',()=>{clearTimeout(timer);this.changed();});
       const preview=document.createElement('div');preview.className='sticky-drawing';
       renderScene(n.scene,preview);
+      if(n.imagePath&&this.media){
+        const image=document.createElement('img');image.className='sticky-image';image.alt='Private image attached to '+n.title;
+        image.loading='lazy';article.append(image);
+        this.media.signedUrl(n.imagePath).then(url=>{if(!this.disposed&&image.isConnected)image.src=url;})
+          .catch(()=>{if(image.isConnected)image.alt='Private image unavailable';});
+      }
       const actions=document.createElement('div');actions.className='sticky-actions';
       const draw=document.createElement('button');draw.className='glass-button';draw.type='button';
       draw.textContent=n.scene?'Edit drawing':'Draw';draw.disabled=this.readOnly;
@@ -93,6 +99,22 @@ export class StickyNotes {
       for(const color of ['sand','peach','lavender','mint']){const option=document.createElement('option');option.value=color;option.textContent=color;tint.append(option);}
       tint.value=n.color;tint.addEventListener('change',()=>{article.classList.replace('sticky-'+n.color,'sticky-'+tint.value);n.color=tint.value;this.changed();});
       actions.append(draw,tint);
+      if(this.media&&!this.readOnly){
+        const upload=document.createElement('input');upload.type='file';upload.hidden=true;
+        upload.accept='image/png,image/jpeg,image/webp';
+        const pick=document.createElement('button');pick.className='glass-button';pick.type='button';
+        pick.textContent=n.imagePath?'Replace image':'+ image';
+        pick.addEventListener('click',()=>upload.click());
+        upload.addEventListener('change',async()=>{
+          const file=upload.files?.[0];if(!file)return;
+          pick.disabled=true;
+          try{const path=await this.media.upload(file);if(this.disposed)return;
+            n.imagePath=path;this.changed();this.render();this.notify('Private image attached.');
+          }catch(error){this.notify(error.message,6500);}
+          finally{pick.disabled=false;upload.value='';}
+        });
+        actions.append(pick,upload);
+      }
       const resizer=document.createElement('button');resizer.type='button';resizer.className='sticky-resizer';
       resizer.textContent='↘';resizer.title='Resize sticky note';resizer.disabled=this.readOnly;
       resizer.setAttribute('aria-label','Resize sticky note');

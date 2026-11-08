@@ -3,11 +3,16 @@
  * is not bundled. Binary image payloads await private media storage.
  */
 const object = value => !!value && typeof value==='object' && !Array.isArray(value);
-const validId = value => typeof value==='string' && /^[A-Za-z0-9_-]{1,100}$/.test(value);
+const validId = value => typeof value==='string' && /^[A-Za-z0-9_-]{1,100}$/.test(value) && !['__proto__','constructor','prototype'].includes(value);
 const coord = value => Number.isFinite(value) && Math.abs(value)<=10000;
 const color = value => typeof value==='string' && /^#[0-9a-fA-F]{6}$/.test(value) ? value : '#755c49';
 const ns='http://www.w3.org/2000/svg';
 const svgNode=(tag,attrs={})=>{const node=document.createElementNS(ns,tag);for(const [key,value] of Object.entries(attrs))node.setAttribute(key,String(value));return node;};
+const imagePathPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(?:png|jpg|webp)$/i;
+function assertImagePath(value){
+  if(typeof value!=='string'||!imagePathPattern.test(value))throw Error('Invalid private image path.');
+  return value;
+}
 export const emptyScene=()=>({type:'excalidraw',version:2,source:'https://orbit.starscene.com/',
   elements:[],appState:{viewBackgroundColor:'#f9edda'},files:{}});
 export function normalizeScene(scene){
@@ -29,9 +34,9 @@ export function normalizeScene(scene){
 export function normalizeExtensions(raw={}){
   if(raw===undefined||raw===null)raw={};
   if(!object(raw)||JSON.stringify(raw).length>900000)throw Error('Invalid or oversized workspace extensions.');
-  const notes=raw.notes??[],taskLinks=raw.taskLinks??{},journalScenes=raw.journalScenes??{};
+  const notes=raw.notes??[],taskLinks=raw.taskLinks??{},journalScenes=raw.journalScenes??{},journalImages=raw.journalImages??{};
   if(!Array.isArray(notes)||notes.length>80||!object(taskLinks)||Object.keys(taskLinks).length>10000||
-     !object(journalScenes)||Object.keys(journalScenes).length>600)throw Error('Invalid workspace extensions.');
+     !object(journalScenes)||Object.keys(journalScenes).length>600||!object(journalImages)||Object.keys(journalImages).length>600)throw Error('Invalid workspace extensions.');
   const ids=new Set();
   const cleanNotes=notes.map(n=>{
     if(!object(n)||!validId(n.id)||ids.has(n.id)||typeof n.text!=='string'||n.text.length>6000||
@@ -41,7 +46,8 @@ export function normalizeExtensions(raw={}){
       !['sand','peach','lavender','mint'].includes(n.color))throw Error('Invalid sticky note.');
     ids.add(n.id);
     return {id:n.id,title:n.title,text:n.text,x:n.x,y:n.y,width:n.width,height:n.height,color:n.color,
-      ...(n.scene?{scene:normalizeScene(n.scene)}:{})};
+      ...(n.scene?{scene:normalizeScene(n.scene)}:{}),
+      ...(n.imagePath?{imagePath:assertImagePath(n.imagePath)}:{})};
   });
   const links={};
   for(const [id,values] of Object.entries(taskLinks)){
@@ -59,7 +65,12 @@ export function normalizeExtensions(raw={}){
     if(!validId(id))throw Error('Invalid journal drawing ID.');
     scenes[id]=normalizeScene(scene);
   }
-  return {notes:cleanNotes,taskLinks:links,journalScenes:scenes};
+  const images={};
+  for(const [id,path] of Object.entries(journalImages)){
+    if(!validId(id))throw Error('Invalid journal image ID.');
+    images[id]=assertImagePath(path);
+  }
+  return {notes:cleanNotes,taskLinks:links,journalScenes:scenes,journalImages:images};
 }
 export function renderScene(scene,target){
   target.replaceChildren();
