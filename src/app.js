@@ -1,4 +1,4 @@
-import { branchPath,descendantsOf,createBranch } from './data.js';
+import { branchPath,descendantsOf,createBranch,removeBranchPreservingContents } from './data.js';
 import { cleanTask,taskSummary } from './model.js';
 import { readTasks,saveTasks,readPreferences,savePreferences,readBranches,saveBranches,STORAGE_KEYS,getStorageStatus,getRecoveryData,markStorageIssue,isStorageWriteBlocked,clearStorageIssues } from './storage.js';
 import { importCsv,exportCsv } from './csv.js';
@@ -18,7 +18,7 @@ const $=id=>document.getElementById(id);
 let restoreRecovery;
 try{restoreRecovery=persistLocally?recoverInterruptedRestore():{ok:true};}catch{restoreRecovery={ok:false};}
 if(!restoreRecovery.ok)for(const key of Object.values(STORAGE_KEYS))markStorageIssue(key,'Interrupted restore needs recovery.');
-const state={branches:initialSnapshot?structuredClone(initialSnapshot.branches):readBranches(),tasks:initialSnapshot?structuredClone(initialSnapshot.tasks):readTasks(),preferences:initialSnapshot?structuredClone(initialSnapshot.preferences):readPreferences(),profile:structuredClone(initialSnapshot?.profile||{displayName:'HISYAM'}),selectedBranchId:'inbox',
+const state={branches:initialSnapshot?structuredClone(initialSnapshot.branches):readBranches(),tasks:initialSnapshot?structuredClone(initialSnapshot.tasks):readTasks(),preferences:initialSnapshot?structuredClone(initialSnapshot.preferences):readPreferences(),profile:structuredClone(initialSnapshot?.profile||{displayName:'My space'}),selectedBranchId:'inbox',
   selectedTaskId:'',captureMode:'capture',captureDraft:'',searchDraft:''};
 const capture=$('capture-form'),input=$('capture-name'),target=$('capture-target');
 const milestoneKey='orbit-v4-milestones';
@@ -52,6 +52,23 @@ const scene=new Constellation({viewport:$('map-viewport'),world:$('map-world'),e
     if(parentId!=='root'&&!state.branches.some(x=>x.id===parentId)){message('Choose a valid parent.');return;}
     b.parentId=parentId;sync();scene.focusNode(id);message('Branch moved; its tasks and children stayed attached.');
   },
+  onBranchDelete(id){if(readOnly||disposed)return false;
+    const branch=state.branches.find(b=>b.id===id);if(!branch)return false;
+    let result;
+    try{result=removeBranchPreservingContents(id,state.branches,state.tasks);}
+    catch(error){message(error.message);return false;}
+    const warning=`Remove "${branch.label}"? Its ${result.movedTasks} direct task(s) will move to ${result.destination==='inbox'?'Unsorted':'the parent branch'}; ${result.reparentedChildren} child branch(es) will remain. You can undo.`;
+    if(!window.confirm(warning))return false;
+    const previousBranches=structuredClone(state.branches),previousTasks=structuredClone(state.tasks);
+    state.branches=result.branches;state.tasks=result.tasks;
+    if(state.selectedBranchId===id)state.selectedBranchId=result.destination;
+    sync();scene.focusNode(branch.parentId==='root'?'root':branch.parentId);
+    message('Branch removed; tasks and child branches kept.',8500,rememberDelete(()=>{
+      state.branches=previousBranches;state.tasks=previousTasks;state.selectedBranchId=id;
+      sync();scene.focusNode(id);
+    }));
+    return true;
+  },
   onTaskSelected(id){
     state.selectedTaskId=id;const task=state.tasks.find(t=>t.id===id);if(task)setBranch(task.projectId);
   },
@@ -81,7 +98,7 @@ const widgets=new ScrapWidgets({
     if(task.status==='completed'){board.focus('completed');return;}
     board.focus('constellation');
     setBranch(task.projectId);scene.expandedTaskId=task.id;scene.selectedTaskId=task.id;
-    scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'),state.preferences.colorMode);
+    scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'),state.preferences.colorMode,state.profile.displayName);
     scene.focusTask(task);
   },
   onComplete(id){if(readOnly||disposed)return false;const t=state.tasks.find(x=>x.id===id);if(!t)return;
@@ -162,7 +179,7 @@ function sync({persist=true}={}){
     const tasksOk=saveTasks(state.tasks),branchesOk=saveBranches(state.branches);lastSaveOk=tasksOk&&branchesOk;
     for(const [key,ok] of [[STORAGE_KEYS.tasks,tasksOk],[STORAGE_KEYS.branches,branchesOk]]){if(ok)pendingWrites.delete(key);else pendingWrites.add(key);}
   }
-  scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'),state.preferences.colorMode);
+  scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'),state.preferences.colorMode,state.profile.displayName);
   widgets.setData(state.branches,state.tasks,state.preferences.colorMode,milestones);
   if(state.captureMode==='find')updateSearch();
   const s=taskSummary(state.tasks);
@@ -222,7 +239,7 @@ function initTools(){
   $('map-fullscreen').addEventListener('click',()=>{document.body.classList.toggle('map-immersive');
     const open=document.body.classList.contains('map-immersive');
     const el=$('constellation-widget');
-    if(open){$('app').append(el);}else{$('spatial-world').append(el);board.position('constellation');}
+    if(open){$('app').append(el);for(const key of ['width','height','left','top'])el.style.removeProperty(key);}else{$('spatial-world').append(el);board.position('constellation');board.applySize('constellation');}
     $('map-fullscreen').setAttribute('aria-label',open?'Exit expanded constellation':'Expand constellation');
     $('map-fullscreen').title=open?'Exit expanded constellation':'Expand constellation';
     requestAnimationFrame(()=>requestAnimationFrame(()=>scene.onResize()));

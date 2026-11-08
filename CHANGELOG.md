@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.0 — Unreleased (source-only foundations merged 8 November 2026)
+
+- Merged [PR #12](https://github.com/DoorBlox/orbit/pull/12): constellation root follows the workspace profile rather than hard-coded name; safe branch deletion with child/task preservation, confirmation and undo.
+- Journal pages sort by civil date with stable page selection and navigation controls updated immediately after date edits.
+- Expanded constellation fits the current viewport independently of stored canvas dimensions and restores its saved size afterward.
+- Added targeted unit/browser regression coverage and reviewed current source hashes. All four exact-head CI checks passed prior to merging.
+- **Not deployed.** ORBIT 1.0.0 remains owner-confirmed Production, built from `fc5af5a`.
+- Multi-user tenant SQL, signup, Excalidraw, media, MCP and other 2.x work remains in separate unmerged PRs and documented blueprint. No live RLS, Auth or Vercel protection changes.
+
+
 ## 1.0.0 — 7 November 2026 — Protected Production release
 
 - Shipped the reviewed spatial scrapbook to `https://orbit.starscene.com/` with Vercel Authentication enabled and owner-only Supabase RLS. The secondary `https://orbit.allintime.space/` redirects to canonical. Owner verified sign-in, private workspace and redirect.

@@ -10,9 +10,9 @@ const hoverPossible=()=>matchMedia('(hover:hover) and (pointer:fine)').matches;
 const NS='http://www.w3.org/2000/svg';
 
 export class Constellation {
-  constructor({viewport,world,edgesEl,nodesEl,decorEl,onBranchSelected,onBranchAdd,onBranchRename,onBranchMove,onTaskSelected,onTaskUpdate,onTaskDelete}) {
-    Object.assign(this,{viewport,world,edgesEl,nodesEl,decorEl,onBranchSelected,onBranchAdd,onBranchRename,onBranchMove,onTaskSelected,onTaskUpdate,onTaskDelete});
-    this.branches=[];this.tasks=[];this.mode='deadline';this.layout=createLayout([],[]);this.bounds=getDisplayBounds(this.layout);
+  constructor({viewport,world,edgesEl,nodesEl,decorEl,onBranchSelected,onBranchAdd,onBranchRename,onBranchMove,onBranchDelete,onTaskSelected,onTaskUpdate,onTaskDelete}) {
+    Object.assign(this,{viewport,world,edgesEl,nodesEl,decorEl,onBranchSelected,onBranchAdd,onBranchRename,onBranchMove,onBranchDelete,onTaskSelected,onTaskUpdate,onTaskDelete});
+    this.branches=[];this.tasks=[];this.mode='deadline';this.displayName='My space';this.layout=createLayout([],[],this.displayName);this.bounds=getDisplayBounds(this.layout);
     this.nodeMap=new Map();this.stackMap=new Map();this.domNodes=new Map();this.domStacks=new Map();this.edgeEntries=[];
     this.camera={x:0,y:0,scale:.2};this.cameraAnimation=0;this.springAnimation=0;
     this.focusedNode='';this.expandedTaskId='';this.selectedTaskId='';this.offsets=new Map();
@@ -26,10 +26,11 @@ export class Constellation {
     const ring=node('div','world-ring inner');this.decorEl.append(ring);
     this.decorEl.append(node('div','world-ring outer'));
   }
-  setData(branches,tasks,mode='deadline'){
+  setData(branches,tasks,mode='deadline',displayName=this.displayName){
     const focus=this.focusedNode;
     this.branches=branches;this.tasks=tasks;this.mode=mode;
-    this.layout=createLayout(branches,tasks);this.bounds=getDisplayBounds(this.layout);
+    this.displayName=String(displayName||'My space').trim().slice(0,100)||'My space';
+    this.layout=createLayout(branches,tasks,this.displayName);this.bounds=getDisplayBounds(this.layout);
     this.nodeMap=new Map(this.layout.nodes.map(n=>[n.id,n]));
     this.stackMap=new Map(this.layout.stacks.map(s=>[s.branchId,s]));
     if(!this.nodeMap.has(focus))this.focusedNode='';
@@ -241,7 +242,7 @@ export class Constellation {
   renderOverviewLabels(){
     this.labelLayer.replaceChildren();this.overviewLabels.clear();
     for(const entry of this.layout.nodes.filter(n=>n.id==='root'||n.depth===1)){
-      const btn=node('button','overview-label',entry.id==='root'?'HISYAM':entry.label);
+      const btn=node('button','overview-label',entry.label);
       btn.type='button';btn.dataset.branchId=entry.id;btn.style.setProperty('--label-accent',entry.color);
       btn.setAttribute('aria-label',`Focus ${entry.label}`);
       btn.addEventListener('click',e=>{e.stopPropagation();this.focusNode(entry.id);this.onBranchSelected?.(entry.id);});
@@ -266,7 +267,7 @@ export class Constellation {
   buildNode(item){
     const el=node('div',`graph-node node-${item.type}`);el.dataset.id=item.id;el.style.left=item.x+'px';el.style.top=item.y+'px';
     el.style.setProperty('--branch-color',item.color);el.dataset.depth=String(item.depth||0);el.tabIndex=0;el.setAttribute('role','button');
-    el.setAttribute('aria-label',item.id==='root'?`Hisyam, center of the constellation; focus`:`${branchPath(item.id,this.branches)}; focus, edit or add a branch`);
+    el.setAttribute('aria-label',item.id==='root'?`${item.label}, center of the constellation; focus`:`${branchPath(item.id,this.branches)}; focus, edit or add a branch`);
     el.addEventListener('keydown',e=>{
       if(e.target!==el)return;
       if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();this.focusNode(item.id);this.onBranchSelected?.(item.id);}
@@ -276,7 +277,7 @@ export class Constellation {
     el.addEventListener('focus',()=>{if(el.matches(':focus-visible')&&this.camera.scale<.62)this.focusNode(item.id,{instant:true});});
     if(item.id==='root'){
       el.append(node('div','root-glyph','✳'));
-      el.append(node('div','root-name','HISYAM'));
+      el.append(node('div','root-name',item.label));
       el.append(node('div','root-desc','MY ENTIRE WORLD'));
     }else{
       el.append(node('div','node-label',item.label));
@@ -291,6 +292,14 @@ export class Constellation {
       b.addEventListener('click',e=>{e.stopPropagation();this.focusNode(item.id);this.openBranchEditor(el,item,mode);});controls.append(b);};
     action('Add a child branch','+','add');
     if(item.id!=='root'){action('Rename branch','✎','rename');action('Move branch to another parent','↗','move');}
+    if(!['root','inbox','just-because'].includes(item.id)){
+      const del=node('button','node-action','×');del.type='button';
+      del.setAttribute('aria-label','Remove branch, preserving tasks and child branches');
+      del.title='Remove branch; keep tasks and children';
+      del.addEventListener('pointerdown',e=>e.stopPropagation());
+      del.addEventListener('click',e=>{e.stopPropagation();this.onBranchDelete?.(item.id);});
+      controls.append(del);
+    }
     el.append(controls);
     return el;
   }
@@ -303,7 +312,7 @@ export class Constellation {
     let input;
     if(mode==='move'){
       input=node('select','node-inline-input');
-      const entries=[{id:'root',label:'Hisyam / Home'},...this.branches];
+      const entries=[{id:'root',label:`${this.displayName} / Home`},...this.branches];
       const forbidden=descendantsOf(item.id,this.branches);forbidden.add(item.id);
       for(const b of entries){if(forbidden.has(b.id))continue;const opt=node('option','',b.id==='root'?b.label:branchPath(b.id,this.branches));opt.value=b.id;input.append(opt);}
       input.value=item.parentId;

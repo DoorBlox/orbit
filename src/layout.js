@@ -8,7 +8,8 @@ const DEFAULT_COLOR='#6597E6';
  * Every branch can have children AND its own direct tasks: direct tasks get
  * their own virtual terminal, never force a branch to become a 'project'.
  */
-export function createLayout(branches,tasks=[]){
+export function createLayout(branches,tasks=[],displayName='My space'){
+  const rootName=String(displayName||'My space').trim().slice(0,100)||'My space';
   const byId=branchIndex(branches);
   const children=new Map([['root',[]]]);
   for(const b of branches){if(!children.has(b.id))children.set(b.id,[]);if(!children.has(b.parentId))children.set(b.parentId,[]);children.get(b.parentId).push(b.id);}
@@ -23,7 +24,7 @@ export function createLayout(branches,tasks=[]){
   };
   for(const child of children.get('root')||[])visit(child,[],1);
   if(!leafDescriptors.length){return {
-    nodes:[{id:'root',type:'root',label:'HISYAM',x:0,y:0,color:DEFAULT_COLOR,parentId:null,depth:0}],
+    nodes:[{id:'root',type:'root',label:rootName,x:0,y:0,color:DEFAULT_COLOR,parentId:null,depth:0}],
     edges:[],stacks:[],ancestry,children,depth,RADIUS:850,
   };}
   const endpointCount=leafDescriptors.length;
@@ -53,7 +54,7 @@ export function createLayout(branches,tasks=[]){
     while(b&&attempts++<branches.length+1){if(b.color)return b.color;b=byId.get(b.parentId);}
     return DEFAULT_COLOR;
   };
-  const nodes=[{id:'root',type:'root',label:'HISYAM',x:0,y:0,color:DEFAULT_COLOR,parentId:null,depth:0}];
+  const nodes=[{id:'root',type:'root',label:rootName,x:0,y:0,color:DEFAULT_COLOR,parentId:null,depth:0}];
   const edges=[];
   for(const b of branches){
     const endpoints=descendants.get(b.id)||[];

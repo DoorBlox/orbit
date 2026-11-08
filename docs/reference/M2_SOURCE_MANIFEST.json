@@ -1,7 +1,7 @@
 {
   "baselineCommit": "846ad7df3fa3fdf4c63fd22f2830fed56f83a06e",
   "milestone": "M2",
-  "review": "Reviewed ORBIT 2.0 staging source hashes (tenant-aware signup and owner-only publishing). Original V6 and historical M1 manifests unchanged.",
+  "review": "Merged reviewed ORBIT 1.1 foundations from main with ORBIT 2.0 tenant/auth source hashes. Original V6 and historical M1 provenance remain immutable; multi-user migration remains unapproved for hosted use.",
   "files": {
     "assets/orbit.svg": {
       "sha256": "97eb19dd4e0773d0b6489b1f49d794ffd272fb3bc2d42af4faffd6a1adca78c3",
@@ -12,8 +12,8 @@
       "reason": "Use the explicit local/protected-cloud bootstrap entry while preserving V6 spatial DOM."
     },
     "src/app.js": {
-      "sha256": "02063b37418e055d5b0dec4e258ede9a384b63b8fefa42b5dec9c38377f2b9df",
-      "reason": "M2 bootstrap/snapshot mount retained; M2.5 reviewed keyboard-arrow input cancels obsolete graph camera navigation. Auth and persistence behavior unchanged."
+      "sha256": "961e08c2acf83cb943f0483850d4fe2d932dd17bc261a0d9c2fc43e61f0e0a8f",
+      "reason": "1.1 reviewed: user-specific center, non-destructive branch removal, chronological journal or viewport fullscreen fix."
     },
     "src/auth/README.md": {
       "sha256": "1ec9f199e2ab8b76ff9a7d462f1804d6653706a8eb4b005e23311d76c9d1f7d5",
@@ -68,28 +68,28 @@
       "reason": "Queue writes with honest pending/retry/conflict states and revision checks."
     },
     "src/constellation.js": {
-      "sha256": "7cf8866d644bdcb90731e02a17da4266501fae5779d85a42e80f88ec77396359",
-      "reason": "M2.5 P0/P1 reviewed: input interruption, runtime reduced motion, bounded elapsed-time elasticity, and jump-free pinch-to-pan with safe cancellation. No model/cloud changes."
+      "sha256": "378b3d187a1b2d23cba794426953d4c7d18ed31f588087dddb43f42d3ff51cd1",
+      "reason": "1.1 reviewed: user-specific center, non-destructive branch removal, chronological journal or viewport fullscreen fix."
     },
     "src/csv.js": {
       "sha256": "43bd69daa75c06e88a42cd71d34f4847068997562219db25d5f2ee4d728be109",
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "src/data.js": {
-      "sha256": "c745dae0abebfc54ee7497ed50889680940e2df5da16b72489cd9ad6257bade9",
-      "reason": "Unchanged from reviewed M1; retained and integrity checked."
+      "sha256": "200b2b3e40a2bea4a85ca324371a33724d800b4f2bf0bf69147b73bd436c590b",
+      "reason": "1.1 reviewed: user-specific center, non-destructive branch removal, chronological journal or viewport fullscreen fix."
     },
     "src/dates.js": {
       "sha256": "8c32e8c4fc62b0a06584fe0df7f6726d9c47871f3c99eb756c6637bc235a7218",
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "src/journal.js": {
-      "sha256": "413234f31b571ad777e6bbac54659a7836a61e924a39a96da919663e2817eb80",
-      "reason": "Support injected entries and read-only/disposable persistence lifecycle."
+      "sha256": "e131e4cf8ae9d35a17a023d9bd1209416a350b63f223afc9b481d687ffac5b48",
+      "reason": "Reviewed 1.1: date reordering immediately updates navigation control disabled states and page labels."
     },
     "src/layout.js": {
-      "sha256": "1293793393eef61b6ab69bb74ad586040fbb066da4b85af877b92551415b14f3",
-      "reason": "Unchanged from reviewed M1; retained and integrity checked."
+      "sha256": "5d707732bbbed368235e47387bac3811316ae38fdb48f6a998f4399dd345c239",
+      "reason": "1.1 reviewed: user-specific center, non-destructive branch removal, chronological journal or viewport fullscreen fix."
     },
     "src/model.js": {
       "sha256": "b18a313f200439b5f7f9d0eb11c12e970a0a844ff804091c3bc0a1959e1eb352",
