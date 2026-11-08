@@ -115,8 +115,8 @@ with changed as(update public.milestones set title='stranger' returning *) selec
 with changed as(update public.widget_layouts set x=100 returning *) select is((select count(*) from changed),1::bigint,'second user widget_layouts update touches only own row');
 with changed as(update public.preferences set color_mode='deadline' returning *) select is((select count(*) from changed),1::bigint,'second user preferences update touches only own row');
 with changed as(delete from public.profiles returning *) select is((select count(*) from changed),1::bigint,'second user profiles delete touches only own row');
-with changed as(delete from public.branches returning *) select is((select count(*) from changed),1::bigint,'second user branches delete touches only own row');
 with changed as(delete from public.tasks returning *) select is((select count(*) from changed),1::bigint,'second user tasks delete touches only own row');
+with changed as(delete from public.branches returning *) select is((select count(*) from changed),1::bigint,'second user branches delete touches only own row');
 with changed as(delete from public.milestones returning *) select is((select count(*) from changed),1::bigint,'second user milestones delete touches only own row');
 with changed as(delete from public.widget_layouts returning *) select is((select count(*) from changed),1::bigint,'second user widget_layouts delete touches only own row');
 with changed as(delete from public.preferences returning *) select is((select count(*) from changed),1::bigint,'second user preferences delete touches only own row');
