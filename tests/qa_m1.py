@@ -88,6 +88,9 @@ def viewport_flow(browser, label, size):
         focus(page,'journal')
         if label=='desktop':page.locator('#journal-new').click()
         else:page.locator('#journal-new').tap()
+        # Date-ordered journal: choose a later date for the second synthetic page.
+        page.locator('#journal-entry-date').fill('2026-11-19')
+        page.locator('#journal-entry-date').dispatch_event('change')
         page.locator('#journal-editor').fill('Second page')
         page.locator('#journal-prev').click()
         expect(page.locator('#journal-entry-title')).to_have_value('M1 synthetic entry')
