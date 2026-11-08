@@ -219,6 +219,25 @@ def normal_flows(browser):
     page.locator('#toast button').press('Enter')
     reload_page(page)
     expect(page.locator('.timeline-milestone')).to_have_count(1)
+    # ORBIT 2.2: both a sticky and a dated journal page carry safe drawing scenes.
+    focus(page,'space')
+    page.locator('#new-sticky').click()
+    expect(page.locator('.sticky-note')).to_have_count(1)
+    page.locator('.sticky-title').fill('M1 visual note')
+    page.locator('.sticky-title').dispatch_event('change')
+    page.locator('.sticky-body').fill('Private note in the same world')
+    page.locator('.sticky-body').dispatch_event('blur')
+    page.locator('.sticky-note').get_by_role('button',name='Draw',exact=True).evaluate('e=>e.click()')
+    expect(page.locator('.orbit-scene-dialog')).to_be_visible()
+    page.locator('.orbit-scene-preview').click(position={'x':40,'y':40})
+    page.get_by_role('button',name='Save drawing').click()
+    assert page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].scene.elements.length") == 1
+    focus(page,'journal')
+    page.locator('#journal-draw').click()
+    expect(page.locator('.orbit-scene-dialog')).to_be_visible()
+    page.locator('.orbit-scene-preview').click(position={'x':90,'y':80})
+    page.get_by_role('button',name='Save drawing').click()
+    assert page.evaluate("Object.keys(JSON.parse(localStorage.getItem('orbit.v8.extensions')).journalScenes).length") == 1
     # Export/restore UI path, including V6 dimensions and dated journal.
     with page.expect_download() as download: page.locator('#backup-json').evaluate('e=>e.click()')
     path=OUT/'m1-synthetic-backup.json'; download.value.save_as(path)
