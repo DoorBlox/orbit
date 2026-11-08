@@ -37,6 +37,31 @@ test('restores only after verified server user and boolean owner RPC; no session
   assert.equal(f.events.find(([event])=>event==='owner')[1].user.id,user.id);
 });
 
+test('separate workspace RPC supports tenant sessions without granting publication',async () => {
+  const f=setup();
+  const auth=new AuthController({client:f.client,redirectUrl:'https://orbit.example.invalid/',
+    currentOrigin:'https://orbit.example.invalid',ownerRpc:'orbit_workspace_access'});
+  await auth.start();
+  assert.equal(auth.getState().status,'owner');
+  assert.ok(f.calls.includes('orbit_workspace_access'));
+  auth.dispose();
+});
+test('signup requests exact-origin verification and never passes password to app callbacks',async()=>{
+  const calls=[];
+  const f=setup({auth:{signUp:async input=>{calls.push(input);return {data:{user:{id:'new'},session:null},error:null};}}});
+  assert.equal(await f.controller.signUpWithPassword('new@example.invalid','long-secret-123'),true);
+  assert.equal(f.controller.getState().status,'signup-pending');
+  assert.deepEqual(calls[0],{email:'new@example.invalid',password:'long-secret-123',
+    options:{emailRedirectTo:'https://orbit.example.invalid/'}});
+  assert.equal(await f.controller.signUpWithPassword('new@example.invalid','short'),false);
+  assert.equal(f.events.filter(([name])=>name==='owner').length,0);
+});
+test('signup provider failure is fail-closed without leaking provider text',async()=>{
+  const f=setup({auth:{signUp:async()=>({error:new Error('secret auth provider debug'),data:null})}});
+  assert.equal(await f.controller.signUpWithPassword('new@example.invalid','long-secret-123'),false);
+  assert.equal(f.controller.getState().status,'signed-out');
+  assert.ok(!JSON.stringify(f.events).includes('secret auth provider debug'));
+});
 test('signed out does not call private authorization or mount callback',async () => {
   const f=setup({ auth: { getUser:async()=>({data:{user:null},error:null}) } });
   await f.controller.start();
