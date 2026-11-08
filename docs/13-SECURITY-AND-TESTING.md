@@ -1,3 +1,5 @@
+> **Historical security/test plan.** Later production and isolated nonowner HTTP evidence supersedes the 6 November status below. See [PROJECT_HISTORY.md](PROJECT_HISTORY.md), [OPERATIONS.md](OPERATIONS.md), [../CODEX_HANDOFF.md](../CODEX_HANDOFF.md) and [1.0.0 release notes](releases/1.0.0.md) for current verified PASS/NOT RUN distinctions.
+
 # 13 — Security and test plan with honest execution status
 
 ## Current evidence — 6 November 2026

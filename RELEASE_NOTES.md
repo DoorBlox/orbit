@@ -1,3 +1,5 @@
+> **Historical V6 visual-feature notes (1 November 2026).** These notes document how the original interface was built. ORBIT **1.0.0 is now in protected Production**; see [current release notes](docs/releases/1.0.0.md), [README](README.md), [operations](docs/OPERATIONS.md) and [handoff](CODEX_HANDOFF.md). The original V6 limits below ("no authentication/cloud") no longer describe the live product.
+
 # ORBIT V6 — Window interactions + journal on the timeline
 
 ### New

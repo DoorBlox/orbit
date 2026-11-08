@@ -1,41 +1,42 @@
-# ORBIT: Codex repository working instructions
+# ORBIT repository instructions for coding agents
 
-## Mission and actual baseline
-ORBIT V6 is a **working local-only static HTML/CSS/JavaScript ES-module prototype**, not an authenticated production app. Convert it incrementally into a secure, owner-only, multi-device system without recreating or visually redesigning it. Consult `CODEX_HANDOFF.md`, `CODEX_FIRST_TASK.md`, and `docs/01-...` through `docs/15-...` before significant work. The original V6 agent instructions are preserved at `docs/reference/AGENTS_V6_ORIGINAL.md`. These repository rules supersede the historical instructions only where they concern production engineering or verification.
+> **Current as of 8 November 2026.** ORBIT 1.0.0 is **already live**, single-owner and private, at [orbit.starscene.com](https://orbit.starscene.com/). Source is intentionally public and [MIT licensed](LICENSE). Read [CODEX_HANDOFF.md](CODEX_HANDOFF.md), [docs/OPERATIONS.md](docs/OPERATIONS.md), and [docs/PROJECT_HISTORY.md](docs/PROJECT_HISTORY.md) before meaningful work. Older M0-first-task and pre-launch documents are **history**, not a command to repeat onboarding.
 
-## Design preservation -- non-negotiable
-- Keep the pastel animated atmosphere, glass-like surfaces, **one navigable spatial scrapbook world**, and its six independently draggable/resizable windows (timeline, constellation, active, completed, space, journal). **No replacement tab/sidebar/card dashboard.**
-- Preserve mobile touch controls and navigation. Preserve the user's custom arbitrary-depth radial graph, elastic dragging, free-standing glowing task text, inline details, sorting, and completed task exclusion from the constellation.
-- Keep milestone labels unclipped; editable journal date; timeline markers for written pages; paper-like WYSIWYG journal; permanent Just Because branch; global backup/restore compatibility.
-- Current HTML/CSS/JS under `index.html`, `src/` and `assets/` must stay byte-identical during milestone M0. Check SHA256 provenance at `docs/reference/V6_SOURCE_MANIFEST.json` (original V6 versions of `AGENTS.md`/`vercel.json` are intentionally archived/updated).
-- Before changing visuals after M0, document a diagnosed usability/accessibility bug, show before/after desktop/mobile evidence, and obtain user approval for material visual changes. Apply Apple Design and anti-slop principles thoughtfully, not as a license for redesign.
+## Objective, ownership, and state
 
-## Architecture boundaries
-- Keep the current vanilla ES modules and dependency-free build for the baseline. **Do not migrate to Next.js/React/Vite without an ADR, measurable need, and explicit approval.**
-- Source of truth in M0: localStorage via `src/storage.js`; cloud code under `src/cloud/` is **prepared and inactive**. Do not claim Cloud/Supabase sync is already functional.
-- Future persistence uses a small repository layer so graph, timeline, and journal consume one owner snapshot; do not duplicate task state across widgets.
-- The proposed Postgres migration at `supabase/migrations/20261101140000_orbit_initial_schema.sql` is an **offline draft** and has **not been executed**. Validate it on a disposable local Supabase database before any linked/remote migration.
-- Never connect, change, delete, or deploy to a real user's Supabase or Vercel project without verifying the target and receiving explicit authorization for that action. No force push or automatic release.
+Keep building the existing ORBIT spatial scrapbook incrementally. The serving Production deployment is `dpl_9rgHVEreGqspHtNY27WnPyMduFik`, built from app source `fc5af5a8cd2c99d1e104615e72c3cd2b460f60d6`. Repository `main` contains newer CI/docs commits. The canonical domain is `orbit.starscene.com`; `orbit.allintime.space` intentionally redirects to it to preserve exact-origin Auth.
 
-## Security rules
-- Single-owner personal journal application by default. Ensure Supabase Auth and authenticated-owner RLS for EVERY private table; verify both signed-out and a different signed-in user cannot read/write private records via direct API.
-- Never ship user journal content, tokens, passwords, service-role/secret keys in browser code, build artifacts, PR output, diagnostics, CI logs, or checked-in files. Public Supabase publishable key is allowed **only after RLS is independently verified**.
-- Treat journal HTML, imported CSV/JSON, external URLs and task descriptions as untrusted. A UI-only sanitizer is not sufficient proof against XSS. Prefer security-invoker database operations; avoid unreviewed SECURITY DEFINER RPCs.
-- No real private content in publicly accessible preview; a private GitHub repository does not protect a Vercel URL. Set Vercel Deployment Protection to cover all deployments for the prototype, then test incognito denial. Actual app Auth is still required.
-- Changes to permissions, schema, Auth redirects, and deployment are independent review gates. Never run a destructive remote migration as a first step.
+No action is automatically permitted merely because the user earlier authorized the completed release. **New** Production promotion, alias/DNS change, RLS/SQL mutation, Auth-user change, full data restore, secret access or paid resource requires task-specific approval. Read-only inspection, documentation updates and tests against disposable local environments are preferred. Do not ask for credentials or private backups in chat or GitHub.
 
-## Coding and verification expectations
-- Node.js 22, npm lockfile, pure ES modules; use `npm ci`, `npm run check` (`lint`, `test`, `build`, `verify:structure`); historical browser QA can run with `python tests/qa_v6.py` when Playwright is installed.
-- Note: `npm run lint` **only checks JS syntax**; it is not ESLint or TypeScript validation. Do not infer coverage, runtime safety, or SQL correctness from this check.
-- Add unit + integration + browser E2E tests for each meaningful change; validate keyboard/320px/390px/tablet/landscape, reduced motion, error states, and actual origin persistence. Keep failure evidence and rollback instructions.
-- Update numbered docs, changelog, and `CODEX_HANDOFF.md` when behavior or architecture changes. Record actual commands/results, distinguish not-run from PASS.
-- In GitHub use minimal-permission CI; Vercel Git integration should handle preview deployments, not duplicate deploy secrets in CI.
+## UX invariants — preserve V6
 
-## Code review workflow and optional skills
-1. **Inspect before editing:** read relevant code, docs, test outputs and `git status`; define acceptance criteria and scope.
-2. **Incremental work:** one vertical slice and a small diff per PR. Test it and preserve design behavior.
-3. **Evidence:** report what changed, pass/fail/not-run with commands, security implications, and the next safe step.
-4. **Skills:** use available equivalents of `ecc-search-first`, `ecc-blueprint`, `antislop-chatgpt`, `apple-design`, `ecc-postgres-patterns`, `ecc-database-migrations`, `ecc-security-review`, `ecc-tdd-workflow`, `ecc-e2e-testing`, `ecc-verification-loop`, Vercel and Supabase. They may NOT be installed in Codex; absence never blocks normal standards-based work.
+- **One continuous, freely pannable/zoomable coordinate plane**, not a tab bar, ordinary fixed-page grid, or dashboard. Six translucent, independent draggable/resizable widgets: timeline, constellation, active, completed, space and journal.
+- Keep native HTML/CSS/JavaScript ES modules, spatial camera and constellation's independent radial camera. Do not migrate to React/Next/Vite without an ADR and explicit owner approval.
+- Preserve the arbitrary-depth radial branches, Just Because branch, active/completed task distinction, glowing free-standing task text and inline detail, responsive spatial navigator, title-bar drag and accessible resize.
+- Preserve dedicated timeline lanes for milestones/deadlines/dated journal links, exact `YYYY-MM-DD` journal date behavior, sanitized paper-like editing, V5→V6 backup compatibility and undo.
+- Keep calm animated pastel backgrounds, glass materials, reduced-motion semantics, keyboard support and mobile touch/pinch behavior. Diagnose actual usability issues and show before/after evidence before any **material** visual changes.
+- Original V6 provenance is locked in `docs/reference/V6_SOURCE_MANIFEST.json`; M1/M2 manifests track subsequent reviewed changes. **Never rewrite the original or historical source manifest to silence CI.**
 
-## First assignment
-Open `CODEX_FIRST_TASK.md`. Execute **only Milestone 0**. No cloud provisioning, design changes, deployment, or remote writes in the first Codex task.
+## Auth, backend and privacy
+
+- Public MIT source **does not** mean public scrapbook data. Keep Vercel Authentication `deploymentType=all`, Supabase user verification and server-managed owner allowlist, private-table RLS and least-privilege grants.
+- The private application is **live and cloud-backed**, not future scaffolding. `src/bootstrap.js` selects local/cloud mode and controls private mounting; `src/auth/` verifies identity and authorization; `src/cloud/` owns snapshots, revision conflicts, recovery and imports/exports. Some old README files under `src/` are historical and cannot be edited casually because source hashes are reviewed.
+- **Exact production sign-in origin** `https://orbit.starscene.com/` is intentional; don't weaken `AuthController` same-origin checks or add wildcard OAuth redirects to accommodate a secondary hostname.
+- Validate all imported JSON/CSV and diary HTML as untrusted; avoid unsafe rendering, client-side-only authorization, user-editable JWT claims and careless `SECURITY DEFINER` functions.
+- Never expose or log service-role keys, session cookies, JWTs, the `VERCEL_TOKEN` Actions secret, owner journal text, or complete JSON backups. A public publishable key is different from a privileged secret.
+- No automatic import of localStorage into cloud. A Production restore/import replaces owner content and requires specific owner consent. Full JSON backups are unencrypted unless protected externally.
+
+## Code and verification workflow
+
+1. **Inspect first.** Check the exact `main` SHA, staged/Production deployment metadata, current task-related code and prior tests. Use the real repository, not old handoff guesses.
+2. **Small PRs.** Make scoped changes, add unit/integration/browser tests when behavior changes, record limitations and actual evidence.
+3. **Node 22 and locked dependencies:** `npm ci --ignore-scripts`, `npm run check`, targeted browser scripts (see README). `npm run lint` checks JavaScript **syntax only**. Do not claim full coverage or a physical-device pass from Playwright alone.
+4. **Supabase:** prefer `.github/workflows/local-supabase-rls.yml` (205 pgTAP + local bearer HTTP checks) and disposable local fixtures. Real hosted nonowner READ/INSERT HTTP passed; real hosted PATCH/DELETE was **not** executed. Do not run surprise live probes/fixtures.
+5. **Release:** `.github/workflows/m6-release-dry-run.yml` checks a synthetic-key Production artifact. `.github/workflows/m6-stage-only-production.yml` is manually dispatched, **pins older reviewed app SHA `fc5af5a`**, and stages with `--prod --skip-domain`. Update source pin deliberately for any *future* release. `vercel.json` disables automatic Git deploy. Verify protection, each alias and rollback readiness before approved reassignment.
+6. **Evidence and documentation:** Update README, `CODEX_HANDOFF.md`, release notes/changelog and runbook after significant changes. Label **PASS**, **FAIL**, **NOT RUN**, **owner-attested**, and **independently verified** accurately.
+
+## Known limitations and no-cost boundary
+
+The owner's canonical Production login and redirect were explicitly confirmed. Authenticated Production CSP/header capture, hosted nonowner PATCH/DELETE, full physical iOS/Android/assistive-tech testing, Google OAuth/Email OTP acceptance and independent backup restore were not certified. Supabase leaked-password protection is Pro-tier; do not require a subscription. Public GitHub branch protection/rulesets were not enabled at last check and are a useful optional hardening task.
+
+**Next action is the user's new request**, not the obsolete "first execute M0" task. Historical M0 scripts, decisions, design snapshots and validation logs remain useful for provenance. Source of truth: [handoff](CODEX_HANDOFF.md), [operations](docs/OPERATIONS.md), [history](docs/PROJECT_HISTORY.md) and direct provider checks.

@@ -1,108 +1,105 @@
 # ORBIT — The Spatial Scrapbook
 
-ORBIT preserves one pannable spatial scrapbook with six independently movable,
-resizable windows: constellation, timeline, active tasks, completed tasks, personal
-space and dated paper-like journal. The app remains native HTML/CSS/JavaScript ES
-modules; the Supabase SDK is the only isolated browser bundle.
+A personal, infinite-feeling 2D scrapbook. Move through one zoomable world of tasks, memories, milestones and dated journal pages—without turning it into a conventional dashboard.
 
-Version **1.0.0 release candidate**; Production is not yet published.
+**ORBIT 1.0.0 is live for its single owner.** The source is public and [MIT licensed](LICENSE); **the workspace is not public**.
 
-## Current state (7 November 2026)
+**[Open ORBIT](https://orbit.starscene.com/)** · [Release notes](docs/releases/1.0.0.md) · [Project history](docs/PROJECT_HISTORY.md) · [Operations & recovery](docs/OPERATIONS.md) · [Continue in a new chat](CODEX_HANDOFF.md)
 
-- **Source repository:** public and [MIT-licensed](LICENSE), with copyright (c) 2026
-  DoorBlox. This license applies to ORBIT's repository code and documentation.
-  Third-party dependencies keep their own licenses.
-- **Canonical roadmap:** M0 → M1 → M2 → M2.5 → M3 → M4 → M5 → M6.
-  M2.5 and 1.0.0 release-readiness changes are merged into `main`.
-- **Release:** 1.0.0 remains a **release candidate**, not a published Production app.
-  The last successful exact-head Production artifact dry run uses a synthetic
-  publishable key and deploys nothing. The protected Vercel Preview has passed
-  an owner sign-in and private workspace smoke test.
-- **Security evidence:** real nonowner bearer-session HTTP READ and INSERT checks
-  passed for seven private tables, corroborated by Supabase gateway logs and a
-  zero-nonowner-row SQL postflight. Real authenticated HTTP UPDATE/DELETE
-  remains unverified; SQL role simulations and mocked browser tests are separate.
-- **Remaining release gates:** authenticated nonowner UPDATE/DELETE evidence,
-  Production hosted authentication/headers, a rollback decision, and any accepted
-  physical-device testing limitations. See [M6 issue #2](https://github.com/DoorBlox/orbit/issues/2)
-  and the [release runbook](docs/decisions/M3-LAUNCH-RUNBOOK.md).
+## What ORBIT does
 
-**Public source is not public workspace access.** Do not commit private journal
-entries, exports, credentials, auth tokens, or private user data. The ORBIT
-workspace database remains guarded by Supabase owner-only RLS; deployed access
-is separately protected by Vercel Authentication. Published source does not
-give anyone permission to view the owner's live content.
+One pannable/zoomable spatial world contains six independently draggable and resizable translucent widgets:
 
-## Development and validation
+- **Constellation:** arbitrary-depth radial branches and active tasks, with a separate internal camera.
+- **Continuum / Timeline:** deadlines, milestones and links to dated journal pages.
+- **Things to do** and **Already done:** active/completed views over shared task data.
+- **Your space:** personal workspace controls, layout and recovery features.
+- **Journal:** paper-like dated rich-text pages, autosave, undo and Markdown export.
 
-Use Node 22 and npm 10+. The lockfile pins the Supabase SDK and esbuild. The
-published development environment is already prepared; do not repeat onboarding.
-For a fresh external checkout only, `npm ci --ignore-scripts` restores dependencies.
+The app also supports keyboard controls, touch/pinch navigation, responsive phone layouts, reduced motion, CSV task import/export, and full JSON backup/restore (with V5/V6 compatibility). The V6 visual identity and single-world navigation are intentionally preserved.
+
+## Current deployment
+
+| | |
+| --- | --- |
+| Canonical address | **[orbit.starscene.com](https://orbit.starscene.com/)** — owner-confirmed working Production sign-in and private workspace |
+| Alternate address | [orbit.allintime.space](https://orbit.allintime.space/) — owner-confirmed redirect to the canonical address |
+| Serving code | Reviewed app source `fc5af5a8cd2c99d1e104615e72c3cd2b460f60d6` |
+| Serving Vercel deployment | `dpl_9rgHVEreGqspHtNY27WnPyMduFik`, Production READY |
+| Backend | Supabase Auth and private PostgreSQL owner-only RLS |
+| Access protection | Vercel Authentication covers all deployments; app additionally verifies owner authority |
+| Release date | **7 November 2026** (owner-confirmed Production launch and secondary-domain redirect) |
+
+**Important:** The repository `main` branch contains later CI and documentation commits than the serving application. **A newer `main` SHA does not mean newer code has been deployed.** Verify the deployed SHA and aliases before any release action. See [operations](docs/OPERATIONS.md).
+
+## Architecture
+
+ORBIT deliberately uses **native HTML/CSS/JavaScript ES modules**—no React or Next.js rewrite. A small esbuild output bundles only the pinned Supabase JS SDK. Key paths:
+
+| Path | Responsibility |
+| --- | --- |
+| `index.html`, `src/styles.css`, `assets/orbit.svg` | Original visual UI and graphics |
+| `src/board.js`, `src/constellation.js`, `src/layout.js`, `src/widgets.js` | Spatial world, branch graph, timeline and widgets |
+| `src/journal.js`, `src/backup.js`, `src/data.js`, `src/model.js` | Journal, import/export, task/state models |
+| `src/bootstrap.js`, `src/auth/` | Local/cloud bootstrap and owner-only sign-in lifecycle |
+| `src/cloud/` | Supabase client, repository, revision/conflict sync, owner tools |
+| `supabase/migrations/`, `supabase/tests/` | Database structure, least-privilege RLS and pgTAP |
+| `scripts/`, `.github/workflows/` | Guarded build, source-integrity verification, automated checks and manual staging |
+
+The original V6 source and later reviewed changes have distinct manifests under `docs/reference/`. Do not overwrite original provenance to fix a failing test.
+
+## Security and privacy
+
+**Open-source does not mean open data.** The project remains a **single-owner private app**. Vercel Authentication restricts access at the hosting layer; Supabase Auth verifies the signed-in user; a server-managed owner check and restrictive row-level policies protect private records. The public Supabase *publishable* key is safe for browser use **only with those server controls**. Never ship service-role keys, user passwords, session tokens, exports or diary content.
+
+Production sign-in is bound to the exact canonical hostname. The alternate domain **redirects**, rather than creating a second Auth origin. Full JSON exports are **not encrypted by the app**; keep them in encrypted owner-controlled storage and do not commit them.
+
+Verified evidence includes hosted nonowner **READ/INSERT** HTTP denial, local authenticated **PATCH/DELETE** denial on disposable fixtures, and the owner-confirmed working Production login. This does **not** claim a comprehensive penetration test, hosted PATCH/DELETE certification, physical iOS/Android approval or post-authenticated CSP/header certification. See [evidence and gaps](docs/PROJECT_HISTORY.md).
+
+## Run locally
+
+Requires **Node.js 22** and npm. A fresh checkout can run:
 
 ```sh
-npm run dev              # loopback source server; local prototype mode
-npm run check            # syntax, unit tests, provenance, build and structure
-npm run dev:dist         # loopback server for the existing dist build
-python tests/qa_m1.py     # local persistence/accessibility/viewport regressions
-python tests/qa_m2.py     # cloud wiring with synthetic mocked SDK transport
-python tests/qa_m25.py    # motion/touch/reduced-motion on five viewport profiles
+npm ci --ignore-scripts
+npm run dev          # source server and local prototype
+npm run check        # syntax, unit tests, immutable-source verification, build and structure
+npm run dev:dist     # serve the generated dist/ locally
 ```
 
-Run relevant checks after changes; do not repeat accepted M2/M2.5 testing just to
-recreate evidence. `lint` is a syntax checker, not a semantic linter. Browser QA
-uses the pinned Playwright tooling and Chromium; results are not hardware Safari
-or live hosted-RLS certification.
+Browser QA requires the pinned Python/Playwright dependencies and Chromium:
 
-## Local and protected-cloud modes
+```sh
+python -m pip install -r tests/requirements-browser.txt
+python -m playwright install chromium
+python tests/qa_m1.py
+python tests/qa_m2.py
+python tests/qa_m25.py
+python tests/qa_m2_closeout.py
+```
 
-With no public configuration, the build produces a localStorage prototype. That
-artifact is **not** evidence of a configured protected-cloud release candidate.
-Configured cloud builds require all three public inputs together:
-`ORBIT_SUPABASE_URL`, `ORBIT_SUPABASE_PUBLISHABLE_KEY`, `ORBIT_SITE_URL`.
-See [.env.example](.env.example); no dotenv loader is provided. Privileged/service-role
-keys must never enter browser configuration, build output, logs or Git.
+Without cloud inputs the app can build in local prototype mode. A configured cloud build requires **all three** `ORBIT_SUPABASE_URL`, `ORBIT_SUPABASE_PUBLISHABLE_KEY` and `ORBIT_SITE_URL`. The repository **does not automatically load `.env` files**. The guarded Production build is `npm run build:release`; `npm run verify:release` checks a clean worktree and the exact artifact and **does not deploy it**. The `package.json` setting `"private": true` prevents accidental npm publishing; it does **not** mean this GitHub repository is private.
 
-Cloud mode uses verified Auth, an administrator-configured owner UUID, restrictive
-server RLS, snapshot persistence and revision-checked conflict recovery. It does
-not automatically import legacy local content. Explicit import replaces the cloud
-snapshot and requires review/consent; JSON backups are unencrypted. Session Auth
-uses sessionStorage and unsaved drafts are not durable across tab closure.
+## Development and release rules
 
-Public viewing remains disabled. Vercel protection and Supabase authorization are
-separate boundaries. Keep both intact; do not use real private data in an
-unprotected deployment. Password sign-in does not establish OTP or Google OAuth
-acceptance.
+- Preserve the one-world V6 aesthetic, six-window interactions, keyboard/mobile behavior and safe-import invariants. Don't make an unrelated framework/UI rewrite.
+- Prefer PRs and exact-head CI. Existing workflows cover quality/browser, disposable local Supabase SQL + HTTP RLS, Production artifact dry-run, and anonymous Vercel access checks.
+- **Automatic Vercel Git deployment is disabled.** Release only after explicit approval, with a verified Production source SHA and a manual `--skip-domain` staging phase.
+- Do not run hosted schema/fixture changes, revoke Auth users, delete backups, loosen Vercel Authentication or promote a deployment without the owner's specific approval.
+- Keep the project free-tier-friendly; avoid billable Supabase branches or optional paid services.
 
-`npm run build` emits only allowlisted app/assets into ignored `dist/`, bundling
-the SDK boundary and writing allowlisted public runtime configuration. Repository
-docs, tests, migrations, environment examples and backups are not deployment files.
-Automatic Vercel Git deployment remains disabled in repository configuration; do
-not remove that hold or promote an artifact without separate authorization.
+## Documentation map
 
-## Production build safety
+Start here for ongoing work:
 
-`npm run build:release` enforces the same guarded path as VERCEL_ENV=production.
-It refuses local fallback and requires complete cloud inputs, reviewed public
-origins in release/production-target.json, development exclusions and matching
-private CSP. `npm run verify:release` verifies a clean committed artifact and prints
-hashes without keys; it does not certify live protection/Auth/RLS. Production metadata now explicitly reviews shared project `ixfgavgtwuzdgucjriec`
-for `https://orbit.starscene.com/`, through a narrow source exception. Live Production-scoped URLs and the public key's active-project match were verified;
-Production runtime/hosted authentication is not yet attested. See the [target decision](docs/decisions/M3-SHARED-PRODUCTION-TARGET.md). Neither command deploys anything.
+1. **[CODEX_HANDOFF.md](CODEX_HANDOFF.md)** — durable context checkpoint, exact deployed/repository identities, next-session actions.
+2. **[docs/OPERATIONS.md](docs/OPERATIONS.md)** — domain routing, security gates, backup, staging, rollback and incident checks.
+3. **[docs/PROJECT_HISTORY.md](docs/PROJECT_HISTORY.md)** — M0–M6 chronology, PRs/CI links, verified vs unverified evidence.
+4. **[docs/releases/1.0.0.md](docs/releases/1.0.0.md)** — actual 1.0.0 release note and limitations.
+5. **[AGENTS.md](AGENTS.md)** — working constraints for future coding agents.
 
-## Evidence and handoff
+Older V5/V6 handoff and pre-launch milestone documents are retained for historical and design context. Where a dated record says "not yet published", that reflects **its date**; the above current-state documents supersede it.
 
-- [Repository instructions](AGENTS.md) and [current handoff](CODEX_HANDOFF.md).
-- [M2 conditional acceptance](docs/decisions/M2-HOSTED-CLOSEOUT.md) and
-  [preserved evidence](docs/evidence/m2/acceptance-20261106/manifest.json).
-- [M2.5 implementation/results](docs/decisions/M2_5-IMPLEMENTATION.md) and
-  [preserved evidence](docs/evidence/m2_5/implementation/verification.json).
-- [Roadmap](docs/14-CODEX-IMPLEMENTATION-ROADMAP.md),
-  [deployment boundaries](docs/12-VERCEL-DEPLOYMENT.md) and
-  [security/test evidence](docs/13-SECURITY-AND-TESTING.md).
-- [Immutable V6 provenance](docs/reference/V6_SOURCE_MANIFEST.json), historical M1
-  and reviewed current source inventory. Record current hashes only after reviewing
-  intentional source changes; never rewrite original provenance to make checks pass.
+## License
 
-Older handoff/first-task documents and numbered milestone sections are historical
-where superseded by the current records. Production release is not implied by a
-passing local build, a protected Preview, or this release-readiness work.
+Copyright © 2026 DoorBlox. Licensed under the [MIT License](LICENSE). Third-party packages and assets retain their own terms.
