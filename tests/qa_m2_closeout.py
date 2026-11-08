@@ -61,7 +61,7 @@ def mobile_flow(browser, width):
         page.get_by_label('Email address', exact=True).fill('owner@example.invalid')
         page.get_by_label('Password', exact=True).fill('synthetic-password')
         page.get_by_role('button', name='Sign in with password', exact=True).click()
-        expect(page.locator('.cloud-mode')).to_have_text('Private owner space')
+        expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
         focus(page, 'constellation')
         qa.assert_pointer_reachable(page, '#capture-name')
         page.locator('#capture-name').fill(f'Closeout mobile {width}')
@@ -89,7 +89,7 @@ def mobile_flow(browser, width):
     # A fresh context loads only the saved mock transport snapshot, not local data.
     fresh, page, errors = cloud_context(browser, (width, 844), 'owner', snapshot=stored)
     try:
-        expect(page.locator('.cloud-mode')).to_have_text('Private owner space')
+        expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
         expect(page.locator('#journal-entry-title')).to_have_value(f'Closeout journal {width}')
         expect(page.locator('#journal-editor')).to_contain_text(f'Synthetic mobile body {width}')
         expect(page.locator('#journal-entry-date')).to_have_value('2026-11-06')
@@ -102,7 +102,7 @@ def mobile_flow(browser, width):
 def crud_undo(browser):
     ctx, page, errors = cloud_context(browser, (1440, 900), 'owner')
     try:
-        expect(page.locator('.cloud-mode')).to_have_text('Private owner space')
+        expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
         original = legacy(page)
         focus(page, 'constellation')
         page.locator('#capture-name').fill('Closeout CRUD task')
@@ -158,7 +158,7 @@ def crud_undo(browser):
 def offline_recovery(browser):
     ctx, page, errors = cloud_context(browser, (390, 844), 'owner')
     try:
-        expect(page.locator('.cloud-mode')).to_have_text('Private owner space')
+        expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
         original = legacy(page)
         initial = page.evaluate('window.__m2Fixture.snapshot')
         ctx.set_offline(True)
@@ -209,7 +209,7 @@ def snapshot_integrity(browser):
     fixture['journalEntries'][0]['html'] = '<p>Synthetic <strong>formatted</strong> journal.</p>'
     ctx, page, errors = cloud_context(browser, (1440, 900), 'owner', snapshot=fixture)
     try:
-        expect(page.locator('.cloud-mode')).to_have_text('Private owner space')
+        expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
         original = legacy(page)
         focus(page, 'journal')
         page.locator('#journal-entry-title').fill('Closeout full snapshot')
@@ -223,7 +223,7 @@ def snapshot_integrity(browser):
         qa.close_context(ctx, page)
     ctx, page, errors = cloud_context(browser, (1440, 900), 'owner', snapshot=stored)
     try:
-        expect(page.locator('.cloud-mode')).to_have_text('Private owner space')
+        expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
         after = backup(page)
         for key in ['branches','tasks','journalEntries','milestones','spatialLayout','preferences','profile']:
             assert after[key] == before[key], f'Round-trip changed {key}'
