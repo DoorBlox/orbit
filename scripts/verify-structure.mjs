@@ -3,7 +3,7 @@ import path from 'node:path';
 const required = [
   'index.html', 'src/app.js', 'src/styles.css', 'src/board.js', 'src/journal.js',
   'src/constellation.js', 'src/model.js', 'src/data.js', 'src/storage.js',
-  'src/cloud/mappers.js', 'src/cloud/client-config.js', 'src/cloud/client.js', 'src/bootstrap.js',
+  'src/cloud/mappers.js', 'src/cloud/client-config.js', 'src/cloud/client.js', 'src/cloud/media.js', 'src/bootstrap.js', 'src/scene.js', 'src/stickies.js',
   'src/runtime-config.js', 'src/auth/controller.js', 'src/auth/shell.js',
   'docs/reference/M1_SOURCE_MANIFEST.json', 'docs/reference/M2_SOURCE_MANIFEST.json', 'package-lock.json',
   'README.md', 'AGENTS.md', 'CODEX_HANDOFF.md', 'CODEX_FIRST_TASK.md',
