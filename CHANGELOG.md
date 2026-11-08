@@ -1,12 +1,22 @@
 # Changelog
 
-## 2.2.0 — Unreleased, development branch (9 November 2026)
+## 9 Nov 2026 — ORBIT 2.2 beta LIVE on Production (latest source of truth)
+
+- **Serving Production:** canonical `https://orbit.starscene.com/` now maps to Vercel READY Production deployment `dpl_AxaB85krmkJfDUj1T6ipqw8rodH4`, exact reviewed source `de2523dcea497c7ee41547ca94c14f48c72688f1` (merged [PR #25](https://github.com/DoorBlox/orbit/pull/25), all four exact-head checks passed). Server-side production build completed with Supabase cloud config; unauthenticated GET returns HTTP 200 and no private journal text. The name `2.2 beta` describes the app feature release; package.json's legacy version value has not yet been revised.
+- **Protection and domains:** Vercel Authentication changed from `deploymentType=all` to `prod_deployment_urls_and_all_previews`; **custom Production domain is public only for the Supabase Auth sign-in shell**, Preview and raw deployment URLs remain Vercel-protected. Secondary `orbit.allintime.space` remains a redirect to `orbit.starscene.com`. Vercel automatic custom-domain assignment was disabled during staging; custom canonical alias was reassigned explicitly, not automatically.
+- **Rollback checkpoint:** prior READY owner-only 1.0.0 deployment `dpl_9rgHVEreGqspHtNY27WnPyMduFik`, source `fc5af5a8cd2c99d1e104615e72c3cd2b460f60d6`. If an Auth or privacy failure is detected, first restore Vercel SSO `deploymentType=all`, then reassign canonical `orbit.starscene.com` to that old deployment; verify secondary redirect and owner content. Do not overwrite/restore database without a separate instruction.
+- **Supabase:** owner-approved hosted migrations `orbit_private_extensions` and `orbit_private_media` were applied; Google Auth verified on two distinct controlled accounts; first account retains 23 branches, 29 tasks and one journal. Second account started empty. Authenticated-role hosted DB tests validated private extensions and per-user Storage SELECT/INSERT isolation; temporary test fixtures were rolled back. One live second-account beta workspace now has test notes/images (three Storage objects observed).
+- **Known beta defect:** [#26](https://github.com/DoorBlox/orbit/issues/26) — attached note and journal image references persist but images **do not render**. Production's exact CSP has `img-src 'self' data:`, blocking signed image URLs from `https://ixfgavgtwuzdgucjriec.supabase.co`. Keep the Storage bucket private; fix via a narrowly reviewed CSP allowlist patch and matching production-guard/tests. The owner explicitly accepted launch with this known bug. Drawings in both journals and notes persist and display; scene editor is a lightweight pen and `.excalidraw` file interchange, **not** full embedded Excalidraw.
+- **Operational follow-up:** source of truth for release is this current checkpoint; older sections below are historical even where they say "not deployed". Track remaining beta gates and issue #26; verify live user sign-in and media display after its patch. Respect budget: batch future changes, avoid repeated Actions/workflow dispatch.
+
+
+## 2.2.0 beta — Production deployment (9 November 2026)
 
 - Added Google-first sign-in button with existing legacy password login preserved; Google Cloud OAuth client and Supabase Google provider are not configured by repository code and remain owner setup.
 - Tasks can carry several validated labeled supporting URLs; sticky notes are freeform editable draggable/resizable paper cards with four colors, shared drawing and optional images.
 - Journal pages and sticky notes exchange the same validated .excalidraw JSON through a built-in native pen modal and external Excalidraw.com import/export. Full upstream embedded Excalidraw React editor is **not** included yet.
 - Proposed additive tenant-private preferences extensions and per-user Storage bucket (5 MiB PNG/JPEG/WebP, short-lived signed URLs), pending hosted migration and real A/B isolation. Backups contain image reference paths but not image bytes.
-- **Source only**: no hosted migration, OAuth credential change, Vercel Production release or custom alias change. [Operator/owner rollout](docs/OAUTH_2_2_ROLLOUT.md).
+- **Released:** source `de2523d` on READY Production deployment `dpl_AxaB85krmkJfDUj1T6ipqw8rodH4`, canonical `orbit.starscene.com`. Production custom hostname uses Supabase Auth, while Preview and raw deployment URLs remain Vercel-protected. Two tenant-private hosted migrations were applied with owner approval. Known defect [#26](https://github.com/DoorBlox/orbit/issues/26): uploaded images persist but cannot display under current CSP. Original v1 release remains ready for rollback. [Operator runbook](docs/OAUTH_2_2_ROLLOUT.md).
 
 
 ## 2.1.0 — Unreleased, source-only development (9 November 2026)
