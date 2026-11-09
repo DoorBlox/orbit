@@ -475,6 +475,10 @@ html,body{height:100%;width:100%;overflow:hidden!important;overscroll-behavior:n
 .spatial-viewport.is-panning{cursor:grabbing}
 .spatial-world{position:absolute;top:0;left:0;transform-origin:0 0;width:2900px;height:2670px;will-change:transform;pointer-events:none}
 .spatial-world>.spatial-item{position:absolute!important;transform:none!important;margin:0!important;pointer-events:auto;max-width:none;min-width:0;scroll-margin:0}
+.spatial-world>.spatial-item[hidden]{display:none!important}
+.spatial-world>.spatial-item .widget-hide{margin-left:auto;flex:none;font-size:12px;min-height:36px}
+.space-point.is-hidden{border-style:dashed;opacity:.68}
+.space-point.is-hidden:focus-visible{opacity:1}
 .world-header{position:fixed;z-index:60;top:calc(16px + env(safe-area-inset-top,0px));left:18px;right:18px;
   height:53px;display:flex;align-items:center;justify-content:space-between;gap:12px;pointer-events:none}
 .world-header .brand,.world-header .header-right{display:flex;align-items:center;gap:12px;padding:10px 15px;border-radius:999px;
