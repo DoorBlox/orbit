@@ -117,6 +117,15 @@
 <button class="glass-button" id="export-csv" type="button">Export selected</button>
 <button class="glass-button subtle" id="clear-demo" type="button">Remove samples</button>
 </div>
+<fieldset class="appearance-controls" id="appearance-controls">
+  <legend>Canvas appearance</legend>
+  <div class="appearance-choices" role="radiogroup" aria-label="Choose theme">
+    <label class="appearance-option"><input type="radio" name="space-theme" value="parchment" checked/><span>Parchment</span></label>
+    <label class="appearance-option"><input type="radio" name="space-theme" value="garden"/><span>Night Garden</span></label>
+    <label class="appearance-option"><input type="radio" name="space-theme" value="frost"/><span>Frost</span></label>
+  </div>
+  <label class="appearance-motion"><input type="checkbox" id="appearance-reduce-motion"/> Reduce canvas motion</label>
+</fieldset>
 </section>
       <article id="journal-widget" class="spatial-item journal-widget" data-widget="journal" aria-label="Personal journal">
         <div class="journal-outer-glass">

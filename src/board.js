@@ -40,6 +40,10 @@ function readPositions(){try{
   return next;
 }catch{markStorageIssue(KEY,'Saved positions need recovery.');return structuredClone(DEFAULT);}}
 const iconList={constellation:'✳',timeline:'─',active:'◉',completed:'✓',journal:'✎',space:'·'};
+export function clampNavigatorPercent(value,pixels,diameter=31){
+  const inset=Math.min(49,(diameter/2+2)/Math.max(1,pixels)*100);
+  return clamp(value,inset,100-inset);
+}
 export class SpatialBoard {
   constructor({notify=()=>{},initialLayout,readOnly=false,persistLocally=true,onLayoutChange=()=>{}}={}){
     this.readOnly=readOnly;this.persistLocally=persistLocally;this.onLayoutChange=onLayoutChange;this.events=new AbortController();
@@ -73,6 +77,10 @@ export class SpatialBoard {
       resizer.addEventListener('keydown',e=>this.resizeViaKeyboard(e,id));
     }
     this.buildNavigator();
+    if(typeof ResizeObserver!=='undefined'){
+      this.navigatorObserver=new ResizeObserver(()=>this.drawNavigatorCursor());
+      this.navigatorObserver.observe(this.nav);
+    }
     this.viewport.addEventListener('pointerdown',e=>this.startPan(e));
     this.viewport.addEventListener('pointermove',e=>this.onPointerMove(e));
     this.viewport.addEventListener('pointerup',e=>this.onPointerEnd(e));
@@ -257,8 +265,9 @@ export class SpatialBoard {
   }
   drawNavigatorCursor(){if(!this.navBounds)return;const el=document.getElementById('space-nav-cursor');if(!el)return;
     const {w,h}=this.viewportSize(),wx=(w/2-this.pan.x)/this.scale,wy=(h/2-this.pan.y)/this.scale,{x0,x1,y0,y1}=this.navBounds;
-    el.style.left=`${clamp((wx-x0)/(x1-x0)*100,0,100)}%`;el.style.top=`${clamp((wy-y0)/(y1-y0)*100,0,100)}%`;
+    el.style.left=`${clampNavigatorPercent((wx-x0)/(x1-x0)*100,this.nav.clientWidth||180)}%`;
+    el.style.top=`${clampNavigatorPercent((wy-y0)/(y1-y0)*100,this.nav.clientHeight||90)}%`;
   }
-  dispose(){this.disposed=true;cancelAnimationFrame(this.raf);this.raf=0;this.events.abort();this.pointers.clear();this.widgets.clear();}
+  dispose(){this.disposed=true;this.navigatorObserver?.disconnect();cancelAnimationFrame(this.raf);this.raf=0;this.events.abort();this.pointers.clear();this.widgets.clear();}
 
 }
