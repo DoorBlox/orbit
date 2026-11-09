@@ -40,7 +40,7 @@ for file in [ROOT/'README.md',ROOT/'CODEX_HANDOFF.md',ROOT/'CODEX_FIRST_TASK.md'
   if not (file.parent/target).exists():missing.append((file.relative_to(ROOT).as_posix(),href))
 assert not missing,f'Broken relative links: {missing[:12]}'
 # SQL audit is only syntactic presence; local DB execution/owner isolation is a separate gate.
-sql=(ROOT/'supabase/migrations/20261101140000_orbit_initial_schema.sql').read_text().lower()
+sql=(ROOT/'supabase/migrations/20261101153811_orbit_initial_schema.sql').read_text().lower()
 for table in ('profiles','branches','tasks','journal_entries','milestones','widget_layouts','preferences'):
  assert re.search(r'create\s+table\s+public\.'+table+r'\s*\(',sql),table
  assert f'alter table public.{table} enable row level security' in sql,table

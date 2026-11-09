@@ -7,7 +7,7 @@ const required = [
   'src/runtime-config.js', 'src/auth/controller.js', 'src/auth/shell.js',
   'docs/reference/M1_SOURCE_MANIFEST.json', 'docs/reference/M2_SOURCE_MANIFEST.json', 'package-lock.json',
   'README.md', 'AGENTS.md', 'CODEX_HANDOFF.md', 'CODEX_FIRST_TASK.md',
-  'supabase/migrations/20261101140000_orbit_initial_schema.sql',
+  'supabase/migrations/20261101153811_orbit_initial_schema.sql',
   'supabase/seed.sql', 'supabase/config.toml', 'dist/index.html',
   ...Array.from({ length:15 }, (_,i) => `docs/${String(i+1).padStart(2,'0')}-${[
     'PROJECT-OVERVIEW','EXISTING-FEATURE-AUDIT','PRD','MVP-GAP-ANALYSIS','UI-UX-DESIGN-SYSTEM',
