@@ -34,7 +34,7 @@ Six movable, resizable widgets (constellation, continuum, to-do, completed, spac
 | BP-05 | NOT DONE | Legacy manual stage-only workflow is pinned to 1.0.0 and must not be used as a general 2.4+ release operation. |
 | BP-06 | NOT DONE | Full real-device, signed-in, keyboard/assistive-tech, zoom, ten-theme and performance audit. |
 | [#29](https://github.com/DoorBlox/orbit/issues/29) | OPEN | Reusable private media library, reference-safe permanent deletion and optional provider migration. |
-| [#31](https://github.com/DoorBlox/orbit/issues/31) | OPEN / OWNER PRIORITY | EX-00 safe scene adapter under source review; actual official React editor is still **NOT SHIPPED**. Both Journal and stickies are required. [Compatibility evidence](EXCALIDRAW_EX00_COMPATIBILITY.md). |
+| [#31](https://github.com/DoorBlox/orbit/issues/31) | OPEN / OWNER PRIORITY | EX-00 adapter SOURCE MERGED PR #40; real official embedded Excalidraw EX-01 **in source implementation**, pinned package and local lazy JSX/CSS/fonts, [integration evidence](EXCALIDRAW_EX01_INTEGRATION.md). Not Production deployed or signed-in accepted; binary images deferred. |
 | [#32](https://github.com/DoorBlox/orbit/issues/32) | OPEN | Scoped OAuth 2.1 remote MCP/ChatGPT connector; no live integration. |
 | [#2](https://github.com/DoorBlox/orbit/issues/2), [#4](https://github.com/DoorBlox/orbit/issues/4), [#22](https://github.com/DoorBlox/orbit/issues/22) | HISTORIC/OPEN | Substantially shipped work with remaining QA; reconcile carefully rather than automatically close. |
 
@@ -49,7 +49,7 @@ The user explicitly designated ChatGPT as the **coding, review, audit, test and 
 1. **BP-00 documentation baseline:** this state page, [execution blueprint](../plans/ORBIT_POST_2_4_EXECUTION.md) and [protocol](DOCUMENTATION_PROTOCOL.md), plus root handoff references. Documentation-only; package/application version normalization remains separately gated because release scripts still expect 1.0.0.
 2. **BP-04 read-only research** and **BP-01 owner-assisted real-account media QA** can proceed independently. No hosted mutations.
 3. Specify **BP-02 media-inclusive recovery**, then investigate **BP-03** sync cost with synthetic fixtures, plus **BP-06** visual baseline.
-4. Begin **EX-00 Excalidraw dependency/API/scene compatibility evaluation** in parallel. Only ship EX-01/EX-02 after backup/security/visual gates.
+4. EX-00 scene adapter SOURCE MERGED; EX-01 true official React Excalidraw lazy editor is in a separate source branch and must pass browser/release tests. EX-02 binary image assets remain gated by privacy/backup recovery.
 
 ## Evidence and operating rules
 

@@ -13,7 +13,9 @@
 - [x] BP-04 repository migration ledger reconciliation, [PR #38](https://github.com/DoorBlox/orbit/pull/38) merged with four green checks and no hosted writes; [parity ledger](SUPABASE_MIGRATION_PARITY_2026-11-09.md). Full hosted object parity / future migrations remain separately gated.
 - [ ] BP-05 archived/safe 2.4+ release pipeline, not pinned 1.0 workflow.
 - [ ] BP-06 synthetic browser visual/accessibility/performance baseline; owner screenshots optional.
-- [ ] EX-00 official Excalidraw adapter for safe scene interchange with fake data, [source review and EX-01 integration contract](EXCALIDRAW_EX00_COMPATIBILITY.md). No React package yet, not real editor shipped.
+- [x] EX-00 tested scene adapter SOURCE MERGED [PR #40](https://github.com/DoorBlox/orbit/pull/40) after four green checks. [Compatibility evidence](EXCALIDRAW_EX00_COMPATIBILITY.md).
+- [ ] EX-01 **real upstream Excalidraw** for both Journal and stickies: exact pinned React/Excalidraw, lazy self-hosted JSX/CSS/fonts, synthetic browser verification on source branch; NOT DEPLOYED. [Integration evidence](EXCALIDRAW_EX01_INTEGRATION.md).
+- [ ] EX-02 embedded image file persistence/private media archive and full upstream shape preview fidelity; #31 remains open.
 
 ### Next: visual quality and full Excalidraw
 
