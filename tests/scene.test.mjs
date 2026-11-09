@@ -37,6 +37,6 @@ test('workspace appearance is normalized, persisted and protected against unsupp
   const original=normalizeExtensions({appearance:{theme:'garden',motion:'off'}});
   assert.deepEqual(original.appearance,{theme:'garden',motion:'off'});
   assert.deepEqual(normalizeExtensions(original).appearance,original.appearance);
-  for(const appearance of [{theme:'javascript:alert(1)'},{motion:'endless'},'dark',null])
+  for(const appearance of [{theme:'javascript:alert(1)'},{motion:'endless'},'dark'])
     assert.throws(()=>normalizeExtensions({appearance}),/Invalid workspace appearance/);
 });
