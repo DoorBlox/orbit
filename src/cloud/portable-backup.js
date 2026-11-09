@@ -14,7 +14,6 @@ export const PORTABLE_MAX_TEXT_BYTES=96*1024*1024;
 const MIME={png:'image/png',jpg:'image/jpeg',webp:'image/webp'};
 const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const mimeFor=path=>MIME[path.split('.').at(-1).toLowerCase()];
-const ownerId=path=>path.split('/')[0];
 const imageError=()=>Error('Private image archive is incomplete or invalid.');
 const bytesLimit=()=>Error('Private images exceed the 64 MB / 96-image portable backup limit. Keep the legacy JSON as an additional recovery copy.');
 const toHex=bytes=>Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
