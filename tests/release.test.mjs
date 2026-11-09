@@ -10,7 +10,7 @@ const env={ORBIT_SUPABASE_URL:'https://release-fixture.example.test',
   ORBIT_SUPABASE_PUBLISHABLE_KEY:'sb_publishable_synthetic_release',ORBIT_SITE_URL:'https://private.example.test/'};
 const options={target:{schemaVersion:1,status:'reviewed',supabaseUrl:env.ORBIT_SUPABASE_URL,siteUrl:env.ORBIT_SITE_URL,
   developmentSupabaseUrls:['https://development.example.test']},deployment:{headers:[{source:'/(.*)',headers:[{
-  key:'Content-Security-Policy',value:"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://release-fixture.example.test; connect-src 'self' https://release-fixture.example.test; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
+  key:'Content-Security-Policy',value:"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://release-fixture.example.test; connect-src 'self' https://release-fixture.example.test; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
 }]}]}};
 
 test('release verifier rejects local artifacts, extra files, drift and symlinks; reports hashes without keys',async()=>{

@@ -35,6 +35,10 @@ export function normalizeExtensions(raw={}){
   if(raw===undefined||raw===null)raw={};
   if(!object(raw)||JSON.stringify(raw).length>900000)throw Error('Invalid or oversized workspace extensions.');
   const notes=raw.notes??[],taskLinks=raw.taskLinks??{},journalScenes=raw.journalScenes??{},journalImages=raw.journalImages??{};
+  const rawAppearance=raw.appearance??{};
+  if(!object(rawAppearance)||!['parchment','garden','frost'].includes(rawAppearance.theme??'parchment')||
+     !['system','off'].includes(rawAppearance.motion??'system'))throw Error('Invalid workspace appearance.');
+  const appearance={theme:rawAppearance.theme??'parchment',motion:rawAppearance.motion??'system'};
   if(!Array.isArray(notes)||notes.length>80||!object(taskLinks)||Object.keys(taskLinks).length>10000||
      !object(journalScenes)||Object.keys(journalScenes).length>600||!object(journalImages)||Object.keys(journalImages).length>600)throw Error('Invalid workspace extensions.');
   const ids=new Set();
@@ -70,7 +74,7 @@ export function normalizeExtensions(raw={}){
     if(!validId(id))throw Error('Invalid journal image ID.');
     images[id]=assertImagePath(path);
   }
-  return {notes:cleanNotes,taskLinks:links,journalScenes:scenes,journalImages:images};
+  return {notes:cleanNotes,taskLinks:links,journalScenes:scenes,journalImages:images,appearance};
 }
 export function renderScene(scene,target){
   target.replaceChildren();

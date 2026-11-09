@@ -1,5 +1,15 @@
 # ORBIT production operations and recovery
 
+## 9 Nov 2026 — ORBIT 2.3 working branch: media recovery, navigation and appearance (NOT RELEASED)
+
+- **Actual branch** `feat/2.3-media-appearance-navigation-20261109` based on reviewed main `4c303a4`. Source work is in progress; do not call this Production or an authenticated image-rendering verification. Prior 2.2.1 PR #28 is merged in main and protected Preview `dpl_E2ZND9zsAJYQAQu42UzhEMG8bst4` exists, but live Production remains the approved 2.2 beta `de2523d`. See open media bug #26 and media architecture issue #29.
+- Preserve the **same spatial world** and six movable/resizable widgets; no dashboard replacement. This slice adds Parchment, Night Garden and Frost choices inside the Space widget. Account-scoped appearance travels in the existing private `extensions` snapshot; legacy data defaults to Parchment and system motion. Navigator focus marker is clamped within the mini-map and its caption receives a separate row.
+- Private media previews now use authenticated Supabase Storage `download` to create temporary `blob:` object URLs; `img-src` extends the strict CSP with `blob:` without new third-party origins. URLs are revoked on logout/disposal, reused while the account is mounted, and never written to workspace data or backups. This is a **source-level mitigation pending real signed-in browser checks**, not an assertion that image issue #26 is resolved. Signed URL compatibility remains for rollback.
+- Journal and sticky-note **Detach image** remove only the reference (with Undo) while keeping underlying private object for the planned Media Library. Duplicated notes continue sharing one media path. **No Storage DELETE policy, permanent deletion, R2 migration, new billing, schema migration, or Production changes.** Issue #29 separately tracks safe permanent deletion and gallery.
+- Excalidraw in source remains the lightweight native pen + `.excalidraw` interchange. Official upstream React Excalidraw island is a larger separately verified work unit; do not label current drawing modal real embedded Excalidraw. All other blueprint work units remain open.
+- Required completion gate: review source-manifest hashes, tests, GitHub protected PR checks, protected Preview (including signed-in journal+sticky images, 174% navigator, responsive views), then obtain explicit Production release authorization. Do not trigger Actions manually after every small commit.
+
+
 ## 9 Nov 2026 — 2.2.1 private media CSP and sticky duplication (SOURCE ONLY)
 
 - Branch `fix/2.2-private-images-sticky-duplicate-20261109` is a **not-yet-merged/released** patch based on Production-closeout `main` `da5f9d3`. Current LIVE Production remains `de2523d` on `dpl_AxaB85krmkJfDUj1T6ipqw8rodH4`; canonical `orbit.starscene.com` is the public Google sign-in shell, with all raw deployments and Previews Vercel-auth protected. **No new hosted SQL, secrets, Auth configuration or Production alias edits.**

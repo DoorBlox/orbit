@@ -1,19 +1,19 @@
 {
   "baselineCommit": "846ad7df3fa3fdf4c63fd22f2830fed56f83a06e",
   "milestone": "M2",
-  "review": "2.2.1 CSP signed-image allowlist and independent sticky-note duplicate; preserve V6 and M1 historical manifests, reviewed source hash integrity and tenant RLS.",
+  "review": "2.3 source-only review: authenticated private blob previews, per-note and per-journal detach/undo, three account-scoped appearance themes, navigator marker clamp and accessible map spacing. Preserve immutable V6/M1 historical provenance and current tenant security.",
   "files": {
     "assets/orbit.svg": {
       "sha256": "97eb19dd4e0773d0b6489b1f49d794ffd272fb3bc2d42af4faffd6a1adca78c3",
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "index.html": {
-      "sha256": "bf49f3893642b5d99374bb5931eebc3a98063da8dd91121609495a9a6cab32d4",
-      "reason": "2.2: new sticky and journal drawing/private-image controls"
+      "sha256": "5cf8d05a5947614680ad60afd7103d74f7570f0b86c5891eddbfdd4c0ed7c888",
+      "reason": "Add discoverable canvas appearance selection, reduce-motion option and journal image detach/retry controls while retaining six spatial widgets."
     },
     "src/app.js": {
-      "sha256": "76e76f91a0a170f2f1fa74377c5955504b2707764af9c9ef05d2c290f4b9d2f4",
-      "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
+      "sha256": "3a86e609f271f4a2fc89a2865a110b8750789f390ac030700bc6eb6d9d010ddc",
+      "reason": "Keep theme in private extensions, wire controls, authenticated image preview with error/retry, and reversible journal attachment detach."
     },
     "src/auth/README.md": {
       "sha256": "1ec9f199e2ab8b76ff9a7d462f1804d6653706a8eb4b005e23311d76c9d1f7d5",
@@ -32,8 +32,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/board.js": {
-      "sha256": "0e079b6e4817dd0ae2829d95698d9847e7d0e82b19e3186c419577216d4ce57e",
-      "reason": "M2.5 P0-A/B reviewed: manual input owns the camera; active navigation resolves immediately on reduced motion; initialization/navigation handles cancel on disposal. Layout and cloud behavior unchanged."
+      "sha256": "bb5d539e807d4f3ef875740b5478b43ea188cfe3f2e67730780c5c8bf8076dd5",
+      "reason": "Clamp mini-map focus marker within panel bounds and observe navigator resize; honor reduced motion."
     },
     "src/bootstrap.js": {
       "sha256": "4dd54de38a025baf940d597e7727e52f847fc0e4300ea6518db05b5a9991b7a3",
@@ -104,24 +104,24 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "f789777d50046c2db8d90d8b94ac44d0e41466b4214a0b1893f9c204b1944864",
-      "reason": "2.2.1 review: keep private signed media and add accessible duplicate sticky card actions without changing V6 layout."
+      "sha256": "32803e060ceaa9ff4b463cfc93d5e685d65dd2dbc24c71fe55dcfa8fd9370342",
+      "reason": "Tokenized tactile Parchment/Night Garden/Frost chrome, restrained glass and map layout fixes while preserving original world."
     },
     "src/widgets.js": {
       "sha256": "aee68a4ce8a37edbb2de2fa1b0a2fc4589fcaf28a00603db2b148c6875a8ec58",
       "reason": "Preserve task/timeline projection over canonical owner snapshots and read-only controls."
     },
     "src/scene.js": {
-      "sha256": "4e4c9c8553e15141a0528095a172944c09ad80675669dbc192b0ede4ab34a556",
-      "reason": "2.2: bounded, validated Excalidraw scene and sticky extension representation"
+      "sha256": "d60fba900bf1ed1b6e16636274dece61eea944bb517d04d002110f81da90dde5",
+      "reason": "Normalize validated per-workspace appearance defaults in additive extensions data."
     },
     "src/stickies.js": {
-      "sha256": "5d35c9b112d3749744d2546a9f7b6a10e00ed68e9f013c6aa8019ed86a3be58e",
-      "reason": "2.2.1 review: keep private signed media and add accessible duplicate sticky card actions without changing V6 layout."
+      "sha256": "0e104ea27be0a045ae4a8d1c1bc2def83a1d1f1ada6acc7e9f66e09a7e15fb55",
+      "reason": "Provide reversible private image detachment and authenticated display states without erasing Storage objects."
     },
     "src/cloud/media.js": {
-      "sha256": "b1b60556ac986e79ae5e5be93b3539c0b7b549fc8fcc5ec0a3655045dd3b3ddc",
-      "reason": "2.2: signed private image upload/read with per-user path and magic-byte validation"
+      "sha256": "35ade426b2aad5cc440ae0897c690b3bb8bdbe4ad49fa221815301c58ddeb2c3",
+      "reason": "Download owner-scoped private bytes into revocable browser blob URLs; preserve scoped signed-URL compatibility."
     }
   }
 }

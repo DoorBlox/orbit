@@ -1,5 +1,14 @@
 # ORBIT — roadmap after 1.0.0
 
+## In development — ORBIT 2.3, private source branch (9 Nov 2026)
+
+- [ ] Verify authenticated blob media previews and error/retry states; detached image references remain undoable with original files preserved (#26, #29).
+- [ ] Check Parchment / Night Garden / Frost workspace appearance and reduced-motion preference on 320px phones, 174% and 200% zoom, keyboard and large text; keep the pan-and-zoom world and six widget positions intact.
+- [ ] Finish navigator cursor bounds and separate caption QA.
+- [ ] Review exact-head CI, protected Preview and accessibility before an explicitly approved release.
+- [ ] Later: real upstream Excalidraw editor island (journal and sticky), private reusable media library with safe deletion, task checklists, reminders and optional connected integrations. These are NOT in the current code slice.
+
+
 **Updated 9 November 2026.** The original V1–V6 creative evolution and M0–M6 delivery sequence are documented in [PROJECT_HISTORY.md](PROJECT_HISTORY.md). This is a **possible follow-up backlog**, not an authorization to deploy or a promise of features.
 
 ## Shipped

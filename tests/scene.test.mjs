@@ -30,5 +30,13 @@ test('extensions reject invalid note IDs, oversize text and malicious task refer
     {taskLinks:{task_1:[{label:'Credentials',url:'https://user:password@example.com/private'}]}},
     {journalScenes:{bad: {...emptyScene(),files:{file:{}}}}}
   ])assert.throws(()=>normalizeExtensions(invalid));
-  assert.deepEqual(normalizeExtensions({}),{notes:[],taskLinks:{},journalScenes:{},journalImages:{}});
+  assert.deepEqual(normalizeExtensions({}),{notes:[],taskLinks:{},journalScenes:{},journalImages:{},appearance:{theme:'parchment',motion:'system'}});
+});
+
+test('workspace appearance is normalized, persisted and protected against unsupported values',()=>{
+  const original=normalizeExtensions({appearance:{theme:'garden',motion:'off'}});
+  assert.deepEqual(original.appearance,{theme:'garden',motion:'off'});
+  assert.deepEqual(normalizeExtensions(original).appearance,original.appearance);
+  for(const appearance of [{theme:'javascript:alert(1)'},{motion:'endless'},'dark'])
+    assert.throws(()=>normalizeExtensions({appearance}),/Invalid workspace appearance/);
 });

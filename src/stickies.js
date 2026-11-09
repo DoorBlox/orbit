@@ -40,6 +40,18 @@ export class StickyNotes {
       this.notes.splice(Math.min(index,this.notes.length),0,removed);this.render();this.changed();
     }});
   }
+  detachImage(id){
+    if(this.readOnly||this.disposed)return false;
+    const note=this.notes.find(item=>item.id===id);
+    if(!note?.imagePath)return false;
+    const path=note.imagePath;delete note.imagePath;
+    this.render();this.changed();
+    this.notify('Image detached. The private file is kept for your media library.',6500,{label:'Undo',run:()=>{
+      if(this.disposed||!this.notes.includes(note)||note.imagePath)return;
+      note.imagePath=path;this.render();this.changed();
+    }});
+    return true;
+  }
   startDrag(e,n,element,mode){
     if(this.disposed||this.readOnly||e.button!==0)return;
     e.preventDefault();e.stopPropagation();
@@ -99,8 +111,16 @@ export class StickyNotes {
       if(n.imagePath&&this.media){
         image=document.createElement('img');image.className='sticky-image';image.alt='Private image attached to '+n.title;
         image.loading='lazy';
-        this.media.signedUrl(n.imagePath).then(url=>{if(!this.disposed&&image.isConnected)image.src=url;})
-          .catch(()=>{if(image.isConnected)image.alt='Private image unavailable';});
+        const requested=n.imagePath;
+        const status=document.createElement('span');status.className='sticky-image-status';
+        status.textContent='Loading private image…';
+        const load=this.media.previewUrl?this.media.previewUrl.bind(this.media):this.media.signedUrl.bind(this.media);
+        load(requested).then(url=>{
+          if(!this.disposed&&image.isConnected&&n.imagePath===requested)image.src=url;
+        }).catch(()=>{if(status.isConnected)status.textContent='Private image unavailable. Try reconnecting.';});
+        image.addEventListener('load',()=>{status.hidden=true;});
+        image.addEventListener('error',()=>{image.hidden=true;status.textContent='Private image could not be displayed.';});
+        image._orbitStatus=status;
       }
       const actions=document.createElement('div');actions.className='sticky-actions';
       const draw=document.createElement('button');draw.className='glass-button';draw.type='button';
@@ -132,6 +152,12 @@ export class StickyNotes {
           finally{pick.disabled=false;upload.value='';}
         });
         actions.append(pick,upload);
+        if(n.imagePath){
+          const detach=document.createElement('button');detach.className='glass-button subtle sticky-detach';
+          detach.type='button';detach.textContent='Detach image';
+          detach.setAttribute('aria-label','Detach image from sticky note without deleting private file');
+          detach.addEventListener('click',()=>this.detachImage(n.id));actions.append(detach);
+        }
       }
       const resizer=document.createElement('button');resizer.type='button';resizer.className='sticky-resizer';
       resizer.textContent='↘';resizer.title='Resize sticky note';resizer.disabled=this.readOnly;
@@ -144,7 +170,7 @@ export class StickyNotes {
         article.style.width=n.width+'px';article.style.height=n.height+'px';this.changed();
       });
       article.addEventListener('pointerdown',e=>e.stopPropagation());
-      article.append(head,editor,preview);if(image)article.append(image);article.append(actions,resizer);this.layer.append(article);
+      article.append(head,editor,preview);if(image)article.append(image,image._orbitStatus);article.append(actions,resizer);this.layer.append(article);
     }
   }
   dispose(){this.disposed=true;this.layer.remove();this.notes=[];}
