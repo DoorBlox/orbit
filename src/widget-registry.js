@@ -55,3 +55,38 @@ export function createWidgetRegistry(additional=[]){
 }
 export const DEFAULT_WIDGET_REGISTRY=createWidgetRegistry();
 export const CORE_WIDGET_IDS=DEFAULT_WIDGET_REGISTRY.ids;
+
+/** Owner-private layout for optional FIRST-PARTY windows. The V6 root layout
+ * continues to contain only the six legacy widgets. Account data cannot load
+ * executable widget descriptors, DOM nodes or HTML.
+ */
+export function normalizeExtraWidgetLayout(raw={}){
+  if(raw===undefined||raw===null)raw={};
+  if(!raw||typeof raw!=='object'||Array.isArray(raw))throw Error('Invalid optional widget layout.');
+  const entries=Object.entries(raw);
+  if(entries.length>32)throw Error('Too many optional widget layouts.');
+  const result={};
+  for(const [id,p] of entries){
+    if(!safeId(id)||CORE.some(core=>core.id===id)||!p||typeof p!=='object'||Array.isArray(p)||
+       !finite(p.x)||!finite(p.y)||p.x< -5000||p.x>7500||p.y< -5000||p.y>7500||
+       Object.keys(p).some(k=>!['x','y','width','height','hidden'].includes(k))||
+       ((p.width===undefined)!==(p.height===undefined))||
+       (p.width!==undefined&&(!finite(p.width)||!finite(p.height)||
+         p.width<200||p.height<150||p.width>5000||p.height>5000))||
+       (p.hidden!==undefined&&typeof p.hidden!=='boolean'))
+      throw Error('Invalid optional widget layout.');
+    result[id]={x:p.x,y:p.y,
+      ...(p.width===undefined?{}:{width:p.width,height:p.height}),
+      hidden:p.hidden===true};
+  }
+  return result;
+}
+
+/** Only caller-controlled first-party descriptors can be activated as windows. */
+export function extendWidgetRegistry(registry,descriptor){
+  if(!registry||!Array.isArray(registry.ids)||typeof registry.get!=='function')
+    throw Error('Invalid widget registry.');
+  const coreIds=new Set(CORE.map(item=>item.id));
+  const extras=registry.ids.filter(id=>!coreIds.has(id)).map(id=>registry.get(id));
+  return createWidgetRegistry([...extras,descriptor]);
+}

@@ -3,6 +3,7 @@
  * is not bundled. Binary image payloads await private media storage.
  */
 import { normalizeTaskChecklist } from './model.js';
+import { normalizeExtraWidgetLayout } from './widget-registry.js';
 const object = value => !!value && typeof value==='object' && !Array.isArray(value);
 const validId = value => typeof value==='string' && /^[A-Za-z0-9_-]{1,100}$/.test(value) && !['__proto__','constructor','prototype'].includes(value);
 const coord = value => Number.isFinite(value) && Math.abs(value)<=10000;
@@ -37,6 +38,7 @@ export function normalizeExtensions(raw={}){
   if(!object(raw)||JSON.stringify(raw).length>900000)throw Error('Invalid or oversized workspace extensions.');
   const notes=raw.notes??[],taskLinks=raw.taskLinks??{},journalScenes=raw.journalScenes??{},journalImages=raw.journalImages??{};
   const taskChecklists=raw.taskChecklists??{};
+  const spatialWidgets=normalizeExtraWidgetLayout(raw.spatialWidgets);
   const rawAppearance=raw.appearance??{};
   if(!object(rawAppearance)||!['parchment','garden','frost','celestial','ember','tidepool','sundown','sakura','graphite','linen'].includes(rawAppearance.theme??'parchment')||
      !['system','off'].includes(rawAppearance.motion??'system')||
@@ -84,7 +86,7 @@ export function normalizeExtensions(raw={}){
     if(!validId(id))throw Error('Invalid journal image ID.');
     images[id]=assertImagePath(path);
   }
-  return {notes:cleanNotes,taskLinks:links,taskChecklists:checklists,journalScenes:scenes,journalImages:images,appearance};
+  return {notes:cleanNotes,taskLinks:links,taskChecklists:checklists,journalScenes:scenes,journalImages:images,spatialWidgets,appearance};
 }
 export function renderScene(scene,target){
   target.replaceChildren();
