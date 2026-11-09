@@ -44,6 +44,14 @@ function collectExtensions(){
   return normalizeExtensions(state.extensions);
 }
 applyTaskLinks();
+function applyAppearance(){
+  const appearance=state.extensions.appearance;
+  document.documentElement.dataset.theme=appearance.theme;
+  document.documentElement.dataset.motion=appearance.motion;
+  for(const input of document.querySelectorAll('input[name="space-theme"]'))input.checked=input.value===appearance.theme;
+  const motion=$('appearance-reduce-motion');if(motion)motion.checked=appearance.motion==='off';
+}
+applyAppearance();
 const capture=$('capture-form'),input=$('capture-name'),target=$('capture-target');
 const milestoneKey='orbit-v4-milestones';
 let milestones=structuredClone(initialSnapshot?.milestones||[]);
@@ -376,6 +384,20 @@ function initTools(){
   $('import-csv').addEventListener('click',()=>$('csv-file').click());
   $('backup-json').addEventListener('click',backupJson);
   $('new-sticky').addEventListener('click',()=>stickies.add());
+  for(const input of document.querySelectorAll('input[name="space-theme"]')){
+    input.disabled=readOnly;
+    input.addEventListener('change',()=>{
+      if(disposed||readOnly||!input.checked)return;
+      state.extensions.appearance.theme=input.value;applyAppearance();extensionsChanged();
+      message('Appearance saved to this private space.');
+    });
+  }
+  $('appearance-reduce-motion').disabled=readOnly;
+  $('appearance-reduce-motion').addEventListener('change',event=>{
+    if(disposed||readOnly)return;
+    state.extensions.appearance.motion=event.currentTarget.checked?'off':'system';
+    applyAppearance();extensionsChanged();message('Motion preference saved.');
+  });
   $('journal-image-preview').addEventListener('error',()=>{
     $('journal-image-preview').hidden=true;$('journal-image-retry').hidden=false;
     message('The private journal image could not be displayed.',6500);
@@ -557,7 +579,7 @@ function applySnapshot(snapshot){
   if(disposed)return;hydrating=true;
   state.branches=structuredClone(snapshot.branches);state.tasks=structuredClone(snapshot.tasks);
   state.extensions=normalizeExtensions(snapshot.extensions??state.extensions);
-  applyTaskLinks();stickies.setNotes(state.extensions.notes);
+  applyAppearance();applyTaskLinks();stickies.setNotes(state.extensions.notes);
   state.preferences=structuredClone(snapshot.preferences);state.profile=structuredClone(snapshot.profile||state.profile);
   if(snapshot.collapsedBranchIds!==undefined)state.collapsedBranchIds=normalizeCollapsedBranches(snapshot.collapsedBranchIds,state.branches);
   saveCollapsedBranches();
@@ -569,6 +591,6 @@ function applySnapshot(snapshot){
   sync({persist:false});hydrating=false;
 }
 function setCloudStatus(status){cloudStatus=status;journal.setCloudStatus(status);}
-function dispose(){if(disposed)return;disposed=true;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);board.dispose();journal.dispose();stickies.dispose();scene.dispose();media?.dispose?.();window.orbitDebug=null;}
+function dispose(){if(disposed)return;disposed=true;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);board.dispose();journal.dispose();stickies.dispose();scene.dispose();media?.dispose?.();document.documentElement.dataset.theme='parchment';document.documentElement.dataset.motion='system';window.orbitDebug=null;}
 return {getSnapshot,applySnapshot,setCloudStatus,dispose,flushEditor:()=>journal.commit(),exportBackup:backupJson};
 }
