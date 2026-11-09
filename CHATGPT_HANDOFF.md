@@ -1,3 +1,11 @@
+## Latest verified source checkpoint — 9 November 2026, after PR #42
+
+- **main**: `7440ebe0420a71ce4f96e463d3502c208bea5efb`, BP-03 first slice [PR #42](https://github.com/DoorBlox/orbit/pull/42), four required checks green. Earlier EX-01 [PR #41](https://github.com/DoorBlox/orbit/pull/41) source merged at `cbb6d4053a60ec7c002272ae17a370457e7411cd`, also four green checks.
+- **EX-01 SOURCE MERGED, NOT deployed**: official pinned Excalidraw lazy React island available to both Journal and stickies; explicit Save/Cancel, native fallback, local CSS/fonts and image-free validation. Full embedded images (EX-02), preview fidelity for all shapes, signed-in Production/physical devices remain unverified. Keep issue #31 OPEN. Older EX-01 "in progress" notes below are historical.
+- **BP-03 first slice SOURCE MERGED, NOT deployed**: `src/cloud/sync.js` skips hidden/offline full-snapshot polls, revalidates when visible/focused, retries pending CAS writes on reconnect. Tests cover hidden refresh, disposal and draft protection. Foreground still polls full snapshots every 15s; revision-only fetching and real multidevice performance remain unfinished.
+- **Next safe work**: measure synthetic foreground snapshot size/call volume and investigate CAS-compatible inexpensive revision reads; separately, EX-02 private image scoping only after BP-02 backup contract review. BP-01 signed-in production image QA is still owner-gated. No automatic deploy.
+- **Production unchanged**: documented ORBIT 2.4 source `4e57aca785259192b92010c5d0e1634a4c1efe14` on Vercel `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4` (live aliases require fresh verification). No hosted SQL/Auth/Storage, domains, paid services or private-data changes.
+
 # ORBIT — ChatGPT engineering handoff
 
 ## EX-01 active code branch — official embedded Excalidraw (9 November 2026)

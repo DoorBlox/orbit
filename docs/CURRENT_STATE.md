@@ -1,3 +1,5 @@
+> **Source checkpoint 9 November 2026:** EX-01 official lazy Excalidraw [PR #41](https://github.com/DoorBlox/orbit/pull/41) source merged at `cbb6d405`; BP-03 hidden-tab polling first slice [PR #42](https://github.com/DoorBlox/orbit/pull/42) source merged at `7440ebe0420a71ce4f96e463d3502c208bea5efb`. Both passed all four required checks. **Neither has been deployed to Production.** EX-02 images, upstream shape-preview parity, owner-signed-in QA and complete BP-03 performance work remain outstanding. Old task-status paragraphs below describe earlier checkpoints.
+
 # ORBIT — current verified state
 
 **Updated:** 9 November 2026 (Asia/Jakarta). **Active ChatGPT engineering handoff:** [CHATGPT_HANDOFF.md](../CHATGPT_HANDOFF.md); [tool/skill playbook](CHATGPT_TOOL_PLAYBOOK.md). **Product:** ORBIT, a private spatial scrapbook. **Status:** 2.4 is live. This is the short, canonical state summary; see [Documentation protocol](DOCUMENTATION_PROTOCOL.md) for precedence and update rules.
