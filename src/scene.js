@@ -202,7 +202,19 @@ export function openSceneEditor(initial,{title='Drawing',onSave,notify=()=>{}}={
   const footer=document.createElement('div');footer.className='orbit-scene-footer';
   const close=()=>{if(dialog.open)dialog.close();else dialog.remove();};
   button('Cancel',close,footer);
-  button('Save drawing',()=>{try{const saved=embedded?embedded.read():normalizeScene(scene);onSave?.(saved);close();}catch(e){notify('Drawing not saved: '+e.message);}},footer);
+  button('Save drawing',()=>{
+    try{
+      const saved=embedded?embedded.read():normalizeScene(scene);
+      if(embedded){
+        const savedIds=new Set(saved.elements.map(item=>item.id));
+        const disappeared=scene.elements.filter(item=>!item.isDeleted&&!savedIds.has(item.id));
+        if(disappeared.length&&!window.confirm(
+          'Saving would remove '+disappeared.length+' existing drawing element(s). Continue? Cancel to keep the original drawing unchanged.'))
+          return;
+      }
+      onSave?.(saved);close();
+    }catch(e){notify('Drawing not saved: '+e.message);}
+  },footer);
   panel.append(heading,help,bar,surface,file,footer);dialog.append(panel);document.body.append(dialog);
   const point=e=>{const r=preview.getBoundingClientRect();return [
     Math.max(0,Math.min(800,Math.round((e.clientX-r.left)*800/r.width))),
