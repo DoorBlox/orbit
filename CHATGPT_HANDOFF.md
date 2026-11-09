@@ -2,6 +2,12 @@
 
 **Active entrypoint for ChatGPT, not Codex.** ORBIT is developed through ordinary ChatGPT conversations using connected GitHub, Vercel and Supabase tools, plus task-appropriate installed skills. The owner should not have to write a resume prompt, monitor Actions or manage the work queue. Read [AGENTS.md](AGENTS.md), [live state](docs/CURRENT_STATE.md), [execution blueprint](plans/ORBIT_POST_2_4_EXECUTION.md) and [ChatGPT tools and skills](docs/CHATGPT_TOOL_PLAYBOOK.md) first.
 
+## BP-04 source work in review — 9 November 2026
+
+- GitHub work branch: fix/bp04-align-local-migration-ledger-20261109. Seven existing SQL files are being **renamed to the exact seven already-applied hosted migration IDs**, reusing unchanged Git blob hashes; three old source-file references are updated and tests/migration_history.test.mjs protects filename/body parity. **No remote Supabase migration, history repair or data write.** Verify exact PR number, four CI checks and merge status before calling this complete.
+- [Detailed source/hosted ledger mapping and safe next-migration gate](docs/SUPABASE_MIGRATION_PARITY_2026-11-09.md). The seven hosted SQL bodies matched the prior Git sources (five exact, two differ only by trailing newline). New source names align timestamps, but hosted object-level drift and real data backup integrity have not been independently certified.
+- After this BP-04 source check, **code BP-02 private media backup/restore with synthetic fixtures**, and advance EX-00 official embedded Excalidraw research in parallel. The owner does not need to write a new project prompt.
+
 ## Verified checkpoint — 9 November 2026
 
 - **GitHub:** Last verified source main before this documentation rename: 821b1a51de1817703f14d42bd7b2a00618492425, squash merge of [PR #36](https://github.com/DoorBlox/orbit/pull/36). PR #36 passed ALL FOUR required exact-head checks: static-quality, local-postgres-rls, production-artifact-dry-run, unauthenticated-protection. Documentation baseline [PR #35](https://github.com/DoorBlox/orbit/pull/35) merged earlier as f899923ba098d21bc2f75b87d7bdcd3189f4e857.
