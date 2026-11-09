@@ -1,6 +1,64 @@
 import { normalizeExtensions, renderScene, openSceneEditor } from './scene.js';
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
 const randomId=()=>('note_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8));
+/** Persist safe Markdown as plain text; never write raw HTML to private snapshots. */
+export function formatStickySelection(value,start,end,kind,href=''){
+  const original=String(value||'').slice(0,6000);
+  start=Math.max(0,Math.min(original.length,start));end=Math.max(start,Math.min(original.length,end));
+  const selected=original.slice(start,end);
+  let before='',after='',content=selected||'text';
+  if(kind==='bold'){before='**';after='**';}
+  else if(kind==='italic'){before='_';after='_';}
+  else if(kind==='code'){before='`';after='`';}
+  else if(kind==='link'){
+    let url;try{url=new URL(href);}catch{throw Error('Paste a valid HTTPS or HTTP link.');}
+    if(!['https:','http:'].includes(url.protocol)||url.username||url.password)throw Error('Paste a valid public web link.');
+    before='[';after=']('+url.href+')';content=selected||'Link';
+  }else if(kind==='bullet'||kind==='checklist'){
+    const prefix=kind==='bullet'?'- ':'- [ ] ';
+    const lineStart=original.lastIndexOf('\n',Math.max(0,start-1))+1;
+    const nextNewline=original.indexOf('\n',end),lineEnd=nextNewline<0?original.length:nextNewline;
+    const fragment=original.slice(lineStart,lineEnd);
+    const changed=fragment.split('\n').map(s=>prefix+s).join('\n');
+    if(original.length-fragment.length+changed.length>6000)return null;
+    return {value:original.slice(0,lineStart)+changed+original.slice(lineEnd),
+      start:lineStart+changed.length,end:lineStart+changed.length};
+  }else return null;
+  const insertion=before+content+after;
+  if(original.length-selected.length+insertion.length>6000)return null;
+  return {value:original.slice(0,start)+insertion+original.slice(end),
+    start:start+before.length,end:start+before.length+content.length};
+}
+export function renderStickyMarkdown(value,target){
+  target.replaceChildren();
+  const pattern=/\*\*([^*\n]+)\*\*|_([^_\n]+)_|`([^`\n]+)`|\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
+  function inline(parent,line){
+    let at=0;pattern.lastIndex=0;
+    for(const match of line.matchAll(pattern)){
+      if(match.index>at)parent.append(document.createTextNode(line.slice(at,match.index)));
+      const [raw,bold,italic,code,label,href]=match;
+      let node;
+      if(bold){node=document.createElement('strong');node.textContent=bold;}
+      else if(italic){node=document.createElement('em');node.textContent=italic;}
+      else if(code){node=document.createElement('code');node.textContent=code;}
+      else{
+        let valid=false;try{const u=new URL(href);valid=['https:','http:'].includes(u.protocol)&&!u.username&&!u.password;}catch{}
+        if(valid){node=document.createElement('a');node.href=href;node.rel='noopener noreferrer';node.target='_blank';node.textContent=label;}
+        else node=document.createTextNode(raw);
+      }
+      parent.append(node);at=match.index+raw.length;
+    }
+    if(at<line.length)parent.append(document.createTextNode(line.slice(at)));
+  }
+  for(const line of String(value||'').slice(0,6000).split('\n')){
+    const element=document.createElement('p');let body=line;
+    const task=/^- \[([ xX])\] (.*)$/.exec(line);
+    if(task){const check=document.createElement('input');check.type='checkbox';check.disabled=true;check.checked=task[1].toLowerCase()==='x';
+      check.setAttribute('aria-label',check.checked?'Complete':'Incomplete');element.append(check);body=task[2];}
+    else if(/^[-*] /.test(line)){element.className='sticky-preview-bullet';body=line.slice(2);}
+    inline(element,body);target.append(element);
+  }
+}
 export class StickyNotes {
   constructor({world,notes=[],readOnly=false,onChange=()=>{},getScale=()=>1,notify=()=>{},media=null}={}){
     this.world=world;this.readOnly=readOnly;this.onChange=onChange;this.getScale=getScale;this.media=media;
@@ -105,6 +163,37 @@ export class StickyNotes {
         n.text=editor.value.slice(0,6000);clearTimeout(timer);timer=setTimeout(()=>this.changed(),450);
       });
       editor.addEventListener('blur',()=>{clearTimeout(timer);this.changed();});
+      const formatBar=document.createElement('div');formatBar.className='sticky-formatbar';
+      formatBar.setAttribute('role','toolbar');formatBar.setAttribute('aria-label','Sticky note text formatting');
+      const formatButtons=[['bold','B','Bold'],['italic','I','Italic'],['bullet','≡','Bullet list'],['checklist','☐','Checklist'],['link','↗','Insert link'],['code','</>','Inline code']];
+      for(const [kind,label,description] of formatButtons){
+        const button=document.createElement('button');button.type='button';button.className='sticky-format-button';
+        button.textContent=label;button.title=description;button.setAttribute('aria-label',description);
+        button.disabled=this.readOnly;
+        button.addEventListener('pointerdown',e=>{if(e.pointerType!=='touch')e.preventDefault();});
+        button.addEventListener('click',()=>{
+          let href='';
+          if(kind==='link'){
+            href=window.prompt('Paste an HTTPS or HTTP link')||'';
+            if(!href)return;
+          }
+          try{
+            const change=formatStickySelection(editor.value,editor.selectionStart,editor.selectionEnd,kind,href);
+            if(!change){this.notify('Sticky note has reached its text limit.');return;}
+            editor.value=change.value;n.text=change.value;editor.focus();editor.setSelectionRange(change.start,change.end);
+            this.changed();
+          }catch(error){this.notify(error.message,5000);}
+        });formatBar.append(button);
+      }
+      const showPreview=document.createElement('button');showPreview.type='button';showPreview.className='sticky-format-button sticky-preview-toggle';
+      showPreview.textContent='Preview';showPreview.setAttribute('aria-label','Preview formatted sticky note');
+      const formatted=document.createElement('div');formatted.className='sticky-text-preview';formatted.hidden=true;
+      showPreview.addEventListener('click',()=>{
+        const next=formatted.hidden;formatted.hidden=!next;editor.hidden=next;
+        showPreview.textContent=next?'Edit':'Preview';
+        showPreview.setAttribute('aria-label',next?'Edit sticky note text':'Preview formatted sticky note');
+        if(next){renderStickyMarkdown(n.text,formatted);}else editor.focus();
+      });formatBar.append(showPreview);
       const preview=document.createElement('div');preview.className='sticky-drawing';
       renderScene(n.scene,preview);
       let image=null;
@@ -170,7 +259,7 @@ export class StickyNotes {
         article.style.width=n.width+'px';article.style.height=n.height+'px';this.changed();
       });
       article.addEventListener('pointerdown',e=>e.stopPropagation());
-      article.append(head,editor,preview);if(image)article.append(image,image._orbitStatus);article.append(actions,resizer);this.layer.append(article);
+      article.append(head,formatBar,editor,formatted,preview);if(image)article.append(image,image._orbitStatus);article.append(actions,resizer);this.layer.append(article);
     }
   }
   dispose(){this.disposed=true;this.layer.remove();this.notes=[];}

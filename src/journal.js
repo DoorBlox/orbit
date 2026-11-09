@@ -5,8 +5,8 @@ import { validDateKey, todayKey, dateKey } from './dates.js';
 import { markStorageIssue, isStorageWriteBlocked } from './storage.js';
 const KEY='orbit.v5.journal';
 const MAX_ENTRIES=600;
-const allowed=new Set(['P','DIV','BR','STRONG','B','EM','I','U','H2','H3','UL','OL','LI','BLOCKQUOTE','A']);
-const safeHref=url=>{if(typeof url!=='string'||!url.trim())return '';try{const u=new URL(url,location.href);return ['https:','http:'].includes(u.protocol)?u.href:'';}catch{return '';}};
+const allowed=new Set(['P','DIV','BR','STRONG','B','EM','I','U','S','STRIKE','DEL','H2','H3','UL','OL','LI','BLOCKQUOTE','A']);
+const safeHref=url=>{if(typeof url!=='string'||!url.trim())return '';try{const u=new URL(url,location.href);return ['https:','http:'].includes(u.protocol)&&!u.username&&!u.password?u.href:'';}catch{return '';}};
 export function sanitizeJournal(html){
   const doc=new DOMParser().parseFromString(String(html||'').slice(0,140000),'text/html');
   const parent=document.createElement('div');
@@ -146,8 +146,19 @@ export class Journal {
     // The saved result is sanitized. Migrate to a structured editor (Tiptap) for production.
     if(kind==='bold')document.execCommand('bold',false);
     if(kind==='italic')document.execCommand('italic',false);
+    if(kind==='underline')document.execCommand('underline',false);
+    if(kind==='strike')document.execCommand('strikeThrough',false);
     if(kind==='heading')document.execCommand('formatBlock',false,'H2');
+    if(kind==='quote')document.execCommand('formatBlock',false,'BLOCKQUOTE');
     if(kind==='list')document.execCommand('insertUnorderedList',false);
+    if(kind==='ordered')document.execCommand('insertOrderedList',false);
+    if(kind==='link'){
+      const raw=window.prompt('Paste an HTTPS or HTTP link')||'';
+      const href=safeHref(raw);
+      if(!raw)return;
+      if(!href){this.notify('Paste a valid link without embedded credentials.');return;}
+      document.execCommand('createLink',false,href);
+    }
     this.queueSave();
   }
   handlePaste(event){
