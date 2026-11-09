@@ -3,6 +3,10 @@
 **Owner clarification:** 9 November 2026. **Status:** APPROVED PRODUCT DIRECTION; implementation units below are PROPOSED, not shipped or authorized for public release/hosted migration.
 **Companion:** [post-2.4 engineering blueprint](ORBIT_POST_2_4_EXECUTION.md), [current state](../docs/CURRENT_STATE.md), [active handoff](../CHATGPT_HANDOFF.md).
 
+## BP-06 evidence dependency
+
+A synthetic Chromium matrix is implemented in the BP-06 source branch `test/bp06-legacy-widget-baseline-20261109`. It verifies all original widget IDs, minimap navigation, layout round-trips and screenshots across five viewports and ten themes; the earlier exact-six QA assertion is relaxed. See [BP-06 evidence note](../docs/BP06_SYNTHETIC_LAYOUT_BASELINE.md). Treat as source-level evidence only after required CI, not real-device or owner Production signoff.
+
 ## Product decision: six is the current default, never a cap
 
 ORBIT has **six core spatial widgets today** because that is how the existing V6 layout is instantiated, **not** because the owner requested a permanent six-window limit. Preserve those widgets, their identifiers, user coordinates, saved sizes, pan/zoom world, visual feel and original data, while enabling **more and different widgets**. Do not reject a seventh widget, alternate workspace, customizable widget placement or public-facing content merely because of an old "six-window" phrase.

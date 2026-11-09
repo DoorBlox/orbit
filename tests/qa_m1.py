@@ -71,8 +71,10 @@ def saved(page):
 def viewport_flow(browser, label, size):
     context,page,errors=open_page(browser,size,is_mobile=label!='desktop',has_touch=label!='desktop')
     try:
-        assert page.locator('.spatial-world > .spatial-item').count()==6
-        assert page.locator('.widget-grip').count()==6
+        # The six original widgets must exist, but they are NOT a lifetime cap.
+        core=('timeline','constellation','active','completed','space','journal')
+        assert all(page.locator(f'[data-widget="{wid}"]').count()==1 for wid in core)
+        assert all(page.locator(f'[data-widget="{wid}"] .widget-grip').count()==1 for wid in core)
         page.screenshot(path=str(OUT/f'm1-{label}-initial.png'))
         focus(page,'journal')
         page.locator('#journal-entry-title').fill('M1 synthetic entry')
@@ -452,6 +454,8 @@ def main():
         for name,fn in [('core flows',normal_flows),('failure and security',failure_security_flows),('preferences and dates',preferences_and_dates)]:
             fn(browser);results[name]='PASS';print('PASS',name,flush=True)
         results['density_load_ms']=density(browser)
+        from qa_spatial_baseline import run_baseline
+        results['bp06_spatial_baseline']=run_baseline(browser,open_page,focus,reload_page,OUT)
         browser.close()
     (OUT/'m1-results.json').write_text(json.dumps(results,indent=2)+'\n')
     print(json.dumps(results,indent=2))
