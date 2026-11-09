@@ -160,7 +160,8 @@ const board=new SpatialBoard({notify:(...args)=>message(...args),initialLayout:i
 board.onWidgetResize=id=>{if(id==='constellation')requestAnimationFrame(()=>scene.onResize());};
 const stickies=new StickyNotes({world:$('spatial-world'),notes:state.extensions.notes,readOnly,
   getScale:()=>board.scale,media,notify:(...args)=>message(...args),
-  onChange:notes=>{state.extensions.notes=notes;extensionsChanged();}});
+  onChange:notes=>{state.extensions.notes=notes;board.setStickyNotes(notes);extensionsChanged();}});
+board.setStickyNotes(stickies.getNotes());
 const journal=new Journal({initialEntries:initialSnapshot?(initialSnapshot.journalEntries||[]):undefined,readOnly,persistLocally,notify:(s,...args)=>message(s,...args),onEntriesChange:entries=>{widgets.setJournalEntries(entries);emitChange();}});
 widgets.setJournalEntries(journal.entries);
 journal.onPageChange=()=>{refreshJournalDrawing();refreshJournalImage();};
@@ -588,7 +589,7 @@ function applySnapshot(snapshot){
   if(disposed)return;hydrating=true;
   state.branches=structuredClone(snapshot.branches);state.tasks=structuredClone(snapshot.tasks);
   state.extensions=normalizeExtensions(snapshot.extensions??state.extensions);
-  applyAppearance();applyTaskLinks();stickies.setNotes(state.extensions.notes);
+  applyAppearance();applyTaskLinks();stickies.setNotes(state.extensions.notes);board.setStickyNotes(stickies.getNotes());
   state.preferences=structuredClone(snapshot.preferences);state.profile=structuredClone(snapshot.profile||state.profile);
   if(snapshot.collapsedBranchIds!==undefined)state.collapsedBranchIds=normalizeCollapsedBranches(snapshot.collapsedBranchIds,state.branches);
   saveCollapsedBranches();

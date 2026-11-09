@@ -44,13 +44,20 @@ export function clampNavigatorPercent(value,pixels,diameter=31){
   const inset=Math.min(49,(diameter/2+2)/Math.max(1,pixels)*100);
   return clamp(value,inset,100-inset);
 }
+export function navigatorWorldPoint(px,py,bounds){
+  const x=clamp(px,0,1),y=clamp(py,0,1);
+  return {x:bounds.x0+(bounds.x1-bounds.x0)*x,y:bounds.y0+(bounds.y1-bounds.y0)*y};
+}
 export class SpatialBoard {
   constructor({notify=()=>{},initialLayout,readOnly=false,persistLocally=true,onLayoutChange=()=>{}}={}){
     this.readOnly=readOnly;this.persistLocally=persistLocally;this.onLayoutChange=onLayoutChange;this.events=new AbortController();
     this.notify=notify;
     this.viewport=document.getElementById('spatial-viewport');this.world=document.getElementById('spatial-world');
     this.positions=initialLayout?structuredClone(DEFAULT):readPositions();this.sizes=initialLayout?{}:readSizes();this.scale=1;this.pan={x:0,y:0};this.gesture=null;this.pointers=new Map();this.raf=0;
-    this.widgets=new Map();this.nav=document.getElementById('space-nav-map');
+    this.widgets=new Map();this.stickyNotes=[];this.navPointer=null;
+    this.nav=document.getElementById('space-nav-map');
+    this.nav.tabIndex=0;this.nav.setAttribute('role','group');
+    this.nav.setAttribute('aria-label','Spatial map: click or drag to travel, arrow keys to move the focus');
     this.navContainer=this.nav.closest('.space-navigator');this.navToggle=document.getElementById('space-nav-toggle');
     this.navToggle?.addEventListener('click',()=>{
       const open=this.navContainer.classList.toggle('is-open');this.navToggle.setAttribute('aria-expanded',String(open));
@@ -77,6 +84,19 @@ export class SpatialBoard {
       resizer.addEventListener('keydown',e=>this.resizeViaKeyboard(e,id));
     }
     this.buildNavigator();
+    this.nav.addEventListener('pointerdown',e=>this.startNavigatorPan(e),{signal:this.events.signal});
+    this.nav.addEventListener('pointermove',e=>this.moveNavigatorPan(e),{signal:this.events.signal});
+    this.nav.addEventListener('pointerup',e=>this.endNavigatorPan(e),{signal:this.events.signal});
+    this.nav.addEventListener('pointercancel',e=>this.endNavigatorPan(e),{signal:this.events.signal});
+    this.nav.addEventListener('keydown',e=>{
+      if(e.target!==this.nav)return;
+      const d={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];
+      if(!d){if(e.key==='Home'){e.preventDefault();this.fitAll();}return;}
+      e.preventDefault();const {w,h}=this.viewportSize();
+      const shift=e.shiftKey?270:90;
+      this.pan.x-=d[0]*shift*this.scale;this.pan.y-=d[1]*shift*this.scale;
+      cancelAnimationFrame(this.raf);this.raf=0;this.render();
+    },{signal:this.events.signal});
     if(typeof ResizeObserver!=='undefined'){
       this.navigatorObserver=new ResizeObserver(()=>this.drawNavigatorCursor());
       this.navigatorObserver.observe(this.nav);
@@ -123,6 +143,44 @@ export class SpatialBoard {
     item.style.left=`${p.x}px`;item.style.top=`${p.y}px`;
   }
   viewportSize(){return {w:this.viewport.clientWidth||innerWidth,h:this.viewport.clientHeight||innerHeight};}
+  setStickyNotes(notes=[]){
+    if(this.disposed)return;
+    this.stickyNotes=Array.isArray(notes)?notes.filter(n=>Number.isFinite(n.x)&&Number.isFinite(n.y)&&
+      Number.isFinite(n.width)&&Number.isFinite(n.height)).slice(0,80).map(n=>({
+        id:String(n.id),title:String(n.title||'Untitled note'),x:n.x,y:n.y,width:n.width,height:n.height
+      })):[];
+    this.buildNavigator();
+  }
+  focusCoordinate(x,y,{scale=Math.max(.7,Math.min(1.12,this.scale))}={}){
+    const {w,h}=this.viewportSize();
+    this.animate({scale,x:w/2-x*scale,y:h/2-y*scale},420);
+  }
+  navigatorToWorld(e){
+    if(!this.navBounds)return;
+    const rect=this.nav.getBoundingClientRect();
+    if(!rect.width||!rect.height)return;
+    const point=navigatorWorldPoint((e.clientX-rect.left)/rect.width,(e.clientY-rect.top)/rect.height,this.navBounds);
+    const {w,h}=this.viewportSize();
+    cancelAnimationFrame(this.raf);this.raf=0;
+    this.pan={x:w/2-point.x*this.scale,y:h/2-point.y*this.scale};
+    this.render();
+  }
+  startNavigatorPan(e){
+    if(this.disposed||(e.button!==0&&e.pointerType!=='touch')||e.target.closest('button'))return;
+    e.preventDefault();e.stopPropagation();
+    this.navPointer=e.pointerId;
+    try{this.nav.setPointerCapture(e.pointerId);}catch{}
+    this.nav.classList.add('is-dragging');this.navigatorToWorld(e);
+  }
+  moveNavigatorPan(e){
+    if(e.pointerId!==this.navPointer)return;
+    e.preventDefault();this.navigatorToWorld(e);
+  }
+  endNavigatorPan(e){
+    if(e.pointerId!==this.navPointer)return;
+    this.navPointer=null;this.nav.classList.remove('is-dragging');
+    try{if(this.nav.hasPointerCapture?.(e.pointerId))this.nav.releasePointerCapture(e.pointerId);}catch{}
+  }
   render(){this.world.style.transform=`translate3d(${this.pan.x.toFixed(2)}px,${this.pan.y.toFixed(2)}px,0) scale(${this.scale.toFixed(4)})`;
     document.getElementById('board-scale-label').textContent=`${Math.round(this.scale*100)}%`;
     this.drawNavigatorCursor();
@@ -163,6 +221,7 @@ export class SpatialBoard {
   }
   fitAll(){const pad=65,{w,h}=this.viewportSize();let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
     for(const [id,item] of this.widgets){const p=this.positions[id];x0=Math.min(x0,p.x);y0=Math.min(y0,p.y);x1=Math.max(x1,p.x+item.offsetWidth);y1=Math.max(y1,p.y+item.offsetHeight);}
+    for(const note of this.stickyNotes){x0=Math.min(x0,note.x);y0=Math.min(y0,note.y);x1=Math.max(x1,note.x+note.width);y1=Math.max(y1,note.y+note.height);}
     const scale=clamp(Math.min((w-pad*2)/Math.max(1,x1-x0),(h-pad*2)/Math.max(1,y1-y0)),.06,1.25);
     this.animate({scale,x:w/2-((x0+x1)/2)*scale,y:h/2-((y0+y1)/2)*scale},600);
   }
@@ -248,26 +307,47 @@ export class SpatialBoard {
     e.preventDefault();e.stopPropagation();const n=e.shiftKey?100:24;
     this.positions[id].x+=d[0]*n;this.positions[id].y+=d[1]*n;this.position(id);this.save();this.buildNavigator();
   }
-  buildNavigator(){this.nav.replaceChildren();
-    const ids=[...this.widgets.keys()],spots=ids.map(id=>{const p=this.positions[id],el=this.widgets.get(id);return {id,x:p.x+el.offsetWidth/2,y:p.y+el.offsetHeight/2};});
-    const x0=Math.min(...spots.map(s=>s.x))-350,x1=Math.max(...spots.map(s=>s.x))+350;
-    const y0=Math.min(...spots.map(s=>s.y))-300,y1=Math.max(...spots.map(s=>s.y))+300;
+  buildNavigator(){
+    this.nav.replaceChildren();
+    const spots=[...this.widgets.keys()].map(id=>{const p=this.positions[id],el=this.widgets.get(id);
+      return {id,x:p.x+el.offsetWidth/2,y:p.y+el.offsetHeight/2};});
+    const notes=this.stickyNotes.map(n=>({id:n.id,title:n.title,x:n.x+n.width/2,y:n.y+n.height/2}));
+    const all=[...spots,...notes];
+    if(!all.length)return;
+    const x0=Math.min(...all.map(s=>s.x))-350,x1=Math.max(...all.map(s=>s.x))+350;
+    const y0=Math.min(...all.map(s=>s.y))-300,y1=Math.max(...all.map(s=>s.y))+300;
     this.navBounds={x0,x1,y0,y1};
-    for(const spot of spots){const btn=document.createElement('button');btn.type='button';btn.className=`space-point space-point-${spot.id}`;
-      btn.style.left=`${(spot.x-x0)/(x1-x0)*100}%`;btn.style.top=`${(spot.y-y0)/(y1-y0)*100}%`;
-      btn.textContent=iconList[spot.id]||'·';btn.title=`Go to ${spot.id}`;btn.setAttribute('aria-label',`Go to ${spot.id} widget`);
-      btn.addEventListener('click',()=>{this.focus(spot.id);this.navContainer.classList.remove('is-open');this.navToggle?.setAttribute('aria-expanded','false');this.navToggle?.setAttribute('aria-label','Open places map');});
-      btn.addEventListener('pointerenter',()=>{document.getElementById('space-nav-caption').textContent=spot.id.replace('-',' ');});
-      btn.addEventListener('pointerleave',()=>{document.getElementById('space-nav-caption').textContent='tap a place to visit';});
+    const place=(x,y,element)=>{element.style.left=`${(x-x0)/(x1-x0)*100}%`;
+      element.style.top=`${(y-y0)/(y1-y0)*100}%`;};
+    const caption=document.getElementById('space-nav-caption');
+    for(const spot of spots){
+      const btn=document.createElement('button');btn.type='button';btn.className=`space-point space-point-${spot.id}`;
+      place(spot.x,spot.y,btn);
+      btn.textContent=iconList[spot.id]||'·';btn.title=`Go to ${spot.id}`;
+      btn.setAttribute('aria-label',`Go to ${spot.id} widget`);
+      btn.addEventListener('click',()=>{this.focus(spot.id);this.navContainer.classList.remove('is-open');
+        this.navToggle?.setAttribute('aria-expanded','false');this.navToggle?.setAttribute('aria-label','Open places map');});
+      btn.addEventListener('pointerenter',()=>{caption.textContent=spot.id.replace('-',' ');});
+      btn.addEventListener('pointerleave',()=>{caption.textContent='drag the outline to travel';});
       this.nav.append(btn);
     }
-    const cursor=document.createElement('div');cursor.id='space-nav-cursor';cursor.className='space-nav-cursor';this.nav.append(cursor);this.drawNavigatorCursor();
+    for(const note of notes){
+      const btn=document.createElement('button');btn.type='button';btn.className='space-point space-point-sticky';
+      btn.textContent='▤';place(note.x,note.y,btn);btn.title=`Go to sticky note: ${note.title}`;
+      btn.setAttribute('aria-label',`Go to sticky note: ${note.title}`);
+      btn.addEventListener('click',()=>this.focusCoordinate(note.x,note.y));
+      btn.addEventListener('pointerenter',()=>{caption.textContent=note.title;});
+      btn.addEventListener('pointerleave',()=>{caption.textContent='drag the outline to travel';});
+      this.nav.append(btn);
+    }
+    const cursor=document.createElement('div');cursor.id='space-nav-cursor';cursor.className='space-nav-cursor';
+    cursor.setAttribute('aria-hidden','true');this.nav.append(cursor);this.drawNavigatorCursor();
   }
   drawNavigatorCursor(){if(!this.navBounds)return;const el=document.getElementById('space-nav-cursor');if(!el)return;
     const {w,h}=this.viewportSize(),wx=(w/2-this.pan.x)/this.scale,wy=(h/2-this.pan.y)/this.scale,{x0,x1,y0,y1}=this.navBounds;
     el.style.left=`${clampNavigatorPercent((wx-x0)/(x1-x0)*100,this.nav.clientWidth||180)}%`;
     el.style.top=`${clampNavigatorPercent((wy-y0)/(y1-y0)*100,this.nav.clientHeight||90)}%`;
   }
-  dispose(){this.disposed=true;this.navigatorObserver?.disconnect();cancelAnimationFrame(this.raf);this.raf=0;this.events.abort();this.pointers.clear();this.widgets.clear();}
+  dispose(){this.disposed=true;this.navPointer=null;this.navigatorObserver?.disconnect();cancelAnimationFrame(this.raf);this.raf=0;this.events.abort();this.pointers.clear();this.widgets.clear();}
 
 }
