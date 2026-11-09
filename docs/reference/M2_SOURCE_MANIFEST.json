@@ -32,7 +32,7 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/board.js": {
-      "sha256": "a332c2f4ee82dba42020bd2389d25fe8194f559f05d476e810227620c1e5980a",
+      "sha256": "bb5d539e807d4f3ef875740b5478b43ea188cfe3f2e67730780c5c8bf8076dd5",
       "reason": "Clamp mini-map focus marker within panel bounds and observe navigator resize; honor reduced motion."
     },
     "src/bootstrap.js": {

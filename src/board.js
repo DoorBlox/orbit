@@ -31,7 +31,7 @@ function readSizes(){try{
   return output;
 }catch{markStorageIssue(SIZE_KEY,'Saved sizes need recovery.');return {};}}
 
-const prefersReduce=()=>document.documentElement.dataset.motion==='off'||matchMedia('(prefers-reduced-motion: reduce)').matches;
+const prefersReduce=()=>globalThis.document?.documentElement?.dataset?.motion==='off'||matchMedia('(prefers-reduced-motion: reduce)').matches;
 function readPositions(){try{
   const data=JSON.parse(localStorage.getItem(KEY)||'{}');const next=structuredClone(DEFAULT);
   if(!data||typeof data!=='object'||Array.isArray(data))throw Error();
