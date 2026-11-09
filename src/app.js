@@ -1,5 +1,5 @@
 import { branchPath,descendantsOf,createBranch,removeBranchPreservingContents } from './data.js';
-import { cleanTask,taskSummary } from './model.js';
+import { cleanTask,taskSummary,normalizeTaskChecklist } from './model.js';
 import { readTasks,saveTasks,readPreferences,savePreferences,readBranches,saveBranches,readProfile,saveProfile,readExtensions,saveExtensions,STORAGE_KEYS,getStorageStatus,getRecoveryData,markStorageIssue,isStorageWriteBlocked,clearStorageIssues } from './storage.js';
 import { importCsv,exportCsv,parseCsv,importBranchesCsv,exportBranchesCsv } from './csv.js';
 import { Constellation } from './constellation.js';
@@ -38,9 +38,16 @@ const initialExtensions=normalizeExtensions(initialSnapshot?.extensions??(persis
 const state={extensions:initialExtensions,branches:initialBranches,tasks:initialSnapshot?structuredClone(initialSnapshot.tasks):readTasks(),preferences:initialSnapshot?structuredClone(initialSnapshot.preferences):readPreferences(),profile:structuredClone(initialSnapshot?.profile||(persistLocally?readProfile():{displayName:'My space'})),selectedBranchId:'inbox',
   collapsedBranchIds:[],selectedTaskId:'',captureMode:'capture',captureDraft:'',searchDraft:''};
 state.collapsedBranchIds=normalizeCollapsedBranches(initialSnapshot?.collapsedBranchIds??(readOnly?[]:readCollapsedBranches()),state.branches);
-function applyTaskLinks(){for(const task of state.tasks)if(Object.hasOwn(state.extensions.taskLinks,task.id))task.links=structuredClone(state.extensions.taskLinks[task.id]);}
+function applyTaskLinks(){
+  for(const task of state.tasks){
+    if(Object.hasOwn(state.extensions.taskLinks,task.id))task.links=structuredClone(state.extensions.taskLinks[task.id]);
+    task.checklist=normalizeTaskChecklist(state.extensions.taskChecklists?.[task.id]??[]);
+  }
+}
 function collectExtensions(){
   state.extensions.taskLinks=Object.fromEntries(state.tasks.filter(t=>t.links?.length).map(t=>[t.id,t.links]));
+  state.extensions.taskChecklists=Object.fromEntries(state.tasks.filter(t=>t.checklist?.length)
+    .map(t=>[t.id,normalizeTaskChecklist(t.checklist)]));
   return normalizeExtensions(state.extensions);
 }
 applyTaskLinks();
@@ -114,6 +121,7 @@ const scene=new Constellation({viewport:$('map-viewport'),world:$('map-world'),e
     const prev=state.tasks[index];
     try{
       const next=cleanTask({...prev,...patch},prev.projectId);
+      next.checklist=normalizeTaskChecklist(patch.checklist??prev.checklist??[]);
       if(!state.branches.some(b=>b.id===next.projectId))throw Error('Choose an existing branch.');
       state.tasks[index]=next;scene.expandedTaskId=id;sync();
       if(patch.status==='completed')message('Finished. That counts.');
