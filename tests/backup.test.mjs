@@ -73,3 +73,21 @@ test('invalid drawing extensions are rejected before any restore write',()=>{
   const value=fixture();value.extensions={notes:[{id:'x',title:'oops',text:'X',x:0,y:0,width:10,height:10,color:'sand'}]};
   assert.throws(()=>validateBackup(value),/sticky note/i);
 });
+
+
+test('SP-01B seventh-window layout lives in owner-private extensions; V6 legacy root allowlist stays strict',()=>{
+  const value=fixture();
+  value.spatialLayout={timeline:{x:445,y:105},journal:{x:930,y:1780}};
+  value.extensions={spatialWidgets:{projects:{x:2320,y:280,width:400,height:305,hidden:true}}};
+  const snapshot=validateBackup(value);
+  assert.deepEqual(Object.keys(snapshot.spatialLayout),['timeline','journal']);
+  assert.deepEqual(snapshot.extensions.spatialWidgets.projects,
+    {x:2320,y:280,width:400,height:305,hidden:true});
+  const store=fake();
+  assert.equal(persistBackup(snapshot,store).ok,true);
+  const persisted=JSON.parse(store.getItem(STORAGE_KEYS.extensions));
+  assert.deepEqual(persisted.spatialWidgets,snapshot.extensions.spatialWidgets);
+  assert.equal(JSON.parse(store.getItem(STORAGE_KEYS.layout)).projects,undefined);
+  value.spatialLayout.projects={x:2320,y:280};
+  assert.throws(()=>validateBackup(value),/widget layout/i);
+});

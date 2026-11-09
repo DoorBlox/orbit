@@ -30,7 +30,7 @@ test('extensions reject invalid note IDs, oversize text and malicious task refer
     {taskLinks:{task_1:[{label:'Credentials',url:'https://user:password@example.com/private'}]}},
     {journalScenes:{bad: {...emptyScene(),files:{file:{}}}}}
   ])assert.throws(()=>normalizeExtensions(invalid));
-  assert.deepEqual(normalizeExtensions({}),{notes:[],taskLinks:{},taskChecklists:{},journalScenes:{},journalImages:{},appearance:{theme:'parchment',motion:'system',ambient:false}});
+  assert.deepEqual(normalizeExtensions({}),{notes:[],taskLinks:{},taskChecklists:{},journalScenes:{},journalImages:{},spatialWidgets:{},appearance:{theme:'parchment',motion:'system',ambient:false}});
 });
 
 test('workspace appearance is normalized, persisted and protected against unsupported values',()=>{
@@ -56,4 +56,13 @@ test('account-scoped task checklists survive extension normalization without SQL
   for(const invalid of [[{text:'oops',done:'yes'}],Array.from({length:31},()=>({text:'Too many',done:false}))]){
     assert.throws(()=>normalizeExtensions({taskChecklists:{task_1:invalid}}));
   }
+});
+
+
+test('SP-01B private optional layout survives extension normalization without leaking into legacy window positions',()=>{
+  const raw={spatialWidgets:{projects:{x:2460,y:330,width:440,height:290,hidden:true}}};
+  const first=normalizeExtensions(raw);
+  assert.deepEqual(first.spatialWidgets,raw.spatialWidgets);
+  assert.deepEqual(normalizeExtensions(first).spatialWidgets,first.spatialWidgets);
+  assert.throws(()=>normalizeExtensions({spatialWidgets:{journal:{x:0,y:0}}}),/widget/i);
 });

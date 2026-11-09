@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {CORE_WIDGET_IDS,DEFAULT_WIDGET_REGISTRY,createWidgetRegistry} from '../src/widget-registry.js';
+import {CORE_WIDGET_IDS,DEFAULT_WIDGET_REGISTRY,createWidgetRegistry,extendWidgetRegistry,normalizeExtraWidgetLayout} from '../src/widget-registry.js';
 
 const synthetic=()=>({
   id:'projects',position:{x:2250,y:250},limits:{minW:340,minH:230,maxW:1500,maxH:1800},icon:'◆'
@@ -46,4 +46,35 @@ test('SP-01A registry rejects duplicate, unsafe and unbounded widget definitions
     const invalid=synthetic();change(invalid);
     assert.throws(()=>createWidgetRegistry([invalid]));
   }
+});
+
+
+test('SP-01B extra widget state validates private positions, sizes and visibility without allowing core overwrite',()=>{
+  const valid={projects:{x:2176,y:302,width:410,height:280,hidden:true},
+    focus:{x:800,y:420,hidden:false}};
+  const clean=normalizeExtraWidgetLayout(valid);
+  assert.deepEqual(clean,valid);
+  assert.deepEqual(normalizeExtraWidgetLayout(clean),clean);
+  valid.projects.x=6000;
+  assert.equal(clean.projects.x,2176);
+  for(const change of [
+    v=>{v.projects.x=Infinity;},v=>{v.projects.y=8000;},
+    v=>{v.projects.width=10000;},v=>{delete v.projects.height;},
+    v=>{v.projects.hidden='yes';},v=>{v.timeline={x:0,y:0};},
+    v=>{v['__proto__']={x:1,y:2};Object.defineProperty(v,'constructor',{value:{x:1,y:2},enumerable:true});},
+    v=>{v.projects={x:0,y:0,markup:'<script>'};}
+  ]){
+    const invalid=structuredClone(clean);change(invalid);
+    assert.throws(()=>normalizeExtraWidgetLayout(invalid));
+  }
+  assert.throws(()=>normalizeExtraWidgetLayout(Object.fromEntries(
+    Array.from({length:33},(_,i)=>['optional'+i,{x:100,y:100}]))),/limit|many/i);
+});
+
+test('SP-01B extends a validated registry with one first-party descriptor without replacing core',()=>{
+  const next=extendWidgetRegistry(DEFAULT_WIDGET_REGISTRY,synthetic());
+  assert.equal(next.ids.length,7);
+  assert.deepEqual(next.ids.slice(0,6),CORE_WIDGET_IDS);
+  assert.deepEqual(next.get('projects').position,{x:2250,y:250});
+  assert.throws(()=>extendWidgetRegistry(next,synthetic()),/duplicate/i);
 });
