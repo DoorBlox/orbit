@@ -2,13 +2,13 @@
 
 **Established:** 9 November 2026. **Source audit baseline:** main b8f76a6ee4660c135ec0e2604915a6b96097f664; live app 4e57aca785259192b92010c5d0e1634a4c1efe14. **User decision:** proceed with documentation and BP-00–BP-06 reliability foundation. Full official Excalidraw is a top product priority, not a low-priority indefinite option. This blueprint plans work; individual production, hosted-data, provider and paid actions retain separate approval gates.
 
-See [current state](../docs/CURRENT_STATE.md), [documentation protocol](../docs/DOCUMENTATION_PROTOCOL.md), [operations](../docs/OPERATIONS.md), [visual evidence](../docs/DESIGN_EVIDENCE_PLAN.md) and [Issue #31](https://github.com/DoorBlox/orbit/issues/31). Historical [2.0–2.3 blueprint](ORBIT_2_0_BLUEPRINT.md) is preserved as a record, not as current orders.
+See [active ChatGPT handoff](../CHATGPT_HANDOFF.md), [tool/skills playbook](../docs/CHATGPT_TOOL_PLAYBOOK.md), [current state](../docs/CURRENT_STATE.md), [documentation protocol](../docs/DOCUMENTATION_PROTOCOL.md), [operations](../docs/OPERATIONS.md), [visual evidence](../docs/DESIGN_EVIDENCE_PLAN.md) and [Issue #31](https://github.com/DoorBlox/orbit/issues/31). Historical [2.0–2.3 blueprint](ORBIT_2_0_BLUEPRINT.md) is preserved as a record, not as current orders.
 
 ## Execution ownership and current BP-16 source task
 
 **Implementation owner: ChatGPT coding assistant.** For approved work units, independently read code, implement scoped changes, add focused tests, use efficient exact-head GitHub Actions, review/merge source PRs after required checks, and maintain the handoff. The owner should not be asked to write fresh work prompts or manually project-manage the assistant. This obligation applies to active conversations, not invisible background work. Hosted SQL/Storage/Auth changes, privileged access, user-data deletion, paid services and new Production releases still require separate authorization.
 
-**BP-16 active first slice:** [workflow audit](../docs/CI_WORKFLOW_AUDIT_2026-11-09.md) of actual run timings and five Actions workflows. Proposed branch ci/required-check-scope-and-agent-ownership-20261109 adds fail-closed Markdown-only fast path, superseded PR run cancellation, current 2.4 raw deployment protection and regression tests. It does not close semantic lint, visual/performance audit or modern Production staging work. Verify exact PR/check status before calling it source-merged.
+**BP-16 first slice SOURCE MERGED (PR #36):** [workflow audit](../docs/CI_WORKFLOW_AUDIT_2026-11-09.md) of actual run timings and five Actions workflows. [PR #36](https://github.com/DoorBlox/orbit/pull/36) merged the fail-closed Markdown-only fast path, superseded PR run cancellation, current 2.4 raw deployment protection and regression tests after four green exact-head checks. It does not close semantic lint, visual/performance audit or modern Production staging work. SOURCE MERGED; verify current GitHub main before editing.
 
 ## Decisions locked for this sequence
 
@@ -25,7 +25,7 @@ PROPOSED = specified only; READY = prerequisites/research sufficient; IN PROGRES
 
 ## Immediate work order
 
-**Now:** BP-00 docs/handoff consolidation in one docs PR; BP-00 metadata/version harmonization is **not yet performed**, since scripts expect 1.0.0.
+**Source completed:** BP-00 foundation docs PR #35 and initial BP-16 CI optimization PR #36. **Current:** ChatGPT-native active handoff and tool/skill routing. App/package metadata harmonization remains NOT DONE because release tooling expects 1.0.0.
 
 **Next independent lanes:** BP-04 read-only migration-history/source comparison, BP-01 owner-assisted authenticated image acceptance, BP-06 synthetic visual/performance baseline planning, and EX-00 official Excalidraw compatibility research. Work can be prepared independently but PRs touching shared files must be serialized.
 
@@ -35,9 +35,9 @@ PROPOSED = specified only; READY = prerequisites/research sufficient; IN PROGRES
 
 ### BP-00 — current truth, docs and version vocabulary
 
-- **Status:** IN PROGRESS / documentation-first substep. **Prereq:** merged 2.4 release record PR #34.
+- **Status:** SOURCE MERGED (docs foundation PR #35); ChatGPT-native transition being documented separately; package/version harmonization PROPOSED. **Prereq:** merged 2.4 closeout PR #34.
 - **Value:** next session can identify actual Production, what shipped, what did not, and one safe next task in under five minutes.
-- **Surfaces:** docs/CURRENT_STATE.md, docs/DOCUMENTATION_PROTOCOL.md, CODEX_HANDOFF.md, AGENTS.md, README.md, docs/ROADMAP.md, docs/decisions/README.md; later package.json and release guard scripts only in a separate code-bearing version PR.
+- **Surfaces:** docs/CURRENT_STATE.md, docs/DOCUMENTATION_PROTOCOL.md, CHATGPT_HANDOFF.md, AGENTS.md, README.md, docs/ROADMAP.md, docs/decisions/README.md; later package.json and release guard scripts only in a separate code-bearing version PR.
 - **Implementation:** one canonical state page; a 17-unit plan; visual baseline brief; short links from handoff/AGENTS/README; old status paragraphs clearly historical. Maintain historical M0–M6 evidence unmodified. Reconcile #2/#4/#22 against actual source and owner evidence, do not close reflexively.
 - **Acceptance:** current pages agree 2.4 is live; distinguish source SHA, docs SHA, deployed artifact, backup schema 6 and npm 1.0.0; old version artifacts cannot be accidentally deployed as 2.4; links and changed-files-only diff reviewed.
 - **Evidence/rollback:** docs-only PR diff + four required exact-head GitHub statuses; revert docs commit, never change live Production for a docs-only PR.

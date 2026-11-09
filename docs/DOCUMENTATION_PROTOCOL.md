@@ -4,7 +4,11 @@
 
 ## Agent-owned execution and continuity
 
-ChatGPT owns executing approved implementation work, not merely writing the plan. After each code or CI change, it records exact head/PR/check evidence, resolved and unresolved test gates, and a single file-level next task in CODEX_HANDOFF.md. Do not require the owner to manage the project through reminder prompts. The assistant can only advance work during active conversations unless an automation is explicitly created. Separately approve production changes, hosted data, identity access, destructive operations and paid resources.
+ChatGPT owns executing approved implementation work, not merely writing the plan. After each code or CI change, it records exact head/PR/check evidence, resolved and unresolved test gates, and a single file-level next task in CHATGPT_HANDOFF.md. Do not require the owner to manage the project through reminder prompts. The assistant can only advance work during active conversations unless an automation is explicitly created. Separately approve production changes, hosted data, identity access, destructive operations and paid resources.
+
+## Active ChatGPT workflow and historic compatibility
+
+ORBIT's owner works directly in **ChatGPT**, not a Codex-specific client. The maintained [CHATGPT_HANDOFF.md](../CHATGPT_HANDOFF.md) contains exact task continuity; the [tool/skills playbook](CHATGPT_TOOL_PLAYBOOK.md) maps the connected integrations and installed skills. The old CODEX-named handoff is a short compatibility pointer; its full original content is archived. New task status, handoff and delivery evidence belong exclusively in the ChatGPT handoff.
 
 ## Source-of-truth priority
 
@@ -12,7 +16,7 @@ ChatGPT owns executing approved implementation work, not merely writing the plan
 2. **Current human-readable digest:** [CURRENT_STATE.md](CURRENT_STATE.md). One short page containing deployed source, known-good rollback, live capabilities, blockers, issue state and next task.
 3. **Executable plan:** [ORBIT_POST_2_4_EXECUTION.md](../plans/ORBIT_POST_2_4_EXECUTION.md), work-unit IDs and dependencies. Proposals are not shipped features.
 4. **Contributor rules:** [AGENTS.md](../AGENTS.md), stable constraints, privacy, cost budget and test gates. Avoid copying the live checkpoint into every rule.
-5. **Handoff:** [CODEX_HANDOFF.md](../CODEX_HANDOFF.md), maximum useful summary of next step, branch/ref, results and unresolved decisions.
+5. **Handoff:** [CHATGPT_HANDOFF.md](../CHATGPT_HANDOFF.md), maximum useful summary of next step, branch/ref, results and unresolved decisions.
 6. **Operational runbook:** [OPERATIONS.md](OPERATIONS.md), staging, data backups, rollback, Auth/CSP/aliases and incident response.
 7. **Historical evidence:** [PROJECT_HISTORY.md](PROJECT_HISTORY.md), [decisions/](decisions/), old milestones/blueprints, changelog. Historical statements must remain dated and must NOT override the current state.
 
@@ -53,6 +57,6 @@ The owner's consent to **plan and start documentation/research** is not consent 
 
 ## Session handoff template
 
-At the END of a task update [CODEX_HANDOFF.md](../CODEX_HANDOFF.md) once, with: (a) exact source/PR/deploy SHA; (b) shipped vs source-only; (c) completed BP/EX checks and their evidence; (d) blocker and owner actions; (e) the next single work unit with file paths and do-not-touch list; (f) rollback and any security/cost constraints. Preserve detailed research in its named plan/evidence file rather than copying pages into AGENTS/README/handoff.
+At the END of a task update [CHATGPT_HANDOFF.md](../CHATGPT_HANDOFF.md) once, with: (a) exact source/PR/deploy SHA; (b) shipped vs source-only; (c) completed BP/EX checks and their evidence; (d) blocker and owner actions; (e) the next single work unit with file paths and do-not-touch list; (f) rollback and any security/cost constraints. Preserve detailed research in its named plan/evidence file rather than copying pages into AGENTS/README/handoff.
 
 Archive earlier checkpoints by dating them, not by erasing or retroactively editing their conclusions.

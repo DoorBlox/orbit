@@ -1,5 +1,12 @@
 # ORBIT implementation history and evidence ledger
 
+## 9 Nov 2026 — source and CI foundation after 2.4 deployment
+
+- [PR #35](https://github.com/DoorBlox/orbit/pull/35) merged as f899923ba098d21bc2f75b87d7bdcd3189f4e857 after all four required exact-head checks: canonical verified state, documentation protocol, BP-00–16 execution blueprint and Excalidraw EX-00/01/02 path. Documentation-only.
+- [PR #36](https://github.com/DoorBlox/orbit/pull/36) merged as 821b1a51de1817703f14d42bd7b2a00618492425 after all four required exact-head checks: fail-closed Markdown-only fast CI path, current 2.4 raw deployment protection, legacy staging warning and measured Actions review. No deployment or hosted Supabase changes.
+- The owner clarified that **ChatGPT with GitHub/Vercel/Supabase connections** is the ongoing source-code engineer, auditor, PR maintainer and handoff author; Codex-only instructions are deprecated. The active [ChatGPT handoff](../CHATGPT_HANDOFF.md) and [tool/skill playbook](CHATGPT_TOOL_PLAYBOOK.md) replace the historical Codex-named entrypoint while keeping its old text archived.
+
+
 ## 9 Nov 2026 — ORBIT 2.4 LIVE Production (latest authoritative release checkpoint)
 
 - **GitHub:** PR [#33](https://github.com/DoorBlox/orbit/pull/33) squash-merged to `main` commit **`4e57aca785259192b92010c5d0e1634a4c1efe14`** after all four exact-head checks passed (`static-quality`, `local-postgres-rls`, `production-artifact-dry-run`, `unauthenticated-protection`). Initial PR browser regression failed solely because the test attempted to select an option inside the intentionally collapsed “More tools” panel; revised test exercised the disclosure, then all four checks passed at head `33053acd46db3fd1a4865759b420ad4f865db69d`. Historical V6/M1 manifests unchanged and reviewed M2 source manifest updated.
@@ -144,4 +151,4 @@ These are outcomes, not a claim that every originally planned optional feature o
 6. Future features remain separate issues and require deliberate scope: e.g. structured editor, reminders, collision helpers; don't replace the visual world or weaken Auth for secondary domains.
 7. Revoke/rotate temporary Vercel deployment token once it is no longer needed; do not publish credentials.
 
-See [the working handoff](../CODEX_HANDOFF.md), [operations](OPERATIONS.md), and [the current README](../README.md). This ledger is not an instruction to change live state without authorization.
+See [the working handoff](../CHATGPT_HANDOFF.md), [operations](OPERATIONS.md), and [the current README](../README.md). This ledger is not an instruction to change live state without authorization.

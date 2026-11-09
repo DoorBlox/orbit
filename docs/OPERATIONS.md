@@ -1,5 +1,7 @@
 # ORBIT production operations and recovery
 
+**ChatGPT engineering continuity:** [CHATGPT_HANDOFF.md](../CHATGPT_HANDOFF.md) and [connected tools/skills](CHATGPT_TOOL_PLAYBOOK.md). This remains the operational release and rollback runbook; a GitHub merge does not authorize a Production promotion.
+
 ## 9 Nov 2026 — ORBIT 2.4 LIVE Production (latest authoritative release checkpoint)
 
 - **GitHub:** PR [#33](https://github.com/DoorBlox/orbit/pull/33) squash-merged to `main` commit **`4e57aca785259192b92010c5d0e1634a4c1efe14`** after all four exact-head checks passed (`static-quality`, `local-postgres-rls`, `production-artifact-dry-run`, `unauthenticated-protection`). Initial PR browser regression failed solely because the test attempted to select an option inside the intentionally collapsed “More tools” panel; revised test exercised the disclosure, then all four checks passed at head `33053acd46db3fd1a4865759b420ad4f865db69d`. Historical V6/M1 manifests unchanged and reviewed M2 source manifest updated.
@@ -111,7 +113,7 @@ Do not confuse **public source code** with public scrapbook contents: the deploy
 
 ## Verification before a future change
 
-1. Read [CODEX_HANDOFF.md](../CODEX_HANDOFF.md), [AGENTS.md](../AGENTS.md), the actual relevant code, and this document. Confirm the specific repository branch and Git SHA.
+1. Read [CHATGPT_HANDOFF.md](../CHATGPT_HANDOFF.md), [AGENTS.md](../AGENTS.md), the actual relevant code, and this document. Confirm the specific repository branch and Git SHA.
 2. Confirm the current deployment ID, `target=production`, READY, SHA, aliases, and Vercel Authentication. Check both domain mappings separately.
 3. Recheck the approved production site/API origin and public publishable-key **identity without printing its contents**. Never include Supabase service-role or secret keys in browser output.
 4. Run syntax/unit/source-integrity/structure checks on Node 22 with `npm ci --ignore-scripts && npm run check`. Run focused Python Playwright regressions for impacted frontend behavior.

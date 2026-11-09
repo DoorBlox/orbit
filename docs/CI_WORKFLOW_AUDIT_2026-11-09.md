@@ -48,6 +48,8 @@ GitHub documents that **standard GitHub-hosted runner time is free on public rep
 
 ## Who actually runs the project?
 
+**ChatGPT directly**, via the connected GitHub, Supabase and Vercel apps and [task-specific skill playbook](CHATGPT_TOOL_PLAYBOOK.md). A Codex client is not assumed.
+
 **ChatGPT is the coding and review executor.** It should inspect the GitHub source, implement the next safe approved work unit, add tests, open/check/merge the PR when green, keep the handoff and task statuses accurate, and then advance to the next independent unit during active sessions. The owner is not responsible for writing reminder prompts, monitoring workflows or manually project-managing these tasks. The assistant cannot perform ongoing work after a conversation ends unless an automation has actually been created. Real-account QA, Production changes, hosted schema modifications, data deletion, secrets and paid provider activation still require separately scoped owner permission.
 
 Read the [current state](CURRENT_STATE.md), [documentation protocol](DOCUMENTATION_PROTOCOL.md), [execution blueprint](../plans/ORBIT_POST_2_4_EXECUTION.md) and [agent instructions](../AGENTS.md) before taking action.

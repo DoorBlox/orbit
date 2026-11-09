@@ -6,7 +6,7 @@
 
 The original ORBIT 1.0.0 single-owner Production milestone was documented in (see current 2.4 state above for live status):
 
-- [Current working handoff](../../CODEX_HANDOFF.md) — exactly what a new conversation should load.
+- [Current working handoff](../../CHATGPT_HANDOFF.md) — exactly what a new conversation should load.
 - [Operations and rollback](../OPERATIONS.md) — live hostnames, deployment IDs, Auth/security boundaries, safe release procedure.
 - [Milestone implementation ledger](../PROJECT_HISTORY.md) — chronological milestones, PRs and CI evidence.
 - [1.0.0 release record](../releases/1.0.0.md) — owner-accepted Production release, test limitations.
