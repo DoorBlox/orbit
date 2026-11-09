@@ -1,6 +1,6 @@
 # SP-01B — seventh mounted window and private optional layout
 
-**Status:** source implementation on a feature branch; accept only after four exact-head checks. Not a released Projects or Pomodoro feature.
+**Status: SOURCE MERGED** via [PR #50](https://github.com/DoorBlox/orbit/pull/50), `0a8e1a92bf91f0e9af79b076a2158cb7c18bb8fe`, with four required exact-head checks green. Not a released Projects or Pomodoro feature.
 
 ## Scope and behavior
 

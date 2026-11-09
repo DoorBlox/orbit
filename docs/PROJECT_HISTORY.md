@@ -1,3 +1,8 @@
+## 9 November 2026 — SP-01B and PJ-01 source closeout
+
+- [PR #50](https://github.com/DoorBlox/orbit/pull/50) added first-party dynamic seventh-widget mounting, keyboard move/resize and hidden Places-map reopening with owner-private optional-layout state; V6 legacy root layout unchanged. Two test failures were addressed before final four exact-head checks passed. Squash `0a8e1a92bf91f0e9af79b076a2158cb7c18bb8fe`. No user-facing Projects panel.
+- [PR #51](https://github.com/DoorBlox/orbit/pull/51) introduced private validated project metadata keyed by existing branch IDs, strict backup validation and branch delete/Undo recovery. The first test expectations were corrected, then all four exact-head required checks passed. Squash `50d8a6fe88645588eb37bc3fb0e6dcc35b3c24e3`. No right-click conversion UI or publication.
+- Both source-only: no Vercel Production promotion, hosted SQL/RLS/Auth/Storage changes, paid provider, public posting or private-data deletion.
 ## 9 November 2026 — BP-06 source baseline and extensible registry
 
 - [PR #47](https://github.com/DoorBlox/orbit/pull/47) added privacy-safe five-viewport / ten-theme Chromium screenshots and layout/keyboard regression tests that require the six legacy IDs **without a fixed total-window limit**. Merged `78830dcf251da19a516ad276d068d84c5ae3ffea`, 4/4 exact-head checks green. Evidence: run [42653091662](https://github.com/DoorBlox/orbit/actions/runs/42653091662), seven-day synthetic artifact.
