@@ -46,6 +46,7 @@ export class SpatialBoard {
        typeof widgetRegistry.get!=='function'||typeof widgetRegistry.defaults!=='function')
       throw Error('A validated spatial widget registry is required.');
     this.widgetRegistry=widgetRegistry;
+    this.defaultInlineSizes=new Map();
     this.extraIds=new Set(widgetRegistry.ids.filter(id=>!CORE_WIDGET_IDS.includes(id)));
     this.optionalLayout=normalizeExtraWidgetLayout(optionalWidgetLayout);
     this.onOptionalLayoutChange=onOptionalLayoutChange;
@@ -122,6 +123,11 @@ export class SpatialBoard {
        !widget.querySelector('.widget-heading .widget-grip'))
       throw Error('Invalid spatial widget mount.');
     this.widgets.set(id,widget);
+    if(this.extraIds.has(id))this.defaultInlineSizes.set(id,{
+      width:widget.style.getPropertyValue('width'),height:widget.style.getPropertyValue('height'),
+      widthPriority:widget.style.getPropertyPriority('width'),
+      heightPriority:widget.style.getPropertyPriority('height')
+    });
     widget.hidden=this.extraIds.has(id)&&this.optionalLayout[id]?.hidden===true;
     this.position(id);this.applySize(id);
     const grip=widget.querySelector('.widget-grip');
@@ -262,7 +268,17 @@ export class SpatialBoard {
     }catch{this.notify('Layout not saved on this device. Export a backup to keep your changes.');return false;}
   }
   applySize(id){const item=this.widgets.get(id),s=this.sizes[id];if(!item)return;
-    if(!s){item.style.removeProperty('width');item.style.removeProperty('height');return;}
+    if(!s){
+      const original=this.defaultInlineSizes.get(id);
+      if(original){
+        for(const key of ['width','height']){
+          const value=original[key];
+          if(value)item.style.setProperty(key,value,original[key+'Priority']);
+          else item.style.removeProperty(key);
+        }
+      }else{item.style.removeProperty('width');item.style.removeProperty('height');}
+      return;
+    }
     item.style.setProperty('width',`${s.w}px`,'important');item.style.setProperty('height',`${s.h}px`,'important');
   }
   widgetSize(id){const el=this.widgets.get(id);return {w:el.offsetWidth,h:el.offsetHeight};}

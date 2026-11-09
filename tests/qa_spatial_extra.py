@@ -37,6 +37,9 @@ def run_extra_widget(browser, open_page, reload_page, out):
         assert page.locator('.space-point-projects').count()==1
         assert page.evaluate('() => window.orbitDebug.board.widgets.size')==7
         assert page.evaluate('() => window.orbitDebug.board.getLayout()')==original
+        dimensions=page.locator('[data-widget="projects"]').evaluate(
+            'element => [element.offsetWidth,element.offsetHeight]')
+        assert dimensions[0]>=410 and dimensions[1]>=280, dimensions
         result['seventhMounted']=True
         grip=page.locator('[data-widget="projects"] .widget-grip')
         grip.focus()
