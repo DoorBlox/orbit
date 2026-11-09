@@ -30,8 +30,12 @@ ORBIT's owner works directly in **ChatGPT**, not a Codex-specific client. The ma
 | Stage a deployment | Record exact built SHA, protected URL, target, runtime config and checks in OPERATIONS/handoff | Promote or disable protection automatically |
 | Promote Production (separately authorized) | Verify alias maps to expected READY source, unauthenticated privacy, release notes, rollback; update CURRENT_STATE and history | Claim private-owner or image function works without signed-in evidence |
 | Hosted database migration | Capture approved backup, staged tests, source filename + hosted ledger IDs, data impact, rollback; update operations/state | Rewrite historical migration files or call db push to guess compatibility |
-| Design change | Attach synthetic screenshot matrix, viewports/themes, a11y and motion notes; document accepted deltas | Replace the six-widget spatial metaphor with a generic dashboard |
+| Design change | Attach synthetic screenshot matrix, viewports/themes, a11y and motion notes; document accepted deltas | Replace the freeform spatial model or existing saved widget positions; a fixed six-widget count is not a requirement |
 | New external provider / paid tier | Separate consent, cost boundary, privacy/threat review, disable/reversal plan | Assume "free tier" implies no bill or no user action |
+
+## Product-count clarification
+
+The six original named widgets are a historical layout/default, **not a maximum**. Future widgets and a linked public portfolio/blog are permitted in active plans. Preservation means existing IDs, positions, sizes, data and the freeform spatial experience continue to work. Do not let an old milestone screenshot or historical status paragraph block extensibility. See [feature blueprint](../plans/ORBIT_EXPANDABLE_SPACE_PROJECTS_BLOG_FOCUS.md).
 
 ## Work-unit state machine
 

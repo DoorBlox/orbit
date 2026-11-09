@@ -14,12 +14,16 @@ See [active ChatGPT handoff](../CHATGPT_HANDOFF.md), [tool/skills playbook](../d
 
 ## Decisions locked for this sequence
 
-1. **Preserve ORBIT's identity:** no universal React/Next.js rewrite, no cards/sidebar dashboard replacing the one freeform, draggable six-window spatial world. Retain native ES modules and existing layout coordinates, signed-in privacy and offline/local compatibility.
+1. **Preserve ORBIT's identity, not a six-window cap:** no universal React/Next.js rewrite or forced replacement of its freeform spatial world with a fixed dashboard. **Six is only the existing default widget inventory**, not a maximum; retain current widget IDs/layout coordinates and allow future registered widgets, Projects, Focus and curated publishing. Keep signed-in privacy and offline/local compatibility. See the new expandable-space plan.
 2. **Safety before destructive features:** private images are not fully portable in current JSON backup; do not migrate/delete Storage objects or rewrite snapshots before designing and validating recovery.
 3. **Performance evidence before architecture replacement:** CAS snapshot conflict detection stays until a tested alternative is demonstrably safer. Polling and expensive clone work are optimization targets, not permission for last-write-wins.
 4. **Excalidraw fast track:** EX-00 package/API/visual feasibility with synthetic scenes starts in parallel with foundation; EX-01 real editor for shapes/pen/text in both hosts starts after media-backup design and UI baseline; EX-02 image integration only after reference-safe media and portability. Issue #31 stays open until full acceptance. No editor package on initial sign-in.
 5. **Cost and CI:** no paid providers without consent; stage once after exact-head review and explicit release go-ahead; do not trigger extra manual test runs merely to generate green badges.
 6. **Historic documents are archives, not commands.** Version strings are distinct: app label 2.4, npm 1.0.0, backup schema 6, migration IDs.
+
+## New owner-directed roadmap — expanding the spatial workspace
+
+**Owner clarification 9 November 2026:** no fixed numerical limit on ORBIT windows. The current six widgets are compatibility defaults. New independent work units **SP-01** (extensible widget registry), **PJ-01/PJ-02** (branch-to-project + Projects shelf), **PUB-00/PUB-01/PUB-02** (explicit private-to-public blog/portfolio workflow, separate site) and **FO-01** (Pomodoro/Focus) are proposed in [the dedicated feature plan](ORBIT_EXPANDABLE_SPACE_PROJECTS_BLOG_FOCUS.md). These additions do not pre-empt BP-03 safety/performance or EX-02 private media. Public publishing requires a separately reviewed and approved hosted security/storage design.
 
 ## Status definitions
 

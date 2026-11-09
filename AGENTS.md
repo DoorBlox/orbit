@@ -16,8 +16,12 @@ Check [GitHub Actions audit](docs/CI_WORKFLOW_AUDIT_2026-11-09.md) before alteri
 
 **Active work:** BP-00 documentation/handoff; BP-04 read-only migration parity and BP-01 signed-in owner-assisted image QA next; BP-02 portable media backup and BP-03 efficient sync follow. EX-00 real Excalidraw research may proceed **in parallel now** using synthetic data; EX-01 and EX-02 have explicit media/visual safety gates. User wants full upstream Excalidraw for both journal and stickies, not a native pen-only substitute.
 
-**Never conflate:** live app 2.4 / actual Production application SHA 4e57aca / package.json 1.0.0 / backup schema version 6 / hosted migration IDs. No paid tier, production alias, hosted SQL/Auth/Storage mutation or private data deletion is authorized by the blueprint alone. Preserve the six-window spatial V6 identity.
+**Never conflate:** live app 2.4 / actual Production application SHA 4e57aca / package.json 1.0.0 / backup schema version 6 / hosted migration IDs. No paid tier, production alias, hosted SQL/Auth/Storage mutation or private data deletion is authorized by the blueprint alone. Preserve existing user widgets and spatial coordinates, **not a fixed widget count**.
 
+
+## Owner clarification — the spatial world is extensible (9 Nov 2026)
+
+The current V6/2.4 starting layout contains six named widgets. **The owner did not request a permanent maximum of six.** Six is a compatibility baseline only, not a product cap, UI prohibition or architectural invariant. New spatial widgets (Projects, Focus/Pomodoro and others), optional custom layouts, project identities for branches, and an explicitly curated portfolio/blog publishing bridge are legitimate future features. Preserve existing widgets, user data, coordinates and navigable-world character while growing the system. A project label is not a destructive conversion; publishing is always an opt-in private-to-public copy. See [open-ended space and publishing plan](plans/ORBIT_EXPANDABLE_SPACE_PROJECTS_BLOG_FOCUS.md). Earlier historical references to six describe what shipped at the time.
 
 ## 9 Nov 2026 — ORBIT 2.4 LIVE Production (latest authoritative release checkpoint)
 

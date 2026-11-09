@@ -2,6 +2,16 @@
 
 **Current source of truth:** [2.4 verified state](CURRENT_STATE.md) and [post-2.4 execution blueprint](../plans/ORBIT_POST_2_4_EXECUTION.md). User approved documentation and BP-00–BP-06 reliability foundation; actual implementation and owner acceptance must be recorded separately. **Full upstream Excalidraw #31 is prioritized** with early EX-00 synthetic feasibility, then gated EX-01/EX-02; it is not yet shipped.
 
+### Owner-directed product expansion (planned; not released)
+
+**Six original widgets are the current default, not a maximum.** Preserve their saved coordinates and the navigable spatial world, while adding more spatial widgets when useful. [Detailed blueprint](../plans/ORBIT_EXPANDABLE_SPACE_PROJECTS_BLOG_FOCUS.md).
+
+- [ ] **SP-01**: extensible widget registry/launcher so Projects, Focus and later user widgets do not require replacing the old six.
+- [ ] **PJ-01/PJ-02**: right-click (plus keyboard-accessible menu) **Turn into project** on a branch; reversible project identity, private Projects place, descriptions, progress and linked task hierarchy.
+- [ ] **PUB-00/01/02**: separate opt-in public publication layer; Journal -> blog draft -> preview -> publish, curated portfolio project pages and independently deployed public website. Private content never becomes public by merely labeling a branch.
+- [ ] **FO-01**: optional Pomodoro/Focus widget with task association, pause/resume and accurate background/reload timing without per-second cloud writes.
+- [ ] Existing BP-03 measurement, EX-02 private Excalidraw images and BP-01 Production image checks remain separate active gates.
+
 ### Active: 2.4.x reliability
 
 **Development entrypoint:** [ChatGPT handoff](../CHATGPT_HANDOFF.md) · [tools and installed skills](CHATGPT_TOOL_PLAYBOOK.md). ChatGPT is responsible for coding, audits, CI and project handoffs.
@@ -88,4 +98,4 @@ BP-07/08/09/10/11/16: token and responsive refinements, cheaper editor/sync/draw
 - [ ] Stronger accessible navigation, privacy controls and performance at extreme task density.
 - [ ] Google-first 2.2 beta is in source development; complete OAuth owner setup, hosted multi-user isolation, private media validation and separately approved staged Production release. See [rollout](OAUTH_2_2_ROLLOUT.md).
 
-For current operations, deployment and rollback use [OPERATIONS.md](OPERATIONS.md). The user prefers no paid services and the original six-window aesthetic should be treated as a binding product requirement.
+For current operations, deployment and rollback use [OPERATIONS.md](OPERATIONS.md). The user prefers no paid services and the existing six widgets/positions should be preserved for compatibility, **not** interpreted as a permanent six-window limit.
