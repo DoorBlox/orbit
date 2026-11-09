@@ -1,5 +1,7 @@
 # ORBIT production operations and recovery
 
+**Migration safety (BP-04):** [source-vs-hosted migration history and safe next-migration gate](SUPABASE_MIGRATION_PARITY_2026-11-09.md). The seven existing SQL bodies matched hosted records, but their historical filename timestamps differed; repository-only normalization is separately tested. Never use hosted db push or repair merely to test a filename change, and never treat this as Production database mutation approval.
+
 **ChatGPT engineering continuity:** [CHATGPT_HANDOFF.md](../CHATGPT_HANDOFF.md) and [connected tools/skills](CHATGPT_TOOL_PLAYBOOK.md). This remains the operational release and rollback runbook; a GitHub merge does not authorize a Production promotion.
 
 ## 9 Nov 2026 — ORBIT 2.4 LIVE Production (latest authoritative release checkpoint)

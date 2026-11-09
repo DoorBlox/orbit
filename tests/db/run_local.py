@@ -59,7 +59,7 @@ def test_files():
 
 
 def least_privilege_guards():
-    migration=(ROOT/'supabase/migrations/20261106120000_orbit_private_table_least_privilege.sql').read_text()
+    migration=(ROOT/'supabase/migrations/20261106142540_orbit_private_table_least_privilege.sql').read_text()
     sql(migration)  # harmless reapplication
     for grant,undo in [
         ('grant truncate on public.tasks to public;', 'revoke truncate on public.tasks from public;'),
