@@ -1,7 +1,7 @@
 {
   "baselineCommit": "846ad7df3fa3fdf4c63fd22f2830fed56f83a06e",
   "milestone": "M2",
-  "review": "ORBIT 2.4 retained V6/M1 immutable provenance; BP-02 portable private media backup, EX-00 safe scene adapter, and EX-01 official Excalidraw lazy React island from exact pinned npm lockfile. No hosted database migration or Production alias change. BP-03 focused hidden-tab read reduction on a separate source branch, with existing CAS and owner isolation unchanged.",
+  "review": "ORBIT 2.4 retained V6/M1 immutable provenance; BP-02 portable private media backup, EX-00 safe scene adapter, and EX-01 official Excalidraw lazy React island from exact pinned npm lockfile. No hosted database migration or Production alias change. BP-03 focused hidden-tab read reduction on a separate source branch, with existing CAS and owner isolation unchanged. BP-03 follow-up adds deterministic synthetic request/JSON-byte measurement with no hosted API change.",
   "files": {
     "assets/orbit.svg": {
       "sha256": "97eb19dd4e0773d0b6489b1f49d794ffd272fb3bc2d42af4faffd6a1adca78c3",
@@ -64,8 +64,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/cloud/sync.js": {
-      "sha256": "ca648cf98d3d03ef4a2e2fee3d7baa5b77c91027cd0bd81b896d677668644bc9",
-      "reason": "BP-03: skip full-snapshot polling while hidden or offline, revalidate on visibility/focus, preserve pending CAS writes and disposal."
+      "sha256": "eba91b976c7fdf5051dad7ae5727f2f2b0b5263085bc0bcbffb2cdb3d6f4114c",
+      "reason": "BP-03: retain unchanged native polling behavior while injecting deterministic poll scheduler for nonprivate traffic cost tests."
     },
     "src/constellation.js": {
       "sha256": "0fb05ccadccad958f48afa1b6111dd94411659f571c22255e50a32c852ef56d8",
