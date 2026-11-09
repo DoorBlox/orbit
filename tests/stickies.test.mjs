@@ -57,3 +57,17 @@ test('duplicate coordinates remain inside spatial bounds and titles stay bounded
   assert.equal(state.notes[1].y,7500);
   assert.ok(state.notes[1].title.length<=100);
 });
+
+test('detaching one private image is reversible and never affects cloned references',()=>{
+  const original=createNote(),clone={...createNote(),id:'copy'};
+  const {state,trace}=fake([original,clone]);let undo;
+  state.notify=(msg,duration,action)=>{trace.messages.push(msg);undo=action?.run;};
+  assert.equal(StickyNotes.prototype.detachImage.call(state,'original'),true);
+  assert.equal(original.imagePath,undefined);
+  assert.equal(clone.imagePath,createNote().imagePath);
+  assert.deepEqual([trace.renders,trace.changes],[1,1]);
+  undo();assert.equal(original.imagePath,clone.imagePath);
+  assert.deepEqual([trace.renders,trace.changes],[2,2]);
+  state.readOnly=true;
+  assert.equal(StickyNotes.prototype.detachImage.call(state,'original'),false);
+});
