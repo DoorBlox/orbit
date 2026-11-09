@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { build } from 'esbuild';
-import { browserModules, resolveBuildConfig, sdkBuildOptions } from './build.mjs';
+import { browserModules, resolveBuildConfig, sdkBuildOptions, editorBuildOptions } from './build.mjs';
 import { assertProductionConfig } from './production-guard.mjs';
 
 export async function verifyReleaseArtifact({root=process.cwd(),outdir=path.join(root,'dist'),productionOptions}={}){
@@ -32,17 +32,48 @@ export async function verifyReleaseArtifact({root=process.cwd(),outdir=path.join
     }
     return files;
   };
-  const actual=(await inventory()).sort();
-  const expected=['index.html','assets/orbit.svg','src/runtime-config.js','src/cloud/client.js',...browserModules.map(f=>`src/${f}`)].sort();
-  if(JSON.stringify(actual)!==JSON.stringify(expected))throw Error('Release artifact contains missing or unexpected files.');
+  // Compare generated output independently against the reviewed locked dependency
+  // build, not just a self-reported manifest in dist. The rest of ORBIT stays native.
   const sdk=await build({...sdkBuildOptions(root,outdir),write:false});
   if(!Buffer.from(sdk.outputFiles[0].contents).equals(await readFile(path.join(outdir,'src/cloud/client.js'))))
     throw Error('Release SDK bundle differs from the reviewed source and installed locked dependency build.');
+  const editor=await build({...editorBuildOptions(root,outdir),write:false});
+  const generated=new Map(editor.outputFiles.map(file=>[
+    path.relative(outdir,file.path).split(path.sep).join('/'),Buffer.from(file.contents)]));
+  if(!generated.has('src/excalidraw-island.js')||!generated.has('src/excalidraw-island.css'))
+    throw Error('Release missing the lazy official editor JS/CSS bundle.');
+  const fontRoot=path.join(root,'node_modules','@excalidraw','excalidraw','dist','prod','fonts');
+  const fontNames=[];
+  async function listFonts(directory=''){
+    for(const entry of await readdir(path.join(fontRoot,directory),{withFileTypes:true})){
+      const name=directory?directory+'/'+entry.name:entry.name;
+      if(entry.isDirectory())await listFonts(name);
+      else if(entry.isFile())fontNames.push(name);
+      else throw Error('Excalidraw font package contains an unsupported filesystem entry.');
+    }
+  }
+  await listFonts();
+  if(!fontNames.some(name=>name.endsWith('.woff2')))
+    throw Error('Release has no self-hosted Excalidraw web fonts.');
+  const fontPrefix='assets/excalidraw/fonts/';
+  const actual=(await inventory()).sort();
+  const expected=['index.html','assets/orbit.svg','src/runtime-config.js','src/cloud/client.js',
+    ...browserModules.map(f=>`src/${f}`),...generated.keys(),
+    ...fontNames.map(name=>fontPrefix+name)].sort();
+  if(JSON.stringify(actual)!==JSON.stringify(expected))
+    throw Error('Release artifact contains missing or unexpected files.');
   const files=[];
   for(const name of actual){
     const bytes=await readFile(path.join(outdir,name));
-    if(!['src/runtime-config.js','src/cloud/client.js'].includes(name)){
-      if(!bytes.equals(await readFile(path.join(root,name))))throw Error(`Release artifact differs from reviewed source: ${name}`);
+    if(generated.has(name)){
+      if(!bytes.equals(generated.get(name)))
+        throw Error('Lazy official editor bundle differs from reviewed package build: '+name);
+    }else if(name.startsWith(fontPrefix)){
+      if(!bytes.equals(await readFile(path.join(fontRoot,name.slice(fontPrefix.length)))))
+        throw Error('Self-hosted official editor font differs from locked package: '+name);
+    }else if(!['src/runtime-config.js','src/cloud/client.js'].includes(name)){
+      if(!bytes.equals(await readFile(path.join(root,name))))
+        throw Error(`Release artifact differs from reviewed source: ${name}`);
     }
     files.push({path:name,sha256:createHash('sha256').update(bytes).digest('hex')});
   }
