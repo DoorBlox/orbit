@@ -1,8 +1,15 @@
 # ORBIT — ChatGPT engineering handoff
 
+## Current work — EX-00 Excalidraw scene adapter (9 Nov 2026)
+
+- **Latest confirmed main:** `d6064f0743b2544422cbd099e9468e6ab20d9533`, squash merge of [PR #39](https://github.com/DoorBlox/orbit/pull/39), after four required CI checks green. BP-02 image-inclusive `.orbit` private backup and staged owner-scoped restore is **SOURCE MERGED**, **NOT DEPLOYED**, **NOT VERIFIED** in real signed-in Production. Old V6 JSON remains path-only. No hosted SQL/Storage policy/Production changes.
+- **This branch:** `feat/ex00-excalidraw-scene-adapter-20261109`; code in `src/excalidraw-adapter.js` and synthetic tests `tests/excalidraw_adapter.test.mjs` converts official `initialData` / `onChange(elements, appState, files)` to the existing V2 scene safely, rejects embedded assets and remote frames, preserves prior drawing on failed save, and controls image-free UI options. Official React package **NOT INSTALLED**; no real editor yet. Read [EX-00 compatibility and EX-01 gates](docs/EXCALIDRAW_EX00_COMPATIBILITY.md). Verify GitHub PR, exact head and four required checks before marking SOURCE MERGED.
+- **Next implementation:** EX-01 obtain exact pinned `@excalidraw/excalidraw`, React and ReactDOM plus reviewed package-lock in a network-enabled build runner; build a lazy self-hosted editor island with fonts/CSS; wire the *same* existing `openSceneEditor` seam for Journal and sticky drawing and test with synthetic scenes. Keep native editor fallback; no remote CDN, no bulk global React rewrite. If dependency integration cannot be verified, continue BP-03 measured sync optimization as a parallel safe coding unit.
+
+
 **Active entrypoint for ChatGPT, not Codex.** ORBIT is developed through ordinary ChatGPT conversations using connected GitHub, Vercel and Supabase tools, plus task-appropriate installed skills. The owner should not have to write a resume prompt, monitor Actions or manage the work queue. Read [AGENTS.md](AGENTS.md), [live state](docs/CURRENT_STATE.md), [execution blueprint](plans/ORBIT_POST_2_4_EXECUTION.md) and [ChatGPT tools and skills](docs/CHATGPT_TOOL_PLAYBOOK.md) first.
 
-## Active source work — BP-02 portable media recovery (9 November 2026)
+## Historical BP-02 source work (before PR #39 merge) — 9 November 2026
 
 - **Verified main before this feature branch:** e5de8b32720f1ec26637bb48ea3db26942faaa45, merged [PR #38](https://github.com/DoorBlox/orbit/pull/38) after four green exact-head checks. BP-04 LOCAL migration timestamps now match the seven hosted-applied versions **without editing SQL bytes**; disposable local pgTAP/HTTP authentication tests passed. Hosted object-level parity and any future live migration still require separate controls.
 - **Current work branch:** feat/bp02-portable-private-media-backup-20261109. Adding src/cloud/portable-backup.js, private owner-authenticated image download, previewed/explicit restore controls in src/cloud/owner-tools.js, source build allowlist, and unit tests. The archive is a versioned .orbit **Base64 JSON with SHA-256**, not a ZIP; it includes only **referenced** journal/sticky image files. See [format and security contract](docs/PORTABLE_BACKUP_V1.md). **Check actual PR and four exact-head CI before calling it SOURCE MERGED.**
@@ -38,9 +45,9 @@
 | BP-16 first slice / PR #36 | SOURCE MERGED | Docs-only CI fast path implemented; use this follow-up PR to verify fast path; semantic lint later |
 | BP-04 migration ledger / PR #38 | SOURCE MERGED, local replay/RLS PASS | Seven local timestamps now equal hosted-applied versions; no hosted writes. Next future migration still gated by dry-run and owner authorization |
 | BP-01 / issue #26 | BLOCKED on controlled signed-in evidence | Test private sticky + journal image load/reload and second-account denial; source and anonymous checks are insufficient |
-| BP-02 private media portability | IN PROGRESS, source branch only | Implement .orbit image-inclusive export/import with synthetic integrity and owner-isolation tests; legacy JSON still path-only |
+| BP-02 private media portability / PR #39 | SOURCE MERGED, NOT RELEASED | `d6064f07`, four green checks; real signed-in backup/restore acceptance and orphaned media support remain unverified/out of scope |
 | BP-03 synchronization | NOT DONE | Measure whole-snapshot polling every 15s and global CAS conflicts before improving |
-| EX-00 / issue #31 | RESEARCH STARTED, NO REAL EDITOR SHIPPED | Prototype official Excalidraw lazy React island with synthetic data and legacy scene adapter; both Journal and sticky notes required |
+| EX-00 / issue #31 | IN PROGRESS, pure-scene adapter source | Review [EX-00 adapter](docs/EXCALIDRAW_EX00_COMPATIBILITY.md), test official scene boundary; actual React canvas/asset bundle is EX-01 |
 | Issues #29 / #32 | OPEN | Reusable private media gallery / scoped OAuth MCP, later after safety gates |
 
 ## Next executable engineering step — for ChatGPT

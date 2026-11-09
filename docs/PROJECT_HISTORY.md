@@ -1,5 +1,11 @@
 # ORBIT implementation history and evidence ledger
 
+## 9 Nov 2026 — BP-02 source merge and EX-00 first adapter
+
+- [PR #39](https://github.com/DoorBlox/orbit/pull/39) squash-merged `d6064f0743b2544422cbd099e9468e6ab20d9533` after four green exact-head checks. Adds private image-inclusive portable `.orbit` backup/inspected staged restore, auth-scoped image downloads, source manifest and regression tests. **SOURCE MERGED, NOT Production deployed or owner-account tested.** No hosted Supabase writes, media deletions, provider/billing changes or live alias changes.
+- User-priority Excalidraw #31: EX-00 branch `feat/ex00-excalidraw-scene-adapter-20261109` adds a framework-neutral pure scene adapter and synthetic tests; no official React/Excalidraw package installed and no claim of finished editor. See [EX-00 compatibility](EXCALIDRAW_EX00_COMPATIBILITY.md).
+
+
 ## 9 Nov 2026 — ChatGPT handoff and repository migration parity closeout
 
 - [PR #37](https://github.com/DoorBlox/orbit/pull/37) merged as 6c17b79a9ce04d3f160dec78fba88fce0daabe6b, four green checks: canonical CHATGPT_HANDOFF.md and tool/skill playbook; original CODEX-named file archived verbatim; verified docs-only CI fast path. No Production change.

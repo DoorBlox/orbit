@@ -28,13 +28,13 @@ Six movable, resizable widgets (constellation, continuum, to-do, completed, spac
 | ID | State | What remains |
 | --- | --- | --- |
 | [#26](https://github.com/DoorBlox/orbit/issues/26) | OPEN | Real owner and second-account Production image-rendering acceptance for journals and stickies. Source-level blob preview mitigation is not enough. |
-| BP-02 | IN PROGRESS — SOURCE BRANCH, NOT LIVE | The current V6 JSON stores image paths only. A versioned portable .orbit with referenced image bytes, SHA-256 and reviewed private restore is in implementation; see [format contract](PORTABLE_BACKUP_V1.md). |
+| BP-02 | SOURCE MERGED, NOT LIVE | [PR #39](https://github.com/DoorBlox/orbit/pull/39) `d6064f07`: versioned `.orbit` with referenced image bytes, SHA-256 and reviewed private restore; real authenticated Production acceptance remains NOT RUN. [Format contract](PORTABLE_BACKUP_V1.md). |
 | BP-03 | NOT DONE | 15-second full-snapshot sync polling and global revision conflicts need measurement and safe optimization. |
 | BP-04 | SOURCE MERGED / TESTED | Local migration timestamps match hosted ledger; schema-object parity and next hosted migration remain gated. |
 | BP-05 | NOT DONE | Legacy manual stage-only workflow is pinned to 1.0.0 and must not be used as a general 2.4+ release operation. |
 | BP-06 | NOT DONE | Full real-device, signed-in, keyboard/assistive-tech, zoom, ten-theme and performance audit. |
 | [#29](https://github.com/DoorBlox/orbit/issues/29) | OPEN | Reusable private media library, reference-safe permanent deletion and optional provider migration. |
-| [#31](https://github.com/DoorBlox/orbit/issues/31) | OPEN / OWNER PRIORITY | Real official embedded Excalidraw (journal AND sticky notes). Native pen/import-export is not the requested full editor. Early EX-00 feasibility is next, with no default React runtime. |
+| [#31](https://github.com/DoorBlox/orbit/issues/31) | OPEN / OWNER PRIORITY | EX-00 safe scene adapter under source review; actual official React editor is still **NOT SHIPPED**. Both Journal and stickies are required. [Compatibility evidence](EXCALIDRAW_EX00_COMPATIBILITY.md). |
 | [#32](https://github.com/DoorBlox/orbit/issues/32) | OPEN | Scoped OAuth 2.1 remote MCP/ChatGPT connector; no live integration. |
 | [#2](https://github.com/DoorBlox/orbit/issues/2), [#4](https://github.com/DoorBlox/orbit/issues/4), [#22](https://github.com/DoorBlox/orbit/issues/22) | HISTORIC/OPEN | Substantially shipped work with remaining QA; reconcile carefully rather than automatically close. |
 
