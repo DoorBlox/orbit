@@ -1,3 +1,9 @@
+## SP-01A source branch — extensible widget definitions
+
+- Source baseline after successful [BP-06 PR #47](https://github.com/DoorBlox/orbit/pull/47): main `78830dcf251da19a516ad276d068d84c5ae3ffea`; synthetic Chromium evidence and 4/4 exact-head checks green. BP-06 full real devices and authenticated QA remain open.
+- Branch `feat/sp01a-extensible-widget-registry-20261109` begins SP-01A. The first-party registry preserves the six original widget IDs, positions, bounds and icons, and can validate a seventh descriptor without rewriting those defaults. SpatialBoard reads this registry; the backup allowlist shares the same **legacy** IDs (unknown backup widget IDs are still rejected, intentionally).
+- **Source-only; not a seventh usable widget yet.** Next SP-01B must mount a controlled seventh DOM widget, make it discoverable/hideable, define its owner-scoped layout persistence and backup behavior safely, then follow with Projects/Pomodoro UX. No user-data or Production changes; review the exact-head required checks before merge.
+
 ## BP-06 synthetic layout baseline — source branch opened
 
 - Next executed unit: BP-06 synthetic Chromium compatibility baseline to unblock SP-01. Branch `test/bp06-legacy-widget-baseline-20261109` starts from verified `main` `e014d62e6948919f967a819da0706e60758a2296`.

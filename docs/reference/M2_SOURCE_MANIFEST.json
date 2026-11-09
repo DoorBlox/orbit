@@ -1,7 +1,7 @@
 {
   "baselineCommit": "846ad7df3fa3fdf4c63fd22f2830fed56f83a06e",
   "milestone": "M2",
-  "review": "ORBIT 2.4 retained V6/M1 immutable provenance; BP-02 portable private media backup, EX-00 safe scene adapter, and EX-01 official Excalidraw lazy React island from exact pinned npm lockfile. No hosted database migration or Production alias change. BP-03 focused hidden-tab read reduction on a separate source branch, with existing CAS and owner isolation unchanged. BP-03 follow-up adds deterministic synthetic request/JSON-byte measurement with no hosted API change.",
+  "review": "ORBIT 2.4 retained V6/M1 immutable provenance; BP-02 portable private media backup, EX-00 safe scene adapter, and EX-01 official Excalidraw lazy React island from exact pinned npm lockfile. No hosted database migration or Production alias change. BP-03 focused hidden-tab read reduction on a separate source branch, with existing CAS and owner isolation unchanged. BP-03 follow-up adds deterministic synthetic request/JSON-byte measurement with no hosted API change. SP-01A extracts the six legacy widget descriptors into a safe extensible registry; no seventh UI or storage migration.",
   "files": {
     "assets/orbit.svg": {
       "sha256": "97eb19dd4e0773d0b6489b1f49d794ffd272fb3bc2d42af4faffd6a1adca78c3",
@@ -28,12 +28,12 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/backup.js": {
-      "sha256": "9554bc90d1ac3fcaf7b371e29b39de3f7bd1c019e377937c678989817f44675e",
-      "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
+      "sha256": "2b5d0b2f853158f94df9288d361123beaa80bc133cd74ffec75b285d23b7b7ce",
+      "reason": "SP-01A: share strict legacy widget ID allowlist with source registry; unknown IDs still rejected pending full seventh-widget backup design."
     },
     "src/board.js": {
-      "sha256": "2f0213e2f836469bed2bd47cf4adee6308e5f6bcbbd0ea17ceddc38dc3cf13b3",
-      "reason": "Add sticky-note navigation markers, actual drag/keyboard mini-map travel, and world-bound-safe focus without replacing spatial canvas."
+      "sha256": "2079125e373fb5340b32fb4d4ac05ed37a34fc836043beb307964f1b2c299efa",
+      "reason": "SP-01A: derive spatial positions, bounds and minimap icons from validated widget registry without changing existing defaults."
     },
     "src/bootstrap.js": {
       "sha256": "d890dbb33689b72f19e1713618734831718bdcf7979056a506ed8db89b44eb99",
@@ -134,6 +134,10 @@
     "src/excalidraw-island.entry.mjs": {
       "sha256": "29b7d1a41ab7f21531898688311d124255aecfca3bde9b2c19aa6eb43fdf882e",
       "reason": "EX-01: reviewed on-demand official React/ReactDOM Excalidraw entrypoint with local CSS and per-dialog mount/unmount; no initial app or sign-in bundle change."
+    },
+    "src/widget-registry.js": {
+      "sha256": "de3d38aa167b9c06c986dbd3fd9ed85ccb5ff022359d934b6cb7da6a748a3aa5",
+      "reason": "SP-01A: safe expandable first-party widget descriptor registry, retaining exact six original IDs/positions/size limits."
     }
   }
 }
