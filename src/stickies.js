@@ -18,6 +18,18 @@ export class StickyNotes {
       width:310,height:270,color:['sand','peach','lavender','mint'][n%4]};
     this.notes.push(note);this.render();this.changed();this.notify('Sticky note created. Drag its header to move it.');return true;
   }
+  duplicate(id){
+    if(this.readOnly||this.disposed||this.notes.length>=80)return false;
+    const original=this.notes.find(note=>note.id===id);if(!original)return false;
+    const copy=structuredClone(original);
+    copy.id=randomId();
+    while(this.notes.some(note=>note.id===copy.id))copy.id=randomId();
+    copy.title=('Copy of '+original.title).slice(0,100);
+    copy.x=clamp(original.x+48,-5000,7500);
+    copy.y=clamp(original.y+48,-5000,7500);
+    this.notes.push(copy);this.render();this.changed();
+    this.notify('Sticky note duplicated.');return true;
+  }
   remove(id){
     if(this.readOnly||this.disposed)return;
     const index=this.notes.findIndex(n=>n.id===id);if(index<0)return;
@@ -99,7 +111,12 @@ export class StickyNotes {
       tint.setAttribute('aria-label','Sticky note color');
       for(const color of ['sand','peach','lavender','mint']){const option=document.createElement('option');option.value=color;option.textContent=color;tint.append(option);}
       tint.value=n.color;tint.addEventListener('change',()=>{article.classList.replace('sticky-'+n.color,'sticky-'+tint.value);n.color=tint.value;this.changed();});
-      actions.append(draw,tint);
+      const duplicate=document.createElement('button');duplicate.className='glass-button sticky-duplicate';
+      duplicate.type='button';duplicate.textContent='Copy';duplicate.title='Duplicate this note';
+      duplicate.setAttribute('aria-label','Duplicate sticky note');
+      duplicate.disabled=this.readOnly||this.notes.length>=80;
+      duplicate.addEventListener('click',()=>this.duplicate(n.id));
+      actions.append(draw,duplicate,tint);
       if(this.media&&!this.readOnly){
         const upload=document.createElement('input');upload.type='file';upload.hidden=true;
         upload.accept='image/png,image/jpeg,image/webp';
