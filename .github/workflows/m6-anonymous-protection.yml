@@ -25,8 +25,10 @@ jobs:
           node --input-type=module <<'NODE'
           const canonical='https://orbit.starscene.com/';
           const protectedTargets=[
-            ['current-production-deployment','https://orbit-bq6xvk5gr-doorbloxs-projects.vercel.app/'],
-            ['current-preview','https://orbit-scl8stgne-doorbloxs-projects.vercel.app/']
+            // Pin the real current raw Production deployment; review on every promotion.
+            ['live-2.4-production-raw','https://orbit-684anrkjf-doorbloxs-projects.vercel.app/'],
+            ['historic-2.2-production-raw','https://orbit-bq6xvk5gr-doorbloxs-projects.vercel.app/'],
+            ['historic-2.2-preview','https://orbit-scl8stgne-doorbloxs-projects.vercel.app/']
           ];
           const get=async url=>fetch(url,{
             method:'GET',redirect:'manual',cache:'no-store',signal:AbortSignal.timeout(12000)

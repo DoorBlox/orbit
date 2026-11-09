@@ -38,6 +38,12 @@ Six movable, resizable widgets (constellation, continuum, to-do, completed, spac
 | [#32](https://github.com/DoorBlox/orbit/issues/32) | OPEN | Scoped OAuth 2.1 remote MCP/ChatGPT connector; no live integration. |
 | [#2](https://github.com/DoorBlox/orbit/issues/2), [#4](https://github.com/DoorBlox/orbit/issues/4), [#22](https://github.com/DoorBlox/orbit/issues/22) | HISTORIC/OPEN | Substantially shipped work with remaining QA; reconcile carefully rather than automatically close. |
 
+## Agent ownership and CI efficiency — 9 Nov 2026
+
+The user explicitly designated ChatGPT as the **coding, review, audit, test and handoff executor** for the approved BP/EX implementation roadmap. The user should not be asked to manually supervise workflows or construct continuity prompts. When an active session resumes, implement the next safe ready unit after verifying the repository. The assistant cannot work between sessions without a separate automation. Production, hosted data, identity and paid-provider actions retain separate approvals.
+
+[CI workflow audit](CI_WORKFLOW_AUDIT_2026-11-09.md): in 100 latest sampled runs, 26 quality runs consumed ~55 minutes of aggregate elapsed time and 25 RLS runs ~40 minutes. Docs-only PR #35 ran the full browser quality suite (~143 seconds) despite no application change. Branch ci/required-check-scope-and-agent-ownership-20261109 contains a proposed fail-closed Markdown-only optimization, required-status-preserving and extra current raw 2.4 protection canary; **verify its actual PR/merge state** before calling it complete. The current public repository's standard GitHub-hosted runners are free, but efficiency and review latency still matter.
+
 ## The next executable steps
 
 1. **BP-00 documentation baseline:** this state page, [execution blueprint](../plans/ORBIT_POST_2_4_EXECUTION.md) and [protocol](DOCUMENTATION_PROTOCOL.md), plus root handoff references. Documentation-only; package/application version normalization remains separately gated because release scripts still expect 1.0.0.

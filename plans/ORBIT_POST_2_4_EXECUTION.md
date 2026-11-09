@@ -4,6 +4,12 @@
 
 See [current state](../docs/CURRENT_STATE.md), [documentation protocol](../docs/DOCUMENTATION_PROTOCOL.md), [operations](../docs/OPERATIONS.md), [visual evidence](../docs/DESIGN_EVIDENCE_PLAN.md) and [Issue #31](https://github.com/DoorBlox/orbit/issues/31). Historical [2.0–2.3 blueprint](ORBIT_2_0_BLUEPRINT.md) is preserved as a record, not as current orders.
 
+## Execution ownership and current BP-16 source task
+
+**Implementation owner: ChatGPT coding assistant.** For approved work units, independently read code, implement scoped changes, add focused tests, use efficient exact-head GitHub Actions, review/merge source PRs after required checks, and maintain the handoff. The owner should not be asked to write fresh work prompts or manually project-manage the assistant. This obligation applies to active conversations, not invisible background work. Hosted SQL/Storage/Auth changes, privileged access, user-data deletion, paid services and new Production releases still require separate authorization.
+
+**BP-16 active first slice:** [workflow audit](../docs/CI_WORKFLOW_AUDIT_2026-11-09.md) of actual run timings and five Actions workflows. Proposed branch ci/required-check-scope-and-agent-ownership-20261109 adds fail-closed Markdown-only fast path, superseded PR run cancellation, current 2.4 raw deployment protection and regression tests. It does not close semantic lint, visual/performance audit or modern Production staging work. Verify exact PR/check status before calling it source-merged.
+
 ## Decisions locked for this sequence
 
 1. **Preserve ORBIT's identity:** no universal React/Next.js rewrite, no cards/sidebar dashboard replacing the one freeform, draggable six-window spatial world. Retain native ES modules and existing layout coordinates, signed-in privacy and offline/local compatibility.

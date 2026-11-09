@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: orbit-artifact-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   production-artifact-dry-run:
     runs-on: ubuntu-24.04
@@ -23,14 +27,20 @@ jobs:
         with:
           node-version: '22'
           cache: npm
+      - name: Classify PR diff (unknown or code changes run full checks)
+        id: scope
+        run: node scripts/ci-change-scope.mjs
       - name: Install locked dependencies without scripts
+        if: steps.scope.outputs.docs_only != 'true'
         run: npm ci --ignore-scripts
       - name: Check syntax, tests, and original-source provenance
+        if: steps.scope.outputs.docs_only != 'true'
         run: |
           npm run lint
           npm test
           npm run verify:source
       - name: Build and verify 1.0.0 with exact Production target and synthetic public key
+        if: steps.scope.outputs.docs_only != 'true'
         env:
           ORBIT_SUPABASE_URL: https://ixfgavgtwuzdgucjriec.supabase.co
           ORBIT_SITE_URL: https://orbit.starscene.com/
@@ -53,7 +63,7 @@ jobs:
             console.log("Production-targeted dry-run artifact verified (synthetic publishable key; NO deployment).");
           '
       - name: Retain only public, key-free checksum report
-        if: success()
+        if: success() && steps.scope.outputs.docs_only != 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: m6-production-artifact-dry-run

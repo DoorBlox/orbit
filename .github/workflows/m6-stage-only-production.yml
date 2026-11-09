@@ -1,5 +1,6 @@
-name: ORBIT M6 stage Production without domain changes
+name: ORBIT LEGACY 1.0 stage-only (NOT the 2.4 release workflow)
 
+# HISTORIC 1.0 workflow pins fc5af5a; do NOT dispatch for the current 2.4 release.
 # Stage ONLY when the owner explicitly starts this workflow on main.
 # This workflow NEVER promotes to a custom domain or mutates Supabase.
 on:
