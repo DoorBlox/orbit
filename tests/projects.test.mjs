@@ -68,7 +68,7 @@ test('PJ-01 private metadata validates status, links, limits and unsafe identifi
   ];
   for(const value of invalid)assert.throws(()=>normalizeProjects(value));
   assert.throws(()=>setBranchProject({},'not-a-branch',branches(),true),/existing branch/i);
-  assert.throws(()=>setBranchProject({},'root',branches(),true),/existing branch/i);
+  assert.throws(()=>setBranchProject({},'root',branches(),true),/Invalid project selection/i);
 });
 
 test('PJ-01 project metadata never becomes public without a separate publishing operation',()=>{

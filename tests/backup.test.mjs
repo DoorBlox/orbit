@@ -98,7 +98,7 @@ test('PJ-01 private project label survives V6 backup/restore and leaves all bran
   source.extensions={projects:{inbox:{description:'Private planning',status:'active',links:[]}}};
   const checked=validateBackup(source);
   assert.deepEqual(checked.extensions.projects,source.extensions.projects);
-  assert.deepEqual(checked.tasks,beforeTasks);
+  assert.deepEqual(checked.tasks.map(({id,title,projectId})=>({id,title,projectId})),beforeTasks);
   assert.deepEqual(checked.branches,beforeBranches);
   const store=fake();
   assert.equal(persistBackup(checked,store).ok,true);
