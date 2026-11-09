@@ -100,7 +100,7 @@ test('nonportable objects, invalid version, oversized payload and suspicious bin
   await assert.rejects(inspectPortableArchive(fixture(),{sanitizeHtml}),/portable/i);
   const archive=await make();
   for(const modify of [x=>{x.version=0;},x=>{x.assets[0].size=99;},
-    x=>{x.assets[0].data='A'.repeat(100*1024*1024);}]){
+    x=>{x.assets[0].data='A'.repeat(8*1024*1024);}]){
     const bad=structuredClone(archive);modify(bad);
     await assert.rejects(inspectPortableArchive(bad,{sanitizeHtml}));
   }
