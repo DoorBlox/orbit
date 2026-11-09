@@ -1,5 +1,15 @@
 # ORBIT — current-session handoff for a future developer or ChatGPT session
 
+## 9 Nov 2026 — execution owner and CI efficiency closeout-in-progress
+
+- **Owner mandate:** ChatGPT is responsible for implementing and auditing the approved blueprint, writing code/tests, managing safe PRs and maintaining accurate handoffs. The owner is not the assistant's project manager; no unnecessary request for prompts or a new plan.
+- **Docs baseline DONE:** PR [#35](https://github.com/DoorBlox/orbit/pull/35) was merged as f899923ba098d21bc2f75b87d7bdcd3189f4e857 after four green exact-head checks. Older text saying it is only a prepared PR is historical.
+- **Current source work:** BP-16 Actions audit and fast-path work on branch ci/required-check-scope-and-agent-ownership-20261109. Verify the GitHub PR, head SHA, required checks and merge status before reporting completion. See [Actions audit](docs/CI_WORKFLOW_AUDIT_2026-11-09.md). This is source-only, not Vercel/Supabase work.
+- **CI results so far:** 2/2 local Node classifier tests passed; synthetic repo Markdown-only=true, code-change=false, manual-dispatch=false. Docs-only PR #35 cost ~143 seconds in quality, despite all checks being green; the new check always runs and only expensive steps skip for actual docs-only changes. A code-bearing PR must run all four required statuses once.
+- **Production unchanged:** app 2.4 deployment dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4 from source 4e57aca; prior rollback dpl_AxaB85krmkJfDUj1T6ipqw8rodH4. No hosted migration, Auth changes, object deletion, secret access or spending.
+- **Next executable tasks:** BP-04 safe ledger reconciliation (all 7 hosted SQL texts match Git source ignoring trailing newline; version IDs differ), then BP-02 portable media-inclusive backup on synthetic fixtures. Begin EX-00 true upstream Excalidraw API/build compatibility early without a global React migration. #26 signed-in image verification requires actual controlled account evidence and is not certified by CI.
+- **Operational rule:** continue next safe READY work unit on subsequent active turns without asking for a fresh plan; there is no background autonomous execution unless separately enabled.
+
 ## Active handoff — approved post-2.4 execution sequence (9 Nov 2026)
 
 - **Decision:** user approved proceeding with documentation/BP-00 through BP-06 foundation and explicitly prioritized the real full Excalidraw editor. Start by preserving a durable plan before any risky code or cloud change.
