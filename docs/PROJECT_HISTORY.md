@@ -1,3 +1,9 @@
+## 9 November 2026 — BP-06 source baseline and extensible registry
+
+- [PR #47](https://github.com/DoorBlox/orbit/pull/47) added privacy-safe five-viewport / ten-theme Chromium screenshots and layout/keyboard regression tests that require the six legacy IDs **without a fixed total-window limit**. Merged `78830dcf251da19a516ad276d068d84c5ae3ffea`, 4/4 exact-head checks green. Evidence: run [42653091662](https://github.com/DoorBlox/orbit/actions/runs/42653091662), seven-day synthetic artifact.
+- [PR #48](https://github.com/DoorBlox/orbit/pull/48) extracted `src/widget-registry.js`, made `SpatialBoard` use validated definitions and aligned legacy backup ID validation. A seventh descriptor passes unit tests; no seventh UI, persistence migration or new published data. Merged `f422de6bbbafb4e352edde604ce9315a193e7680`, 4/4 checks green.
+- Both are **source-only**. No live site release, hosted SQL/RLS/Auth/Storage, private user data, public portfolio/blog or paid service changed. Next: SP-01B mounted widget + layout and backup compatibility.
+
 ## 9 November 2026 — owner clarification and BP-03 synthetic benchmark
 
 - [PR #44](https://github.com/DoorBlox/orbit/pull/44) fixed a mistaken permanent "six windows" product restriction in active contributor rules; added an expandable-widget, branch Projects, opt-in public portfolio/blog and Pomodoro blueprint. Squash source `33d5f2598952fa88457e1bc05b2dd6547b26c1b0`, all four exact-head checks green. No live product count or content changed.

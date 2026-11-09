@@ -5,11 +5,11 @@
 
 ## SP-01A implementation note
 
-SP-01A extracts a validated, immutable widget descriptor registry and lets `SpatialBoard` consume it while retaining all six legacy IDs, coordinates, size bounds and minimap icons. Tests create a seventh synthetic `projects` descriptor without replacing current layout. This is **internal source infrastructure**, NOT a user-visible Projects widget, and intentionally does not yet extend the V6 backup allowlist to unknown arbitrary widget IDs. SP-01B must test a real seventh mounted element, optional visibility/launcher and a reviewed compatible persistence/backup strategy before user exposure.
+**SP-01A SOURCE MERGED** via [PR #48](https://github.com/DoorBlox/orbit/pull/48) at `f422de6bbbafb4e352edde604ce9315a193e7680`, 4/4 checks green. It extracts a validated, immutable widget descriptor registry and lets `SpatialBoard` consume it while retaining all six legacy IDs, coordinates, size bounds and minimap icons. Tests create a seventh synthetic `projects` descriptor without replacing current layout. This is **internal source infrastructure**, NOT a user-visible Projects widget, and intentionally does not yet extend the V6 backup allowlist to unknown arbitrary widget IDs. SP-01B must test a real seventh mounted element, optional visibility/launcher and a reviewed compatible persistence/backup strategy before user exposure.
 
 ## BP-06 evidence dependency
 
-A synthetic Chromium matrix is implemented in the BP-06 source branch `test/bp06-legacy-widget-baseline-20261109`. It verifies all original widget IDs, minimap navigation, layout round-trips and screenshots across five viewports and ten themes; the earlier exact-six QA assertion is relaxed. See [BP-06 evidence note](../docs/BP06_SYNTHETIC_LAYOUT_BASELINE.md). Treat as source-level evidence only after required CI, not real-device or owner Production signoff.
+**BP-06 synthetic slice SOURCE MERGED** via [PR #47](https://github.com/DoorBlox/orbit/pull/47) at `78830dcf251da19a516ad276d068d84c5ae3ffea`, 4/4 checks green. A synthetic Chromium matrix is implemented in `tests/qa_spatial_baseline.py`. It verifies all original widget IDs, minimap navigation, layout round-trips and screenshots across five viewports and ten themes; the earlier exact-six QA assertion is relaxed. See [BP-06 evidence note](../docs/BP06_SYNTHETIC_LAYOUT_BASELINE.md). This is source-level evidence only, not real-device or owner Production signoff.
 
 ## Product decision: six is the current default, never a cap
 

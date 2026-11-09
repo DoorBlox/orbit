@@ -1,6 +1,6 @@
 # ORBIT — visual and interaction evidence brief
 
-**Status:** BP-06 synthetic Chromium baseline implemented on a source PR using `tests/qa_spatial_baseline.py` called by `tests/qa_m1.py`; judge completion from exact-head CI before marking SOURCE MERGED. Screenshots/JSON are CI artifacts retained seven days. **No authenticated real-user screenshot, real Safari/Android or Production claim.**
+**Status:** BP-06 synthetic Chromium **SOURCE MERGED** [PR #47](https://github.com/DoorBlox/orbit/pull/47), four exact-head checks passed in [run 42653091662](https://github.com/DoorBlox/orbit/actions/runs/42653091662). `tests/qa_spatial_baseline.py` is called by `tests/qa_m1.py`; this is not complete real-device BP-06 acceptance. Screenshots/JSON are CI artifacts retained seven days. **No authenticated real-user screenshot, real Safari/Android or Production claim.**
 
 ## What the owner can supply (privacy-safe)
 

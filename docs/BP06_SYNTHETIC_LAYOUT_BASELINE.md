@@ -1,6 +1,6 @@
 # BP-06 — synthetic spatial-layout baseline (Chromium)
 
-**Work unit:** BP-06 first slice, synthetic source QA. **Not** full BP-06 verification or signed-in Production acceptance.
+**Work unit:** BP-06 first slice **SOURCE MERGED** via [PR #47](https://github.com/DoorBlox/orbit/pull/47) at `78830dcf251da19a516ad276d068d84c5ae3ffea`. [Exact-head workflow run 42653091662](https://github.com/DoorBlox/orbit/actions/runs/42653091662): 4/4 required checks green. Synthetic artifact ID `13691052030`, 7-day retention through 16 Nov 2026 UTC. **Not** full BP-06 verification or signed-in Production acceptance.
 
 ## Test method
 - Run `python tests/qa_m1.py` in the existing GitHub Actions `static-quality` pipeline after building the static app. The runner invokes `tests/qa_spatial_baseline.py` using the same disposable, locally hosted, unauthenticated prototype. No private user, journal, OAuth session, provider token, or hosted database is contacted.
@@ -15,7 +15,7 @@
 - Baseline screenshot files are evidence for human comparison; there is **no automated pixel-diff quality score** or performance/billing claim in this slice.
 
 ## Next work
-- **SP-01:** extract a validated widget descriptor/registry from hardcoded `DEFAULT`, `LIMITS` and icon maps in `src/board.js`; build the seventh *synthetic* widget test first, keep old IDs and coordinates exactly, then add add/hide/reopen UI in bounded steps. Avoid a new backup format or database schema until required.
+- **SP-01A completed in source:** [PR #48](https://github.com/DoorBlox/orbit/pull/48) centralizes six immutable legacy descriptors and proves a seventh synthetic descriptor. **SP-01B next:** actually mount a seventh synthetic widget, add keyboard/minimap and optional hide/reopen, then design and test compatible persistence/backup before any user-visible feature. Avoid a new backup format or database schema without requirements.
 - Separately complete BP-06 browser text zoom and physical-device matrix with permission-safe owner evidence. BP-01 private media remains owner-gated.
 
 [Expandable workspace product plan](../plans/ORBIT_EXPANDABLE_SPACE_PROJECTS_BLOG_FOCUS.md) · [Original evidence brief](DESIGN_EVIDENCE_PLAN.md) · [Handoff](../CHATGPT_HANDOFF.md).
