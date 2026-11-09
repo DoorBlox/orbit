@@ -1,5 +1,17 @@
 # ORBIT — current-session handoff for a future developer or ChatGPT session
 
+## Active handoff — approved post-2.4 execution sequence (9 Nov 2026)
+
+- **Decision:** user approved proceeding with documentation/BP-00 through BP-06 foundation and explicitly prioritized the real full Excalidraw editor. Start by preserving a durable plan before any risky code or cloud change.
+- **Read in order:** [CURRENT_STATE](docs/CURRENT_STATE.md) -> [AGENTS](AGENTS.md) -> [post-2.4 execution blueprint](plans/ORBIT_POST_2_4_EXECUTION.md) -> [documentation protocol](docs/DOCUMENTATION_PROTOCOL.md). See [visual evidence plan](docs/DESIGN_EVIDENCE_PLAN.md) for optional screenshots and UI matrix.
+- **What was done in this phase:** prepare a documentation-only PR with the canonical current-state, protocol, 17 BP units, EX-00/01/02 acceleration and links; no app, SQL, Auth, Vercel, Storage or billing changes. Replace this line with exact merged PR/commit once GitHub confirms it; do not call an open PR merged.
+- **Exact application baseline:** ORBIT 2.4 source 4e57aca, READY Production dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4, previous READY rollback dpl_AxaB85krmkJfDUj1T6ipqw8rodH4. Subsequent docs merge only changes GitHub main, NOT application Production. Query live state before acting.
+- **Next research-first step:** BP-04 compare local vs hosted migration version/SQL without any remote writes; BP-01 owner-assisted media test with safe synthetic images; EX-00 official Excalidraw package/scene feasibility with synthetic drawings. BP-02 must provide media-inclusive export/recovery before risky attachment changes; BP-03 keeps CAS.
+- **Still open:** signed-in image #26, media management #29, official upstream Excalidraw #31, OAuth/MCP #32. No real image or physical device acceptance is implied by green CI.
+- **Do not:** run historic 1.0 pinned stage workflow; make new hosted migrations, add paid services, move Production aliases, weaken RLS or upload identifying screenshot evidence without explicit separately scoped authorization.
+- **Documentation maintenance:** update only canonical CURRENT_STATE + affected plan/OPERATIONS/history/short handoff; archival sections below are timestamped historical snapshots, NOT independent current orders.
+
+
 ## 9 Nov 2026 — ORBIT 2.4 LIVE Production (latest authoritative release checkpoint)
 
 - **GitHub:** PR [#33](https://github.com/DoorBlox/orbit/pull/33) squash-merged to `main` commit **`4e57aca785259192b92010c5d0e1634a4c1efe14`** after all four exact-head checks passed (`static-quality`, `local-postgres-rls`, `production-artifact-dry-run`, `unauthenticated-protection`). Initial PR browser regression failed solely because the test attempted to select an option inside the intentionally collapsed “More tools” panel; revised test exercised the disclosure, then all four checks passed at head `33053acd46db3fd1a4865759b420ad4f865db69d`. Historical V6/M1 manifests unchanged and reviewed M2 source manifest updated.
