@@ -1233,3 +1233,13 @@ body.cloud-space-mounted .app-shell{height:100dvh!important}
 @media(max-width:540px){:root .appearance-choices{grid-template-columns:repeat(2,minmax(0,1fr))};
   :root .appearance-switches{grid-template-columns:1fr}
 }
+
+/* Task context follows the drawing's paper, never a dashboard-card motif. */
+:root .task-checklist{display:grid;gap:6px;padding:7px 0 10px}
+:root .task-checklist-item{display:flex;align-items:flex-start;gap:9px;font-size:13px;line-height:1.42;
+  color:var(--orbit-paper-ink);cursor:pointer}
+:root .task-checklist-item input{flex:none;width:17px;height:17px;accent-color:var(--orbit-accent);
+  margin:1px 0 0;cursor:pointer}
+:root .task-checklist-item input:focus-visible{outline:2px solid var(--orbit-accent);outline-offset:3px}
+:root .task-checklist-item input:checked+span{text-decoration:line-through;opacity:.67}
+:root .task-checklist-item span{min-width:0;overflow-wrap:anywhere}
