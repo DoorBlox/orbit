@@ -1,3 +1,5 @@
+> **9 November 2026:** no six-widget maximum; future Projects, portfolio/blog and Pomodoro are tracked in the [expansion plan](../plans/ORBIT_EXPANDABLE_SPACE_PROJECTS_BLOG_FOCUS.md) ([PR #44](https://github.com/DoorBlox/orbit/pull/44), source merged). BP-03 visibility-aware polling + synthetic 30/100/300-task traffic baseline are source merged ([PR #42](https://github.com/DoorBlox/orbit/pull/42), [PR #45](https://github.com/DoorBlox/orbit/pull/45)); foreground revision-only optimization and real usage measurement remain open. No Production release.
+
 # ORBIT — release and execution roadmap
 
 **Current source of truth:** [2.4 verified state](CURRENT_STATE.md) and [post-2.4 execution blueprint](../plans/ORBIT_POST_2_4_EXECUTION.md). User approved documentation and BP-00–BP-06 reliability foundation; actual implementation and owner acceptance must be recorded separately. **Full upstream Excalidraw #31 is prioritized** with early EX-00 synthetic feasibility, then gated EX-01/EX-02; it is not yet shipped.

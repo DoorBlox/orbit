@@ -1,3 +1,9 @@
+## 9 November 2026 — owner clarification and BP-03 synthetic benchmark
+
+- [PR #44](https://github.com/DoorBlox/orbit/pull/44) fixed a mistaken permanent "six windows" product restriction in active contributor rules; added an expandable-widget, branch Projects, opt-in public portfolio/blog and Pomodoro blueprint. Squash source `33d5f2598952fa88457e1bc05b2dd6547b26c1b0`, all four exact-head checks green. No live product count or content changed.
+- [PR #45](https://github.com/DoorBlox/orbit/pull/45) implemented deterministic nonprivate synthetic BP-03 full-snapshot traffic measurement, without a new RPC or Production monitoring. Squash source `4b603b2c58e4ebef9fd66eebf33534cef2a7ace3`, four green checks. Browser default timer/CAS, tenant isolation and hosted infrastructure unchanged.
+- Separate source and Production: no data publication, hosted SQL/Storage/Auth edits, new domain, paid services or deployment as part of these PRs.
+
 ## 9 November 2026 — clarification of product direction (planning only)
 
 The owner clarified that six movable windows were an **observed initial layout**, not a requested permanent numerical restriction. Future project labeling of branches and a private Projects place, an optional Pomodoro widget, and a curated portfolio/blog site with explicit Journal-to-blog publication are in scope for exploration. Current source/release layout and historical descriptions remain factual, but active design rules now allow additional widgets. [Dedicated plan](../plans/ORBIT_EXPANDABLE_SPACE_PROJECTS_BLOG_FOCUS.md). No hosted/private/public data or Production changes from this clarification.
