@@ -1,3 +1,5 @@
+> **Source progress 9 November 2026:** BP-06 synthetic Chromium spatial baseline [#47](https://github.com/DoorBlox/orbit/pull/47) and SP-01A internal extensible widget registry [#48](https://github.com/DoorBlox/orbit/pull/48) are **SOURCE MERGED** (4/4 required checks each). The next SP-01B still needs a mounted seventh element, hide/reopen, minimap/keyboard flow and compatible backup/persistence. No seventh user-visible window, Projects conversion, Pomodoro or portfolio blog has shipped.
+
 > **9 November 2026:** no six-widget maximum; future Projects, portfolio/blog and Pomodoro are tracked in the [expansion plan](../plans/ORBIT_EXPANDABLE_SPACE_PROJECTS_BLOG_FOCUS.md) ([PR #44](https://github.com/DoorBlox/orbit/pull/44), source merged). BP-03 visibility-aware polling + synthetic 30/100/300-task traffic baseline are source merged ([PR #42](https://github.com/DoorBlox/orbit/pull/42), [PR #45](https://github.com/DoorBlox/orbit/pull/45)); foreground revision-only optimization and real usage measurement remain open. No Production release.
 
 # ORBIT — release and execution roadmap
@@ -8,7 +10,7 @@
 
 **Six original widgets are the current default, not a maximum.** Preserve their saved coordinates and the navigable spatial world, while adding more spatial widgets when useful. [Detailed blueprint](../plans/ORBIT_EXPANDABLE_SPACE_PROJECTS_BLOG_FOCUS.md).
 
-- [ ] **SP-01**: extensible widget registry/launcher so Projects, Focus and later user widgets do not require replacing the old six.
+- [ ] **SP-01**: internal descriptor registry **source merged** [#48](https://github.com/DoorBlox/orbit/pull/48); mounted seventh widget, hide/reopen, keyboard/minimap navigation, and portable layout/backup compatibility remain before Projects, Focus and later user widgets can appear.
 - [ ] **PJ-01/PJ-02**: right-click (plus keyboard-accessible menu) **Turn into project** on a branch; reversible project identity, private Projects place, descriptions, progress and linked task hierarchy.
 - [ ] **PUB-00/01/02**: separate opt-in public publication layer; Journal -> blog draft -> preview -> publish, curated portfolio project pages and independently deployed public website. Private content never becomes public by merely labeling a branch.
 - [ ] **FO-01**: optional Pomodoro/Focus widget with task association, pause/resume and accurate background/reload timing without per-second cloud writes.
