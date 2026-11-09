@@ -1,10 +1,10 @@
 # ORBIT — current verified state
 
-**Updated:** 9 November 2026 (Asia/Jakarta). **Product:** ORBIT, a private spatial scrapbook. **Status:** 2.4 is live. This is the short, canonical state summary; see [Documentation protocol](DOCUMENTATION_PROTOCOL.md) for precedence and update rules.
+**Updated:** 9 November 2026 (Asia/Jakarta). **Active ChatGPT engineering handoff:** [CHATGPT_HANDOFF.md](../CHATGPT_HANDOFF.md); [tool/skill playbook](CHATGPT_TOOL_PLAYBOOK.md). **Product:** ORBIT, a private spatial scrapbook. **Status:** 2.4 is live. This is the short, canonical state summary; see [Documentation protocol](DOCUMENTATION_PROTOCOL.md) for precedence and update rules.
 
 ## Identity and deployment
 
-- GitHub repository: [DoorBlox/orbit](https://github.com/DoorBlox/orbit), public MIT source; branch main is PR-protected. The **last audited documentation baseline** was b8f76a6ee4660c135ec0e2604915a6b96097f664 (PR #34). Check the live GitHub main SHA before acting, because documentation commits advance it.
+- GitHub repository: [DoorBlox/orbit](https://github.com/DoorBlox/orbit), public MIT source; branch main is PR-protected. The **last verified code/CI main SHA before this ChatGPT documentation change** was 821b1a51de1817703f14d42bd7b2a00618492425 (PR #36). Check the live GitHub main SHA before acting, because documentation commits advance it.
 - **Live application source SHA:** 4e57aca785259192b92010c5d0e1634a4c1efe14 (PR #33, all four required exact-head CI statuses passed).
 - **Canonical Production:** https://orbit.starscene.com/ maps to READY Vercel Production deployment dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4. This is not a claim of signed-in image acceptance.
 - **Rollback artifact:** READY dpl_AxaB85krmkJfDUj1T6ipqw8rodH4, built from de2523dcea497c7ee41547ca94c14f48c72688f1. If privacy/auth failure, protect all deployments before alias rollback; see [Operations](OPERATIONS.md).
@@ -42,7 +42,7 @@ Six movable, resizable widgets (constellation, continuum, to-do, completed, spac
 
 The user explicitly designated ChatGPT as the **coding, review, audit, test and handoff executor** for the approved BP/EX implementation roadmap. The user should not be asked to manually supervise workflows or construct continuity prompts. When an active session resumes, implement the next safe ready unit after verifying the repository. The assistant cannot work between sessions without a separate automation. Production, hosted data, identity and paid-provider actions retain separate approvals.
 
-[CI workflow audit](CI_WORKFLOW_AUDIT_2026-11-09.md): in 100 latest sampled runs, 26 quality runs consumed ~55 minutes of aggregate elapsed time and 25 RLS runs ~40 minutes. Docs-only PR #35 ran the full browser quality suite (~143 seconds) despite no application change. Branch ci/required-check-scope-and-agent-ownership-20261109 contains a proposed fail-closed Markdown-only optimization, required-status-preserving and extra current raw 2.4 protection canary; **verify its actual PR/merge state** before calling it complete. The current public repository's standard GitHub-hosted runners are free, but efficiency and review latency still matter.
+[CI workflow audit](CI_WORKFLOW_AUDIT_2026-11-09.md): in 100 latest sampled runs, 26 quality runs consumed ~55 minutes of aggregate elapsed time and 25 RLS runs ~40 minutes. Docs-only PR #35 ran the full browser quality suite (~143 seconds) despite no application change. [PR #36](https://github.com/DoorBlox/orbit/pull/36) is **SOURCE MERGED** with all four required checks green. It introduced a fail-closed Markdown-only CI fast path, preserved required status names, and added the real 2.4 raw deployment protection canary. It did not deploy an app release. The current public repository's standard GitHub-hosted runners are free, but efficiency and review latency still matter.
 
 ## The next executable steps
 
@@ -53,4 +53,4 @@ The user explicitly designated ChatGPT as the **coding, review, audit, test and 
 
 ## Evidence and operating rules
 
-The detailed responsibilities, paths, dependencies, acceptance tests and rollback are in [the post-2.4 blueprint](../plans/ORBIT_POST_2_4_EXECUTION.md). Visual evidence requested from the user is defined in [Design evidence plan](DESIGN_EVIDENCE_PLAN.md). Use [CODEX_HANDOFF.md](../CODEX_HANDOFF.md) for a short session resume, [OPERATIONS.md](OPERATIONS.md) for deployments, and [PROJECT_HISTORY.md](PROJECT_HISTORY.md) plus archived docs for dated provenance. Never confuse app release 2.4, npm package version 1.0.0, ORBIT backup schema v6, SQL migration version IDs, or Git SHAs.
+The detailed responsibilities, paths, dependencies, acceptance tests and rollback are in [the post-2.4 blueprint](../plans/ORBIT_POST_2_4_EXECUTION.md). Visual evidence requested from the user is defined in [Design evidence plan](DESIGN_EVIDENCE_PLAN.md). Use [CHATGPT_HANDOFF.md](../CHATGPT_HANDOFF.md) for a short session resume, [OPERATIONS.md](OPERATIONS.md) for deployments, and [PROJECT_HISTORY.md](PROJECT_HISTORY.md) plus archived docs for dated provenance. Never confuse app release 2.4, npm package version 1.0.0, ORBIT backup schema v6, SQL migration version IDs, or Git SHAs.

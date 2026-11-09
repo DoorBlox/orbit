@@ -1,5 +1,7 @@
 # ORBIT — The Spatial Scrapbook
 
+**Engineering: ChatGPT + connected GitHub/Vercel/Supabase.** Continue development via [CHATGPT_HANDOFF.md](CHATGPT_HANDOFF.md) and [tool/skill playbook](docs/CHATGPT_TOOL_PLAYBOOK.md). You do not need a Codex app or CLI. Older CODEX-named documents are retained only for project history and compatibility.
+
 **Start here for current status and next work:** [Verified state](docs/CURRENT_STATE.md) · [Execution blueprint](plans/ORBIT_POST_2_4_EXECUTION.md) · [Documentation rules](docs/DOCUMENTATION_PROTOCOL.md) · [Design evidence brief](docs/DESIGN_EVIDENCE_PLAN.md). The current app is **ORBIT 2.4**; the user approved a reliability-first roadmap and prioritized full Excalidraw #31. Historic pre-2.4 snapshots below are not active release instructions.
 
 **Current live release (9 Nov 2026):** ORBIT 2.4 at [orbit.starscene.com](https://orbit.starscene.com/), Git `4e57aca`, Vercel `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`. Ten themes, ambient animation option, sticky-aware draggable mini-map, richer private journal/sticky writing and task checklists. The six movable spatial windows remain; private media is Supabase Storage. The full upstream Excalidraw editor (#31), private media library (#29), and ChatGPT MCP connector (#32) are not yet shipped. #26 image rendering still requires authenticated Production verification.
@@ -26,7 +28,7 @@ A personal, infinite-feeling 2D scrapbook. Move through one zoomable world of ta
 
 **Now in Production:** 1.1 organization improvements, 2.0 private multi-user workspaces, 2.1 branch collapse and Space controls, and 2.2 notes/journal drawings plus backup/import features. Signed private image attachments currently fail to display ([issue #26](https://github.com/DoorBlox/orbit/issues/26)); image references and files are preserved. PR #24 merged branch collapse/expand (browser-local preference, included in backups); an unreleased 2.2 feature branch adds Google-first login, multiple task references, floating stickies, a shared journal/sticky drawing scene bridge and private images. The hosted database has its 2.0 private tenant schema; Production still serves the original 1.0.0 owner-only app behind Vercel Authentication. New-user signup is **not yet publicly released**. See [Changelog](CHANGELOG.md), [Operations](docs/OPERATIONS.md) and [open development PRs](https://github.com/DoorBlox/orbit/pulls).
 
-**[Open ORBIT](https://orbit.starscene.com/)** · [2.2 Google sign-in & rollout](docs/OAUTH_2_2_ROLLOUT.md) · [Release notes](docs/releases/1.0.0.md) · [Project history](docs/PROJECT_HISTORY.md) · [Operations & recovery](docs/OPERATIONS.md) · [Continue in a new chat](CODEX_HANDOFF.md)
+**[Open ORBIT](https://orbit.starscene.com/)** · [2.2 Google sign-in & rollout](docs/OAUTH_2_2_ROLLOUT.md) · [Release notes](docs/releases/1.0.0.md) · [Project history](docs/PROJECT_HISTORY.md) · [Operations & recovery](docs/OPERATIONS.md) · [Continue in a new chat](CHATGPT_HANDOFF.md)
 
 ## What ORBIT does
 
@@ -116,7 +118,7 @@ Without cloud inputs the app can build in local prototype mode. A configured clo
 
 Start here for ongoing work:
 
-1. **[CODEX_HANDOFF.md](CODEX_HANDOFF.md)** — durable context checkpoint, exact deployed/repository identities, next-session actions.
+1. **[CHATGPT_HANDOFF.md](CHATGPT_HANDOFF.md)** — durable context checkpoint, exact deployed/repository identities, next-session actions.
 2. **[docs/OPERATIONS.md](docs/OPERATIONS.md)** — domain routing, security gates, backup, staging, rollback and incident checks.
 3. **[docs/PROJECT_HISTORY.md](docs/PROJECT_HISTORY.md)** — M0–M6 chronology, PRs/CI links, verified vs unverified evidence.
 4. **[docs/releases/1.0.0.md](docs/releases/1.0.0.md)** — actual 1.0.0 release note and limitations.

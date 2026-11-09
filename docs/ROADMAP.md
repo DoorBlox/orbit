@@ -4,7 +4,9 @@
 
 ### Active: 2.4.x reliability
 
-- [ ] BP-00 canonical docs/handoff PR (count complete only after merge, checks and state verification); app/package/backup versions kept distinct.
+**Development entrypoint:** [ChatGPT handoff](../CHATGPT_HANDOFF.md) · [tools and installed skills](CHATGPT_TOOL_PLAYBOOK.md). ChatGPT is responsible for coding, audits, CI and project handoffs.
+
+- [x] BP-00 canonical current-state, roadmap and documentation protocol foundation (PR #35, merged with four green checks). ChatGPT-native handoff/tool routing is a follow-up docs-only improvement; coordinated npm/release-version normalization is separately pending.
 - [ ] BP-01 authenticated Production image verification (#26).
 - [ ] BP-02 portable image-inclusive backup and supervised restore.
 - [ ] BP-03 measured low-request, visibility-aware sync that keeps CAS safety.

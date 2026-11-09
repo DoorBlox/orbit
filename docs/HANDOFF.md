@@ -1,4 +1,4 @@
-> **Historical V6 design handoff (1 November 2026), not current release status.** The current and durable new-session handoff is [../CODEX_HANDOFF.md](../CODEX_HANDOFF.md), supported by [OPERATIONS.md](OPERATIONS.md) and [PROJECT_HISTORY.md](PROJECT_HISTORY.md). Keep the design requirements below; disregard their outdated local-only/Auth-not-built claims.
+> **Historical V6 design handoff (1 November 2026), NOT live status.** Use the active [ChatGPT handoff](../CHATGPT_HANDOFF.md) and [tool/skill playbook](CHATGPT_TOOL_PLAYBOOK.md). Preserve the binding spatial design requirements below while treating prelaunch claims as historical.
 
 # ORBIT V6 — historical design handoff
 

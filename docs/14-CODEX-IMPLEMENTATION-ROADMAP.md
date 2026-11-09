@@ -1,4 +1,4 @@
-> **Historical milestone plan, written before launch.** ORBIT 1.0.0 is now owner-confirmed working in Production (7 November 2026), although some scoped tests remain unverified. This file preserves the original M0 → M1 → M2 → M2.5 → M3 → M4 → M5 → M6 plan; for *actual results* see [PROJECT_HISTORY.md](PROJECT_HISTORY.md) and [OPERATIONS.md](OPERATIONS.md). Do not treat the old NO-GO status below as current.
+> **Archived Codex-era M0–M6 roadmap, NOT current ChatGPT execution guidance.** See the [active ChatGPT handoff](../CHATGPT_HANDOFF.md), [post-2.4 blueprint](../plans/ORBIT_POST_2_4_EXECUTION.md) and [current state](CURRENT_STATE.md). Retain historic milestones below for evidence.
 
 # 14 — Codex implementation roadmap (incremental, reviewable)
 

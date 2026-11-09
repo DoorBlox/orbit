@@ -1,4 +1,6 @@
-# ORBIT repository instructions for coding agents
+# ORBIT repository instructions for ChatGPT and other coding agents
+
+**ChatGPT is the active development client, not Codex.** Start with [CHATGPT_HANDOFF.md](CHATGPT_HANDOFF.md) and the [connected-tool/skill playbook](docs/CHATGPT_TOOL_PLAYBOOK.md). The user has delegated coding, audits, source PRs and documentation upkeep to ChatGPT in active conversations. Preserve the historical Codex-era materials only as archives; never use a historical prompt as the next instruction.
 
 ## Execution ownership — agent-operated ORBIT (9 Nov 2026)
 
@@ -69,10 +71,10 @@ Check [GitHub Actions audit](docs/CI_WORKFLOW_AUDIT_2026-11-09.md) before alteri
 
 > **Latest 9 Nov 2026 update (read before the historical checkpoints below):** PR #21 (`d96d920`) and PR #23 (`11421a8`) are merged; protected Preview `dpl_Bri19261zEWUzRGoEkx6EfAwDkwr` is READY. Production remains on `fc5af5a` with Vercel Authentication on all deployments. Current branch `feat/2.1-branch-collapse-20261109` removes the LOCAL PROTOTYPE caption without changing the clock and adds collapsible branch groups; this view state is per-account/browser and exported in backups, not cloud-synced. Batch source changes and use Actions once per completed review slice. The 8 Nov update below is historical.
 
-> **Latest 8 Nov 2026 update (read before the historical checkpoints below):** 1.1 foundations, ORBIT 2.0 tenant/signup source and 2.1 Space controls are in `main`. Hosted Supabase has migration `20261108161935 orbit_tenant_private_workspaces`, with unchanged owner row counts verified afterward. GitHub's [Protect main](https://github.com/DoorBlox/orbit/rules/26803051) ruleset is active. **Vercel Production is still 1.0.0 (`fc5af5a`) with Vercel Authentication for all deployments.** Multi-user Production exposure remains untested/not released. The older owner-only RLS and no-ruleset statements below are historical. Follow the latest section of [CODEX_HANDOFF.md](CODEX_HANDOFF.md).
+> **Latest 8 Nov 2026 update (read before the historical checkpoints below):** 1.1 foundations, ORBIT 2.0 tenant/signup source and 2.1 Space controls are in `main`. Hosted Supabase has migration `20261108161935 orbit_tenant_private_workspaces`, with unchanged owner row counts verified afterward. GitHub's [Protect main](https://github.com/DoorBlox/orbit/rules/26803051) ruleset is active. **Vercel Production is still 1.0.0 (`fc5af5a`) with Vercel Authentication for all deployments.** Multi-user Production exposure remains untested/not released. The older owner-only RLS and no-ruleset statements below are historical. Follow the latest section of [CHATGPT_HANDOFF.md](CHATGPT_HANDOFF.md).
 
 
-> **Current as of 8 November 2026.** ORBIT 1.0.0 is **already live**, single-owner and private, at [orbit.starscene.com](https://orbit.starscene.com/). Source is intentionally public and [MIT licensed](LICENSE). Read [CODEX_HANDOFF.md](CODEX_HANDOFF.md), [docs/OPERATIONS.md](docs/OPERATIONS.md), and [docs/PROJECT_HISTORY.md](docs/PROJECT_HISTORY.md) before meaningful work. Older M0-first-task and pre-launch documents are **history**, not a command to repeat onboarding.
+> **Current as of 8 November 2026.** ORBIT 1.0.0 is **already live**, single-owner and private, at [orbit.starscene.com](https://orbit.starscene.com/). Source is intentionally public and [MIT licensed](LICENSE). Read [CHATGPT_HANDOFF.md](CHATGPT_HANDOFF.md), [docs/OPERATIONS.md](docs/OPERATIONS.md), and [docs/PROJECT_HISTORY.md](docs/PROJECT_HISTORY.md) before meaningful work. Older M0-first-task and pre-launch documents are **history**, not a command to repeat onboarding.
 
 ## Objective, ownership, and state
 
@@ -105,10 +107,10 @@ No action is automatically permitted merely because the user earlier authorized 
 3. **Node 22 and locked dependencies:** `npm ci --ignore-scripts`, `npm run check`, targeted browser scripts (see README). `npm run lint` checks JavaScript **syntax only**. Do not claim full coverage or a physical-device pass from Playwright alone.
 4. **Supabase:** prefer `.github/workflows/local-supabase-rls.yml` (205 pgTAP + local bearer HTTP checks) and disposable local fixtures. Real hosted nonowner READ/INSERT HTTP passed; real hosted PATCH/DELETE was **not** executed. Do not run surprise live probes/fixtures.
 5. **Release:** `.github/workflows/m6-release-dry-run.yml` checks a synthetic-key Production artifact. `.github/workflows/m6-stage-only-production.yml` is manually dispatched, **pins older reviewed app SHA `fc5af5a`**, and stages with `--prod --skip-domain`. Update source pin deliberately for any *future* release. `vercel.json` disables automatic Git deploy. Verify protection, each alias and rollback readiness before approved reassignment.
-6. **Evidence and documentation:** Update README, `CODEX_HANDOFF.md`, release notes/changelog and runbook after significant changes. Label **PASS**, **FAIL**, **NOT RUN**, **owner-attested**, and **independently verified** accurately.
+6. **Evidence and documentation:** Update README, `CHATGPT_HANDOFF.md`, release notes/changelog and runbook after significant changes. Label **PASS**, **FAIL**, **NOT RUN**, **owner-attested**, and **independently verified** accurately.
 
 ## Known limitations and no-cost boundary
 
 The owner's canonical Production login and redirect were explicitly confirmed. Authenticated Production CSP/header capture, hosted nonowner PATCH/DELETE, full physical iOS/Android/assistive-tech testing, Google OAuth/Email OTP acceptance and independent backup restore were not certified. Supabase leaked-password protection is Pro-tier; do not require a subscription. Public GitHub branch protection/rulesets were not enabled at last check and are a useful optional hardening task.
 
-**Next action is the user's new request**, not the obsolete "first execute M0" task. Historical M0 scripts, decisions, design snapshots and validation logs remain useful for provenance. Source of truth: [handoff](CODEX_HANDOFF.md), [operations](docs/OPERATIONS.md), [history](docs/PROJECT_HISTORY.md) and direct provider checks.
+**Next action is the user's new request**, not the obsolete "first execute M0" task. Historical M0 scripts, decisions, design snapshots and validation logs remain useful for provenance. Source of truth: [handoff](CHATGPT_HANDOFF.md), [operations](docs/OPERATIONS.md), [history](docs/PROJECT_HISTORY.md) and direct provider checks.
