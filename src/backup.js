@@ -3,6 +3,7 @@ import { validDateKey, dateKey } from './dates.js';
 import { STORAGE_KEYS } from './storage.js';
 import { normalizeExtensions } from './scene.js';
 import { CORE_WIDGET_IDS } from './widget-registry.js';
+import { validateProjectBranches } from './projects.js';
 export const RESTORE_RECOVERY_KEY = 'orbit.v6.restore-recovery';
 const keys = new Set(Object.values(STORAGE_KEYS));
 const widgets = new Set(CORE_WIDGET_IDS);
@@ -77,6 +78,7 @@ export function validateBackup(input, { sanitizeHtml } = {}) {
       return {id:j.id,date:dateKey(j.date),title:j.title,html:sanitizeHtml(j.html),createdAt:j.createdAt||j.date,updatedAt:j.updatedAt||j.date};
     });
   }
+  if(normalized.extensions?.projects)validateProjectBranches(normalized.extensions.projects,normalized.branches);
   if (value.spatialLayout !== undefined) {
     if (!object(value.spatialLayout)) throw Error('Invalid widget layout.');
     normalized.spatialLayout = {};
