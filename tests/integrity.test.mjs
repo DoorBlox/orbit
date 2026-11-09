@@ -121,7 +121,22 @@ test('build emits native app plus isolated SDK and only public config',async()=>
       }
       return files;
     };
-    assert.deepEqual((await inventory('')).sort(),expected);
+    const actual=(await inventory('')).sort();
+    for(const filename of expected)
+      assert.ok(actual.includes(filename),'Missing native ORBIT asset '+filename);
+    assert.ok(actual.includes('src/excalidraw-island.js'),'Official editor must be bundled locally');
+    assert.ok(actual.includes('src/excalidraw-island.css'),'Official editor CSS must be local');
+    assert.ok(actual.some(file=>file.startsWith('assets/excalidraw/fonts/')&&file.endsWith('.woff2')),
+      'Self-hosted Excalidraw fonts must be included');
+    assert.ok(actual.every(file=>expected.includes(file)||
+      file==='src/excalidraw-island.js'||file==='src/excalidraw-island.css'||
+      file.startsWith('src/assets/')||file.startsWith('assets/excalidraw/fonts/')),
+      'Unexpected static file outside native and official editor assets');
+    assert.ok((await readFile(path.join(outdir,'src/excalidraw-island.js'))).length>100000,
+      'The official component must be a real compiled editor, not a stub');
+    assert.ok(!(await readFile(path.join(outdir,'index.html'),'utf8')).includes('excalidraw-island.js'),
+      'Sign-in/initial HTML must not eagerly load React or the editor');
+
     await buildDist({outdir,env:{}});
     assert.match(await readFile(path.join(outdir,'src/runtime-config.js'),'utf8'),/runtimeConfig = null/);
     await writeFile(path.join(outdir,'previous-artifact'),'synthetic');
