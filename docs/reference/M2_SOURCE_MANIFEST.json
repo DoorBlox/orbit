@@ -1,7 +1,7 @@
 {
   "baselineCommit": "846ad7df3fa3fdf4c63fd22f2830fed56f83a06e",
   "milestone": "M2",
-  "review": "ORBIT 2.4 source review with BP-02 portable media backup and EX-00 official Excalidraw compatibility adapter; V6/M1 Git provenance immutable; no React runtime injected into primary app or Production/Storage changes.",
+  "review": "ORBIT 2.4 retained V6/M1 immutable provenance; BP-02 portable private media backup, EX-00 safe scene adapter, and EX-01 official Excalidraw lazy React island from exact pinned npm lockfile. No hosted database migration or Production alias change.",
   "files": {
     "assets/orbit.svg": {
       "sha256": "97eb19dd4e0773d0b6489b1f49d794ffd272fb3bc2d42af4faffd6a1adca78c3",
@@ -104,16 +104,16 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "333b01cd606434624198098ec29e77df3f10cdabd47fab61eda11dffe679b569",
-      "reason": "Ten coherent high-contrast themed materials, functional glass, readable clock, background motion, scroll-safe Space widget, mini-map and editorial writing treatments."
+      "sha256": "fce0aa5c03a42379f50b5bae6ad3e8d136bc3df230ea35025356233a2ef43212",
+      "reason": "EX-01: bound and responsive overlay container for lazy official Excalidraw, preserve all ten theme tokens and reduced-motion controls."
     },
     "src/widgets.js": {
       "sha256": "aee68a4ce8a37edbb2de2fa1b0a2fc4589fcaf28a00603db2b148c6875a8ec58",
       "reason": "Preserve task/timeline projection over canonical owner snapshots and read-only controls."
     },
     "src/scene.js": {
-      "sha256": "c6c8c7aface3bc744be654f2177e68cb51a9da3eb8953a48e5f52299eb024aad",
-      "reason": "Validate ten theme IDs, independent ambient toggle and private per-task checklists, preserving legacy extension defaults."
+      "sha256": "60eb2222fd3a2a8e3446287fcc740b21f4d55833938996a93425c205e77a058a",
+      "reason": "EX-01: shared Journal/sticky dialog lazily mounts the real official editor, preserves legacy drawing on invalid upstream restore, confirms intentional deletion, disposes on close and retains native pen fallback."
     },
     "src/stickies.js": {
       "sha256": "96b8fd73b59e8b836e631d124d4614525cd664f1e9aae657edee8fbf6b460dcd",
@@ -128,8 +128,12 @@
       "reason": "BP-02: new versioned image-inclusive portable archive codec; bounded authenticated paths, MIME, SHA-256 and owner remapping."
     },
     "src/excalidraw-adapter.js": {
-      "sha256": "c9409c566e7948161160c1e7f74ebca5d704fb7bdce52653dd8e317b73eb6802",
-      "reason": "EX-00: bounded framework-neutral adapter for official Excalidraw initialData/onChange scene persistence; no React dependency, user data, or external embeds."
+      "sha256": "3f98f283ab5571da5481d9a44b612ab58a073041d7a05a5b5923ee8739ec901b",
+      "reason": "EX-01: upgrade zero-size legacy single-point pen strokes on a cloned Excalidraw initialData scene so upstream does not drop them silently, with original ORBIT scene preserved until explicit Save."
+    },
+    "src/excalidraw-island.entry.mjs": {
+      "sha256": "29b7d1a41ab7f21531898688311d124255aecfca3bde9b2c19aa6eb43fdf882e",
+      "reason": "EX-01: reviewed on-demand official React/ReactDOM Excalidraw entrypoint with local CSS and per-dialog mount/unmount; no initial app or sign-in bundle change."
     }
   }
 }

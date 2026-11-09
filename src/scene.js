@@ -115,7 +115,7 @@ function downloadScene(scene){
   setTimeout(()=>URL.revokeObjectURL(url),1200);
 }
 export function openSceneEditor(initial,{title='Drawing',onSave,notify=()=>{}}={}){
-  let scene=normalizeScene(initial)||emptyScene(),active=null;
+  let scene=normalizeScene(initial)||emptyScene(),active=null,embedded=null,disposed=false;
   const dialog=document.createElement('dialog');dialog.className='orbit-scene-dialog';
   const panel=document.createElement('div');panel.className='orbit-scene-panel';
   const heading=document.createElement('h2');heading.textContent=title;
@@ -135,13 +135,86 @@ export function openSceneEditor(initial,{title='Drawing',onSave,notify=()=>{}}={
     }catch(e){notify('Drawing import failed: '+e.message);}finally{file.value='';}
   });
   button('Import .excalidraw',()=>file.click());
-  button('Edit in Excalidraw',()=>{downloadScene(scene);
+  button('Edit externally at Excalidraw.com',()=>{downloadScene(scene);
     window.open('https://excalidraw.com/','_blank','noopener,noreferrer');
     notify('Import the downloaded file into Excalidraw, export it when done, then import the updated file here.');});
+  // The actual upstream React Excalidraw editor loads ONLY on an explicit click.
+  // Both Journal and spatial stickies enter through this same shared function.
+  const fullButton=button('Open full Excalidraw inside ORBIT',async()=>{
+    if(disposed||embedded||fullButton.disabled)return;
+    fullButton.disabled=true;
+    const previousHelp=help.textContent;
+    help.textContent='Loading the locally hosted official Excalidraw editor…';
+    let host=null,mounted=null;
+    try{
+      const adapter=await import('./excalidraw-adapter.js');
+      if(disposed||!dialog.open)return;
+      const initialData=adapter.createEmbeddedInitialData(scene);
+      const stylesheetHref=new URL('./excalidraw-island.css',import.meta.url).href;
+      let stylesheet=document.querySelector('link[data-orbit-excalidraw-styles]');
+      if(!stylesheet){
+        stylesheet=document.createElement('link');
+        stylesheet.rel='stylesheet';
+        stylesheet.href=stylesheetHref;
+        stylesheet.dataset.orbitExcalidrawStyles='loading';
+        const loaded=new Promise((resolve,reject)=>{
+          stylesheet.onload=()=>{stylesheet.dataset.orbitExcalidrawStyles='ready';resolve();};
+          stylesheet.onerror=()=>{stylesheet.remove();reject(Error('Excalidraw styles unavailable.'));};
+        });
+        document.head.append(stylesheet);
+        await loaded;
+      }else if(stylesheet.dataset.orbitExcalidrawStyles==='loading'){
+        await new Promise((resolve,reject)=>{
+          stylesheet.addEventListener('load',resolve,{once:true});
+          stylesheet.addEventListener('error',()=>reject(Error('Excalidraw styles unavailable.')),{once:true});
+        });
+      }
+      if(disposed||!dialog.open)return;
+      // No remote CDN or executable inline scripts: the font asset path is same-origin.
+      window.EXCALIDRAW_ASSET_PATH=new URL('../assets/excalidraw/',import.meta.url).href;
+      const {mountEmbeddedEditor}=await import('./excalidraw-island.js');
+      if(disposed||!dialog.open)return;
+      host=document.createElement('div');host.className='orbit-excalidraw-host';
+      surface.replaceChildren(host);
+      surface.classList.add('orbit-scene-surface--embedded');
+      let latest={elements:initialData.elements,appState:initialData.appState,files:{}};
+      mounted=mountEmbeddedEditor(host,{
+        initialData,theme:adapter.embeddedEditorTheme(document.documentElement.dataset.theme),
+        uiOptions:adapter.embeddedEditorOptions,
+        onChange:(elements,appState,files)=>{if(!disposed)latest={elements,appState,files};},
+      });
+      embedded={dispose:mounted.dispose,read:()=>adapter.captureEmbeddedScene(
+        latest.elements,latest.appState,latest.files)};
+      help.textContent='Full Excalidraw: draw shapes, arrows, text and freehand. Images/remote embeds await private media support. Use Save drawing below to keep changes.';
+      bar.style.display='none';
+    }catch(error){
+      mounted?.dispose?.();
+      if(!disposed&&dialog.open){
+        embedded=null;
+        surface.classList.remove('orbit-scene-surface--embedded');
+        surface.replaceChildren(preview);
+        repaint();bar.style.display='';
+        help.textContent=previousHelp;
+        notify('Full Excalidraw unavailable in this build: '+error.message+'. The original pen editor is still available.');
+      }
+    }finally{if(!disposed&&!embedded)fullButton.disabled=false;}
+  });
   const footer=document.createElement('div');footer.className='orbit-scene-footer';
-  const close=()=>{dialog.close();dialog.remove();};
+  const close=()=>{if(dialog.open)dialog.close();else dialog.remove();};
   button('Cancel',close,footer);
-  button('Save drawing',()=>{try{onSave?.(normalizeScene(scene));close();}catch(e){notify('Drawing not saved: '+e.message);}},footer);
+  button('Save drawing',()=>{
+    try{
+      const saved=embedded?embedded.read():normalizeScene(scene);
+      if(embedded){
+        const savedIds=new Set(saved.elements.map(item=>item.id));
+        const disappeared=scene.elements.filter(item=>!item.isDeleted&&!savedIds.has(item.id));
+        if(disappeared.length&&!window.confirm(
+          'Saving would remove '+disappeared.length+' existing drawing element(s). Continue? Cancel to keep the original drawing unchanged.'))
+          return;
+      }
+      onSave?.(saved);close();
+    }catch(e){notify('Drawing not saved: '+e.message);}
+  },footer);
   panel.append(heading,help,bar,surface,file,footer);dialog.append(panel);document.body.append(dialog);
   const point=e=>{const r=preview.getBoundingClientRect();return [
     Math.max(0,Math.min(800,Math.round((e.clientX-r.left)*800/r.width))),
@@ -163,5 +236,6 @@ export function openSceneEditor(initial,{title='Drawing',onSave,notify=()=>{}}={
   preview.addEventListener('pointerup',()=>{if(!active)return;
     scene={...scene,elements:[...scene.elements,active]};active=null;repaint();});
   preview.addEventListener('pointercancel',()=>{active=null;repaint();});
-  dialog.addEventListener('close',()=>dialog.remove());dialog.showModal();repaint();return dialog;
+  dialog.addEventListener('close',()=>{disposed=true;embedded?.dispose?.();embedded=null;dialog.remove();});
+  dialog.showModal();repaint();return dialog;
 }

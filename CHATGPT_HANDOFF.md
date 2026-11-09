@@ -1,6 +1,16 @@
 # ORBIT — ChatGPT engineering handoff
 
-## Current work — EX-00 Excalidraw scene adapter (9 Nov 2026)
+## EX-01 active code branch — official embedded Excalidraw (9 November 2026)
+
+- **Verified source main before this branch:** 6a9c7c6fae1ad6f1b698294c2ede9be09ab73f28, squash merge of [EX-00 PR #40](https://github.com/DoorBlox/orbit/pull/40), all four exact-head checks green. BP-02 [PR #39](https://github.com/DoorBlox/orbit/pull/39) merged earlier as d6064f0743b2544422cbd099e9468e6ab20d9533. Both **SOURCE MERGED, NOT Production deployed**.
+- **Current branch:** feat/ex01-official-excalidraw-react-island-20261109. Real exact pinned @excalidraw/excalidraw 0.18.1 + react/react-dom 19.3.1 and registry-verified package-lock.json; temporary read-only npm resolution workflow ran once and was removed from branch. Builds official JS/CSS and self-hosted fonts as **lazy editor only**, while the main page remains native. Source: src/excalidraw-island.entry.mjs; scripts/build.mjs; src/scene.js; src/styles.css; scripts/verify-release.mjs; tests/qa_m1.py and current M2 source manifest.
+- **Existing shared openSceneEditor works for both Journal and sticky notes.** The new button loads actual Excalidraw locally, buffers onChange in memory, explicit Save validates existing v2 scene, Cancel destroys React root; native pen fallback remains. **Embedded image files are still rejected** until EX-02; lightweight saved-scene preview cannot guarantee fidelity of all official shapes. See [EX-01 integration and QA contract](docs/EXCALIDRAW_EX01_INTEGRATION.md).
+- **Status:** EX-01 source implementation in progress; **NOT SOURCE MERGED, NOT deployed, no real signed-in Production QA yet**. Inspect exact PR/head and all four CI checks before claiming success. Need to check published npm package CSS/fonts/API and Playwright on network-enabled GitHub Actions; fix failures without weakening strict build or RLS checks.
+- **Do not:** automatically promote Production, alter Supabase RLS/storage, send private journals to Excalidraw.com, add paid providers, or close #31 prematurely. The owner should not have to manage GitHub or write new prompts.
+- **Next:** finish EX-01 verified build/browser code PR, then BP-03 visibility-aware full-snapshot sync reduction or EX-02 private binary image scoping while physical-device design checks remain separate.
+
+
+## Historical EX-00 in-review note before PR #40 merge (9 Nov 2026)
 
 - **Latest confirmed main:** `d6064f0743b2544422cbd099e9468e6ab20d9533`, squash merge of [PR #39](https://github.com/DoorBlox/orbit/pull/39), after four required CI checks green. BP-02 image-inclusive `.orbit` private backup and staged owner-scoped restore is **SOURCE MERGED**, **NOT DEPLOYED**, **NOT VERIFIED** in real signed-in Production. Old V6 JSON remains path-only. No hosted SQL/Storage policy/Production changes.
 - **This branch:** `feat/ex00-excalidraw-scene-adapter-20261109`; code in `src/excalidraw-adapter.js` and synthetic tests `tests/excalidraw_adapter.test.mjs` converts official `initialData` / `onChange(elements, appState, files)` to the existing V2 scene safely, rejects embedded assets and remote frames, preserves prior drawing on failed save, and controls image-free UI options. Official React package **NOT INSTALLED**; no real editor yet. Read [EX-00 compatibility and EX-01 gates](docs/EXCALIDRAW_EX00_COMPATIBILITY.md). Verify GitHub PR, exact head and four required checks before marking SOURCE MERGED.
@@ -47,7 +57,7 @@
 | BP-01 / issue #26 | BLOCKED on controlled signed-in evidence | Test private sticky + journal image load/reload and second-account denial; source and anonymous checks are insufficient |
 | BP-02 private media portability / PR #39 | SOURCE MERGED, NOT RELEASED | `d6064f07`, four green checks; real signed-in backup/restore acceptance and orphaned media support remain unverified/out of scope |
 | BP-03 synchronization | NOT DONE | Measure whole-snapshot polling every 15s and global CAS conflicts before improving |
-| EX-00 / issue #31 | IN PROGRESS, pure-scene adapter source | Review [EX-00 adapter](docs/EXCALIDRAW_EX00_COMPATIBILITY.md), test official scene boundary; actual React canvas/asset bundle is EX-01 |
+| EX-00 / issue #31 | SOURCE MERGED PR #40 | Tested official onChange scene adapter; full upstream JSX/React editor is EX-01 |
 | Issues #29 / #32 | OPEN | Reusable private media gallery / scoped OAuth MCP, later after safety gates |
 
 ## Next executable engineering step — for ChatGPT
@@ -55,7 +65,7 @@
 1. Recheck live main, open PRs, issues and four required statuses. Read this file, AGENTS, blueprint, affected source/test paths.
 2. **BP-04:** SOURCE MERGED in PR #38, no hosted changes. Do not re-run migration-history repair; revisit only for future approved hosted migrations.
 3. **BP-02:** implement portable private-media backup/recovery in small code/test slices, starting with src/backup.js, src/app.js backupJson, src/cloud/media.js, src/cloud/owner-tools.js, tests/backup.test.mjs and tests/media.test.mjs. Work with fake files; no real private backups in CI and no Storage deletion.
-4. **EX-00 parallel:** inspect official Excalidraw version and integration, build a lazy loaded React island only for the editor; test existing native pen scene import and new full upstream editing in both hosts. Do not block feasibility work on full media library.
+4. **EX-01 active:** actual pinned official Excalidraw island source branch, tests and strict asset verification; don't mistake an open PR for completed Production. Excalidraw image files still require EX-02. Do not block feasibility work on full media library.
 5. Collect optional privacy-safe screenshots for BP-06 when the owner has them; absence must not stall code work.
 
 ## Verification, safety and handoff

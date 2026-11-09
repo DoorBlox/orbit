@@ -86,3 +86,17 @@ test('EX-00: Excalidraw is constrained to local, image-free, explicit-save editi
   assert.equal(embeddedEditorOptions.canvasActions.changeViewBackgroundColor,true);
   assert.equal(embeddedEditorOptions.canvasActions.clearCanvas,true);
 });
+
+test('EX-01: a legacy native pen click is retained as a tiny visible point, not erased',()=>{
+  const legacy=emptyScene();
+  legacy.elements=[{...pen(),x:32,y:44,width:0,height:0,points:[[0,0]],pressures:[]}];
+  const unchanged=structuredClone(legacy);
+  const initial=createEmbeddedInitialData(legacy);
+  assert.equal(initial.elements.length,1);
+  assert.equal(initial.elements[0].id,'orbit_pen_1');
+  assert.equal(initial.elements[0].width,4);
+  assert.equal(initial.elements[0].height,4);
+  assert.deepEqual(initial.elements[0].points,[[0,0],[4,4]]);
+  assert.deepEqual(initial.elements[0].pressures,[0.5,0.5]);
+  assert.deepEqual(legacy,unchanged,'Original private scene must be immutable until explicit Save');
+});

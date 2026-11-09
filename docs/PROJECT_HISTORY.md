@@ -1,5 +1,11 @@
 # ORBIT implementation history and evidence ledger
 
+## 9 Nov 2026 — EX-00 source closeout and EX-01 actual official editor source work
+
+- [PR #40](https://github.com/DoorBlox/orbit/pull/40) squash-merged 6a9c7c6fae1ad6f1b698294c2ede9be09ab73f28 with four green exact-head checks, pure official Excalidraw scene/initialData/onChange adapter, no React runtime and no Production mutation.
+- EX-01 source branch feat/ex01-official-excalidraw-react-island-20261109: pinned real @excalidraw/excalidraw 0.18.1 and React/ReactDOM 19.3.1 with a genuine npm lock generated and reviewed through temporary read-only GitHub Actions; temporary workflow removed. Adds separate lazy official editor JS/CSS/fonts, shared journal/sticky load button, explicit Save/Cancel, strict release artifact checks, and synthetic Playwright integration. **Not yet merged or deployed; evidence pending exact-head CI.** See [EX-01 integration](EXCALIDRAW_EX01_INTEGRATION.md).
+
+
 ## 9 Nov 2026 — BP-02 source merge and EX-00 first adapter
 
 - [PR #39](https://github.com/DoorBlox/orbit/pull/39) squash-merged `d6064f0743b2544422cbd099e9468e6ab20d9533` after four green exact-head checks. Adds private image-inclusive portable `.orbit` backup/inspected staged restore, auth-scoped image downloads, source manifest and regression tests. **SOURCE MERGED, NOT Production deployed or owner-account tested.** No hosted Supabase writes, media deletions, provider/billing changes or live alias changes.
