@@ -52,6 +52,8 @@ PROPOSED = specified only; READY = prerequisites/research sufficient; IN PROGRES
 
 ### BP-02 — actual portable recovery, including image bytes
 
+- **Source status:** IN PROGRESS, branch feat/bp02-portable-private-media-backup-20261109, no Production release. First implementation is versioned .orbit JSON with Base64-encoded referenced images and SHA-256 (avoids adding a ZIP package); this fulfills portable bytes for current notes/journals but lacks detached media, streaming compression, and Excalidraw binary assets. See [format v1 and safety contract](../docs/PORTABLE_BACKUP_V1.md).
+
 - **Status:** PROPOSED. **Prereq:** BP-01 inventory/behavior and current backup parser review.
 - **Surfaces:** src/backup.js, src/cloud/media.js, src/cloud/owner-tools.js, src/app.js, tests/backup.test.mjs, tests/media.test.mjs; optional versioned archive manifest.
 - **Implementation:** explicit warning that current JSON export includes image paths only; design fully portable ZIP-like export with manifest, individually fetched private files, checksums and limits; import preview and controlled remap to a disposable target account. Preserve old format reader.

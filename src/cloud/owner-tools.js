@@ -1,6 +1,7 @@
 import { STORAGE_KEYS } from '../storage.js';
 import { validateBackup } from '../backup.js';
 import { sanitizeJournal } from '../journal.js';
+import { createPortableArchive,inspectPortableArchive,rehydratePortableArchive,PORTABLE_MAX_TEXT_BYTES } from './portable-backup.js';
 
 /** Legacy storage is read only after the owner requests an import review. */
 export function readLocalImport(storage=globalThis.localStorage) {
@@ -20,7 +21,7 @@ export function readLocalImport(storage=globalThis.localStorage) {
 }
 
 /** Opt-in import/publication controls; user content is always assigned as text. */
-export function createOwnerTools({repository,app,sync,container,canPublish=true}) {
+export function createOwnerTools({repository,app,sync,container,media,ownerId,canPublish=true}) {
   const events=new AbortController();let disposed=false,importDraft=null;
   const root=document.createElement('details');root.className='cloud-owner-panel glass-widget';
   const summary=document.createElement('summary');summary.textContent=canPublish?'Import & publishing':'Import & backups';root.append(summary);
@@ -34,6 +35,80 @@ export function createOwnerTools({repository,app,sync,container,canPublish=true}
     try{importDraft=readLocalImport();say(`Local import ready: ${importDraft.tasks.length} tasks, ${importDraft.branches.length} branches, ${importDraft.journalEntries.length} journal pages, ${importDraft.milestones.length} milestones. Nothing has been uploaded.`);confirmImport.hidden=false;}
     catch{importDraft=null;confirmImport.hidden=true;say('Local data could not be safely validated. Export recovery data or use a valid ORBIT JSON backup. Nothing was uploaded.');}
   },importGroup);
+  // Explicit portable recovery with referenced image bytes; no automatic cloud mutation.
+  const portableGroup=element('div');portableGroup.className='cloud-tool-group';
+  const ready=()=>!disposed&&media?.download&&media?.upload&&typeof ownerId==='string';
+  let portableBusy=false,portableDraft=null;
+  const portableExport=button('Download full backup (with images)',async()=>{
+    if(!ready()||portableBusy)return;
+    portableBusy=true;portableExport.disabled=true;
+    try{
+      app.flushEditor();
+      say('Preparing full private backup; verifying each referenced image…');
+      const archive=await createPortableArchive(app.getSnapshot(),{
+        ownerId,download:path=>media.download(path),sanitizeHtml:sanitizeJournal});
+      if(disposed)return;
+      const blob=new Blob([JSON.stringify(archive)],{type:'application/json'});
+      const url=URL.createObjectURL(blob),anchor=document.createElement('a');
+      anchor.href=url;anchor.download='orbit-private-backup-'+new Date().toISOString().slice(0,10)+'.orbit';
+      document.body.append(anchor);anchor.click();anchor.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),1800);
+      say('Full portable backup exported: '+archive.assets.length+' referenced image(s), including bytes and checksums. Keep this private file safe.');
+    }catch(error){if(!disposed)say('Full backup was NOT exported: '+error.message+' Your existing data was not changed.');}
+    finally{portableBusy=false;if(!disposed)portableExport.disabled=!ready();}
+  },portableGroup);
+  portableExport.disabled=!ready();
+  const portableInput=element('input',null,portableGroup);
+  portableInput.type='file';portableInput.accept='.orbit,application/json';portableInput.hidden=true;
+  const reviewPortable=button('Review full backup for restore',()=>{if(ready()&&!portableBusy)portableInput.click();},portableGroup);
+  reviewPortable.disabled=!ready();
+  const confirmPortable=button('Restore reviewed backup (private)',async()=>{
+    if(!ready()||portableBusy||!portableDraft)return;
+    app.flushEditor();
+    if(sync.getState().hasPending||sync.getState().state==='conflict'){
+      say('Your current changes are not saved. Export/save them before replacing this workspace.');return;
+    }
+    const draft=portableDraft;
+    if(!window.confirm('Replace this private cloud space with the reviewed portable backup? This will upload '+
+      draft.files.length+' image(s) to NEW private paths, then replace your current tasks, journals, and notes. Export your current space first. Only proceed with a trusted backup file.'))return;
+    portableBusy=true;confirmPortable.disabled=true;
+    try{
+      say('Uploading validated images to your private space. Current cloud data is not replaced yet…');
+      const remapped=await rehydratePortableArchive(draft,{ownerId,upload:blob=>media.upload(blob)});
+      if(disposed)return;
+      if(sync.getState().hasPending||sync.getState().state==='conflict'){
+        say('Workspace changed during upload. Restore not started; some uploaded files may remain unused.');return;
+      }
+      app.applySnapshot(remapped);
+      sync.queue(app.getSnapshot());
+      const result=await sync.flush();
+      if(!disposed){
+        if(result.ok){portableDraft=null;confirmPortable.hidden=true;say('Private portable backup restored and confirmed saved to the cloud.');}
+        else say('Cloud restore NOT confirmed. This session retains an unsaved draft; the previous cloud snapshot is protected by revision checks. Do not sign out until resolved. Uploaded files may remain unused.');
+      }
+    }catch(error){if(!disposed)say('Portable restore stopped: '+error.message+' Current cloud content was not intentionally replaced; uploaded private images may remain unused.');}
+    finally{portableBusy=false;if(!disposed)confirmPortable.disabled=false;}
+  },portableGroup);
+  confirmPortable.hidden=true;
+  portableInput.addEventListener('change',async()=>{
+    const file=portableInput.files?.[0];
+    if(!file||!ready()||portableBusy)return;
+    portableBusy=true;reviewPortable.disabled=true;portableDraft=null;confirmPortable.hidden=true;
+    try{
+      if(file.size>PORTABLE_MAX_TEXT_BYTES)throw Error('Portable file exceeds the safe 96 MB limit.');
+      const text=await file.text();
+      if(disposed)return;
+      const inspection=await inspectPortableArchive(text,{sanitizeHtml:sanitizeJournal});
+      if(disposed)return;
+      portableDraft=inspection;confirmPortable.hidden=false;
+      say('Validated complete backup: '+inspection.snapshot.tasks.length+' tasks, '+
+        (inspection.snapshot.journalEntries?.length??0)+' journal pages, '+
+        (inspection.snapshot.extensions?.notes?.length??0)+' notes, '+inspection.files.length+
+        ' private image(s). Nothing has been uploaded or replaced. Review, then confirm separately.');
+    }catch(error){if(!disposed)say('Portable backup rejected: '+error.message+' No data was changed.');}
+    finally{portableBusy=false;portableInput.value='';if(!disposed)reviewPortable.disabled=!ready();}
+  },{signal:events.signal});
+
   const confirmImport=button('Import reviewed data as private',async()=>{
     if(!importDraft||disposed)return;
     app.flushEditor();
@@ -76,5 +151,5 @@ export function createOwnerTools({repository,app,sync,container,canPublish=true}
     finally{if(!disposed)publish.disabled=false;}
   },{signal:events.signal});
   root.append(status);container.replaceChildren(root);
-  return {dispose(){disposed=true;importDraft=null;events.abort();root.remove();}};
+  return {dispose(){disposed=true;importDraft=null;portableDraft=null;events.abort();root.remove();}};
 }

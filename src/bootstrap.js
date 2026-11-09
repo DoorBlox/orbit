@@ -114,7 +114,7 @@ export async function bootstrapOrbit(config=runtimeConfig) {
         let canPublish=false;
         try{const result=await client.rpc('orbit_owner_access');canPublish=result?.data===true;}catch{}
         if(!isCurrent())return;
-        ownerTools=createOwnerTools({repository,app,sync,container:shell.ownerTools,canPublish});
+        ownerTools=createOwnerTools({repository,app,sync,container:shell.ownerTools,canPublish,media,ownerId:user.id});
         if(!isCurrent()){clearPrivate();return;}
         appElement.hidden=false;appElement.inert=false;
         shell.attachSpaceControls(appElement.querySelector('#space-widget'));shell.showApp(true);

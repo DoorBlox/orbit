@@ -73,3 +73,40 @@ test('cached preview never bypasses a changed authentication session',async()=>{
     media.dispose();
   }finally{URL.createObjectURL=earlier;}
 });
+
+test('portable export download requires owner, valid PNG bytes, and a still-active session',async()=>{
+  const path=OWNER+'/'+file+'.png',png=new Blob([Uint8Array.from([137,80,78,71,13,10,26,10,0,0,0,0])],{type:'application/octet-stream'});
+  let account=OWNER,downloads=0;
+  const client={auth:{getUser:async()=>({data:{user:{id:account}}})},
+    storage:{from:()=>({download:async()=>{downloads++;return {data:png,error:null};}})}};
+  const media=createPrivateMedia(client,{ownerId:OWNER});
+  const exported=await media.download(path);
+  assert.equal(exported.type,'image/png');
+  assert.equal(exported.size,12);
+  assert.equal(downloads,1);
+  await assert.rejects(media.download(OTHER+'/'+file+'.png'),/another space/i);
+  account=OTHER;
+  await assert.rejects(media.download(path),/expired/i);
+  media.dispose();
+});
+
+test('portable export cannot accept spoofed downloaded bytes or expired account mid-transfer',async()=>{
+  const path=OWNER+'/'+file+'.png';
+  let finish,account=OWNER;
+  const client={auth:{getUser:async()=>({data:{user:{id:account}}})},
+    storage:{from:()=>({download:async()=>new Promise(resolve=>{finish=resolve;})})}};
+  const media=createPrivateMedia(client,{ownerId:OWNER});
+  const pending=media.download(path);
+  // Resolve only after the async request begins.
+  for(let tries=0;tries<20&&!finish;tries++)await Promise.resolve();
+  assert.equal(typeof finish,'function');
+  account=OTHER;
+  finish({data:new Blob([Uint8Array.from([137,80,78,71,13,10,26,10,0,0,0,0])]),error:null});
+  await assert.rejects(pending,/expired/i);
+  media.dispose();
+
+  const bad=createPrivateMedia({auth:{getUser:async()=>({data:{user:{id:OWNER}}})},
+    storage:{from:()=>({download:async()=>({data:new Blob(['fake image content'],{type:'image/png'}),error:null})})}},{ownerId:OWNER});
+  await assert.rejects(bad.download(path),/signature/i);
+  bad.dispose();
+});

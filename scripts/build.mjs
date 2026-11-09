@@ -10,6 +10,7 @@ export const browserModules = [
   'backup.js','dates.js','layout.js','model.js','storage.js','widgets.js','styles.css',
   'bootstrap.js','auth/controller.js','auth/shell.js','cloud/media.js','cloud/client-config.js',
   'cloud/mappers.js','cloud/repository.js','cloud/sync.js','cloud/owner-tools.js',
+  'cloud/portable-backup.js',
 ];
 export const sdkBuildOptions=(root,outdir)=>({
   entryPoints:[path.join(root,'src/cloud/client.js')],outfile:path.join(outdir,'src/cloud/client.js'),
