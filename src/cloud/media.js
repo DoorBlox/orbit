@@ -27,7 +27,10 @@ export function createPrivateMedia(client,{ownerId}={}){
   if(!client?.storage||!client?.auth?.getUser||typeof ownerId!=='string'||!ownerId)
     throw Error('Authenticated media access is required.');
   const bucket=client.storage.from(BUCKET);
+  const previews=new Map();
+  let disposed=false;
   async function checkUser(){
+    if(disposed)throw Error('Your media session expired. Sign in again.');
     const response=await client.auth.getUser();
     if(response.error||response.data?.user?.id!==ownerId)throw Error('Your media session expired. Sign in again.');
   }
@@ -47,6 +50,25 @@ export function createPrivateMedia(client,{ownerId}={}){
       const result=await bucket.createSignedUrl(path,600);
       if(result.error||!result.data?.signedUrl)throw Error('Cannot load the private image.');
       return result.data.signedUrl;
+    },
+    async previewUrl(path){
+      if(!validMediaOwner(path,ownerId))throw Error('Image belongs to another space or is invalid.');
+      await checkUser();
+      if(previews.has(path))return previews.get(path);
+      const pending=(async()=>{
+        const result=await bucket.download(path);
+        if(result.error||!(result.data instanceof Blob)||result.data.size<12||result.data.size>MAX)
+          throw Error('Private image could not be downloaded.');
+        const url=URL.createObjectURL(result.data);
+        if(disposed){URL.revokeObjectURL(url);throw Error('Your media session expired. Sign in again.');}
+        return url;
+      })().catch(error=>{previews.delete(path);throw error;});
+      previews.set(path,pending);return pending;
+    },
+    dispose(){
+      disposed=true;
+      for(const pending of previews.values())pending.then(url=>URL.revokeObjectURL(url),()=>{});
+      previews.clear();
     }
   };
 }
