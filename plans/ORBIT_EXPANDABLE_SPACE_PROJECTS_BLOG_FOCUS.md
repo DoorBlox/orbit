@@ -3,6 +3,9 @@
 **Owner clarification:** 9 November 2026. **Status:** APPROVED PRODUCT DIRECTION; implementation units below are PROPOSED, not shipped or authorized for public release/hosted migration.
 **Companion:** [post-2.4 engineering blueprint](ORBIT_POST_2_4_EXECUTION.md), [current state](../docs/CURRENT_STATE.md), [active handoff](../CHATGPT_HANDOFF.md).
 
+## SP-01B implementation boundary
+
+SP-01B implements an actual seventh *synthetic* DOM window in browser tests, not a user-facing placeholder. The first-party registry supports keyboard movement, resizing, hiding and Places-map reopening. Optional owner-scoped state is validated in `extensions.spatialWidgets` and carried in existing V6 backup extensions; six legacy widget positions stay in the strict root `spatialLayout`. The full source/security contract is in [SP-01B optional widget state](../docs/SP01B_OPTIONAL_WIDGET_STATE.md). Source CI and real-device acceptance remain separate gates.
 ## SP-01A implementation note
 
 **SP-01A SOURCE MERGED** via [PR #48](https://github.com/DoorBlox/orbit/pull/48) at `f422de6bbbafb4e352edde604ce9315a193e7680`, 4/4 checks green. It extracts a validated, immutable widget descriptor registry and lets `SpatialBoard` consume it while retaining all six legacy IDs, coordinates, size bounds and minimap icons. Tests create a seventh synthetic `projects` descriptor without replacing current layout. This is **internal source infrastructure**, NOT a user-visible Projects widget, and intentionally does not yet extend the V6 backup allowlist to unknown arbitrary widget IDs. SP-01B must test a real seventh mounted element, optional visibility/launcher and a reviewed compatible persistence/backup strategy before user exposure.

@@ -1,3 +1,9 @@
+## SP-01B — source implementation in review
+
+- Branch `feat/sp01b-extra-window-private-layout-20261109` follows SP-01A main `5c30a46e4eff8a344b28ea74b572b6290eb24679`. Tests first, then a dynamic first-party seventh DOM widget and private optional-layout extension. See [SP-01B contract](docs/SP01B_OPTIONAL_WIDGET_STATE.md).
+- Normal ORBIT startup still shows the original six widgets. Synthetic seventh `projects` fixture exists only in `tests/qa_spatial_extra.py`; it validates keyboard move/resize, Hide/Reopen in Places, source-local reload and private backup metadata. This is **not** a functional Projects feature.
+- Optional state lives in `extensions.spatialWidgets`; root V6 `spatialLayout` and legacy localStorage layout keys remain six-ID. Unknown extension IDs remain inert. No hosted SQL/RLS/Storage, Vercel release, public posting or private-user data mutations.
+- **Gate:** exact-head checks and synthetic browser success before merging. Next work is actual private project labels PJ-01 and real Projects UI PJ-02, with no arbitrary remote widget execution.
 ## Latest verified source checkpoint — BP-06 and SP-01A merged (9 November 2026)
 
 - **main before this docs-only closeout:** `f422de6bbbafb4e352edde604ce9315a193e7680`, squash of [SP-01A PR #48](https://github.com/DoorBlox/orbit/pull/48), 4/4 exact-head checks green. [BP-06 PR #47](https://github.com/DoorBlox/orbit/pull/47) squash `78830dcf251da19a516ad276d068d84c5ae3ffea`, also 4/4 green.
