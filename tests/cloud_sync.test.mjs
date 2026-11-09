@@ -23,3 +23,37 @@ test('invalid acknowledgments and responses retain pending drafts and revision',
 test('refresh when offline and disposed methods never fetch or enqueue',async()=>{const repository=repo();let loads=0;repository.loadOwnerSnapshot=async()=>{loads++;return {revision:1,snapshot:snap('remote')};};const controller=make(repository,{isOnline:()=>false});assert.equal((await controller.refresh()).ok,false);assert.equal(controller.getState().state,'offline');controller.dispose();assert.equal(controller.queue(snap('ignored')),false);assert.equal((await controller.flush()).ok,false);assert.equal((await controller.retry()).ok,false);assert.equal(loads,0);assert.throws(()=>createSyncController(),/repository/i);});
 test('explicit remote reload retains a new edit queued synchronously by snapshot consumer',async()=>{const repository=repo();let controller;controller=make(repository,{onSnapshot:()=>controller.queue(snap('new edit'))});controller.queue(snap('old draft'));await controller.discardPendingAndReload();assert.equal(controller.getPendingSnapshot().tasks[0].title,'new edit');assert.equal(controller.getState().state,'pending');assert.equal(controller.getState().revision,2);await controller.flush();assert.equal(repository.writes[0].expectedRevision,2);controller.dispose();});
 test('clean refresh preserves pending feedback for callback-triggered edit',async()=>{const repository=repo();let controller;controller=make(repository,{onSnapshot:()=>controller.queue(snap('new edit'))});await controller.refresh();assert.equal(controller.getPendingSnapshot().tasks[0].title,'new edit');assert.equal(controller.getState().state,'pending');assert.equal(controller.getState().revision,2);controller.dispose();});
+
+test('BP-03 hidden tabs skip owner reads, then immediately revalidate on visibility and focus',async()=>{
+  const events=new EventTarget(),visibility=new EventTarget(),repository=repo();
+  let loads=0;visibility.visibilityState='hidden';
+  repository.loadOwnerSnapshot=async()=>{loads++;return {revision:2,snapshot:snap('remote')};};
+  const controller=make(repository,{eventTarget:events,visibilityTarget:visibility,isVisible:()=>visibility.visibilityState!=='hidden',pollMs:5});
+  await new Promise(resolve=>setTimeout(resolve,25));
+  assert.equal(loads,0,'No full snapshot request while tab is hidden');
+  events.dispatchEvent(new Event('focus'));
+  visibility.dispatchEvent(new Event('visibilitychange'));
+  await pause();assert.equal(loads,0,'Hidden focus and visibility events stay quiet');
+  visibility.visibilityState='visible';visibility.dispatchEvent(new Event('visibilitychange'));
+  await pause();assert.ok(loads>=1,'Visible transition revalidates clean workspace');
+  controller.dispose();const count=loads;
+  visibility.dispatchEvent(new Event('visibilitychange'));
+  events.dispatchEvent(new Event('focus'));
+  await pause();assert.equal(loads,count,'Disposed listeners never fetch');
+});
+
+test('BP-03 pending offline draft is retried on reconnect even while hidden, preserving CAS',async()=>{
+  const events=new EventTarget(),visibility=new EventTarget(),repository=repo();
+  visibility.visibilityState='hidden';let online=false,reads=0;
+  repository.loadOwnerSnapshot=async()=>{reads++;return {revision:2,snapshot:snap('remote')};};
+  const controller=make(repository,{eventTarget:events,visibilityTarget:visibility,
+    isVisible:()=>visibility.visibilityState!=='hidden',isOnline:()=>online,pollMs:5});
+  controller.queue(snap('draft'));await controller.flush();
+  online=true;events.dispatchEvent(new Event('online'));
+  await pause();await pause();
+  assert.equal(repository.writes.length,1);
+  assert.equal(repository.writes[0].expectedRevision,0);
+  assert.equal(controller.getState().state,'saved');
+  assert.equal(reads,0,'Reconnect must not download while hidden');
+  controller.dispose();
+});
