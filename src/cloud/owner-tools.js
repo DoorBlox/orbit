@@ -102,8 +102,8 @@ export function createOwnerTools({repository,app,sync,container,media,ownerId,ca
       if(disposed)return;
       portableDraft=inspection;confirmPortable.hidden=false;
       say('Validated complete backup: '+inspection.snapshot.tasks.length+' tasks, '+
-        inspection.snapshot.journalEntries?.length+' journal pages, '+
-        inspection.snapshot.extensions?.notes?.length+' notes, '+inspection.files.length+
+        (inspection.snapshot.journalEntries?.length??0)+' journal pages, '+
+        (inspection.snapshot.extensions?.notes?.length??0)+' notes, '+inspection.files.length+
         ' private image(s). Nothing has been uploaded or replaced. Review, then confirm separately.');
     }catch(error){if(!disposed)say('Portable backup rejected: '+error.message+' No data was changed.');}
     finally{portableBusy=false;portableInput.value='';if(!disposed)reviewPortable.disabled=!ready();}
