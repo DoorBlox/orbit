@@ -36,9 +36,11 @@ export function normalizeExtensions(raw={}){
   if(!object(raw)||JSON.stringify(raw).length>900000)throw Error('Invalid or oversized workspace extensions.');
   const notes=raw.notes??[],taskLinks=raw.taskLinks??{},journalScenes=raw.journalScenes??{},journalImages=raw.journalImages??{};
   const rawAppearance=raw.appearance??{};
-  if(!object(rawAppearance)||!['parchment','garden','frost'].includes(rawAppearance.theme??'parchment')||
-     !['system','off'].includes(rawAppearance.motion??'system'))throw Error('Invalid workspace appearance.');
-  const appearance={theme:rawAppearance.theme??'parchment',motion:rawAppearance.motion??'system'};
+  if(!object(rawAppearance)||!['parchment','garden','frost','celestial','ember','tidepool','sundown','sakura','graphite','linen'].includes(rawAppearance.theme??'parchment')||
+     !['system','off'].includes(rawAppearance.motion??'system')||
+     (rawAppearance.ambient!==undefined&&typeof rawAppearance.ambient!=='boolean'))throw Error('Invalid workspace appearance.');
+  const appearance={theme:rawAppearance.theme??'parchment',motion:rawAppearance.motion??'system',
+    ambient:rawAppearance.ambient??false};
   if(!Array.isArray(notes)||notes.length>80||!object(taskLinks)||Object.keys(taskLinks).length>10000||
      !object(journalScenes)||Object.keys(journalScenes).length>600||!object(journalImages)||Object.keys(journalImages).length>600)throw Error('Invalid workspace extensions.');
   const ids=new Set();

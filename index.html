@@ -100,12 +100,35 @@
 <button class="glass-button subtle" id="cancel-space-name" type="button">Cancel</button>
 </div>
 </form>
-<div class="space-actions">
+<div class="space-actions space-primary-actions">
+<button class="glass-button" id="new-sticky" type="button">+ sticky note</button>
 <button class="glass-button" id="rename-space" aria-controls="space-name-form" aria-expanded="false" type="button">Rename space</button>
 <button class="glass-button" id="expand-all-branches" type="button">Expand branches</button>
 <button class="glass-button" id="collapse-all-branches" type="button">Collapse branches</button>
-<button class="glass-button" id="new-sticky" type="button">+ sticky note</button>
-<button class="glass-button" id="backup-json" type="button">Backup</button>
+</div>
+<fieldset class="appearance-controls" id="appearance-controls">
+  <legend>Make this space yours</legend>
+  <div class="appearance-choices" role="radiogroup" aria-label="Choose one of ten canvas themes">
+    <label class="appearance-option"><input type="radio" name="space-theme" value="parchment" checked/><span class="appearance-swatch" aria-hidden="true"></span><span>Parchment</span></label>
+    <label class="appearance-option"><input type="radio" name="space-theme" value="garden"/><span class="appearance-swatch" aria-hidden="true"></span><span>Night Garden</span></label>
+    <label class="appearance-option"><input type="radio" name="space-theme" value="frost"/><span class="appearance-swatch" aria-hidden="true"></span><span>Frost</span></label>
+    <label class="appearance-option"><input type="radio" name="space-theme" value="celestial"/><span class="appearance-swatch" aria-hidden="true"></span><span>Celestial Blue</span></label>
+    <label class="appearance-option"><input type="radio" name="space-theme" value="ember"/><span class="appearance-swatch" aria-hidden="true"></span><span>Ember</span></label>
+    <label class="appearance-option"><input type="radio" name="space-theme" value="tidepool"/><span class="appearance-swatch" aria-hidden="true"></span><span>Tidepool</span></label>
+    <label class="appearance-option"><input type="radio" name="space-theme" value="sundown"/><span class="appearance-swatch" aria-hidden="true"></span><span>Sundown</span></label>
+    <label class="appearance-option"><input type="radio" name="space-theme" value="sakura"/><span class="appearance-swatch" aria-hidden="true"></span><span>Sakura</span></label>
+    <label class="appearance-option"><input type="radio" name="space-theme" value="graphite"/><span class="appearance-swatch" aria-hidden="true"></span><span>Graphite</span></label>
+    <label class="appearance-option"><input type="radio" name="space-theme" value="linen"/><span class="appearance-swatch" aria-hidden="true"></span><span>Linen</span></label>
+  </div>
+  <div class="appearance-switches">
+    <label class="appearance-motion"><input type="checkbox" id="appearance-ambient"/> Animate background</label>
+    <label class="appearance-motion"><input type="checkbox" id="appearance-reduce-motion"/> Reduce interface motion</label>
+  </div>
+</fieldset>
+<details class="space-more-tools">
+<summary>More tools <span>Backup, import and export</span></summary>
+<div class="space-actions space-secondary-actions">
+<button class="glass-button" id="backup-json" type="button">Back up space</button>
 <button class="glass-button" id="import-csv" type="button" title="Import tasks or branches CSV, journal pages JSON, or an entire ORBIT backup">Import</button>
 <label class="visually-hidden" for="export-kind">Choose export content</label>
 <select class="space-export-picker" id="export-kind" aria-label="Choose export content">
@@ -117,15 +140,7 @@
 <button class="glass-button" id="export-csv" type="button">Export selected</button>
 <button class="glass-button subtle" id="clear-demo" type="button">Remove samples</button>
 </div>
-<fieldset class="appearance-controls" id="appearance-controls">
-  <legend>Canvas appearance</legend>
-  <div class="appearance-choices" role="radiogroup" aria-label="Choose theme">
-    <label class="appearance-option"><input type="radio" name="space-theme" value="parchment" checked/><span>Parchment</span></label>
-    <label class="appearance-option"><input type="radio" name="space-theme" value="garden"/><span>Night Garden</span></label>
-    <label class="appearance-option"><input type="radio" name="space-theme" value="frost"/><span>Frost</span></label>
-  </div>
-  <label class="appearance-motion"><input type="checkbox" id="appearance-reduce-motion"/> Reduce canvas motion</label>
-</fieldset>
+</details>
 </section>
       <article id="journal-widget" class="spatial-item journal-widget" data-widget="journal" aria-label="Personal journal">
         <div class="journal-outer-glass">

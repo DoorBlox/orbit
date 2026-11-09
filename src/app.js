@@ -48,8 +48,10 @@ function applyAppearance(){
   const appearance=state.extensions.appearance;
   document.documentElement.dataset.theme=appearance.theme;
   document.documentElement.dataset.motion=appearance.motion;
+  document.documentElement.dataset.ambient=appearance.ambient?'on':'off';
   for(const input of document.querySelectorAll('input[name="space-theme"]'))input.checked=input.value===appearance.theme;
   const motion=$('appearance-reduce-motion');if(motion)motion.checked=appearance.motion==='off';
+  const ambient=$('appearance-ambient');if(ambient)ambient.checked=appearance.ambient;
 }
 applyAppearance();
 const capture=$('capture-form'),input=$('capture-name'),target=$('capture-target');
@@ -392,6 +394,13 @@ function initTools(){
       message('Appearance saved to this private space.');
     });
   }
+  $('appearance-ambient').disabled=readOnly;
+  $('appearance-ambient').addEventListener('change',event=>{
+    if(disposed||readOnly)return;
+    state.extensions.appearance.ambient=event.currentTarget.checked;
+    applyAppearance();extensionsChanged();
+    message(event.currentTarget.checked?'Background animation enabled.':'Background animation paused.');
+  });
   $('appearance-reduce-motion').disabled=readOnly;
   $('appearance-reduce-motion').addEventListener('change',event=>{
     if(disposed||readOnly)return;
@@ -591,6 +600,6 @@ function applySnapshot(snapshot){
   sync({persist:false});hydrating=false;
 }
 function setCloudStatus(status){cloudStatus=status;journal.setCloudStatus(status);}
-function dispose(){if(disposed)return;disposed=true;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);board.dispose();journal.dispose();stickies.dispose();scene.dispose();media?.dispose?.();document.documentElement.dataset.theme='parchment';document.documentElement.dataset.motion='system';window.orbitDebug=null;}
+function dispose(){if(disposed)return;disposed=true;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);board.dispose();journal.dispose();stickies.dispose();scene.dispose();media?.dispose?.();document.documentElement.dataset.theme='parchment';document.documentElement.dataset.motion='system';document.documentElement.dataset.ambient='off';window.orbitDebug=null;}
 return {getSnapshot,applySnapshot,setCloudStatus,dispose,flushEditor:()=>journal.commit(),exportBackup:backupJson};
 }
