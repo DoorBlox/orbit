@@ -68,7 +68,7 @@ PROPOSED = specified only; READY = prerequisites/research sufficient; IN PROGRES
 
 ### BP-04 — reconcile migration ledger without touching Production data
 
-- **Status:** READY for **read-only discovery**, NOT ready for migration writes.
+- **Status:** IN PROGRESS source-only reconciliation (seven SQL statements compared with hosted history and seven repository filenames aligned to already-applied hosted versions in review); no hosted migration writes. See [parity evidence](../docs/SUPABASE_MIGRATION_PARITY_2026-11-09.md). Future SQL/hosted change NOT authorized.
 - **Surfaces:** supabase/migrations/*.sql, supabase/config.toml, supabase/tests/*.sql, docs/OPERATIONS.md; hosted migration ledger and SQL definitions through read-only connector queries.
 - **Implementation:** map seven local descriptive migration names to seven hosted migration version IDs; compare applied SQL objects/functions/grants/storage policy against a clean local replay. Record exact differences and recovery strategy. If migration tools interpret filenames differently, define a safe reconciliation approach and independent acceptance review.
 - **Acceptance:** evidence-backed parity report with per-version local/hosted mapping, no false claim of identical SQL until checked; fresh disposable local database builds and isolated pgTAP pass before any future hosted migration.
