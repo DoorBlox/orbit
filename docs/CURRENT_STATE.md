@@ -15,7 +15,7 @@
 
 - **Frontend:** native HTML/CSS/JavaScript ES modules, six resizable and draggable spatial windows, a separate radial constellation camera; Supabase JS is the only runtime package in package.json. Do not rewrite as a generic React dashboard.
 - **Supabase project:** ixfgavgtwuzdgucjriec, Singapore/Postgres 17. Eight public tables have RLS; seven private-workspace tables have per-owner permissive CRUD policies paired with a RESTRICTIVE authenticated-tenant policy. The private media bucket is orbit-private-media (PNG, JPEG, WebP, 5 MiB limit). The browser receives no service-role key.
-- **BP-04 source reconciliation:** the seven hosted migration statements match Git SQL (five exact, two differ only by a final newline), but local filenames originally used different timestamp IDs. A source-only PR is aligning seven LOCAL filenames to those already-applied hosted versions **without modifying SQL bytes** and adding tests/CI. Read [migration parity ledger](SUPABASE_MIGRATION_PARITY_2026-11-09.md). This is NOT a hosted database change, and does not independently prove every hosted schema object is identical. Do not run a hosted db push/repair until separately approved.
+- **BP-04 source reconciliation complete:** [PR #38](https://github.com/DoorBlox/orbit/pull/38), main e5de8b32720f1ec26637bb48ea3db26942faaa45, aligned all seven LOCAL migration filename IDs to already-applied hosted versions **without SQL edits**, passed four checks including disposable local RLS/HTTP isolation. See [migration parity ledger](SUPABASE_MIGRATION_PARITY_2026-11-09.md). Hosted SQL version history was not touched; full hosted object-level parity and a future migration remain separately gated.
 - Current hosted advisory observations: leaked-password protection disabled (WARN); private.orbit_configuration RLS without policies (INFO); two permissive publication-read policies and three unused indexes (performance warnings/info). These are not proof of exposed user data or justified index deletion.
 - No confirmed paid upgrade, Cloudflare R2 activation, remote MCP service, DB-branch deployment or hosted Edge Function is part of 2.4.
 
@@ -28,9 +28,9 @@ Six movable, resizable widgets (constellation, continuum, to-do, completed, spac
 | ID | State | What remains |
 | --- | --- | --- |
 | [#26](https://github.com/DoorBlox/orbit/issues/26) | OPEN | Real owner and second-account Production image-rendering acceptance for journals and stickies. Source-level blob preview mitigation is not enough. |
-| BP-02 | NOT DONE | Current JSON export stores private image **paths, not physical image bytes**. Portable backup and supervised restore are needed. |
+| BP-02 | IN PROGRESS — SOURCE BRANCH, NOT LIVE | The current V6 JSON stores image paths only. A versioned portable .orbit with referenced image bytes, SHA-256 and reviewed private restore is in implementation; see [format contract](PORTABLE_BACKUP_V1.md). |
 | BP-03 | NOT DONE | 15-second full-snapshot sync polling and global revision conflicts need measurement and safe optimization. |
-| BP-04 | NOT DONE | Hosted/local migration history reconciliation before future hosted schema changes. |
+| BP-04 | SOURCE MERGED / TESTED | Local migration timestamps match hosted ledger; schema-object parity and next hosted migration remain gated. |
 | BP-05 | NOT DONE | Legacy manual stage-only workflow is pinned to 1.0.0 and must not be used as a general 2.4+ release operation. |
 | BP-06 | NOT DONE | Full real-device, signed-in, keyboard/assistive-tech, zoom, ten-theme and performance audit. |
 | [#29](https://github.com/DoorBlox/orbit/issues/29) | OPEN | Reusable private media library, reference-safe permanent deletion and optional provider migration. |
