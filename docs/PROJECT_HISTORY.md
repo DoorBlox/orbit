@@ -1,5 +1,11 @@
 # ORBIT implementation history and evidence ledger
 
+## 9 Nov 2026 — ChatGPT handoff and repository migration parity closeout
+
+- [PR #37](https://github.com/DoorBlox/orbit/pull/37) merged as 6c17b79a9ce04d3f160dec78fba88fce0daabe6b, four green checks: canonical CHATGPT_HANDOFF.md and tool/skill playbook; original CODEX-named file archived verbatim; verified docs-only CI fast path. No Production change.
+- [PR #38](https://github.com/DoorBlox/orbit/pull/38) merged as e5de8b32720f1ec26637bb48ea3db26942faaa45, four green checks: source-only rename of seven migration filenames to hosted timestamp IDs, unchanged Git SQL blob SHAs, updated checks, local RLS/HTTP PASS. **No hosted Supabase SQL/history changes.**
+- BP-02 source branch feat/bp02-portable-private-media-backup-20261109 adds a separate portable .orbit private-media format; it is NOT live or SOURCE MERGED unless exact PR/CI confirm. See [portable format contract](PORTABLE_BACKUP_V1.md).
+
 ## 9 Nov 2026 — source and CI foundation after 2.4 deployment
 
 - [PR #35](https://github.com/DoorBlox/orbit/pull/35) merged as f899923ba098d21bc2f75b87d7bdcd3189f4e857 after all four required exact-head checks: canonical verified state, documentation protocol, BP-00–16 execution blueprint and Excalidraw EX-00/01/02 path. Documentation-only.
