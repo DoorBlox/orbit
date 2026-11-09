@@ -10,7 +10,7 @@
 - [ ] BP-01 authenticated Production image verification (#26).
 - [ ] BP-02 portable image-inclusive backup and supervised restore.
 - [ ] BP-03 measured low-request, visibility-aware sync that keeps CAS safety.
-- [ ] BP-04 migration version and SQL parity without remote writes.
+- [ ] BP-04 migration ledger reconciliation: seven SQL bodies verified, source-only filename alignment with immutable hashes and local test PR underway; see [parity ledger](SUPABASE_MIGRATION_PARITY_2026-11-09.md). Do not change remote history without separate approval.
 - [ ] BP-05 archived/safe 2.4+ release pipeline, not pinned 1.0 workflow.
 - [ ] BP-06 synthetic browser visual/accessibility/performance baseline; owner screenshots optional.
 - [ ] EX-00 early official Excalidraw library/API/scene compatibility prototype with fake data.
