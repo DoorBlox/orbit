@@ -3,7 +3,9 @@ const knownCodes = new Set(['AUTH_REQUIRED','FORBIDDEN','CONFLICT','NETWORK','VA
 /** One serialized save queue per signed-in owner. Drafts never enter telemetry. */
 export function createSyncController({ repository, initialRevision = 0, onSnapshot = () => {}, onStatus = () => {},
   debounceMs = 500, pollMs = 15000, eventTarget = globalThis.window,
-  isOnline = () => globalThis.navigator?.onLine !== false } = {}) {
+  visibilityTarget = globalThis.document,
+  isOnline = () => globalThis.navigator?.onLine !== false,
+  isVisible = () => visibilityTarget?.visibilityState !== 'hidden' } = {}) {
   if (!repository?.saveSnapshot || !repository?.loadOwnerSnapshot || !Number.isSafeInteger(initialRevision) || initialRevision < 0) {
     throw Error('A snapshot repository and valid initial revision are required.');
   }
@@ -109,19 +111,25 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
     if (disposed || errorCode === 'CONFLICT') return Promise.resolve({ok:false,...getState()});
     return pending ? flush() : refresh();
   }
-  const onFocus = () => { void refresh(); };
-  const onOnline = () => { void retry(); };
+  // Hidden tabs must not repeatedly download full owner snapshots. A visible
+  // transition revalidates immediately; pending drafts still use CAS on save.
+  const onFocus = () => { if (isVisible()) void refresh(); };
+  const onVisibility = () => { if (isVisible()) void refresh(); };
+  const onPoll = () => { if (isVisible() && isOnline()) void refresh(); };
+  const onOnline = () => { if (pending) void retry(); else if (isVisible()) void refresh(); };
   const onOffline = () => { if (pending) status('offline','NETWORK'); };
   eventTarget?.addEventListener?.('focus',onFocus);
   eventTarget?.addEventListener?.('online',onOnline);
   eventTarget?.addEventListener?.('offline',onOffline);
-  if (pollMs > 0) pollTimer = setInterval(onFocus,pollMs);
+  visibilityTarget?.addEventListener?.('visibilitychange',onVisibility);
+  if (pollMs > 0) pollTimer = setInterval(onPoll,pollMs);
   function dispose() {
     if (disposed) return;
     disposed = true; cancelDebounce(); clearInterval(pollTimer);
     eventTarget?.removeEventListener?.('focus',onFocus);
     eventTarget?.removeEventListener?.('online',onOnline);
     eventTarget?.removeEventListener?.('offline',onOffline);
+    visibilityTarget?.removeEventListener?.('visibilitychange',onVisibility);
     for (const controller of requests) controller.abort();
     requests.clear(); pending = null; ++changeVersion; state = 'disposed'; errorCode = null;
   }
