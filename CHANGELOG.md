@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.2.1 — Unreleased (source patch)
+
+- Fix #26: allow only the exact ORBIT Supabase origin for signed private images under CSP `img-src`; enforce this in the strict Production configuration verifier and tests. Private image Storage RLS, bucket visibility and keys remain unchanged.
+- Add **Duplicate sticky note** action. The copy has a distinct ID and world position, and independently editable text/drawings while retaining the same private image reference without storing duplicate image bytes. Respect the 80-note limit and read-only mode.
+- Add browser persistence and safety regressions; no Supabase migration or API change. Verify images on a protected Preview and then in Production before closing #26.
+
+
 ## 9 Nov 2026 — ORBIT 2.2 beta LIVE on Production (latest source of truth)
 
 - **Serving Production:** canonical `https://orbit.starscene.com/` now maps to Vercel READY Production deployment `dpl_AxaB85krmkJfDUj1T6ipqw8rodH4`, exact reviewed source `de2523dcea497c7ee41547ca94c14f48c72688f1` (merged [PR #25](https://github.com/DoorBlox/orbit/pull/25), all four exact-head checks passed). Server-side production build completed with Supabase cloud config; unauthenticated GET returns HTTP 200 and no private journal text. The name `2.2 beta` describes the app feature release; package.json's legacy version value has not yet been revised.

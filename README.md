@@ -1,5 +1,7 @@
 # ORBIT — The Spatial Scrapbook
 
+**Next patch (not yet live):** [#26](https://github.com/DoorBlox/orbit/issues/26) targets private image previews blocked by the Production image Content Security Policy. The source branch also adds independent **Copy** for paper sticky notes (text, drawing, tint and private image reference). Live beta still has the image-display limitation until tested and released.
+
 ## 9 Nov 2026 — ORBIT 2.2 beta LIVE on Production (latest source of truth)
 
 - **Serving Production:** canonical `https://orbit.starscene.com/` now maps to Vercel READY Production deployment `dpl_AxaB85krmkJfDUj1T6ipqw8rodH4`, exact reviewed source `de2523dcea497c7ee41547ca94c14f48c72688f1` (merged [PR #25](https://github.com/DoorBlox/orbit/pull/25), all four exact-head checks passed). Server-side production build completed with Supabase cloud config; unauthenticated GET returns HTTP 200 and no private journal text. The name `2.2 beta` describes the app feature release; package.json's legacy version value has not yet been revised.

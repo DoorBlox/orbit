@@ -10,6 +10,12 @@
 - [x] Motion/accessibility fixes and browser CI; public MIT source and free disposable database security tests.
 - [x] Owner-approved protected Production 1.0.0 on `orbit.starscene.com`; secondary hostname redirects to it.
 
+## Next patch (2.2.1, source only)
+
+- [ ] Close signed private-image display defect [#26](https://github.com/DoorBlox/orbit/issues/26) after exact Supabase-origin CSP change, approved deployment and real browser confirmation. Private Storage RLS stays unchanged.
+- [ ] Ship independent draggable sticky **Copy** action and browser backup/persistence regression; preserve the private image reference, no duplicate file writes.
+- [ ] Ensure four required PR checks pass on exact head; keep the existing live 2.2 Production alias until reviewed promotion.
+
 ## Near-term quality and operations
 
 - [x] Main branch protection is active with PR-only merges, no force push and four required status checks.
