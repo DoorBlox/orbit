@@ -1,5 +1,15 @@
 # Changelog
 
+## ORBIT 2.4 — LIVE Production, 9 Nov 2026
+
+- PR #33 merged to `4e57aca`, all four required exact-head CI checks passed. Vercel staged artifact `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4` READY; canonical `orbit.starscene.com` explicitly switched after restricted header/runtime-config checks, HTTP 200 and no private anonymous HTML.
+- Ten curated full-system themes, background animation opt-in, clearer clock and differentiated glass/navigation vs solid paper content.
+- Scroll-safe Space panel, “More tools” disclosure for infrequent backup/import/export, sticky-note markers and draggable/keyboard mini-map travel.
+- Expanded sanitized journal formatting and plain-text sticky Markdown editor with DOM-safe preview. Added per-task checklists in existing owner-private workspace extensions; no SQL migration or data loss.
+- Remains open: private image signed-in verification (#26), true embedded React Excalidraw (#31), media library/deletion (#29), scoped ChatGPT connector (#32).
+- Previous READY Production `dpl_AxaB85krmkJfDUj1T6ipqw8rodH4` retained for rollback. No Auth, RLS, Storage, billing or service-role changes.
+
+
 ## 2.4 — In review (9 November 2026)
 
 - Ten coherent account-scoped theme palettes; optional ambient animation; readable clock and calmer paper/glass hierarchy.

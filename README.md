@@ -1,5 +1,8 @@
 # ORBIT — The Spatial Scrapbook
 
+**Current live release (9 Nov 2026):** ORBIT 2.4 at [orbit.starscene.com](https://orbit.starscene.com/), Git `4e57aca`, Vercel `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`. Ten themes, ambient animation option, sticky-aware draggable mini-map, richer private journal/sticky writing and task checklists. The six movable spatial windows remain; private media is Supabase Storage. The full upstream Excalidraw editor (#31), private media library (#29), and ChatGPT MCP connector (#32) are not yet shipped. #26 image rendering still requires authenticated Production verification.
+
+
 **ORBIT 2.4 in review:** ten saved visual themes, independent background animation, draggable mini-map with sticky markers, stronger journal/sticky formatting, scroll-safe Space controls and private task checklists. Original six movable windows and spatial world remain. Real embedded Excalidraw ([#31](https://github.com/DoorBlox/orbit/issues/31)) and scoped ChatGPT connector ([#32](https://github.com/DoorBlox/orbit/issues/32)) are separate security/version-verified work units; current native drawing UI is not presented as upstream Excalidraw. Release gated by CI, Preview and inspected Production artifacts.
 
 
