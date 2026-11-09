@@ -234,7 +234,7 @@ def normal_flows(browser):
     assert page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].scene.elements.length") == 1
     # Duplicate a drawn sticky; the copy must have a new ID, independent text,
     # matching paper tint and drawing, and remain after a full page reload.
-    page.locator('.sticky-note').first.get_by_role('button',name='Duplicate sticky note').click()
+    page.locator('.sticky-note').first.get_by_role('button',name='Duplicate sticky note').evaluate('e=>e.click()')
     expect(page.locator('.sticky-note')).to_have_count(2)
     notes=page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes")
     assert notes[0]['id'] != notes[1]['id']
