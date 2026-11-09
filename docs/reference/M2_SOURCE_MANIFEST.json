@@ -112,8 +112,8 @@
       "reason": "Preserve task/timeline projection over canonical owner snapshots and read-only controls."
     },
     "src/scene.js": {
-      "sha256": "56e12dadd754ca4badd9ee01444374c613666a8349f54e2a4ff45689b21d32c3",
-      "reason": "EX-01: lazily load the local official React Excalidraw editor from the existing shared Journal/Sticky drawing dialog, retaining native fallback, explicit save and destroy-on-close."
+      "sha256": "60eb2222fd3a2a8e3446287fcc740b21f4d55833938996a93425c205e77a058a",
+      "reason": "EX-01: shared Journal/sticky dialog lazily mounts the real official editor, preserves legacy drawing on invalid upstream restore, confirms intentional deletion, disposes on close and retains native pen fallback."
     },
     "src/stickies.js": {
       "sha256": "96b8fd73b59e8b836e631d124d4614525cd664f1e9aae657edee8fbf6b460dcd",
@@ -128,8 +128,8 @@
       "reason": "BP-02: new versioned image-inclusive portable archive codec; bounded authenticated paths, MIME, SHA-256 and owner remapping."
     },
     "src/excalidraw-adapter.js": {
-      "sha256": "c9409c566e7948161160c1e7f74ebca5d704fb7bdce52653dd8e317b73eb6802",
-      "reason": "EX-00: bounded framework-neutral adapter for official Excalidraw initialData/onChange scene persistence; no React dependency, user data, or external embeds."
+      "sha256": "3f98f283ab5571da5481d9a44b612ab58a073041d7a05a5b5923ee8739ec901b",
+      "reason": "EX-01: upgrade zero-size legacy single-point pen strokes on a cloned Excalidraw initialData scene so upstream does not drop them silently, with original ORBIT scene preserved until explicit Save."
     },
     "src/excalidraw-island.entry.mjs": {
       "sha256": "29b7d1a41ab7f21531898688311d124255aecfca3bde9b2c19aa6eb43fdf882e",
