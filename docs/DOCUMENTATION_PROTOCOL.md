@@ -2,6 +2,10 @@
 
 **Adopted:** 9 November 2026. **Purpose:** prevent context loss, contradictory state claims, uncontrolled scope growth and accidental infrastructure changes. This document is a maintained rulebook, not another release history.
 
+## Agent-owned execution and continuity
+
+ChatGPT owns executing approved implementation work, not merely writing the plan. After each code or CI change, it records exact head/PR/check evidence, resolved and unresolved test gates, and a single file-level next task in CODEX_HANDOFF.md. Do not require the owner to manage the project through reminder prompts. The assistant can only advance work during active conversations unless an automation is explicitly created. Separately approve production changes, hosted data, identity access, destructive operations and paid resources.
+
 ## Source-of-truth priority
 
 1. **Observed system state:** live GitHub branch/PR/check SHA, Vercel deployment/domain/protection, Supabase migrations/RLS/Storage. Never infer a present result from a historical document.
