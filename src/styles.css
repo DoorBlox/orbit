@@ -1190,3 +1190,46 @@ body.cloud-space-mounted .app-shell{height:100dvh!important}
   :root .appearance-choices{grid-template-columns:repeat(2,minmax(0,1fr))}
   :root .space-widget{scrollbar-gutter:auto}
 }
+
+/* Writing controls, compact minimap and resilient small panel states. */
+:root .space-nav-map{touch-action:none!important;cursor:crosshair;user-select:none}
+:root .space-nav-map.is-dragging{cursor:grabbing}
+:root .space-nav-map:focus-visible{outline:3px solid var(--orbit-accent)!important;outline-offset:3px}
+:root .space-nav-map .space-point:focus-visible{outline:3px solid var(--orbit-accent)!important;outline-offset:2px}
+:root .space-nav-map .space-point-sticky{z-index:3!important;width:19px;height:19px;border-radius:5px!important;
+  font-size:12px;line-height:1;background:var(--orbit-paper)!important;color:var(--orbit-paper-ink)!important;
+  border:1px solid var(--orbit-outline)!important;box-shadow:0 2px 3px color-mix(in srgb,var(--orbit-sky) 20%,transparent)}
+:root .space-nav-map .space-point-sticky:hover{transform:translate(-50%,-50%) scale(1.2)}
+:root .space-nav-map .space-nav-cursor{pointer-events:none!important}
+:root .space-nav-caption{color:var(--orbit-chrome-ink)!important}
+:root .space-widget .space-primary-actions{display:flex;gap:7px;flex-wrap:wrap}
+:root .space-widget .space-primary-actions .glass-button{flex:1 1 auto}
+:root .space-widget .space-secondary-actions{display:flex;gap:7px;flex-wrap:wrap}
+:root .space-widget .space-more-tools summary:focus-visible{outline:3px solid var(--orbit-accent);outline-offset:3px}
+:root .space-widget .appearance-switches{grid-template-columns:repeat(2,minmax(0,1fr))}
+:root .sticky-note{overflow-y:auto!important;overscroll-behavior:contain;scrollbar-width:thin;
+  scrollbar-color:var(--orbit-outline) transparent}
+:root .sticky-formatbar{display:flex;flex:none;flex-wrap:wrap;gap:4px;align-items:center;margin:0}
+:root .sticky-format-button{font-family:var(--orbit-font-ui);color:var(--orbit-paper-ink);
+  background:color-mix(in srgb,var(--orbit-paper) 78%,transparent);border:1px solid var(--orbit-outline);
+  border-radius:6px;min-height:28px;min-width:27px;padding:3px 7px;font-size:11px;line-height:1.2;font-weight:650}
+:root .sticky-format-button:hover{background:var(--orbit-hover-surface)}
+:root .sticky-format-button:focus-visible{outline:2px solid var(--orbit-accent);outline-offset:2px}
+:root .sticky-preview-toggle{margin-left:auto}
+:root .sticky-text-preview{flex:1;min-height:45px;overflow:auto;padding:5px 3px 8px;
+  font:14px/1.45 var(--orbit-font-paper);color:var(--orbit-paper-ink);
+  overflow-wrap:anywhere}
+:root .sticky-text-preview p{margin:0 0 4px}
+:root .sticky-text-preview p:last-child{margin-bottom:0}
+:root .sticky-text-preview a{color:var(--orbit-accent);text-decoration:underline}
+:root .sticky-text-preview code{font-family:monospace;background:color-mix(in srgb,var(--orbit-paper-rule) 50%,transparent);padding:1px 3px;border-radius:3px}
+:root .sticky-preview-bullet:before{content:"•";display:inline-block;margin-right:7px}
+:root .sticky-text-preview input[type=checkbox]{width:14px;height:14px;margin:0 8px 0 0;vertical-align:middle}
+:root .journal-formatbar{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+:root .journal-formatbar .journal-tool{min-height:30px;min-width:30px}
+:root .journal-formatbar .journal-tool:focus-visible{outline:2px solid var(--orbit-accent);outline-offset:2px}
+:root .journal-editor blockquote{border-left:3px solid var(--orbit-accent);margin:9px 0;padding:4px 14px}
+:root .journal-editor a{color:var(--orbit-accent);text-decoration:underline;text-underline-offset:3px}
+@media(max-width:540px){:root .appearance-choices{grid-template-columns:repeat(2,minmax(0,1fr))};
+  :root .appearance-switches{grid-template-columns:1fr}
+}
