@@ -278,6 +278,22 @@ def normal_flows(browser):
     page.locator('.orbit-scene-preview').click(position={'x':90,'y':80})
     page.get_by_role('button',name='Save drawing').click()
     assert page.evaluate("Object.keys(JSON.parse(localStorage.getItem('orbit.v8.extensions')).journalScenes).length") == 1
+    # EX-01: real upstream React Excalidraw is NOT in the initial browser load.
+    # Both hosts share the same native Save/Cancel dialog and one lazy island.
+    assert page.evaluate("performance.getEntriesByType('resource').every(r=>!r.name.includes('/excalidraw-island.js'))")
+    page.locator('.sticky-note').first.get_by_role('button',name='Edit drawing').evaluate('e=>e.click()')
+    page.get_by_role('button',name='Open full Excalidraw inside ORBIT').click()
+    expect(page.locator('.orbit-scene-dialog .excalidraw')).to_be_visible(timeout=25000)
+    assert page.evaluate("window.EXCALIDRAW_ASSET_PATH.startsWith(location.origin)")
+    assert page.evaluate("document.querySelector('link[data-orbit-excalidraw-styles]') !== null")
+    page.get_by_role('button',name='Save drawing').click()
+    assert page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].scene.elements.length") == 1
+    focus(page,'journal')
+    page.locator('#journal-draw').click()
+    page.get_by_role('button',name='Open full Excalidraw inside ORBIT').click()
+    expect(page.locator('.orbit-scene-dialog .excalidraw')).to_be_visible(timeout=25000)
+    page.get_by_role('button',name='Save drawing').click()
+    assert page.evaluate("Object.keys(JSON.parse(localStorage.getItem('orbit.v8.extensions')).journalScenes).length") == 1
     # Export/restore UI path, including V6 dimensions and dated journal.
     with page.expect_download() as download: page.locator('#backup-json').evaluate('e=>e.click()')
     path=OUT/'m1-synthetic-backup.json'; download.value.save_as(path)
