@@ -18,6 +18,19 @@ export const sdkBuildOptions=(root,outdir)=>({
   sourcemap:false,legalComments:'eof',logLevel:'silent',
 });
 
+// Official Excalidraw and React live in a distinct lazy island, never in bootstrap.
+// The island's CSS and fonts are self-hosted to preserve ORBIT's strict CSP.
+export const editorBuildOptions=(root,outdir)=>({
+  entryPoints:{'excalidraw-island':path.join(root,'src/excalidraw-island.entry.mjs')},
+  outdir:path.join(outdir,'src'),
+  entryNames:'[name]',assetNames:'assets/[name]-[hash]',
+  bundle:true,platform:'browser',format:'esm',target:['es2022'],minify:true,
+  splitting:false,sourcemap:false,legalComments:'eof',logLevel:'silent',
+  conditions:['production'],define:{'process.env.NODE_ENV':'"production"'},
+  loader:{'.woff2':'file','.woff':'file','.ttf':'file','.svg':'file','.png':'file'},
+  metafile:true,
+});
+
 const loopback = host => ['localhost','127.0.0.1','[::1]'].includes(host);
 function publicUrl(value, label, originOnly = false) {
   let url;
@@ -84,12 +97,19 @@ export async function buildDist({ root = process.cwd(), outdir = path.join(root,
   }
   // Bundle only the SDK boundary. All scrapbook/auth/repository modules stay native ESM.
   await build(sdkBuildOptions(root,outdir));
+  // Bundle lazily loaded official editor from locked npm dependencies.
+  // The CSS is emitted as src/excalidraw-island.css and loaded only on demand.
+  await build(editorBuildOptions(root,outdir));
+  await mkdir(path.join(outdir,'assets','excalidraw'),{recursive:true});
+  await cp(path.join(root,'node_modules','@excalidraw','excalidraw','dist','prod','fonts'),
+    path.join(outdir,'assets','excalidraw','fonts'),{recursive:true});
+
   await writeFile(path.join(outdir,'src/runtime-config.js'), `// Build-generated allowlisted public configuration. No privileged credentials.\nexport const runtimeConfig = ${JSON.stringify(config)};\n`);
   const index = await readFile(path.join(outdir,'index.html'), 'utf8');
   for (const ref of ['./src/bootstrap.js','./src/styles.css']) {
     if (!index.includes(ref)) throw Error(`Build missing browser entry: ${ref}`);
   }
-  console.log(`Build complete: preserved spatial UI, native modules and one SDK bundle (${config ? 'protected cloud preview' : 'local prototype'}).`);
+  console.log(`Build complete: native spatial UI + SDK bundle and separate on-demand official Excalidraw island (${config ? 'protected cloud preview' : 'local prototype'}).`);
   return { config, outdir };
 }
 
