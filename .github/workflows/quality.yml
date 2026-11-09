@@ -82,6 +82,8 @@ jobs:
           path: |
             qa/m1-*.png
             qa/m1-results.json
+            qa/bp06-*.png
+            qa/bp06-results.json
             qa/m25-*.png
             qa/m25-results.json
             qa/m2-results.json

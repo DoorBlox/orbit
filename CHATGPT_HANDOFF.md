@@ -1,3 +1,10 @@
+## BP-06 synthetic layout baseline — source branch opened
+
+- Next executed unit: BP-06 synthetic Chromium compatibility baseline to unblock SP-01. Branch `test/bp06-legacy-widget-baseline-20261109` starts from verified `main` `e014d62e6948919f967a819da0706e60758a2296`.
+- New Playwright matrix records five viewport sizes, all ten themes and 174/200% **CSS text-scale simulations** with only disposable prototype content; preserves six existing widgets and coordinate round-trips while **allowing additional widgets**. Exact-6 assertions are removed from the M1 compatibility test. CI uploads `qa/bp06-*.png` and `qa/bp06-results.json` for seven days.
+- Source-only, NOT Production and NOT signed-in, real browser zoom, Safari/Android or visual signoff. Review exact source head / all four checks before merging. After merge SP-01 should start with a synthetic seventh-widget test, validated widget registry, and preserving old layouts.
+- No hosted Supabase SQL/Auth/Storage, live account, public publishing, paid provider or Vercel release changes.
+
 ## Latest verified work — 9 November 2026, after product-direction correction and BP-03 measurement
 
 - **Source main before this docs-only closeout:** `4b603b2c58e4ebef9fd66eebf33534cef2a7ace3`, squash of [PR #45](https://github.com/DoorBlox/orbit/pull/45), all four exact-head CI checks green. Previous [PR #44](https://github.com/DoorBlox/orbit/pull/44) squash `33d5f2598952fa88457e1bc05b2dd6547b26c1b0`, four checks green.

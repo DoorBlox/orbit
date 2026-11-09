@@ -1,6 +1,6 @@
 # ORBIT — visual and interaction evidence brief
 
-**Status:** BP-06 baseline collection proposed. **No authenticated live screen has been captured by this documentation change.** Visuals are welcome but not a prerequisite for BP-00/BP-04 work.
+**Status:** BP-06 synthetic Chromium baseline implemented on a source PR using `tests/qa_spatial_baseline.py` called by `tests/qa_m1.py`; judge completion from exact-head CI before marking SOURCE MERGED. Screenshots/JSON are CI artifacts retained seven days. **No authenticated real-user screenshot, real Safari/Android or Production claim.**
 
 ## What the owner can supply (privacy-safe)
 
@@ -23,9 +23,9 @@ Only show a disposable/dummy workspace. Hide account emails, personal tasks, per
 
 ## Design principles and decision process
 
-Keep the V6 spatial concept, radial branch relationships, independent cameras, six freely movable/resizable widgets, paper journal, privacy and existing themes. Audit aesthetics against actual screenshots, not from code alone. Improve discoverability, hierarchy, optional single-widget Focus mode on phones, offscreen recovery, semantic tokens, input targets, contrast and reduced-motion experience. No automatic redesign or all-React migration.
+Keep the V6 spatial concept, radial branch relationships, independent cameras, the six original freely movable/resizable widgets **as compatibility defaults, not a maximum**, paper journal, privacy and existing themes. Audit aesthetics against actual screenshots, not from code alone. Improve discoverability, hierarchy, optional single-widget Focus mode on phones, offscreen recovery, semantic tokens, input targets, contrast and reduced-motion experience. No automatic redesign or all-React migration.
 
-Retain accepted screenshots and scorecard in a nonprivate evidence directory named for BP-06 and source SHA. Record observed device/browser, issue severity, reproduction steps and whether the result is **verified**, **inferred from source**, or **requires real-device validation**. Images must never contain real diary content.
+Retain nonprivate screenshots as `qa/bp06-*.png` and scorecard metadata as `qa/bp06-results.json` in the exact-head `m1-browser-evidence` CI artifact. `docs/BP06_SYNTHETIC_LAYOUT_BASELINE.md` defines tested scope and remaining real-device evidence. Do not commit raw user screenshots. Record observed device/browser, issue severity, reproduction steps and whether the result is **verified**, **inferred from source**, or **requires real-device validation**. Images must never contain real diary content.
 
 ## Excalidraw design direction
 
