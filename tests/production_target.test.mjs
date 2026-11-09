@@ -67,3 +67,22 @@ test('shared target builds and verifies a private artifact offline with a synthe
     assert.ok(!JSON.stringify(result).includes(env.ORBIT_SUPABASE_PUBLISHABLE_KEY));
   }finally{await rm(outdir,{recursive:true,force:true});}
 });
+
+test('Production CSP permits only the reviewed Supabase host for signed private images',()=>{
+  const header=deployment.headers[0].headers.find(h=>h.key==='Content-Security-Policy');
+  const csp=header.value;
+  assert.ok(csp.includes("img-src 'self' data: "+target.supabaseUrl+";"),
+    'signed private images must be viewable without wildcard img-src');
+  for(const unsafe of [
+    "img-src 'self' data:;",
+    "img-src 'self' data: https://unrelated.example;",
+    "img-src 'self' data: https://*.supabase.co;",
+    "img-src 'self' data: https://ixfgavgtwuzdgucjriec.supabase.co https://example.com;",
+    "img-src * data: "+target.supabaseUrl+";"
+  ]){
+    const modified=structuredClone(deployment);
+    modified.headers[0].headers.find(h=>h.key==='Content-Security-Policy').value=
+      csp.replace("img-src 'self' data: "+target.supabaseUrl+";",unsafe);
+    assert.throws(()=>resolveBuildConfig(env,{target,deployment:modified}),/CSP/);
+  }
+});
