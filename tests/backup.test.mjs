@@ -91,3 +91,23 @@ test('SP-01B seventh-window layout lives in owner-private extensions; V6 legacy 
   value.spatialLayout.projects={x:2320,y:280};
   assert.throws(()=>validateBackup(value),/Invalid widget (layout|dimensions)/i);
 });
+
+
+test('PJ-01 private project label survives V6 backup/restore and leaves all branch/task IDs intact',()=>{
+  const source=fixture(),beforeTasks=structuredClone(source.tasks),beforeBranches=structuredClone(source.branches);
+  source.extensions={projects:{inbox:{description:'Private planning',status:'active',links:[]}}};
+  const checked=validateBackup(source);
+  assert.deepEqual(checked.extensions.projects,source.extensions.projects);
+  assert.deepEqual(checked.tasks,beforeTasks);
+  assert.deepEqual(checked.branches,beforeBranches);
+  const store=fake();
+  assert.equal(persistBackup(checked,store).ok,true);
+  assert.deepEqual(JSON.parse(store.getItem(STORAGE_KEYS.extensions)).projects,checked.extensions.projects);
+  assert.throws(()=>validateBackup({...fixture(),extensions:{projects:{nonexistent:{description:''}}}}),/existing branch/i);
+});
+test('PJ-01 older V6 backup with no project data preserves current private project metadata',()=>{
+  const old=fixture(),existing='{"projects":{"inbox":{"description":"Prior private work","status":"active","links":[]}}}';
+  const storage=fake({[STORAGE_KEYS.extensions]:existing});
+  assert.equal(persistBackup(validateBackup(old),storage).ok,true);
+  assert.equal(storage.getItem(STORAGE_KEYS.extensions),existing);
+});
