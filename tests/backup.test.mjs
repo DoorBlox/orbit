@@ -89,5 +89,5 @@ test('SP-01B seventh-window layout lives in owner-private extensions; V6 legacy 
   assert.deepEqual(persisted.spatialWidgets,snapshot.extensions.spatialWidgets);
   assert.equal(JSON.parse(store.getItem(STORAGE_KEYS.layout)).projects,undefined);
   value.spatialLayout.projects={x:2320,y:280};
-  assert.throws(()=>validateBackup(value),/widget layout/i);
+  assert.throws(()=>validateBackup(value),/Invalid widget (layout|dimensions)/i);
 });
