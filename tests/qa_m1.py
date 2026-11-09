@@ -287,7 +287,8 @@ def normal_flows(browser):
     assert page.evaluate("window.EXCALIDRAW_ASSET_PATH.startsWith(location.origin)")
     assert page.evaluate("document.querySelector('link[data-orbit-excalidraw-styles]') !== null")
     page.get_by_role('button',name='Save drawing').click()
-    assert page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].scene.elements.length") == 1
+    sticky_saved=page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].scene.elements.map(e=>({type:e.type,id:e.id,deleted:e.isDeleted,x:e.x,y:e.y}))")
+    assert len(sticky_saved) == 1, f"Official editor changed legacy sticky unexpectedly: {sticky_saved}"
     focus(page,'journal')
     page.locator('#journal-draw').click()
     page.get_by_role('button',name='Open full Excalidraw inside ORBIT').click()
