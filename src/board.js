@@ -1,5 +1,5 @@
 import { markStorageIssue,isStorageWriteBlocked } from './storage.js';
-import { DEFAULT_WIDGET_REGISTRY } from './widget-registry.js';
+import { DEFAULT_WIDGET_REGISTRY,CORE_WIDGET_IDS,extendWidgetRegistry,normalizeExtraWidgetLayout } from './widget-registry.js';
 /* The spatial scrapbook is one coordinate space. Widgets are positions, never page sections. */
 const KEY='orbit.v5.spatial-layout';
 const SIZE_KEY='orbit.v6.spatial-sizes';
@@ -40,18 +40,32 @@ export function navigatorWorldPoint(px,py,bounds){
   return {x:bounds.x0+(bounds.x1-bounds.x0)*x,y:bounds.y0+(bounds.y1-bounds.y0)*y};
 }
 export class SpatialBoard {
-  constructor({notify=()=>{},initialLayout,readOnly=false,persistLocally=true,onLayoutChange=()=>{},widgetRegistry=DEFAULT_WIDGET_REGISTRY}={}){
+  constructor({notify=()=>{},initialLayout,readOnly=false,persistLocally=true,onLayoutChange=()=>{},
+    optionalWidgetLayout={},onOptionalLayoutChange=()=>{},widgetRegistry=DEFAULT_WIDGET_REGISTRY}={}){
     if(!widgetRegistry||!Array.isArray(widgetRegistry.ids)||
        typeof widgetRegistry.get!=='function'||typeof widgetRegistry.defaults!=='function')
       throw Error('A validated spatial widget registry is required.');
     this.widgetRegistry=widgetRegistry;
+    this.defaultInlineSizes=new Map();
+    this.extraIds=new Set(widgetRegistry.ids.filter(id=>!CORE_WIDGET_IDS.includes(id)));
+    this.optionalLayout=normalizeExtraWidgetLayout(optionalWidgetLayout);
+    this.onOptionalLayoutChange=onOptionalLayoutChange;
     this.defaultPositions=widgetRegistry.defaults();
     this.limits=Object.fromEntries(widgetRegistry.ids.map(id=>[id,widgetRegistry.get(id).limits]));
     this.icons=Object.fromEntries(widgetRegistry.ids.map(id=>[id,widgetRegistry.get(id).icon]));
     this.readOnly=readOnly;this.persistLocally=persistLocally;this.onLayoutChange=onLayoutChange;this.events=new AbortController();
     this.notify=notify;
     this.viewport=document.getElementById('spatial-viewport');this.world=document.getElementById('spatial-world');
-    this.positions=initialLayout?structuredClone(this.defaultPositions):readPositions(widgetRegistry);this.sizes=initialLayout?{}:readSizes(widgetRegistry);this.scale=1;this.pan={x:0,y:0};this.gesture=null;this.pointers=new Map();this.raf=0;
+    this.positions=initialLayout?structuredClone(this.defaultPositions):readPositions(widgetRegistry);this.sizes=initialLayout?{}:readSizes(widgetRegistry);
+    for(const id of this.extraIds){
+      const saved=this.optionalLayout[id],def=widgetRegistry.get(id);
+      this.positions[id]={x:saved?.x??def.position.x,y:saved?.y??def.position.y};
+      if(saved?.width!==undefined){
+        const lim=def.limits;
+        this.sizes[id]={w:clamp(saved.width,lim.minW,lim.maxW),h:clamp(saved.height,lim.minH,lim.maxH)};
+      }
+    }
+    this.scale=1;this.pan={x:0,y:0};this.gesture=null;this.pointers=new Map();this.raf=0;
     this.widgets=new Map();this.stickyNotes=[];this.navPointer=null;
     this.nav=document.getElementById('space-nav-map');
     this.nav.tabIndex=0;this.nav.setAttribute('role','group');
@@ -61,25 +75,9 @@ export class SpatialBoard {
       const open=this.navContainer.classList.toggle('is-open');this.navToggle.setAttribute('aria-expanded',String(open));
       this.navToggle.setAttribute('aria-label',open?'Close places map':'Open places map');
     });
-    for(const [id,pos] of Object.entries(this.positions)){
-      const widget=document.querySelector(`[data-widget="${id}"]`);if(!widget)continue;
-      this.widgets.set(id,widget);this.position(id);this.applySize(id);
-      const grip=widget.querySelector('.widget-grip');if(grip){
-        grip.addEventListener('keydown',e=>this.moveViaKeyboard(e,id));
-      }
-      const heading=widget.querySelector('.widget-heading');
-      heading?.addEventListener('pointerdown',e=>{
-        if(e.target.closest('button:not(.widget-grip),input,textarea,select,a,[contenteditable],.timeline-tools,.utility-bar'))return;
-        this.dragStart(e,id,heading);
-      });
-      heading?.addEventListener('dblclick',e=>{if(e.target.closest('button:not(.widget-grip),input'))return;this.focus(id);});
-      const resizer=document.createElement('button');resizer.className='widget-resizer';resizer.type='button';
-      resizer.setAttribute('aria-label',`Resize ${id} widget. Arrow keys change width or height.`);
-      resizer.title='Drag corner to resize · Arrow keys resize';
-      resizer.innerHTML='<span aria-hidden="true">╱</span>';
-      widget.append(resizer);if(readOnly){resizer.disabled=true;if(grip)grip.disabled=true;}
-      resizer.addEventListener('pointerdown',e=>this.resizeStart(e,id,resizer));
-      resizer.addEventListener('keydown',e=>this.resizeViaKeyboard(e,id));
+    for(const id of this.widgetRegistry.ids){
+      const widget=this.world.querySelector('[data-widget="'+id+'"]');
+      if(widget)this.attachWidget(id,widget);
     }
     this.buildNavigator();
     this.nav.addEventListener('pointerdown',e=>this.startNavigatorPan(e),{signal:this.events.signal});
@@ -117,23 +115,170 @@ export class SpatialBoard {
     // Open near the constellation and leave adjacent glass objects discoverable by drifting sideways.
     this.raf=requestAnimationFrame(()=>{this.raf=0;this.focus('constellation',{initial:true});});
   }
-  getLayout(){const out=structuredClone(this.positions);for(const [id,size] of Object.entries(this.sizes))out[id]={...out[id],width:size.w,height:size.h};return out;}
-  setLayout(value,{persist=true}={}){
-    const safe={};for(const [id,pos] of Object.entries(this.defaultPositions)){
-      const given=value?.[id];safe[id]={x:Number.isFinite(given?.x)?clamp(given.x,-5000,7500):pos.x,y:Number.isFinite(given?.y)?clamp(given.y,-5000,7500):pos.y};
+
+  /** A DOM node must come from first-party UI code, never from a saved snapshot. */
+  attachWidget(id,widget){
+    if(this.widgets.has(id)||widget.parentElement!==this.world||
+       widget.dataset.widget!==id||!widget.classList.contains('spatial-item')||
+       !widget.querySelector('.widget-heading .widget-grip'))
+      throw Error('Invalid spatial widget mount.');
+    this.widgets.set(id,widget);
+    if(this.extraIds.has(id))this.defaultInlineSizes.set(id,{
+      width:widget.style.getPropertyValue('width'),height:widget.style.getPropertyValue('height'),
+      widthPriority:widget.style.getPropertyPriority('width'),
+      heightPriority:widget.style.getPropertyPriority('height')
+    });
+    widget.hidden=this.extraIds.has(id)&&this.optionalLayout[id]?.hidden===true;
+    this.position(id);this.applySize(id);
+    const grip=widget.querySelector('.widget-grip');
+    grip.addEventListener('keydown',e=>this.moveViaKeyboard(e,id),{signal:this.events.signal});
+    const heading=widget.querySelector('.widget-heading');
+    heading.addEventListener('pointerdown',e=>{
+      if(e.target.closest('button:not(.widget-grip),input,textarea,select,a,[contenteditable],.timeline-tools,.utility-bar'))return;
+      this.dragStart(e,id,heading);
+    },{signal:this.events.signal});
+    heading.addEventListener('dblclick',e=>{
+      if(e.target.closest('button:not(.widget-grip),input'))return;this.focus(id);
+    },{signal:this.events.signal});
+    const resizer=document.createElement('button');
+    resizer.className='widget-resizer';resizer.type='button';
+    resizer.setAttribute('aria-label','Resize '+id+' widget. Arrow keys change width or height.');
+    resizer.title='Drag corner to resize · Arrow keys resize';
+    resizer.innerHTML='<span aria-hidden="true">╱</span>';
+    widget.append(resizer);
+    if(this.readOnly){resizer.disabled=true;grip.disabled=true;}
+    resizer.addEventListener('pointerdown',e=>this.resizeStart(e,id,resizer),{signal:this.events.signal});
+    resizer.addEventListener('keydown',e=>this.resizeViaKeyboard(e,id),{signal:this.events.signal});
+    if(this.extraIds.has(id)){
+      const hide=document.createElement('button');
+      hide.type='button';hide.className='widget-hide glass-button small';
+      hide.textContent='Hide';
+      hide.setAttribute('aria-label','Hide '+id+' widget');
+      hide.disabled=this.readOnly;
+      heading.append(hide);
+      hide.addEventListener('click',()=>this.setWidgetVisible(id,false),{signal:this.events.signal});
     }
-    this.positions=safe;this.sizes={};
-    for(const [id,lim] of Object.entries(this.limits)){
+  }
+  /** A real seventh first-party DOM widget can be mounted without changing V6 layout. */
+  registerWidget(descriptor,element){
+    if(this.disposed||!descriptor||this.widgetRegistry.has(descriptor.id)||
+       !(element instanceof HTMLElement)||element.dataset.widget!==descriptor.id||
+       !element.classList.contains('spatial-item')||
+       !element.querySelector('.widget-heading .widget-grip')||
+       (element.parentElement&&element.parentElement!==this.world))
+      throw Error('Invalid or duplicate optional widget.');
+    const next=extendWidgetRegistry(this.widgetRegistry,descriptor);
+    const id=descriptor.id,def=next.get(id),saved=this.optionalLayout[id];
+    this.widgetRegistry=next;this.extraIds.add(id);
+    this.defaultPositions[id]={...def.position};this.limits[id]=def.limits;this.icons[id]=def.icon;
+    this.positions[id]={x:saved?.x??def.position.x,y:saved?.y??def.position.y};
+    if(saved?.width!==undefined){
+      const lim=def.limits;
+      this.sizes[id]={w:clamp(saved.width,lim.minW,lim.maxW),h:clamp(saved.height,lim.minH,lim.maxH)};
+    }
+    if(!element.parentElement)this.world.append(element);
+    this.attachWidget(id,element);this.buildNavigator();
+    return true;
+  }
+  /** Unknown optional IDs are inert until their first-party DOM is mounted. */
+  getOptionalWidgetLayout(){
+    const result=normalizeExtraWidgetLayout(this.optionalLayout);
+    for(const id of this.extraIds){
+      const element=this.widgets.get(id),position=this.positions[id];
+      if(!element||!position)continue;
+      const size=this.sizes[id];
+      result[id]={x:position.x,y:position.y,
+        ...(size?{width:size.w,height:size.h}:{}),hidden:element.hidden};
+    }
+    return normalizeExtraWidgetLayout(result);
+  }
+  setOptionalWidgetLayout(layout,{persist=false}={}){
+    this.optionalLayout=normalizeExtraWidgetLayout(layout);
+    for(const id of this.extraIds){
+      const descriptor=this.widgetRegistry.get(id),saved=this.optionalLayout[id],element=this.widgets.get(id);
+      this.positions[id]={x:saved?.x??descriptor.position.x,y:saved?.y??descriptor.position.y};
+      if(saved?.width!==undefined){
+        const lim=descriptor.limits;
+        this.sizes[id]={w:clamp(saved.width,lim.minW,lim.maxW),h:clamp(saved.height,lim.minH,lim.maxH)};
+      }else delete this.sizes[id];
+      if(element){element.hidden=saved?.hidden===true;this.position(id);this.applySize(id);}
+    }
+    this.buildNavigator();
+    if(persist)this.saveOptionalLayout();
+  }
+  setWidgetVisible(id,visible){
+    if(this.readOnly||this.disposed||!this.extraIds.has(id)||typeof visible!=='boolean')return false;
+    const element=this.widgets.get(id);if(!element)return false;
+    if(element.hidden===!visible)return true;
+    if(!visible&&element.contains(document.activeElement)){
+      this.navToggle?.focus({preventScroll:true});
+      this.navContainer?.classList.add('is-open');
+      this.navToggle?.setAttribute('aria-expanded','true');
+      this.navToggle?.setAttribute('aria-label','Close places map');
+    }
+    element.hidden=!visible;
+    this.saveOptionalLayout();this.buildNavigator();
+    return true;
+  }
+  saveOptionalLayout(){
+    if(this.readOnly)return false;
+    const next=this.getOptionalWidgetLayout();
+    this.optionalLayout=next;
+    this.onOptionalLayoutChange(structuredClone(next));
+    return true;
+  }
+  getLayout(){
+    const out={};
+    for(const id of CORE_WIDGET_IDS){
+      const p=this.positions[id];if(!p)continue;
+      out[id]={...p,...(this.sizes[id]?{width:this.sizes[id].w,height:this.sizes[id].h}:{})};
+    }
+    return out;
+  }
+  setLayout(value,{persist=true}={}){
+    const safe={...this.positions};
+    for(const id of CORE_WIDGET_IDS){
+      const pos=this.defaultPositions[id],given=value?.[id];
+      safe[id]={x:Number.isFinite(given?.x)?clamp(given.x,-5000,7500):pos.x,
+        y:Number.isFinite(given?.y)?clamp(given.y,-5000,7500):pos.y};
+    }
+    this.positions=safe;
+    this.sizes=Object.fromEntries([...this.extraIds].filter(id=>this.sizes[id]).map(id=>[id,this.sizes[id]]));
+    for(const id of CORE_WIDGET_IDS){
+      const lim=this.limits[id];
       const obj=value?.[id];if(Number.isFinite(obj?.width)&&Number.isFinite(obj?.height))
         this.sizes[id]={w:clamp(obj.width,lim.minW,lim.maxW),h:clamp(obj.height,lim.minH,lim.maxH)};
     }
     for(const id of this.widgets.keys()){this.position(id);this.applySize(id);}
     if(persist)this.save();this.render();this.buildNavigator();
   }
-  save(){if(this.readOnly)return false;if(!this.persistLocally){this.onLayoutChange(this.getLayout());return false;}try{if(isStorageWriteBlocked(KEY)||isStorageWriteBlocked(SIZE_KEY))throw Error();localStorage.setItem(KEY,JSON.stringify(this.positions));localStorage.setItem(SIZE_KEY,JSON.stringify(this.sizes));return true;}
-    catch{this.notify('Layout not saved on this device. Export a backup to keep your changes.');return false;}}
+  save(id=null){
+    if(this.readOnly)return false;
+    if(id&&this.extraIds.has(id))return this.saveOptionalLayout();
+    if(!this.persistLocally){this.onLayoutChange(this.getLayout());return false;}
+    try{
+      if(isStorageWriteBlocked(KEY)||isStorageWriteBlocked(SIZE_KEY))throw Error();
+      const legacy=this.getLayout();
+      localStorage.setItem(KEY,JSON.stringify(Object.fromEntries(
+        Object.entries(legacy).map(([key,p])=>[key,{x:p.x,y:p.y}]))));
+      localStorage.setItem(SIZE_KEY,JSON.stringify(Object.fromEntries(
+        Object.entries(legacy).filter(([,p])=>p.width!==undefined)
+          .map(([key,p])=>[key,{w:p.width,h:p.height}]))));
+      return true;
+    }catch{this.notify('Layout not saved on this device. Export a backup to keep your changes.');return false;}
+  }
   applySize(id){const item=this.widgets.get(id),s=this.sizes[id];if(!item)return;
-    if(!s){item.style.removeProperty('width');item.style.removeProperty('height');return;}
+    if(!s){
+      const original=this.defaultInlineSizes.get(id);
+      if(original){
+        for(const key of ['width','height']){
+          const value=original[key];
+          if(value)item.style.setProperty(key,value,original[key+'Priority']);
+          else item.style.removeProperty(key);
+        }
+      }else{item.style.removeProperty('width');item.style.removeProperty('height');}
+      return;
+    }
     item.style.setProperty('width',`${s.w}px`,'important');item.style.setProperty('height',`${s.h}px`,'important');
   }
   widgetSize(id){const el=this.widgets.get(id);return {w:el.offsetWidth,h:el.offsetHeight};}
@@ -185,6 +330,7 @@ export class SpatialBoard {
   }
   focus(id,{initial=false}={}){
     const item=this.widgets.get(id),p=this.positions[id];if(!item)return;
+    if(item.hidden&&this.extraIds.has(id))this.setWidgetVisible(id,true);
     const {w,h}=this.viewportSize(),sw=item.offsetWidth,sh=item.offsetHeight;
     let scale;
     if(id==='constellation')scale=w<650?.94:clamp(Math.min((w-140)/sw,(h-135)/sh),.55,.90);
@@ -218,7 +364,7 @@ export class SpatialBoard {
     cancelAnimationFrame(this.raf);this.pan.x+=dx;this.pan.y+=dy;this.render();
   }
   fitAll(){const pad=65,{w,h}=this.viewportSize();let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
-    for(const [id,item] of this.widgets){const p=this.positions[id];x0=Math.min(x0,p.x);y0=Math.min(y0,p.y);x1=Math.max(x1,p.x+item.offsetWidth);y1=Math.max(y1,p.y+item.offsetHeight);}
+    for(const [id,item] of this.widgets){if(item.hidden)continue;const p=this.positions[id];x0=Math.min(x0,p.x);y0=Math.min(y0,p.y);x1=Math.max(x1,p.x+item.offsetWidth);y1=Math.max(y1,p.y+item.offsetHeight);}
     for(const note of this.stickyNotes){x0=Math.min(x0,note.x);y0=Math.min(y0,note.y);x1=Math.max(x1,note.x+note.width);y1=Math.max(y1,note.y+note.height);}
     const scale=clamp(Math.min((w-pad*2)/Math.max(1,x1-x0),(h-pad*2)/Math.max(1,y1-y0)),.06,1.25);
     this.animate({scale,x:w/2-((x0+x1)/2)*scale,y:h/2-((y0+y1)/2)*scale},600);
@@ -276,7 +422,7 @@ export class SpatialBoard {
       this.positions[id]={x:this.drag.origin.x+dx,y:this.drag.origin.y+dy};this.position(id);this.drawNavigatorCursor();};
     const end=ev=>{if(ev.pointerId!==this.drag?.pointer)return;
       handle.removeEventListener('pointermove',move);handle.removeEventListener('pointerup',end);handle.removeEventListener('pointercancel',end);
-      handle.classList.remove('dragging');this.drag=null;this.save();this.buildNavigator();};
+      handle.classList.remove('dragging');this.drag=null;this.save(id);this.buildNavigator();};
     handle.addEventListener('pointermove',move);handle.addEventListener('pointerup',end);handle.addEventListener('pointercancel',end);
   }
   resizeStart(e,id,handle){if(this.readOnly)return;
@@ -292,23 +438,23 @@ export class SpatialBoard {
     };
     const end=ev=>{if(ev.pointerId!==pointer)return;
       handle.removeEventListener('pointermove',move);handle.removeEventListener('pointerup',end);handle.removeEventListener('pointercancel',end);
-      handle.classList.remove('is-resizing');this.save();this.buildNavigator();this.onWidgetResize?.(id);
+      handle.classList.remove('is-resizing');this.save(id);this.buildNavigator();this.onWidgetResize?.(id);
     };
     handle.addEventListener('pointermove',move);handle.addEventListener('pointerup',end);handle.addEventListener('pointercancel',end);
   }
   resizeViaKeyboard(e,id){if(this.readOnly)return;const d={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(!d)return;
     e.preventDefault();e.stopPropagation();const lim=this.limits[id],size=this.widgetSize(id),step=e.shiftKey?100:24;
     this.sizes[id]={w:clamp(size.w+d[0]*step,lim.minW,lim.maxW),h:clamp(size.h+d[1]*step,lim.minH,lim.maxH)};
-    this.applySize(id);this.save();this.buildNavigator();this.onWidgetResize?.(id);
+    this.applySize(id);this.save(id);this.buildNavigator();this.onWidgetResize?.(id);
   }
   moveViaKeyboard(e,id){if(this.readOnly)return;const d={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(!d)return;
     e.preventDefault();e.stopPropagation();const n=e.shiftKey?100:24;
-    this.positions[id].x+=d[0]*n;this.positions[id].y+=d[1]*n;this.position(id);this.save();this.buildNavigator();
+    this.positions[id].x+=d[0]*n;this.positions[id].y+=d[1]*n;this.position(id);this.save(id);this.buildNavigator();
   }
   buildNavigator(){
     this.nav.replaceChildren();
     const spots=[...this.widgets.keys()].map(id=>{const p=this.positions[id],el=this.widgets.get(id);
-      return {id,x:p.x+el.offsetWidth/2,y:p.y+el.offsetHeight/2};});
+      return {id,x:p.x+el.offsetWidth/2,y:p.y+el.offsetHeight/2,hidden:el.hidden};});
     const notes=this.stickyNotes.map(n=>({id:n.id,title:n.title,x:n.x+n.width/2,y:n.y+n.height/2}));
     const all=[...spots,...notes];
     if(!all.length)return;
@@ -321,8 +467,9 @@ export class SpatialBoard {
     for(const spot of spots){
       const btn=document.createElement('button');btn.type='button';btn.className=`space-point space-point-${spot.id}`;
       place(spot.x,spot.y,btn);
-      btn.textContent=this.icons[spot.id]||'·';btn.title=`Go to ${spot.id}`;
-      btn.setAttribute('aria-label',`Go to ${spot.id} widget`);
+      btn.textContent=this.icons[spot.id]||'·';btn.classList.toggle('is-hidden',spot.hidden);
+      btn.title=spot.hidden?`Reopen ${spot.id} widget`:`Go to ${spot.id}`;
+      btn.setAttribute('aria-label',spot.hidden?`Reopen ${spot.id} widget`:`Go to ${spot.id} widget`);
       btn.addEventListener('click',()=>{this.focus(spot.id);this.navContainer.classList.remove('is-open');
         this.navToggle?.setAttribute('aria-expanded','false');this.navToggle?.setAttribute('aria-label','Open places map');});
       btn.addEventListener('pointerenter',()=>{caption.textContent=spot.id.replace('-',' ');});

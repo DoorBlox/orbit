@@ -1,7 +1,7 @@
 {
   "baselineCommit": "846ad7df3fa3fdf4c63fd22f2830fed56f83a06e",
   "milestone": "M2",
-  "review": "ORBIT 2.4 retained V6/M1 immutable provenance; BP-02 portable private media backup, EX-00 safe scene adapter, and EX-01 official Excalidraw lazy React island from exact pinned npm lockfile. No hosted database migration or Production alias change. BP-03 focused hidden-tab read reduction on a separate source branch, with existing CAS and owner isolation unchanged. BP-03 follow-up adds deterministic synthetic request/JSON-byte measurement with no hosted API change. SP-01A extracts the six legacy widget descriptors into a safe extensible registry; no seventh UI or storage migration.",
+  "review": "ORBIT 2.4 retained V6/M1 immutable provenance; BP-02 portable private media backup, EX-00 safe scene adapter, and EX-01 official Excalidraw lazy React island from exact pinned npm lockfile. No hosted database migration or Production alias change. BP-03 focused hidden-tab read reduction on a separate source branch, with existing CAS and owner isolation unchanged. BP-03 follow-up adds deterministic synthetic request/JSON-byte measurement with no hosted API change. SP-01A extracts the six legacy widget descriptors into a safe extensible registry; no seventh UI or storage migration. SP-01B adds a real mounted seventh test widget and owner-private extension layout without changing the six-ID V6 root layout. SP-01B Chromium diagnosed lost initial optional widget dimensions; preserved default inline size before applying saved size.",
   "files": {
     "assets/orbit.svg": {
       "sha256": "97eb19dd4e0773d0b6489b1f49d794ffd272fb3bc2d42af4faffd6a1adca78c3",
@@ -12,8 +12,8 @@
       "reason": "BP-02: distinguish path-only JSON export from authenticated private-media inclusive portable backup."
     },
     "src/app.js": {
-      "sha256": "d397f66dc80f81c88f199152a7f73c0bf46969c12a02e204a5c0655e55e45a1a",
-      "reason": "Account-scoped theme, ambient motion, sticky mini-map sync and structured task checklist persistence in existing private extensions."
+      "sha256": "5c207b8c17dfc13eea02e3efba2c000e73cdfbe01fcf4b5fd1fb5422cf425ca8",
+      "reason": "SP-01B: store/restore private optional window state via extension snapshot without changing legacy layout."
     },
     "src/auth/README.md": {
       "sha256": "1ec9f199e2ab8b76ff9a7d462f1804d6653706a8eb4b005e23311d76c9d1f7d5",
@@ -32,8 +32,8 @@
       "reason": "SP-01A: share strict legacy widget ID allowlist with source registry; unknown IDs still rejected pending full seventh-widget backup design."
     },
     "src/board.js": {
-      "sha256": "2079125e373fb5340b32fb4d4ac05ed37a34fc836043beb307964f1b2c299efa",
-      "reason": "SP-01A: derive spatial positions, bounds and minimap icons from validated widget registry without changing existing defaults."
+      "sha256": "aa5a33869ca43d7fb0ae192e4780dcd25471ede0229f6e56fc148294041632f6",
+      "reason": "SP-01B: dynamic optional DOM widgets preserve first-party unsaved sizes and safe reset, with keyboard resizing and private extension layout."
     },
     "src/bootstrap.js": {
       "sha256": "d890dbb33689b72f19e1713618734831718bdcf7979056a506ed8db89b44eb99",
@@ -104,16 +104,16 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "fce0aa5c03a42379f50b5bae6ad3e8d136bc3df230ea35025356233a2ef43212",
-      "reason": "EX-01: bound and responsive overlay container for lazy official Excalidraw, preserve all ten theme tokens and reduced-motion controls."
+      "sha256": "b408bae9047bd25c9324273aef1c7597a134fef4775c4bc654dacab30f88b3c2",
+      "reason": "SP-01B: hide optional windows and show reopen map markers across existing themes."
     },
     "src/widgets.js": {
       "sha256": "aee68a4ce8a37edbb2de2fa1b0a2fc4589fcaf28a00603db2b148c6875a8ec58",
       "reason": "Preserve task/timeline projection over canonical owner snapshots and read-only controls."
     },
     "src/scene.js": {
-      "sha256": "60eb2222fd3a2a8e3446287fcc740b21f4d55833938996a93425c205e77a058a",
-      "reason": "EX-01: shared Journal/sticky dialog lazily mounts the real official editor, preserves legacy drawing on invalid upstream restore, confirms intentional deletion, disposes on close and retains native pen fallback."
+      "sha256": "841c67b31c3a9ec92504e9735fe753e11589b3a5a26d341765a1a5dc363c6d10",
+      "reason": "SP-01B: validate optional widget positions and visibility in owner-private extensions and backups."
     },
     "src/stickies.js": {
       "sha256": "96b8fd73b59e8b836e631d124d4614525cd664f1e9aae657edee8fbf6b460dcd",
@@ -136,8 +136,8 @@
       "reason": "EX-01: reviewed on-demand official React/ReactDOM Excalidraw entrypoint with local CSS and per-dialog mount/unmount; no initial app or sign-in bundle change."
     },
     "src/widget-registry.js": {
-      "sha256": "de3d38aa167b9c06c986dbd3fd9ed85ccb5ff022359d934b6cb7da6a748a3aa5",
-      "reason": "SP-01A: safe expandable first-party widget descriptor registry, retaining exact six original IDs/positions/size limits."
+      "sha256": "95c4fdd14a1c690f54086fac2b53d123311ddc89554a82c6b2fe09c7949e7ea2",
+      "reason": "SP-01B: bounded private optional-widget state and explicit first-party registry extension without executable snapshot descriptors."
     }
   }
 }

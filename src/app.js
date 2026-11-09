@@ -164,7 +164,14 @@ const widgets=new ScrapWidgets({
   }
 });
 
-const board=new SpatialBoard({notify:(...args)=>message(...args),initialLayout:initialSnapshot?(initialSnapshot.spatialLayout||{}):undefined,readOnly,persistLocally,onLayoutChange:()=>emitChange()});
+const board=new SpatialBoard({notify:(...args)=>message(...args),
+  initialLayout:initialSnapshot?(initialSnapshot.spatialLayout||{}):undefined,
+  optionalWidgetLayout:state.extensions.spatialWidgets,
+  onOptionalLayoutChange:layout=>{
+    if(disposed||readOnly)return;
+    state.extensions.spatialWidgets=layout;extensionsChanged();
+  },
+  readOnly,persistLocally,onLayoutChange:()=>emitChange()});
 board.onWidgetResize=id=>{if(id==='constellation')requestAnimationFrame(()=>scene.onResize());};
 const stickies=new StickyNotes({world:$('spatial-world'),notes:state.extensions.notes,readOnly,
   getScale:()=>board.scale,media,notify:(...args)=>message(...args),
@@ -349,6 +356,7 @@ function restoreBackup(contents){
   saveCollapsedBranches();
   milestones=snapshot.milestones;
   if(snapshot.spatialLayout)board.setLayout(snapshot.spatialLayout,{persist:false});
+  board.setOptionalWidgetLayout(state.extensions.spatialWidgets,{persist:false});
   if(snapshot.journalEntries)journal.replaceEntries(snapshot.journalEntries,{persist:false});
   refreshJournalDrawing();refreshJournalImage();
   state.selectedBranchId='inbox';sync({persist:false});scene.fitAll();
@@ -603,6 +611,7 @@ function applySnapshot(snapshot){
   saveCollapsedBranches();
   milestones=structuredClone(snapshot.milestones||[]);
   board.setLayout(snapshot.spatialLayout||{},{persist:false});
+  board.setOptionalWidgetLayout(state.extensions.spatialWidgets,{persist:false});
   journal.replaceEntries(snapshot.journalEntries||[],{persist:false});refreshJournalDrawing();refreshJournalImage();
   if(!state.branches.some(b=>b.id==='inbox'))state.branches.push({id:'inbox',parentId:'root',label:'Unsorted'});
   if(!state.branches.some(b=>b.id==='just-because'))state.branches.push({id:'just-because',parentId:'root',label:'Just Because'});
