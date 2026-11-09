@@ -99,7 +99,15 @@ export async function buildDist({ root = process.cwd(), outdir = path.join(root,
   await build(sdkBuildOptions(root,outdir));
   // Bundle lazily loaded official editor from locked npm dependencies.
   // The CSS is emitted as src/excalidraw-island.css and loaded only on demand.
-  await build(editorBuildOptions(root,outdir));
+  const editorBuild=await build(editorBuildOptions(root,outdir));
+  const outputs=editorBuild.metafile?.outputs||{};
+  const editorJsBytes=Object.entries(outputs).filter(([filename])=>filename.endsWith('.js'))
+    .reduce((sum,[,entry])=>sum+entry.bytes,0);
+  const editorCssBytes=Object.entries(outputs).filter(([filename])=>filename.endsWith('.css'))
+    .reduce((sum,[,entry])=>sum+entry.bytes,0);
+  console.log('On-demand Excalidraw payload (uncompressed): '+editorJsBytes+
+    ' JS bytes, '+editorCssBytes+' CSS bytes; excluded from initial HTML and SDK bundle.');
+
   await mkdir(path.join(outdir,'assets','excalidraw'),{recursive:true});
   await cp(path.join(root,'node_modules','@excalidraw','excalidraw','dist','prod','fonts'),
     path.join(outdir,'assets','excalidraw','fonts'),{recursive:true});
