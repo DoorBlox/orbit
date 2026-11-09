@@ -1,3 +1,9 @@
+## PJ-01 branch in review — private reversible project identity
+
+- Verified source base after SP-01B [PR #50](https://github.com/DoorBlox/orbit/pull/50) merged with four passing exact-head checks: `0a8e1a92bf91f0e9af79b076a2158cb7c18bb8fe`. This work is on `feat/pj01-private-branch-project-identity-20261109`.
+- `src/projects.js` attaches metadata to existing stable branch IDs. `src/scene.js`/`src/backup.js` keep it in private extensions with strict ID validation; `src/app.js` restores it on branch deletion Undo. This is **model-only**, not the Turn into project UI nor public publishing. [PJ-01 contract](docs/PJ01_PRIVATE_PROJECT_IDENTITY.md).
+- Next PJ-02: explicit keyboard and right-click actions, a discoverable private Projects window, accurate direct/descendant task counts. No Production, hosted database or public content mutation in this branch.
+- Merge only after exact-head four required checks and source-integrity verification.
 ## SP-01B — source implementation in review
 
 - Branch `feat/sp01b-extra-window-private-layout-20261109` follows SP-01A main `5c30a46e4eff8a344b28ea74b572b6290eb24679`. Tests first, then a dynamic first-party seventh DOM widget and private optional-layout extension. See [SP-01B contract](docs/SP01B_OPTIONAL_WIDGET_STATE.md).
