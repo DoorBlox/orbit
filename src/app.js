@@ -10,6 +10,7 @@ import { validDateKey } from './dates.js';
 import { Journal,sanitizeJournal } from './journal.js';
 import { StickyNotes } from './stickies.js';
 import { normalizeExtensions,openSceneEditor,renderScene } from './scene.js';
+import { setBranchProject } from './projects.js';
 
 /** Mount the same spatial scrapbook over either local or authenticated owner state. */
 export function mountOrbit({initialSnapshot=null,readOnly=false,persistLocally=true,onSnapshotChange=()=>{},viewStateKey='local',media=null}={}){
@@ -102,12 +103,15 @@ const scene=new Constellation({viewport:$('map-viewport'),world:$('map-world'),e
     catch(error){message(error.message);return false;}
     const warning=`Remove "${branch.label}"? Its ${result.movedTasks} direct task(s) will move to ${result.destination==='inbox'?'Unsorted':'the parent branch'}; ${result.reparentedChildren} child branch(es) will remain. You can undo.`;
     if(!window.confirm(warning))return false;
-    const previousBranches=structuredClone(state.branches),previousTasks=structuredClone(state.tasks),previousCollapsed=[...state.collapsedBranchIds];
+    const previousBranches=structuredClone(state.branches),previousTasks=structuredClone(state.tasks),
+      previousCollapsed=[...state.collapsedBranchIds],previousProjects=structuredClone(state.extensions.projects);
+    state.extensions.projects=setBranchProject(state.extensions.projects,id,state.branches,false);
     state.branches=result.branches;state.tasks=result.tasks;
     if(state.selectedBranchId===id)state.selectedBranchId=result.destination;
     sync();scene.focusNode(branch.parentId==='root'?'root':branch.parentId);
     message('Branch removed; tasks and child branches kept.',8500,rememberDelete(()=>{
       state.branches=previousBranches;state.tasks=previousTasks;state.collapsedBranchIds=previousCollapsed;state.selectedBranchId=id;
+      state.extensions.projects=previousProjects;
       sync();scene.focusNode(id);
     }));
     return true;

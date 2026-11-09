@@ -3,6 +3,10 @@
 **Owner clarification:** 9 November 2026. **Status:** APPROVED PRODUCT DIRECTION; implementation units below are PROPOSED, not shipped or authorized for public release/hosted migration.
 **Companion:** [post-2.4 engineering blueprint](ORBIT_POST_2_4_EXECUTION.md), [current state](../docs/CURRENT_STATE.md), [active handoff](../CHATGPT_HANDOFF.md).
 
+## PJ-01 private project identity model
+
+The source branch introduces bounded `extensions.projects` records keyed by existing branch IDs, V6 backup validation and branch deletion/Undo symmetry. No task/branch ID, parent relationship or position changes when a branch is marked. [PJ-01 model contract](../docs/PJ01_PRIVATE_PROJECT_IDENTITY.md). This is **model only**: the context-menu action and Projects shelf remain PJ-02, and no project is automatically public.
+
 ## SP-01B implementation boundary
 
 SP-01B implements an actual seventh *synthetic* DOM window in browser tests, not a user-facing placeholder. The first-party registry supports keyboard movement, resizing, hiding and Places-map reopening. Optional owner-scoped state is validated in `extensions.spatialWidgets` and carried in existing V6 backup extensions; six legacy widget positions stay in the strict root `spatialLayout`. The full source/security contract is in [SP-01B optional widget state](../docs/SP01B_OPTIONAL_WIDGET_STATE.md). Source CI and real-device acceptance remain separate gates.

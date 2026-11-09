@@ -30,7 +30,7 @@ test('extensions reject invalid note IDs, oversize text and malicious task refer
     {taskLinks:{task_1:[{label:'Credentials',url:'https://user:password@example.com/private'}]}},
     {journalScenes:{bad: {...emptyScene(),files:{file:{}}}}}
   ])assert.throws(()=>normalizeExtensions(invalid));
-  assert.deepEqual(normalizeExtensions({}),{notes:[],taskLinks:{},taskChecklists:{},journalScenes:{},journalImages:{},spatialWidgets:{},appearance:{theme:'parchment',motion:'system',ambient:false}});
+  assert.deepEqual(normalizeExtensions({}),{notes:[],taskLinks:{},taskChecklists:{},journalScenes:{},journalImages:{},spatialWidgets:{},projects:{},appearance:{theme:'parchment',motion:'system',ambient:false}});
 });
 
 test('workspace appearance is normalized, persisted and protected against unsupported values',()=>{
@@ -65,4 +65,14 @@ test('SP-01B private optional layout survives extension normalization without le
   assert.deepEqual(first.spatialWidgets,raw.spatialWidgets);
   assert.deepEqual(normalizeExtensions(first).spatialWidgets,first.spatialWidgets);
   assert.throws(()=>normalizeExtensions({spatialWidgets:{journal:{x:0,y:0}}}),/widget/i);
+});
+
+
+test('PJ-01 project metadata remains private and normalized inside account extensions',()=>{
+  const privateMetadata={research:{description:'Private research notes',status:'active',
+    links:[{label:'Lab',url:'https://example.org/lab'}]}};
+  const actual=normalizeExtensions({projects:privateMetadata});
+  assert.deepEqual(actual.projects,privateMetadata);
+  assert.deepEqual(normalizeExtensions(actual).projects,actual.projects);
+  assert.throws(()=>normalizeExtensions({projects:{research:{visibility:'public'}}}),/project/i);
 });
