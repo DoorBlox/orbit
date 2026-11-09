@@ -1,7 +1,7 @@
 {
   "baselineCommit": "846ad7df3fa3fdf4c63fd22f2830fed56f83a06e",
   "milestone": "M2",
-  "review": "ORBIT 2.4 source review with BP-02 portable private image backup source additions (owner-scoped file bytes and tested restore). Preserves V6/M1 immutable Git provenance; no hosted Supabase migration, Storage deletion, R2 or Vercel Production alias changes.",
+  "review": "ORBIT 2.4 source review with BP-02 portable media backup and EX-00 official Excalidraw compatibility adapter; V6/M1 Git provenance immutable; no React runtime injected into primary app or Production/Storage changes.",
   "files": {
     "assets/orbit.svg": {
       "sha256": "97eb19dd4e0773d0b6489b1f49d794ffd272fb3bc2d42af4faffd6a1adca78c3",
@@ -126,6 +126,10 @@
     "src/cloud/portable-backup.js": {
       "sha256": "00145ed6f440ff793a10e595474008f7490661fab0e7f9383a5b3302c315a7d0",
       "reason": "BP-02: new versioned image-inclusive portable archive codec; bounded authenticated paths, MIME, SHA-256 and owner remapping."
+    },
+    "src/excalidraw-adapter.js": {
+      "sha256": "c9409c566e7948161160c1e7f74ebca5d704fb7bdce52653dd8e317b73eb6802",
+      "reason": "EX-00: bounded framework-neutral adapter for official Excalidraw initialData/onChange scene persistence; no React dependency, user data, or external embeds."
     }
   }
 }

@@ -8,12 +8,12 @@
 
 - [x] BP-00 canonical current-state, roadmap and documentation protocol foundation (PR #35, merged with four green checks). ChatGPT-native handoff/tool routing is a follow-up docs-only improvement; coordinated npm/release-version normalization is separately pending.
 - [ ] BP-01 authenticated Production image verification (#26).
-- [ ] BP-02 portable image-inclusive backup and supervised restore — source implementation in review (not yet deployed); [format and privacy contract](PORTABLE_BACKUP_V1.md).
+- [x] BP-02 source-only portable image-inclusive backup and supervised restore, [PR #39](https://github.com/DoorBlox/orbit/pull/39), four green checks; **NOT DEPLOYED or real-account verified**. [Format and privacy contract](PORTABLE_BACKUP_V1.md).
 - [ ] BP-03 measured low-request, visibility-aware sync that keeps CAS safety.
 - [x] BP-04 repository migration ledger reconciliation, [PR #38](https://github.com/DoorBlox/orbit/pull/38) merged with four green checks and no hosted writes; [parity ledger](SUPABASE_MIGRATION_PARITY_2026-11-09.md). Full hosted object parity / future migrations remain separately gated.
 - [ ] BP-05 archived/safe 2.4+ release pipeline, not pinned 1.0 workflow.
 - [ ] BP-06 synthetic browser visual/accessibility/performance baseline; owner screenshots optional.
-- [ ] EX-00 early official Excalidraw library/API/scene compatibility prototype with fake data.
+- [ ] EX-00 official Excalidraw adapter for safe scene interchange with fake data, [source review and EX-01 integration contract](EXCALIDRAW_EX00_COMPATIBILITY.md). No React package yet, not real editor shipped.
 
 ### Next: visual quality and full Excalidraw
 

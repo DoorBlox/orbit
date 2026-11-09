@@ -6,7 +6,7 @@ import { assertProductionConfig } from './production-guard.mjs';
 
 // Keep native modules and a deliberately small public distribution allowlist.
 export const browserModules = [
-  'app.js','board.js','constellation.js','csv.js','data.js','journal.js','scene.js','stickies.js',
+  'app.js','board.js','constellation.js','csv.js','data.js','journal.js','scene.js','excalidraw-adapter.js','stickies.js',
   'backup.js','dates.js','layout.js','model.js','storage.js','widgets.js','styles.css',
   'bootstrap.js','auth/controller.js','auth/shell.js','cloud/media.js','cloud/client-config.js',
   'cloud/mappers.js','cloud/repository.js','cloud/sync.js','cloud/owner-tools.js',
