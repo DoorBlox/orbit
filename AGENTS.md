@@ -1,5 +1,14 @@
 # ORBIT repository instructions for coding agents
 
+## Canonical project state and implementation order (9 Nov 2026)
+
+**Before making changes:** read [current verified state](docs/CURRENT_STATE.md), [documentation protocol](docs/DOCUMENTATION_PROTOCOL.md), and [post-2.4 execution blueprint](plans/ORBIT_POST_2_4_EXECUTION.md). For design work also read [visual evidence brief](docs/DESIGN_EVIDENCE_PLAN.md). This concise link index is authoritative for work sequencing; the lengthy dated sections below are historical checkpoints, including pre-release "BRANCH" and "NOT RELEASED" notes.
+
+**Active work:** BP-00 documentation/handoff; BP-04 read-only migration parity and BP-01 signed-in owner-assisted image QA next; BP-02 portable media backup and BP-03 efficient sync follow. EX-00 real Excalidraw research may proceed **in parallel now** using synthetic data; EX-01 and EX-02 have explicit media/visual safety gates. User wants full upstream Excalidraw for both journal and stickies, not a native pen-only substitute.
+
+**Never conflate:** live app 2.4 / actual Production application SHA 4e57aca / package.json 1.0.0 / backup schema version 6 / hosted migration IDs. No paid tier, production alias, hosted SQL/Auth/Storage mutation or private data deletion is authorized by the blueprint alone. Preserve the six-window spatial V6 identity.
+
+
 ## 9 Nov 2026 — ORBIT 2.4 LIVE Production (latest authoritative release checkpoint)
 
 - **GitHub:** PR [#33](https://github.com/DoorBlox/orbit/pull/33) squash-merged to `main` commit **`4e57aca785259192b92010c5d0e1634a4c1efe14`** after all four exact-head checks passed (`static-quality`, `local-postgres-rls`, `production-artifact-dry-run`, `unauthenticated-protection`). Initial PR browser regression failed solely because the test attempted to select an option inside the intentionally collapsed “More tools” panel; revised test exercised the disclosure, then all four checks passed at head `33053acd46db3fd1a4865759b420ad4f865db69d`. Historical V6/M1 manifests unchanged and reviewed M2 source manifest updated.

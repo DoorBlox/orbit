@@ -1,8 +1,10 @@
 # ORBIT decision and verification archive
 
-**Updated 8 November 2026.** This directory preserves dated M0–M6 decisions, QA records, pre-launch risk gates and reviewed migration plans. Many earlier entries legitimately say **NO-GO**, "local-only", "not yet deployed" or "private repository" because those statements describe a **historical checkpoint**.
+**Archive updated 8 November 2026. Current app release is 2.4; see [CURRENT_STATE.md](../CURRENT_STATE.md) and the [post-2.4 blueprint](../../plans/ORBIT_POST_2_4_EXECUTION.md).** The entries below are preserved historic evidence.
 
-The current ORBIT 1.0.0 single-owner Production state is documented in:
+**Original record, updated 8 November 2026.** This directory preserves dated M0–M6 decisions, QA records, pre-launch risk gates and reviewed migration plans. Many earlier entries legitimately say **NO-GO**, "local-only", "not yet deployed" or "private repository" because those statements describe a **historical checkpoint**.
+
+The original ORBIT 1.0.0 single-owner Production milestone was documented in (see current 2.4 state above for live status):
 
 - [Current working handoff](../../CODEX_HANDOFF.md) — exactly what a new conversation should load.
 - [Operations and rollback](../OPERATIONS.md) — live hostnames, deployment IDs, Auth/security boundaries, safe release procedure.
