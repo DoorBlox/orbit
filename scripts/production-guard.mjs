@@ -50,7 +50,7 @@ export function assertProductionConfig(config,{
     ['default-src',["'self'"]],
     ['script-src',["'self'"]],
     ['style-src',["'self'","'unsafe-inline'"]],
-    ['img-src',["'self'",'data:']],
+    ['img-src',["'self'",'data:',target.supabaseUrl]],
     ['connect-src',["'self'",target.supabaseUrl]],
     ['object-src',["'none'"]],
     ['base-uri',["'none'"]],
