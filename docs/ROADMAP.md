@@ -1,5 +1,15 @@
 # ORBIT — roadmap after 1.0.0
 
+## Live release — 2.4 (9 November 2026)
+
+- [x] Ten saved themes, contrast-corrected clock/panels/paper, optional animated backgrounds and reduced-motion controls.
+- [x] Scroll-safe, disclosure-driven Space settings; sticky-note markers and pointer/keyboard mini-map navigation.
+- [x] Journal formatting, sticky Markdown preview and owner-scoped task checklists in existing private extensions (no DB migration).
+- [x] Four exact-head checks, merged PR #33 and production READY deployment `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4` at `orbit.starscene.com`.
+- [ ] Live signed-in image rendering and owner recovery check (#26); continue to monitor.
+- [ ] True embedded Excalidraw (#31), private media library and deletion (#29), OAuth-scoped ChatGPT connector (#32), reminders/calendar and other blueprint items. These are *not* part of the live release.
+
+
 ## 2.4 — coherent spatial experience (source under review)
 
 - [ ] Ten saved tactile themes and independent animated-background control; clock and controls follow theme contrast, not only canvas color.
