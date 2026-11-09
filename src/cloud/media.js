@@ -34,7 +34,22 @@ export function createPrivateMedia(client,{ownerId}={}){
     const response=await client.auth.getUser();
     if(response.error||response.data?.user?.id!==ownerId)throw Error('Your media session expired. Sign in again.');
   }
+  async function download(path){
+    if(!validMediaOwner(path,ownerId))throw Error('Image belongs to another space or is invalid.');
+    await checkUser();
+    const result=await bucket.download(path);
+    if(result.error||!(result.data instanceof Blob)||result.data.size<12||result.data.size>MAX)
+      throw Error('Private image could not be downloaded.');
+    // A long-running Storage request must not survive a sign-out/account switch.
+    await checkUser();
+    const extension=path.split('.').at(-1).toLowerCase();
+    const mime=Object.keys(TYPES).find(type=>TYPES[type]===extension);
+    const blob=new Blob([result.data],{type:mime});
+    await validateImage(blob);
+    return blob;
+  }
   return {
+    download,
     async upload(file){
       const extension=await validateImage(file);
       await checkUser();
