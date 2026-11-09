@@ -1,6 +1,6 @@
 import { createLayout,getDisplayBounds } from './layout.js';
 import { branchPath,descendantsOf } from './data.js';
-import { taskColor,sortedProjectTasks,dueLabel,formatDate,STATUS,STATUS_LABEL,validateHttpUrl,parseTaskLinks } from './model.js';
+import { taskColor,sortedProjectTasks,dueLabel,formatDate,STATUS,STATUS_LABEL,validateHttpUrl,parseTaskLinks,parseTaskChecklist,taskChecklistLines } from './model.js';
 
 const node=(tag,className='',text=null)=>{const el=document.createElement(tag);if(className)el.className=className;if(text!==null)el.textContent=text;return el;};
 const clamp=(n,low,high)=>Math.min(high,Math.max(low,n));
@@ -367,6 +367,26 @@ export class Constellation {
     const done=node('p','detail-criteria',task.criteria||'No completion criteria yet.');
     view.append(node('span','detail-label','DONE WHEN'),done);
     if(task.description)view.append(node('p','detail-description',task.description));
+    const checklist=Array.isArray(task.checklist)?task.checklist:[];
+    if(checklist.length){
+      const complete=checklist.filter(item=>item.done).length;
+      view.append(node('span','detail-label',`Checklist (${complete}/${checklist.length})`));
+      const list=node('div','task-checklist');
+      for(const [i,item] of checklist.entries()){
+        const label=node('label','task-checklist-item');
+        const checkbox=node('input');checkbox.type='checkbox';checkbox.checked=item.done;
+        checkbox.setAttribute('aria-label',`Mark ${item.text} complete`);
+        checkbox.addEventListener('pointerdown',event=>event.stopPropagation());
+        checkbox.addEventListener('click',event=>event.stopPropagation());
+        checkbox.addEventListener('change',event=>{
+          event.stopPropagation();
+          const changed=checklist.map((entry,j)=>j===i?{text:entry.text,done:checkbox.checked}:entry);
+          this.onTaskUpdate?.(task.id,{checklist:changed});
+        });
+        label.append(checkbox,node('span','',item.text));list.append(label);
+      }
+      view.append(list);
+    }
     const metadata=node('p','detail-meta',`${formatDate(task.dueDate)}   ·   U${task.urgency}/5   ·   ${STATUS_LABEL[task.status]||task.status}${task.effortMinutes?'   ·   '+task.effortMinutes+' min':''}`);
     view.append(metadata);
     const href=validateHttpUrl(task.resourceUrl);
@@ -426,6 +446,9 @@ export class Constellation {
     field('Supporting link','resourceUrl');
     const links=field('More links (one per line: Name | https://url)','extraLinks','textarea');
     links.rows=3;links.value=(task.links||[]).map(link=>link.label+' | '+link.url).join('\n');
+    const checklistField=field('Checklist (one line per item; - [x] marks done)','checklistText','textarea');
+    checklistField.rows=3;checklistField.maxLength=7500;
+    checklistField.value=taskChecklistLines(task.checklist||[]);
     const actions=node('div','editor-actions');const save=node('button','node-mini-primary','Save changes');save.type='submit';const cancel=node('button','node-mini-secondary','Cancel');cancel.type='button';actions.append(save,cancel);form.append(actions);
     const dismiss=()=>{form.remove();view.hidden=false;row.focus({preventScroll:true});};
     cancel.addEventListener('click',e=>{e.stopPropagation();dismiss();});
@@ -433,9 +456,11 @@ export class Constellation {
     form.addEventListener('click',e=>e.stopPropagation());form.addEventListener('pointerdown',e=>e.stopPropagation());
     form.addEventListener('submit',e=>{e.preventDefault();e.stopPropagation();const data=new FormData(form);const patch=Object.fromEntries(data.entries());
       patch.urgency=Number(patch.urgency)||1;patch.effortMinutes=Number(patch.effortMinutes)||0;
-      try{patch.links=parseTaskLinks(String(patch.extraLinks||''));}
-      catch(error){this.onTaskError?.(error.message);return;}
-      delete patch.extraLinks;
+      try{
+        patch.links=parseTaskLinks(String(patch.extraLinks||''));
+        patch.checklist=parseTaskChecklist(String(patch.checklistText||''));
+      }catch(error){this.onTaskError?.(error.message);return;}
+      delete patch.extraLinks;delete patch.checklistText;
       if(!String(patch.title).trim()){title.focus();return;}
       this.onTaskUpdate?.(task.id,patch);
     });

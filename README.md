@@ -1,5 +1,8 @@
 # ORBIT — The Spatial Scrapbook
 
+**ORBIT 2.4 in review:** ten saved visual themes, independent background animation, draggable mini-map with sticky markers, stronger journal/sticky formatting, scroll-safe Space controls and private task checklists. Original six movable windows and spatial world remain. Real embedded Excalidraw ([#31](https://github.com/DoorBlox/orbit/issues/31)) and scoped ChatGPT connector ([#32](https://github.com/DoorBlox/orbit/issues/32)) are separate security/version-verified work units; current native drawing UI is not presented as upstream Excalidraw. Release gated by CI, Preview and inspected Production artifacts.
+
+
 **Next patch (not yet live):** [#26](https://github.com/DoorBlox/orbit/issues/26) targets private image previews blocked by the Production image Content Security Policy. The source branch also adds independent **Copy** for paper sticky notes (text, drawing, tint and private image reference). Live beta still has the image-display limitation until tested and released.
 
 ## 9 Nov 2026 — ORBIT 2.2 beta LIVE on Production (latest source of truth)

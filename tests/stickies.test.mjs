@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {StickyNotes} from '../src/stickies.js';
+import {StickyNotes,formatStickySelection} from '../src/stickies.js';
 
 const createNote=()=>({
   id:'original',title:'Thought',text:'A private thought',x:1000,y:1200,
@@ -70,4 +70,14 @@ test('detaching one private image is reversible and never affects cloned referen
   assert.deepEqual([trace.renders,trace.changes],[2,2]);
   state.readOnly=true;
   assert.equal(StickyNotes.prototype.detachImage.call(state,'original'),false);
+});
+
+test('sticky markdown formatting preserves plaintext persistence and selection safety',()=>{
+  assert.deepEqual(formatStickySelection('hello',0,5,'bold'),{value:'**hello**',start:2,end:7});
+  assert.equal(formatStickySelection('one\ntwo',0,7,'bullet').value,'- one\n- two');
+  assert.equal(formatStickySelection('go',0,2,'checklist').value,'- [ ] go');
+  assert.equal(formatStickySelection('website',0,7,'link','https://example.org').value,'[website](https://example.org/)');
+  assert.throws(()=>formatStickySelection('site',0,4,'link','javascript:alert(1)'),/valid/);
+  assert.throws(()=>formatStickySelection('site',0,4,'link','https://alice:pwd@example.org/'),/valid/);
+  assert.equal(formatStickySelection('z'.repeat(5999),0,0,'bold'),null);
 });

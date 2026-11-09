@@ -30,13 +30,30 @@ test('extensions reject invalid note IDs, oversize text and malicious task refer
     {taskLinks:{task_1:[{label:'Credentials',url:'https://user:password@example.com/private'}]}},
     {journalScenes:{bad: {...emptyScene(),files:{file:{}}}}}
   ])assert.throws(()=>normalizeExtensions(invalid));
-  assert.deepEqual(normalizeExtensions({}),{notes:[],taskLinks:{},journalScenes:{},journalImages:{},appearance:{theme:'parchment',motion:'system'}});
+  assert.deepEqual(normalizeExtensions({}),{notes:[],taskLinks:{},taskChecklists:{},journalScenes:{},journalImages:{},appearance:{theme:'parchment',motion:'system',ambient:false}});
 });
 
 test('workspace appearance is normalized, persisted and protected against unsupported values',()=>{
   const original=normalizeExtensions({appearance:{theme:'garden',motion:'off'}});
-  assert.deepEqual(original.appearance,{theme:'garden',motion:'off'});
+  assert.deepEqual(original.appearance,{theme:'garden',motion:'off',ambient:false});
   assert.deepEqual(normalizeExtensions(original).appearance,original.appearance);
-  for(const appearance of [{theme:'javascript:alert(1)'},{motion:'endless'},'dark'])
+  for(const appearance of [{theme:'javascript:alert(1)'},{motion:'endless'}, {ambient:'yes'},'dark'])
     assert.throws(()=>normalizeExtensions({appearance}),/Invalid workspace appearance/);
+});
+
+test('ten curated themes retain their exact ID and optional ambient animation',()=>{
+  for(const theme of ['parchment','garden','frost','celestial','ember','tidepool','sundown','sakura','graphite','linen']){
+    const actual=normalizeExtensions({appearance:{theme,ambient:true,motion:'system'}});
+    assert.deepEqual(actual.appearance,{theme,ambient:true,motion:'system'});
+  }
+});
+
+test('account-scoped task checklists survive extension normalization without SQL schema changes',()=>{
+  const checklist=[{text:'Collect notes',done:true},{text:'Write summary',done:false}];
+  const result=normalizeExtensions({taskChecklists:{task_1:checklist}});
+  assert.deepEqual(result.taskChecklists.task_1,checklist);
+  assert.deepEqual(normalizeExtensions(result).taskChecklists.task_1,checklist);
+  for(const invalid of [[{text:'oops',done:'yes'}],Array.from({length:31},()=>({text:'Too many',done:false}))]){
+    assert.throws(()=>normalizeExtensions({taskChecklists:{task_1:invalid}}));
+  }
 });

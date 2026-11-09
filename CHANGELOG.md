@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.4 — In review (9 November 2026)
+
+- Ten coherent account-scoped theme palettes; optional ambient animation; readable clock and calmer paper/glass hierarchy.
+- Mini-map supports drag navigation, keyboard pan and sticky-note markers. Space settings keep backup/import/export under “More tools” while small-window content scrolls.
+- Journal formatting expands to underline, strikethrough, numbered lists, quotes and validated links. Sticky notes gain safe plaintext-Markdown formatting and optional rendered preview.
+- Structured per-task checklists are stored in existing private extensions, allowing completion in constellation details without a database migration. Links, criteria and descriptions remain intact.
+- Preserve the six spatial windows, private Supabase RLS, and existing image references. Real embedded Excalidraw, remote ChatGPT connector and permanent media deletion are separate audited milestones—not included in this release.
+- No claim of Production readiness until exact-head CI and gated Vercel deployment checks succeed.
+
+
 ## 2.2.1 — Unreleased (source patch)
 
 - Fix #26: allow only the exact ORBIT Supabase origin for signed private images under CSP `img-src`; enforce this in the strict Production configuration verifier and tests. Private image Storage RLS, bucket visibility and keys remain unchanged.

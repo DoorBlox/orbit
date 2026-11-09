@@ -100,12 +100,35 @@
 <button class="glass-button subtle" id="cancel-space-name" type="button">Cancel</button>
 </div>
 </form>
-<div class="space-actions">
+<div class="space-actions space-primary-actions">
+<button class="glass-button" id="new-sticky" type="button">+ sticky note</button>
 <button class="glass-button" id="rename-space" aria-controls="space-name-form" aria-expanded="false" type="button">Rename space</button>
 <button class="glass-button" id="expand-all-branches" type="button">Expand branches</button>
 <button class="glass-button" id="collapse-all-branches" type="button">Collapse branches</button>
-<button class="glass-button" id="new-sticky" type="button">+ sticky note</button>
-<button class="glass-button" id="backup-json" type="button">Backup</button>
+</div>
+<fieldset class="appearance-controls" id="appearance-controls">
+  <legend>Make this space yours</legend>
+  <div class="appearance-choices" role="radiogroup" aria-label="Choose one of ten canvas themes">
+    <label class="appearance-option"><input type="radio" name="space-theme" value="parchment" checked/><span class="appearance-swatch" aria-hidden="true"></span><span>Parchment</span></label>
+    <label class="appearance-option"><input type="radio" name="space-theme" value="garden"/><span class="appearance-swatch" aria-hidden="true"></span><span>Night Garden</span></label>
+    <label class="appearance-option"><input type="radio" name="space-theme" value="frost"/><span class="appearance-swatch" aria-hidden="true"></span><span>Frost</span></label>
+    <label class="appearance-option"><input type="radio" name="space-theme" value="celestial"/><span class="appearance-swatch" aria-hidden="true"></span><span>Celestial Blue</span></label>
+    <label class="appearance-option"><input type="radio" name="space-theme" value="ember"/><span class="appearance-swatch" aria-hidden="true"></span><span>Ember</span></label>
+    <label class="appearance-option"><input type="radio" name="space-theme" value="tidepool"/><span class="appearance-swatch" aria-hidden="true"></span><span>Tidepool</span></label>
+    <label class="appearance-option"><input type="radio" name="space-theme" value="sundown"/><span class="appearance-swatch" aria-hidden="true"></span><span>Sundown</span></label>
+    <label class="appearance-option"><input type="radio" name="space-theme" value="sakura"/><span class="appearance-swatch" aria-hidden="true"></span><span>Sakura</span></label>
+    <label class="appearance-option"><input type="radio" name="space-theme" value="graphite"/><span class="appearance-swatch" aria-hidden="true"></span><span>Graphite</span></label>
+    <label class="appearance-option"><input type="radio" name="space-theme" value="linen"/><span class="appearance-swatch" aria-hidden="true"></span><span>Linen</span></label>
+  </div>
+  <div class="appearance-switches">
+    <label class="appearance-motion"><input type="checkbox" id="appearance-ambient"/> Animate background</label>
+    <label class="appearance-motion"><input type="checkbox" id="appearance-reduce-motion"/> Reduce interface motion</label>
+  </div>
+</fieldset>
+<details class="space-more-tools">
+<summary>More tools <span>Backup, import and export</span></summary>
+<div class="space-actions space-secondary-actions">
+<button class="glass-button" id="backup-json" type="button">Back up space</button>
 <button class="glass-button" id="import-csv" type="button" title="Import tasks or branches CSV, journal pages JSON, or an entire ORBIT backup">Import</button>
 <label class="visually-hidden" for="export-kind">Choose export content</label>
 <select class="space-export-picker" id="export-kind" aria-label="Choose export content">
@@ -117,15 +140,7 @@
 <button class="glass-button" id="export-csv" type="button">Export selected</button>
 <button class="glass-button subtle" id="clear-demo" type="button">Remove samples</button>
 </div>
-<fieldset class="appearance-controls" id="appearance-controls">
-  <legend>Canvas appearance</legend>
-  <div class="appearance-choices" role="radiogroup" aria-label="Choose theme">
-    <label class="appearance-option"><input type="radio" name="space-theme" value="parchment" checked/><span>Parchment</span></label>
-    <label class="appearance-option"><input type="radio" name="space-theme" value="garden"/><span>Night Garden</span></label>
-    <label class="appearance-option"><input type="radio" name="space-theme" value="frost"/><span>Frost</span></label>
-  </div>
-  <label class="appearance-motion"><input type="checkbox" id="appearance-reduce-motion"/> Reduce canvas motion</label>
-</fieldset>
+</details>
 </section>
       <article id="journal-widget" class="spatial-item journal-widget" data-widget="journal" aria-label="Personal journal">
         <div class="journal-outer-glass">
@@ -145,6 +160,11 @@
                 <button type="button" class="journal-tool italic" data-format="italic" aria-label="Italic" title="Italic (Ctrl/⌘ I)">I</button>
                 <button type="button" class="journal-tool" data-format="heading" aria-label="Heading">H</button>
                 <button type="button" class="journal-tool" data-format="list" aria-label="Bullet list">≡</button>
+                <button type="button" class="journal-tool" data-format="ordered" aria-label="Numbered list">1.</button>
+                <button type="button" class="journal-tool" data-format="underline" aria-label="Underline"><u>U</u></button>
+                <button type="button" class="journal-tool" data-format="strike" aria-label="Strikethrough"><s>S</s></button>
+                <button type="button" class="journal-tool" data-format="quote" aria-label="Quote">“”</button>
+                <button type="button" class="journal-tool" data-format="link" aria-label="Insert link">Link</button>
                 <button type="button" class="journal-tool" id="journal-draw" aria-label="Open journal drawing" title="Sketch on this journal page">✎ draw</button>
                 <button type="button" class="journal-tool" id="journal-image" aria-label="Attach a private journal image" title="Add a private image to this journal page">+ image</button>
                 <button type="button" class="journal-tool" id="journal-image-remove" aria-label="Detach private journal image without deleting the file" hidden>Detach image</button>
@@ -168,7 +188,7 @@
     <button type="button" id="board-home" aria-label="See all widgets" title="See all widgets"><svg class="icon"><use href="#i-compass"/></svg></button>
     <button type="button" id="board-zoom-in" aria-label="Zoom scrapbook in" title="Zoom in"><svg class="icon"><use href="#i-plus"/></svg></button>
   </div>
-  <nav class="space-navigator glass-widget" aria-label="Places in your scrapbook"><button type="button" class="space-nav-toggle" id="space-nav-toggle" aria-label="Open places map" aria-expanded="false" title="Places"><svg class="icon" aria-hidden="true"><use href="#i-compass"></use></svg></button><div class="space-nav-top"><span>YOUR SPACE</span><span id="board-scale-label">100%</span></div><div id="space-nav-map" class="space-nav-map" aria-label="Map of widgets"></div><div class="space-nav-caption" id="space-nav-caption">tap a place to visit</div></nav>
+  <nav class="space-navigator glass-widget" aria-label="Places in your scrapbook"><button type="button" class="space-nav-toggle" id="space-nav-toggle" aria-label="Open places map" aria-expanded="false" title="Places"><svg class="icon" aria-hidden="true"><use href="#i-compass"></use></svg></button><div class="space-nav-top"><span>YOUR SPACE</span><span id="board-scale-label">100%</span></div><div id="space-nav-map" class="space-nav-map" aria-label="Drag or click the miniature map to navigate widgets and sticky notes"></div><div class="space-nav-caption" id="space-nav-caption">drag the outline to travel</div></nav>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <input type="file" id="csv-file" accept=".csv,text/csv,.json,application/json" class="visually-hidden" />
 </div></body></html>

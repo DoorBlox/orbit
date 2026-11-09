@@ -1,5 +1,15 @@
 # ORBIT — roadmap after 1.0.0
 
+## 2.4 — coherent spatial experience (source under review)
+
+- [ ] Ten saved tactile themes and independent animated-background control; clock and controls follow theme contrast, not only canvas color.
+- [ ] Minimap includes sticky notes and draggable/keyboard focus, with bounds and correct camera math.
+- [ ] Space panel remains usable when resized small; rare tools grouped, accessible and scrollable.
+- [ ] Journal formatting and sticky Markdown preview; per-task checklists saved privately with supporting links.
+- [ ] All four required PR checks plus real-account Preview test before approved Production release. The owner authorized expedited Production on 9 Nov 2026; gating still applies.
+- [ ] Actual Excalidraw React island ([#31](https://github.com/DoorBlox/orbit/issues/31)), reusable media library and safe delete ([#29](https://github.com/DoorBlox/orbit/issues/29)), scoped ChatGPT MCP connector ([#32](https://github.com/DoorBlox/orbit/issues/32)), reminders, calendar, and remaining blueprint features still not shipped.
+
+
 ## In development — ORBIT 2.3, private source branch (9 Nov 2026)
 
 - [ ] Verify authenticated blob media previews and error/retry states; detached image references remain undoable with original files preserved (#26, #29).

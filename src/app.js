@@ -1,5 +1,5 @@
 import { branchPath,descendantsOf,createBranch,removeBranchPreservingContents } from './data.js';
-import { cleanTask,taskSummary } from './model.js';
+import { cleanTask,taskSummary,normalizeTaskChecklist } from './model.js';
 import { readTasks,saveTasks,readPreferences,savePreferences,readBranches,saveBranches,readProfile,saveProfile,readExtensions,saveExtensions,STORAGE_KEYS,getStorageStatus,getRecoveryData,markStorageIssue,isStorageWriteBlocked,clearStorageIssues } from './storage.js';
 import { importCsv,exportCsv,parseCsv,importBranchesCsv,exportBranchesCsv } from './csv.js';
 import { Constellation } from './constellation.js';
@@ -38,9 +38,16 @@ const initialExtensions=normalizeExtensions(initialSnapshot?.extensions??(persis
 const state={extensions:initialExtensions,branches:initialBranches,tasks:initialSnapshot?structuredClone(initialSnapshot.tasks):readTasks(),preferences:initialSnapshot?structuredClone(initialSnapshot.preferences):readPreferences(),profile:structuredClone(initialSnapshot?.profile||(persistLocally?readProfile():{displayName:'My space'})),selectedBranchId:'inbox',
   collapsedBranchIds:[],selectedTaskId:'',captureMode:'capture',captureDraft:'',searchDraft:''};
 state.collapsedBranchIds=normalizeCollapsedBranches(initialSnapshot?.collapsedBranchIds??(readOnly?[]:readCollapsedBranches()),state.branches);
-function applyTaskLinks(){for(const task of state.tasks)if(Object.hasOwn(state.extensions.taskLinks,task.id))task.links=structuredClone(state.extensions.taskLinks[task.id]);}
+function applyTaskLinks(){
+  for(const task of state.tasks){
+    if(Object.hasOwn(state.extensions.taskLinks,task.id))task.links=structuredClone(state.extensions.taskLinks[task.id]);
+    task.checklist=normalizeTaskChecklist(state.extensions.taskChecklists?.[task.id]??[]);
+  }
+}
 function collectExtensions(){
   state.extensions.taskLinks=Object.fromEntries(state.tasks.filter(t=>t.links?.length).map(t=>[t.id,t.links]));
+  state.extensions.taskChecklists=Object.fromEntries(state.tasks.filter(t=>t.checklist?.length)
+    .map(t=>[t.id,normalizeTaskChecklist(t.checklist)]));
   return normalizeExtensions(state.extensions);
 }
 applyTaskLinks();
@@ -48,8 +55,10 @@ function applyAppearance(){
   const appearance=state.extensions.appearance;
   document.documentElement.dataset.theme=appearance.theme;
   document.documentElement.dataset.motion=appearance.motion;
+  document.documentElement.dataset.ambient=appearance.ambient?'on':'off';
   for(const input of document.querySelectorAll('input[name="space-theme"]'))input.checked=input.value===appearance.theme;
   const motion=$('appearance-reduce-motion');if(motion)motion.checked=appearance.motion==='off';
+  const ambient=$('appearance-ambient');if(ambient)ambient.checked=appearance.ambient;
 }
 applyAppearance();
 const capture=$('capture-form'),input=$('capture-name'),target=$('capture-target');
@@ -112,6 +121,7 @@ const scene=new Constellation({viewport:$('map-viewport'),world:$('map-world'),e
     const prev=state.tasks[index];
     try{
       const next=cleanTask({...prev,...patch},prev.projectId);
+      next.checklist=normalizeTaskChecklist(patch.checklist??prev.checklist??[]);
       if(!state.branches.some(b=>b.id===next.projectId))throw Error('Choose an existing branch.');
       state.tasks[index]=next;scene.expandedTaskId=id;sync();
       if(patch.status==='completed')message('Finished. That counts.');
@@ -158,7 +168,8 @@ const board=new SpatialBoard({notify:(...args)=>message(...args),initialLayout:i
 board.onWidgetResize=id=>{if(id==='constellation')requestAnimationFrame(()=>scene.onResize());};
 const stickies=new StickyNotes({world:$('spatial-world'),notes:state.extensions.notes,readOnly,
   getScale:()=>board.scale,media,notify:(...args)=>message(...args),
-  onChange:notes=>{state.extensions.notes=notes;extensionsChanged();}});
+  onChange:notes=>{state.extensions.notes=notes;board.setStickyNotes(notes);extensionsChanged();}});
+board.setStickyNotes(stickies.getNotes());
 const journal=new Journal({initialEntries:initialSnapshot?(initialSnapshot.journalEntries||[]):undefined,readOnly,persistLocally,notify:(s,...args)=>message(s,...args),onEntriesChange:entries=>{widgets.setJournalEntries(entries);emitChange();}});
 widgets.setJournalEntries(journal.entries);
 journal.onPageChange=()=>{refreshJournalDrawing();refreshJournalImage();};
@@ -392,6 +403,13 @@ function initTools(){
       message('Appearance saved to this private space.');
     });
   }
+  $('appearance-ambient').disabled=readOnly;
+  $('appearance-ambient').addEventListener('change',event=>{
+    if(disposed||readOnly)return;
+    state.extensions.appearance.ambient=event.currentTarget.checked;
+    applyAppearance();extensionsChanged();
+    message(event.currentTarget.checked?'Background animation enabled.':'Background animation paused.');
+  });
   $('appearance-reduce-motion').disabled=readOnly;
   $('appearance-reduce-motion').addEventListener('change',event=>{
     if(disposed||readOnly)return;
@@ -579,7 +597,7 @@ function applySnapshot(snapshot){
   if(disposed)return;hydrating=true;
   state.branches=structuredClone(snapshot.branches);state.tasks=structuredClone(snapshot.tasks);
   state.extensions=normalizeExtensions(snapshot.extensions??state.extensions);
-  applyAppearance();applyTaskLinks();stickies.setNotes(state.extensions.notes);
+  applyAppearance();applyTaskLinks();stickies.setNotes(state.extensions.notes);board.setStickyNotes(stickies.getNotes());
   state.preferences=structuredClone(snapshot.preferences);state.profile=structuredClone(snapshot.profile||state.profile);
   if(snapshot.collapsedBranchIds!==undefined)state.collapsedBranchIds=normalizeCollapsedBranches(snapshot.collapsedBranchIds,state.branches);
   saveCollapsedBranches();
@@ -591,6 +609,6 @@ function applySnapshot(snapshot){
   sync({persist:false});hydrating=false;
 }
 function setCloudStatus(status){cloudStatus=status;journal.setCloudStatus(status);}
-function dispose(){if(disposed)return;disposed=true;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);board.dispose();journal.dispose();stickies.dispose();scene.dispose();media?.dispose?.();document.documentElement.dataset.theme='parchment';document.documentElement.dataset.motion='system';window.orbitDebug=null;}
+function dispose(){if(disposed)return;disposed=true;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);board.dispose();journal.dispose();stickies.dispose();scene.dispose();media?.dispose?.();document.documentElement.dataset.theme='parchment';document.documentElement.dataset.motion='system';document.documentElement.dataset.ambient='off';window.orbitDebug=null;}
 return {getSnapshot,applySnapshot,setCloudStatus,dispose,flushEditor:()=>journal.commit(),exportBackup:backupJson};
 }

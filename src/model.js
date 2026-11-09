@@ -39,6 +39,28 @@ export function parseTaskLinks(lines){
     return split<0?{label:'',url:line}:{label:line.slice(0,split).trim(),url:line.slice(split+1).trim()};
   }));
 }
+export function normalizeTaskChecklist(raw=[]){
+  if(raw==null)return [];
+  if(!Array.isArray(raw)||raw.length>30)throw Error('A task supports at most 30 checklist items.');
+  return raw.map(item=>{
+    if(!item||typeof item!=='object'||Array.isArray(item)||
+       typeof item.text!=='string'||!item.text.trim()||item.text.length>220||
+       typeof item.done!=='boolean')throw Error('Invalid checklist item.');
+    return {text:item.text.trim(),done:item.done};
+  });
+}
+export function parseTaskChecklist(lines){
+  if(typeof lines!=='string'||lines.length>7500)throw Error('Checklist is too long.');
+  const items=lines.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).map(line=>{
+    const match=/^(?:[-*]\s*)?\[([ xX])\]\s*(.+)$/.exec(line);
+    if(match)return {text:match[2],done:match[1].toLowerCase()==='x'};
+    return {text:line.replace(/^[-*]\s+/,'').trim(),done:false};
+  });
+  return normalizeTaskChecklist(items);
+}
+export function taskChecklistLines(list=[]){
+  return normalizeTaskChecklist(list).map(item=>`- [${item.done?'x':' '}] ${item.text}`).join('\n');
+}
 export function cleanTask(raw,fallbackBranch='inbox'){
   const title=String(raw.title||'').trim().slice(0,180);if(!title)throw Error('A task needs a name.');
   let dueDate=String(raw.dueDate||'').trim();if(dueDate&&daysUntil(dueDate)===null)dueDate='';

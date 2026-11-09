@@ -2,6 +2,7 @@
  * Inline pen editing is intentionally native; the full upstream React editor
  * is not bundled. Binary image payloads await private media storage.
  */
+import { normalizeTaskChecklist } from './model.js';
 const object = value => !!value && typeof value==='object' && !Array.isArray(value);
 const validId = value => typeof value==='string' && /^[A-Za-z0-9_-]{1,100}$/.test(value) && !['__proto__','constructor','prototype'].includes(value);
 const coord = value => Number.isFinite(value) && Math.abs(value)<=10000;
@@ -35,12 +36,16 @@ export function normalizeExtensions(raw={}){
   if(raw===undefined||raw===null)raw={};
   if(!object(raw)||JSON.stringify(raw).length>900000)throw Error('Invalid or oversized workspace extensions.');
   const notes=raw.notes??[],taskLinks=raw.taskLinks??{},journalScenes=raw.journalScenes??{},journalImages=raw.journalImages??{};
+  const taskChecklists=raw.taskChecklists??{};
   const rawAppearance=raw.appearance??{};
-  if(!object(rawAppearance)||!['parchment','garden','frost'].includes(rawAppearance.theme??'parchment')||
-     !['system','off'].includes(rawAppearance.motion??'system'))throw Error('Invalid workspace appearance.');
-  const appearance={theme:rawAppearance.theme??'parchment',motion:rawAppearance.motion??'system'};
+  if(!object(rawAppearance)||!['parchment','garden','frost','celestial','ember','tidepool','sundown','sakura','graphite','linen'].includes(rawAppearance.theme??'parchment')||
+     !['system','off'].includes(rawAppearance.motion??'system')||
+     (rawAppearance.ambient!==undefined&&typeof rawAppearance.ambient!=='boolean'))throw Error('Invalid workspace appearance.');
+  const appearance={theme:rawAppearance.theme??'parchment',motion:rawAppearance.motion??'system',
+    ambient:rawAppearance.ambient??false};
   if(!Array.isArray(notes)||notes.length>80||!object(taskLinks)||Object.keys(taskLinks).length>10000||
-     !object(journalScenes)||Object.keys(journalScenes).length>600||!object(journalImages)||Object.keys(journalImages).length>600)throw Error('Invalid workspace extensions.');
+     !object(journalScenes)||Object.keys(journalScenes).length>600||!object(journalImages)||Object.keys(journalImages).length>600||
+     !object(taskChecklists)||Object.keys(taskChecklists).length>10000)throw Error('Invalid workspace extensions.');
   const ids=new Set();
   const cleanNotes=notes.map(n=>{
     if(!object(n)||!validId(n.id)||ids.has(n.id)||typeof n.text!=='string'||n.text.length>6000||
@@ -64,6 +69,11 @@ export function normalizeExtensions(raw={}){
       return {label:value.label.trim().slice(0,120)||u.hostname,url:u.href};
     });
   }
+  const checklists={};
+  for(const [id,items] of Object.entries(taskChecklists)){
+    if(!validId(id))throw Error('Invalid task checklist ID.');
+    checklists[id]=normalizeTaskChecklist(items);
+  }
   const scenes={};
   for(const [id,scene] of Object.entries(journalScenes)){
     if(!validId(id))throw Error('Invalid journal drawing ID.');
@@ -74,7 +84,7 @@ export function normalizeExtensions(raw={}){
     if(!validId(id))throw Error('Invalid journal image ID.');
     images[id]=assertImagePath(path);
   }
-  return {notes:cleanNotes,taskLinks:links,journalScenes:scenes,journalImages:images,appearance};
+  return {notes:cleanNotes,taskLinks:links,taskChecklists:checklists,journalScenes:scenes,journalImages:images,appearance};
 }
 export function renderScene(scene,target){
   target.replaceChildren();
