@@ -1,45 +1,36 @@
 import { markStorageIssue,isStorageWriteBlocked } from './storage.js';
+import { DEFAULT_WIDGET_REGISTRY } from './widget-registry.js';
 /* The spatial scrapbook is one coordinate space. Widgets are positions, never page sections. */
 const KEY='orbit.v5.spatial-layout';
 const SIZE_KEY='orbit.v6.spatial-sizes';
 const CAMERA_KEY='orbit.v5.spatial-camera';
 const WORLD={w:2990,h:2740};
-const DEFAULT={
-  timeline:{x:445,y:105},
-  constellation:{x:410,y:670},
-  active:{x:1895,y:760},
-  completed:{x:1980,y:1370},
-  space:{x:280,y:1725},
-  journal:{x:930,y:1780},
-};
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
-const LIMITS={
-  timeline:{minW:520,minH:520,maxW:3200,maxH:1200},
-  constellation:{minW:650,minH:550,maxW:3000,maxH:2000},
-  active:{minW:300,minH:280,maxW:1400,maxH:2000},
-  completed:{minW:300,minH:235,maxW:1400,maxH:2000},
-  space:{minW:300,minH:210,maxW:1050,maxH:950},
-  journal:{minW:420,minH:720,maxW:1500,maxH:2400}
-};
-function readSizes(){try{
+function readSizes(registry){try{
   const data=JSON.parse(localStorage.getItem(SIZE_KEY)||'{}');const output={};
   if(!data||typeof data!=='object'||Array.isArray(data))throw Error();
-  for(const [id,size] of Object.entries(data))if(!LIMITS[id]||!Number.isFinite(size?.w)||!Number.isFinite(size?.h))markStorageIssue(SIZE_KEY,'Some saved sizes need recovery.');
-  for(const [id,lim] of Object.entries(LIMITS))if(Number.isFinite(data[id]?.w)&&Number.isFinite(data[id]?.h)){
-    output[id]={w:clamp(data[id].w,lim.minW,lim.maxW),h:clamp(data[id].h,lim.minH,lim.maxH)};
+  for(const [id,size] of Object.entries(data))
+    if(!registry.has(id)||!Number.isFinite(size?.w)||!Number.isFinite(size?.h))
+      markStorageIssue(SIZE_KEY,'Some saved sizes need recovery.');
+  for(const id of registry.ids){
+    const lim=registry.get(id).limits;
+    if(Number.isFinite(data[id]?.w)&&Number.isFinite(data[id]?.h))
+      output[id]={w:clamp(data[id].w,lim.minW,lim.maxW),h:clamp(data[id].h,lim.minH,lim.maxH)};
   }
   return output;
 }catch{markStorageIssue(SIZE_KEY,'Saved sizes need recovery.');return {};}}
-
 const prefersReduce=()=>globalThis.document?.documentElement?.dataset?.motion==='off'||matchMedia('(prefers-reduced-motion: reduce)').matches;
-function readPositions(){try{
-  const data=JSON.parse(localStorage.getItem(KEY)||'{}');const next=structuredClone(DEFAULT);
+function readPositions(registry){try{
+  const data=JSON.parse(localStorage.getItem(KEY)||'{}'),next=registry.defaults();
   if(!data||typeof data!=='object'||Array.isArray(data))throw Error();
-  for(const [id,pos] of Object.entries(data))if(!Object.hasOwn(DEFAULT,id)||!Number.isFinite(pos?.x)||!Number.isFinite(pos?.y))markStorageIssue(KEY,'Some saved positions need recovery.');
-  for(const id of Object.keys(DEFAULT))if(data[id]&&Number.isFinite(data[id].x)&&Number.isFinite(data[id].y))next[id]={x:clamp(data[id].x,-5000,7500),y:clamp(data[id].y,-5000,7500)};
+  for(const [id,pos] of Object.entries(data))
+    if(!registry.has(id)||!Number.isFinite(pos?.x)||!Number.isFinite(pos?.y))
+      markStorageIssue(KEY,'Some saved positions need recovery.');
+  for(const id of registry.ids)
+    if(data[id]&&Number.isFinite(data[id].x)&&Number.isFinite(data[id].y))
+      next[id]={x:clamp(data[id].x,-5000,7500),y:clamp(data[id].y,-5000,7500)};
   return next;
-}catch{markStorageIssue(KEY,'Saved positions need recovery.');return structuredClone(DEFAULT);}}
-const iconList={constellation:'✳',timeline:'─',active:'◉',completed:'✓',journal:'✎',space:'·'};
+}catch{markStorageIssue(KEY,'Saved positions need recovery.');return registry.defaults();}}
 export function clampNavigatorPercent(value,pixels,diameter=31){
   const inset=Math.min(49,(diameter/2+2)/Math.max(1,pixels)*100);
   return clamp(value,inset,100-inset);
@@ -49,11 +40,18 @@ export function navigatorWorldPoint(px,py,bounds){
   return {x:bounds.x0+(bounds.x1-bounds.x0)*x,y:bounds.y0+(bounds.y1-bounds.y0)*y};
 }
 export class SpatialBoard {
-  constructor({notify=()=>{},initialLayout,readOnly=false,persistLocally=true,onLayoutChange=()=>{}}={}){
+  constructor({notify=()=>{},initialLayout,readOnly=false,persistLocally=true,onLayoutChange=()=>{},widgetRegistry=DEFAULT_WIDGET_REGISTRY}={}){
+    if(!widgetRegistry||!Array.isArray(widgetRegistry.ids)||
+       typeof widgetRegistry.get!=='function'||typeof widgetRegistry.defaults!=='function')
+      throw Error('A validated spatial widget registry is required.');
+    this.widgetRegistry=widgetRegistry;
+    this.defaultPositions=widgetRegistry.defaults();
+    this.limits=Object.fromEntries(widgetRegistry.ids.map(id=>[id,widgetRegistry.get(id).limits]));
+    this.icons=Object.fromEntries(widgetRegistry.ids.map(id=>[id,widgetRegistry.get(id).icon]));
     this.readOnly=readOnly;this.persistLocally=persistLocally;this.onLayoutChange=onLayoutChange;this.events=new AbortController();
     this.notify=notify;
     this.viewport=document.getElementById('spatial-viewport');this.world=document.getElementById('spatial-world');
-    this.positions=initialLayout?structuredClone(DEFAULT):readPositions();this.sizes=initialLayout?{}:readSizes();this.scale=1;this.pan={x:0,y:0};this.gesture=null;this.pointers=new Map();this.raf=0;
+    this.positions=initialLayout?structuredClone(this.defaultPositions):readPositions(widgetRegistry);this.sizes=initialLayout?{}:readSizes(widgetRegistry);this.scale=1;this.pan={x:0,y:0};this.gesture=null;this.pointers=new Map();this.raf=0;
     this.widgets=new Map();this.stickyNotes=[];this.navPointer=null;
     this.nav=document.getElementById('space-nav-map');
     this.nav.tabIndex=0;this.nav.setAttribute('role','group');
@@ -121,11 +119,11 @@ export class SpatialBoard {
   }
   getLayout(){const out=structuredClone(this.positions);for(const [id,size] of Object.entries(this.sizes))out[id]={...out[id],width:size.w,height:size.h};return out;}
   setLayout(value,{persist=true}={}){
-    const safe={};for(const [id,pos] of Object.entries(DEFAULT)){
+    const safe={};for(const [id,pos] of Object.entries(this.defaultPositions)){
       const given=value?.[id];safe[id]={x:Number.isFinite(given?.x)?clamp(given.x,-5000,7500):pos.x,y:Number.isFinite(given?.y)?clamp(given.y,-5000,7500):pos.y};
     }
     this.positions=safe;this.sizes={};
-    for(const [id,lim] of Object.entries(LIMITS)){
+    for(const [id,lim] of Object.entries(this.limits)){
       const obj=value?.[id];if(Number.isFinite(obj?.width)&&Number.isFinite(obj?.height))
         this.sizes[id]={w:clamp(obj.width,lim.minW,lim.maxW),h:clamp(obj.height,lim.minH,lim.maxH)};
     }
@@ -284,7 +282,7 @@ export class SpatialBoard {
   resizeStart(e,id,handle){if(this.readOnly)return;
     if(e.button!==0&&e.pointerType!=='touch')return;
     e.preventDefault();e.stopPropagation();cancelAnimationFrame(this.raf);
-    const lim=LIMITS[id],size=this.widgetSize(id);if(!lim)return;
+    const lim=this.limits[id],size=this.widgetSize(id);if(!lim)return;
     const origin={...size};const pointer=e.pointerId,startX=e.clientX,startY=e.clientY;
     handle.setPointerCapture?.(pointer);handle.classList.add('is-resizing');
     const move=ev=>{if(ev.pointerId!==pointer)return;
@@ -299,7 +297,7 @@ export class SpatialBoard {
     handle.addEventListener('pointermove',move);handle.addEventListener('pointerup',end);handle.addEventListener('pointercancel',end);
   }
   resizeViaKeyboard(e,id){if(this.readOnly)return;const d={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(!d)return;
-    e.preventDefault();e.stopPropagation();const lim=LIMITS[id],size=this.widgetSize(id),step=e.shiftKey?100:24;
+    e.preventDefault();e.stopPropagation();const lim=this.limits[id],size=this.widgetSize(id),step=e.shiftKey?100:24;
     this.sizes[id]={w:clamp(size.w+d[0]*step,lim.minW,lim.maxW),h:clamp(size.h+d[1]*step,lim.minH,lim.maxH)};
     this.applySize(id);this.save();this.buildNavigator();this.onWidgetResize?.(id);
   }
@@ -323,7 +321,7 @@ export class SpatialBoard {
     for(const spot of spots){
       const btn=document.createElement('button');btn.type='button';btn.className=`space-point space-point-${spot.id}`;
       place(spot.x,spot.y,btn);
-      btn.textContent=iconList[spot.id]||'·';btn.title=`Go to ${spot.id}`;
+      btn.textContent=this.icons[spot.id]||'·';btn.title=`Go to ${spot.id}`;
       btn.setAttribute('aria-label',`Go to ${spot.id} widget`);
       btn.addEventListener('click',()=>{this.focus(spot.id);this.navContainer.classList.remove('is-open');
         this.navToggle?.setAttribute('aria-expanded','false');this.navToggle?.setAttribute('aria-label','Open places map');});

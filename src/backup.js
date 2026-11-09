@@ -2,9 +2,10 @@ import { cleanTask } from './model.js';
 import { validDateKey, dateKey } from './dates.js';
 import { STORAGE_KEYS } from './storage.js';
 import { normalizeExtensions } from './scene.js';
+import { CORE_WIDGET_IDS } from './widget-registry.js';
 export const RESTORE_RECOVERY_KEY = 'orbit.v6.restore-recovery';
 const keys = new Set(Object.values(STORAGE_KEYS));
-const widgets = new Set(['timeline','constellation','active','completed','space','journal']);
+const widgets = new Set(CORE_WIDGET_IDS);
 const object = value => value && typeof value === 'object' && !Array.isArray(value);
 const safeId = value => typeof value === 'string' && value.length > 0 && value.length <= 100 && !['__proto__','constructor','prototype','root'].includes(value);
 function list(value, max, label) {
