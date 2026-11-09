@@ -16,7 +16,8 @@ REQUIRED_DOCS=[
 for name in REQUIRED_DOCS:
  p=ROOT/'docs'/f'{name}.md'
  assert p.is_file() and p.stat().st_size>120,f'Missing/incomplete {p}'
-for name in ['README.md','AGENTS.md','CODEX_HANDOFF.md','CODEX_FIRST_TASK.md',
+for name in ['README.md','AGENTS.md','CHATGPT_HANDOFF.md','CODEX_HANDOFF.md','CODEX_FIRST_TASK.md',
+             'docs/CHATGPT_TOOL_PLAYBOOK.md','docs/archive/CODEX_HANDOFF_PRE_CHATGPT_2026-11-09.md',
              'package-lock.json','vercel.json','.github/workflows/quality.yml',
              'supabase/config.toml','supabase/seed.sql']:
  assert (ROOT/name).is_file(),f'Missing {name}'
@@ -29,7 +30,8 @@ import subprocess
 subprocess.run(['node','scripts/verify-source.mjs'],cwd=ROOT,check=True)
 # Verify clickable relative Markdown paths in root/handoff docs (ignore inline code/wildcards).
 missing=[]
-for file in [ROOT/'README.md',ROOT/'CODEX_HANDOFF.md',ROOT/'CODEX_FIRST_TASK.md',
+for file in [ROOT/'README.md',ROOT/'CHATGPT_HANDOFF.md',ROOT/'CODEX_HANDOFF.md',
+             ROOT/'docs/CHATGPT_TOOL_PLAYBOOK.md',ROOT/'CODEX_FIRST_TASK.md',
              *(ROOT/'docs'/f'{n}.md' for n in REQUIRED_DOCS)]:
  content=file.read_text()
  for href in re.findall(r'(?<!!)\[[^\]]+\]\(([^)]+)\)',content):
