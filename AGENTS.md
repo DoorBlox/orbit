@@ -1,5 +1,13 @@
 # ORBIT repository instructions for coding agents
 
+## Execution ownership — agent-operated ORBIT (9 Nov 2026)
+
+The owner delegates routine **code implementation, architectural/design/security review, test authoring, CI workflow improvements, GitHub PR creation/merge after required green checks, and documentation/handoff upkeep** to the assistant for approved BP/EX work units. The assistant should execute the next safe READY task rather than stop at another plan or ask the owner to write continuity prompts, manage a sprint, or monitor GitHub Actions.
+
+The assistant cannot work asynchronously between conversations without an explicit automation. Preserve continuity in GitHub: exact last PR/SHA, next executable file-level action, acceptance criteria and rollback. Real-account tests may require owner participation. Hosted SQL/Auth/Storage changes, Production aliases, privileged credentials, personal-data deletion and paid services require separately scoped approval; ordinary code/docs/PR work does not.
+
+Check [GitHub Actions audit](docs/CI_WORKFLOW_AUDIT_2026-11-09.md) before altering workflows. Preserve all four required check names and fail-closed security coverage. For a source code PR, use the existing exact-head tests; do not manually dispatch repeated checks to earn redundant badges.
+
 ## Canonical project state and implementation order (9 Nov 2026)
 
 **Before making changes:** read [current verified state](docs/CURRENT_STATE.md), [documentation protocol](docs/DOCUMENTATION_PROTOCOL.md), and [post-2.4 execution blueprint](plans/ORBIT_POST_2_4_EXECUTION.md). For design work also read [visual evidence brief](docs/DESIGN_EVIDENCE_PLAN.md). This concise link index is authoritative for work sequencing; the lengthy dated sections below are historical checkpoints, including pre-release "BRANCH" and "NOT RELEASED" notes.
