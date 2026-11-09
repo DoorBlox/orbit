@@ -1,3 +1,5 @@
+> **Source status update (9 November 2026):** EX-01 SOURCE MERGED [#41](https://github.com/DoorBlox/orbit/pull/41) (`cbb6d405`), four green CI checks. BP-03 first visibility-aware polling slice SOURCE MERGED [#42](https://github.com/DoorBlox/orbit/pull/42) (`7440ebe0`), four green checks. Foreground full snapshot reads remain; no real signed-in/multidevice Production acceptance. EX-02 embedded private images and full preview fidelity remain TODO. Neither PR deployed Production. Historic statuses below are superseded by this checkpoint.
+
 # ORBIT post-2.4 — execution blueprint and audited backlog
 
 **Established:** 9 November 2026. **Source audit baseline:** main b8f76a6ee4660c135ec0e2604915a6b96097f664; live app 4e57aca785259192b92010c5d0e1634a4c1efe14. **User decision:** proceed with documentation and BP-00–BP-06 reliability foundation. Full official Excalidraw is a top product priority, not a low-priority indefinite option. This blueprint plans work; individual production, hosted-data, provider and paid actions retain separate approval gates.
