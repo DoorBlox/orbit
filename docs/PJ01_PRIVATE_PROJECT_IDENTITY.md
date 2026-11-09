@@ -1,6 +1,6 @@
 # PJ-01 — private reversible project identity
 
-**Status:** source model/backup implementation, not a user-visible Projects feature.
+**Status: SOURCE MERGED** via [PR #51](https://github.com/DoorBlox/orbit/pull/51), `50d8a6fe88645588eb37bc3fb0e6dcc35b3c24e3`; four exact-head checks passed. Not a user-visible Projects feature or Production release.
 
 An ORBIT project is an existing branch with optional owner-private metadata keyed by its stable branch ID. Marking and unmarking never change task IDs, branch hierarchy, positions, task assignments or journal entries.
 
