@@ -1243,3 +1243,16 @@ body.cloud-space-mounted .app-shell{height:100dvh!important}
 :root .task-checklist-item input:focus-visible{outline:2px solid var(--orbit-accent);outline-offset:3px}
 :root .task-checklist-item input:checked+span{text-decoration:line-through;opacity:.67}
 :root .task-checklist-item span{min-width:0;overflow-wrap:anywhere}
+
+/* The 10-palette picker is scrollable independently, even after tiny widget resizing. */
+:root .appearance-choices{max-height:210px;overflow-y:auto;overscroll-behavior:contain;
+  scrollbar-width:thin;scrollbar-color:var(--orbit-outline) transparent;padding:2px 3px 4px}
+:root .space-widget{min-height:280px!important}
+:root .space-widget .space-primary-actions{flex-wrap:wrap}
+:root .space-widget .space-more-tools[open]{padding-bottom:10px}
+:root .orbit-scene-dialog{background:var(--orbit-paper)!important;color:var(--orbit-paper-ink)!important;
+  border-color:var(--orbit-outline)!important}
+:root .orbit-scene-dialog .orbit-scene-surface{background:var(--orbit-paper)!important;
+  border-color:var(--orbit-outline)!important}
+:root .orbit-scene-dialog .orbit-scene-panel h2,
+:root .orbit-scene-dialog .orbit-scene-panel p{color:var(--orbit-paper-ink)!important}

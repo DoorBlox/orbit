@@ -219,10 +219,35 @@ def normal_flows(browser):
     page.locator('#toast button').press('Enter')
     reload_page(page)
     expect(page.locator('.timeline-milestone')).to_have_count(1)
+    # ORBIT 2.4: all ten themes, independent ambient animation and progressive disclosure.
+    assert page.locator('input[name="space-theme"]').count()==10
+    page.locator('input[name="space-theme"][value="garden"]').check()
+    assert page.evaluate('document.documentElement.dataset.theme') == 'garden'
+    page.locator('#appearance-ambient').check()
+    assert page.evaluate('document.documentElement.dataset.ambient') == 'on'
+    reload_page(page)
+    assert page.evaluate('document.documentElement.dataset.theme') == 'garden'
+    assert page.evaluate('document.documentElement.dataset.ambient') == 'on'
+    focus(page,'space')
+    page.locator('input[name="space-theme"][value="parchment"]').check()
+    page.locator('#appearance-ambient').uncheck()
+    page.locator('.space-more-tools summary').click()
+    expect(page.locator('#import-csv')).to_be_visible()
     # ORBIT 2.2: both a sticky and a dated journal page carry safe drawing scenes.
     focus(page,'space')
     page.locator('#new-sticky').click()
     expect(page.locator('.sticky-note')).to_have_count(1)
+    expect(page.locator('.space-point-sticky')).to_have_count(1)
+    # The minimap is the same world: dragging its viewport changes the board camera.
+    pan_before=page.evaluate('window.orbitDebug.board.pan.x')
+    page.locator('#space-nav-map').evaluate("""element=>{
+      const r=element.getBoundingClientRect(),id=444;
+      const base={bubbles:true,pointerId:id,pointerType:'mouse',button:0};
+      element.dispatchEvent(new PointerEvent('pointerdown',{...base,clientX:r.left+r.width*.25,clientY:r.top+r.height*.5}));
+      element.dispatchEvent(new PointerEvent('pointermove',{...base,clientX:r.left+r.width*.70,clientY:r.top+r.height*.5}));
+      element.dispatchEvent(new PointerEvent('pointerup',{...base,clientX:r.left+r.width*.70,clientY:r.top+r.height*.5}));
+    }""")
+    assert page.evaluate('window.orbitDebug.board.pan.x') != pan_before
     page.locator('.sticky-title').fill('M1 visual note')
     page.locator('.sticky-title').dispatch_event('change')
     page.locator('.sticky-body').fill('Private note in the same world')
