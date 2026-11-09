@@ -41,7 +41,7 @@ test('shared exception is required and cannot expand to other projects, sites, d
   // must not silently evade the supposedly exact Production policy.
   for (const rewrite of [
     csp => csp.replace("style-src 'self' 'unsafe-inline'", "style-src * 'unsafe-inline'"),
-    csp => csp.replace("img-src 'self' data:", "img-src * data:"),
+    csp => csp.replace("img-src 'self' data: blob:", "img-src * data: blob:"),
     csp => csp + "; worker-src *",
     csp => csp + "; frame-src *",
     csp => csp + "; script-src 'self'",
@@ -71,7 +71,7 @@ test('shared target builds and verifies a private artifact offline with a synthe
 test('Production CSP permits only the reviewed Supabase host for signed private images',()=>{
   const header=deployment.headers[0].headers.find(h=>h.key==='Content-Security-Policy');
   const csp=header.value;
-  assert.ok(csp.includes("img-src 'self' data: "+target.supabaseUrl+";"),
+  assert.ok(csp.includes("img-src 'self' data: blob: "+target.supabaseUrl+";"),
     'signed private images must be viewable without wildcard img-src');
   for(const unsafe of [
     "img-src 'self' data:;",
@@ -82,7 +82,7 @@ test('Production CSP permits only the reviewed Supabase host for signed private 
   ]){
     const modified=structuredClone(deployment);
     modified.headers[0].headers.find(h=>h.key==='Content-Security-Policy').value=
-      csp.replace("img-src 'self' data: "+target.supabaseUrl+";",unsafe);
+      csp.replace("img-src 'self' data: blob: "+target.supabaseUrl+";",unsafe);
     assert.throws(()=>resolveBuildConfig(env,{target,deployment:modified}),/CSP/);
   }
 });
