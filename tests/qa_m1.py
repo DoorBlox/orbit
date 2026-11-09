@@ -232,6 +232,21 @@ def normal_flows(browser):
     page.locator('.orbit-scene-preview').click(position={'x':40,'y':40})
     page.get_by_role('button',name='Save drawing').click()
     assert page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].scene.elements.length") == 1
+    # Duplicate a drawn sticky; the copy must have a new ID, independent text,
+    # matching paper tint and drawing, and remain after a full page reload.
+    page.locator('.sticky-note').first.get_by_role('button',name='Duplicate sticky note').evaluate('e=>e.click()')
+    expect(page.locator('.sticky-note')).to_have_count(2)
+    notes=page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes")
+    assert notes[0]['id'] != notes[1]['id']
+    assert notes[0]['scene'] == notes[1]['scene']
+    assert notes[0]['color'] == notes[1]['color']
+    assert notes[1]['title'] == 'Copy of M1 visual note'
+    page.locator('.sticky-note').last.locator('.sticky-body').fill('Independent copy')
+    page.locator('.sticky-note').last.locator('.sticky-body').dispatch_event('blur')
+    assert page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].text") == 'Private note in the same world'
+    reload_page(page)
+    expect(page.locator('.sticky-note')).to_have_count(2)
+    expect(page.locator('.sticky-note').last.locator('.sticky-body')).to_have_value('Independent copy')
     focus(page,'journal')
     page.locator('#journal-draw').click()
     expect(page.locator('.orbit-scene-dialog')).to_be_visible()

@@ -1,5 +1,8 @@
 # ORBIT repository instructions for coding agents
 
+> **2.2.1 SOURCE-ONLY work (9 Nov 2026):** `fix/2.2-private-images-sticky-duplicate-20261109` addresses #26 with a narrowly allowlisted private signed-image CSP and strict production guard + tests, and adds duplicate sticky notes with independent content. This is not yet merged or deployed. Live Production remains READY `de2523d` on the public custom sign-in domain; raw deploys and Previews still require Vercel Auth. Keep Storage private, never bypass RLS, keep original V6/M1 manifests immutable, batch PR CI once, do not auto-promote. See latest handoff.
+
+
 ## 9 Nov 2026 — ORBIT 2.2 beta LIVE on Production (latest source of truth)
 
 - **Serving Production:** canonical `https://orbit.starscene.com/` now maps to Vercel READY Production deployment `dpl_AxaB85krmkJfDUj1T6ipqw8rodH4`, exact reviewed source `de2523dcea497c7ee41547ca94c14f48c72688f1` (merged [PR #25](https://github.com/DoorBlox/orbit/pull/25), all four exact-head checks passed). Server-side production build completed with Supabase cloud config; unauthenticated GET returns HTTP 200 and no private journal text. The name `2.2 beta` describes the app feature release; package.json's legacy version value has not yet been revised.
