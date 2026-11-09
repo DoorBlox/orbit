@@ -1,3 +1,7 @@
+## 9 November 2026 — clarification of product direction (planning only)
+
+The owner clarified that six movable windows were an **observed initial layout**, not a requested permanent numerical restriction. Future project labeling of branches and a private Projects place, an optional Pomodoro widget, and a curated portfolio/blog site with explicit Journal-to-blog publication are in scope for exploration. Current source/release layout and historical descriptions remain factual, but active design rules now allow additional widgets. [Dedicated plan](../plans/ORBIT_EXPANDABLE_SPACE_PROJECTS_BLOG_FOCUS.md). No hosted/private/public data or Production changes from this clarification.
+
 ## 9 November 2026 — source-only EX-01 and BP-03
 
 - [PR #41](https://github.com/DoorBlox/orbit/pull/41) added actual upstream Excalidraw React editor as a lazy same-origin island for Journal/stickies, with native fallback and explicit Save/Cancel; merged `cbb6d4053a60ec7c002272ae17a370457e7411cd` after four passing exact-head checks. Not Production released; embedded image files still excluded.

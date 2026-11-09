@@ -1,3 +1,7 @@
+## Owner product-direction correction — 9 November 2026
+
+**Binding clarification:** The six existing draggable widgets are the present default layout, **not a maximum of six**. Never block Projects, Focus/Pomodoro or new widgets because of historical preservation wording. Owner intends a private Projects place (reversible right-click "Turn into project" on a branch), a future independently hosted public portfolio/blog and **explicit** journal-to-blog draft/publish flow. Plan: [expandable space / projects / publishing / focus](plans/ORBIT_EXPANDABLE_SPACE_PROJECTS_BLOG_FOCUS.md). No public data or production changes are approved by this planning request. Continue BP-03 safe source work; verify main and exact PR/check evidence before merging.
+
 ## Latest verified source checkpoint — 9 November 2026, after PR #42
 
 - **main**: `7440ebe0420a71ce4f96e463d3502c208bea5efb`, BP-03 first slice [PR #42](https://github.com/DoorBlox/orbit/pull/42), four required checks green. Earlier EX-01 [PR #41](https://github.com/DoorBlox/orbit/pull/41) source merged at `cbb6d4053a60ec7c002272ae17a370457e7411cd`, also four green checks.

@@ -2,6 +2,8 @@
 
 **Engineering: ChatGPT + connected GitHub/Vercel/Supabase.** Continue development via [CHATGPT_HANDOFF.md](CHATGPT_HANDOFF.md) and [tool/skill playbook](docs/CHATGPT_TOOL_PLAYBOOK.md). You do not need a Codex app or CLI. Older CODEX-named documents are retained only for project history and compatibility.
 
+**Extensible workspace direction:** the existing six widgets are the current default, **not a hard ceiling**. Future private Projects (turn a branch into a project), Focus/Pomodoro, and an explicitly published portfolio/blog are on the [new roadmap](plans/ORBIT_EXPANDABLE_SPACE_PROJECTS_BLOG_FOCUS.md); no private journal becomes public automatically.
+
 **Start here for current status and next work:** [Verified state](docs/CURRENT_STATE.md) · [Execution blueprint](plans/ORBIT_POST_2_4_EXECUTION.md) · [Documentation rules](docs/DOCUMENTATION_PROTOCOL.md) · [Design evidence brief](docs/DESIGN_EVIDENCE_PLAN.md). The current app is **ORBIT 2.4**; the user approved a reliability-first roadmap and prioritized full Excalidraw #31. Historic pre-2.4 snapshots below are not active release instructions.
 
 **Current live release (9 Nov 2026):** ORBIT 2.4 at [orbit.starscene.com](https://orbit.starscene.com/), Git `4e57aca`, Vercel `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`. Ten themes, ambient animation option, sticky-aware draggable mini-map, richer private journal/sticky writing and task checklists. The six movable spatial windows remain; private media is Supabase Storage. The full upstream Excalidraw editor (#31), private media library (#29), and ChatGPT MCP connector (#32) are not yet shipped. #26 image rendering still requires authenticated Production verification.

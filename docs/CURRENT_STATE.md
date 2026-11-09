@@ -1,3 +1,5 @@
+> **Owner architectural correction (9 November 2026):** the six current default widgets are **not a fixed or requested limit**. ORBIT's lasting principle is its freeform spatial workspace and preservation of the six existing widgets/layout data. Future Projects space, branch promotion, Focus/Pomodoro, public portfolio/blog and an opt-in Journal -> blog draft are planned, not released. [Feature blueprint](../plans/ORBIT_EXPANDABLE_SPACE_PROJECTS_BLOG_FOCUS.md). Publishing requires a separate reviewed public-content security boundary.
+
 > **Source checkpoint 9 November 2026:** EX-01 official lazy Excalidraw [PR #41](https://github.com/DoorBlox/orbit/pull/41) source merged at `cbb6d405`; BP-03 hidden-tab polling first slice [PR #42](https://github.com/DoorBlox/orbit/pull/42) source merged at `7440ebe0420a71ce4f96e463d3502c208bea5efb`. Both passed all four required checks. **Neither has been deployed to Production.** EX-02 images, upstream shape-preview parity, owner-signed-in QA and complete BP-03 performance work remain outstanding. Old task-status paragraphs below describe earlier checkpoints.
 
 # ORBIT — current verified state
