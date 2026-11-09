@@ -5,7 +5,10 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
   debounceMs = 500, pollMs = 15000, eventTarget = globalThis.window,
   visibilityTarget = globalThis.document,
   isOnline = () => globalThis.navigator?.onLine !== false,
-  isVisible = () => visibilityTarget?.visibilityState !== 'hidden' } = {}) {
+  isVisible = () => visibilityTarget?.visibilityState !== 'hidden',
+  // Injectable solely for deterministic synthetic polling tests; browsers use native intervals.
+  pollScheduler = {setInterval:(fn,ms)=>globalThis.setInterval(fn,ms),
+    clearInterval:id=>globalThis.clearInterval(id)} } = {}) {
   if (!repository?.saveSnapshot || !repository?.loadOwnerSnapshot || !Number.isSafeInteger(initialRevision) || initialRevision < 0) {
     throw Error('A snapshot repository and valid initial revision are required.');
   }
@@ -122,10 +125,10 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
   eventTarget?.addEventListener?.('online',onOnline);
   eventTarget?.addEventListener?.('offline',onOffline);
   visibilityTarget?.addEventListener?.('visibilitychange',onVisibility);
-  if (pollMs > 0) pollTimer = setInterval(onPoll,pollMs);
+  if (pollMs > 0) pollTimer = pollScheduler.setInterval(onPoll,pollMs);
   function dispose() {
     if (disposed) return;
-    disposed = true; cancelDebounce(); clearInterval(pollTimer);
+    disposed = true; cancelDebounce(); if(pollTimer!==null)pollScheduler.clearInterval(pollTimer);
     eventTarget?.removeEventListener?.('focus',onFocus);
     eventTarget?.removeEventListener?.('online',onOnline);
     eventTarget?.removeEventListener?.('offline',onOffline);
