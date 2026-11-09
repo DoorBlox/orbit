@@ -24,7 +24,10 @@
     "node": ">=22 <25"
   },
   "dependencies": {
-    "@supabase/supabase-js": "2.118.0"
+    "@excalidraw/excalidraw": "0.18.1",
+    "@supabase/supabase-js": "2.118.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
   },
   "devDependencies": {
     "esbuild": "0.28.2"
