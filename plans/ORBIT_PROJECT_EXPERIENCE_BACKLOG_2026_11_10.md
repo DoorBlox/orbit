@@ -23,11 +23,13 @@
 - Private identity uses validated `extensions.projects` and existing branch IDs. Show a subtle project tag in constellation. No task/branch movement or publication, no additional window yet. No new table, provider or dependency.
 - Test nested branch conversion; marking and unmarking with unchanged task IDs/branch tree/layout; local reload, mobile width, keyboard navigation, protected read-only behavior, backup validity. Confirm no public content mutation. The E2E fixture is synthetic.
 
-### PJ-02B — functional private Projects window (READY after PJ-02A)
+### PJ-02B — functional private Projects window (IN PROGRESS, source PR)
 
 - Mount a **real seventh first-party Projects widget** via SP-01B registry, not a synthetic placeholder. Include empty state with a clear 'mark a branch' path, project list with names, status and direct/descendant task counts, and tap-to-focus navigation to the source constellation branch.
 - Use a deterministic descendant set so parent and nested-project totals never double-count tasks in a portfolio summary. Show both *direct* and *including sub-branches* counts; disclose whether completed tasks are included. Progress = finished unique tasks / total unique tasks; no denominator means 'no tasks', not fake 100%.
 - Search/filter and status/priority ordering can follow after stable minimal shelf. Keep hide/reopen/reload, touch/keyboard and narrow layout; verify owner-private CAS persistence and V6 backup roundtrip. Create no public pages.
+
+**Implementation note:** PJ-02B now includes basic description/status editing as a meaningful private MVP, with an eighth scratch widget in synthetic regressions. Full goals/milestones/blocks remain PJ-03. [Source contract](../docs/PJ02B_PROJECTS_WINDOW.md). No public publishing or Production promotion yet.
 
 ### PJ-03 — private project detail and management (PROPOSED)
 
