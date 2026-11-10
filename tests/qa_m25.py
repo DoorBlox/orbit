@@ -117,6 +117,50 @@ def touch_continuity(page):
         page.emulate_media(reduced_motion='no-preference')
 
 
+
+def navigator_grab_continuity(page):
+    # Synthetic touch PointerEvents exercise the navigator directly without
+    # changing stored layout or invoking private cloud operations.
+    result=page.evaluate("""() => {
+      const b=window.orbitDebug.board,n=b.nav;
+      b.navContainer.classList.add('is-open');
+      const r=n.getBoundingClientRect();
+      if(r.width<30||r.height<30)throw Error('Navigator map did not open');
+      b.navigatorToWorld({clientX:r.left+r.width/2,clientY:r.top+r.height/2});
+      const marker=n.querySelector('#space-nav-cursor');
+      if(!marker)throw Error('Missing viewport outline');
+      const m=marker.getBoundingClientRect();
+      const x=(m.left+m.right)/2+5,y=(m.top+m.bottom)/2+4;
+      const before={...b.pan},scale=b.scale,bounds={...b.navBounds};
+      const fire=(type,id,px,py)=>n.dispatchEvent(new PointerEvent(type,{
+        bubbles:true,cancelable:true,pointerType:'touch',pointerId:id,
+        clientX:px,clientY:py,button:0
+      }));
+      fire('pointerdown',31,x,y);
+      if(b.navPointer!==31)throw Error('Primary touch was not captured');
+      if(b.pan.x!==before.x||b.pan.y!==before.y)
+        throw Error('Outline snapped on first touch');
+      fire('pointerdown',32,x+10,y+10);
+      if(b.navPointer!==31)throw Error('Secondary finger stole drag');
+      fire('pointermove',31,x+22,y+12);
+      const expectedX=before.x-22/r.width*(bounds.x1-bounds.x0)*scale;
+      const expectedY=before.y-12/r.height*(bounds.y1-bounds.y0)*scale;
+      if(Math.abs(b.pan.x-expectedX)>.5||Math.abs(b.pan.y-expectedY)>.5)
+        throw Error('Drag motion skipped the original finger offset');
+      fire('pointercancel',31,x+22,y+12);
+      if(b.navPointer!==null||b.navDragStart!==null||n.classList.contains('is-dragging'))
+        throw Error('Canceled drag left stale pointer capture');
+      const after={...b.pan};
+      fire('pointerdown',33,r.left+7,r.top+7);
+      if(b.pan.x===after.x&&b.pan.y===after.y)
+        throw Error('Outside-outline tap stopped direct travel');
+      fire('pointerup',33,r.left+7,r.top+7);
+      if(b.navPointer!==null||b.navDragStart!==null)throw Error('Tap did not clean up');
+      return {noTouchSnap:true,deltaX:before.x-expectedX,deltaY:before.y-expectedY,
+        directMapTap:true,canceledSafely:true};
+    }""")
+    assert result['noTouchSnap'] and result['directMapTap'] and result['canceledSafely'],result
+
 def teardown(page):
     page.evaluate('''()=>{
       const {board:b,scene:s}=window.orbitDebug;
@@ -155,7 +199,7 @@ def main():
             try:
                 expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
                 page.emulate_media(reduced_motion='no-preference')
-                for name, run in [('interruption',interruption),('reduced-motion',reduced_motion),('spring-settling',spring_settling),('touch-continuity',touch_continuity),('teardown',teardown)]:
+                for name, run in [('interruption',interruption),('reduced-motion',reduced_motion),('spring-settling',spring_settling),('touch-continuity',touch_continuity),('navigator-grab',navigator_grab_continuity),('teardown',teardown)]:
                     started = time.monotonic()
                     try:
                         page.emulate_media(reduced_motion='no-preference')
