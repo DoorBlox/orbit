@@ -532,6 +532,6 @@ export class SpatialBoard {
     el.style.left=`${clampNavigatorPercent((wx-x0)/(x1-x0)*100,this.nav.clientWidth||180)}%`;
     el.style.top=`${clampNavigatorPercent((wy-y0)/(y1-y0)*100,this.nav.clientHeight||90)}%`;
   }
-  dispose(){this.disposed=true;this.navPointer=null;this.navDragStart=null;this.navigatorObserver?.disconnect();cancelAnimationFrame(this.raf);this.raf=0;this.events.abort();this.pointers.clear();this.widgets.clear();}
+  dispose(){this.disposed=true;this.cancelNavigatorPan();this.navigatorObserver?.disconnect();cancelAnimationFrame(this.raf);this.raf=0;this.events.abort();this.pointers.clear();this.widgets.clear();}
 
 }
