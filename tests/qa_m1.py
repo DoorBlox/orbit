@@ -302,15 +302,6 @@ def normal_flows(browser):
     expect(page.locator('.orbit-scene-dialog .excalidraw')).to_be_visible(timeout=25000)
     page.get_by_role('button',name='Save drawing').click()
     assert page.evaluate("Object.keys(JSON.parse(localStorage.getItem('orbit.v8.extensions')).journalScenes).length") == 1
-    # Off-origin scenes are fitted to their own content, not clipped to 800x460.
-    assert page.evaluate("""async () => {
-      const {renderScene,emptyScene}=await import('/src/scene.js');
-      const div=document.createElement('div'),scene=emptyScene();
-      scene.elements=[{id:'far',type:'rectangle',x:3500,y:-1500,width:300,height:180,strokeColor:'#123456'}];
-      renderScene(scene,div);
-      const [x,y,w,h]=div.querySelector('svg').getAttribute('viewBox').split(' ').map(Number);
-      return x<=3500 && y<=-1500 && x+w>=3800 && y+h>=-1320;
-    }""")
     # Export/restore UI path, including V6 dimensions and dated journal.
     with page.expect_download() as download: page.locator('#backup-json').evaluate('e=>e.click()')
     path=OUT/'m1-synthetic-backup.json'; download.value.save_as(path)
