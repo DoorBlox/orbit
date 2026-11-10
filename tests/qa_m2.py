@@ -241,6 +241,7 @@ def owner_case(browser,size,source):
         expect(page.locator('.cloud-sync-state')).to_have_text('Saved to your cloud')
         page.screenshot(path=str(OUT/f'm2-owner-{size[0]}.png'))
         page.evaluate("window.orbitDebug.board.focus('space',{initial:true})")
+        page.locator('.cloud-account-details').evaluate('details => { details.open = true; }')
         page.locator('.cloud-toolbar').get_by_role('button',name='Sign out',exact=True).click()
         expect(page.locator('#app')).to_be_hidden()
         expect(page.locator('.cloud-gate-message')).to_contain_text('Sign in to open')
@@ -376,6 +377,7 @@ def failed_logout_recovery(browser,source):
         expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
         page.evaluate('window.__m2Fixture.failSignOutOnce=true')
         page.evaluate("window.orbitDebug.board.focus('space',{initial:true})")
+        page.locator('.cloud-account-details').evaluate('details => { details.open = true; }')
         page.locator('.cloud-toolbar').get_by_role('button',name='Sign out',exact=True).click()
         expect(page.locator('.cloud-gate-message')).to_contain_text('session may still be active')
         expect(page.locator('.cloud-gate').get_by_role('button',name='Retry sign-out')).to_be_visible()
@@ -461,6 +463,7 @@ def otp_flow_case(browser,source):
         expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
         assert page.locator('#login-code').input_value()==''
         page.evaluate("window.orbitDebug.board.focus('space',{initial:true})")
+        page.locator('.cloud-account-details').evaluate('details => { details.open = true; }')
         page.locator('.cloud-toolbar').get_by_role('button',name='Sign out',exact=True).click()
         expect(page.locator('#app')).to_be_hidden()
         assert page.get_by_label('Email address for email code',exact=True).input_value()==''
@@ -500,6 +503,7 @@ def password_case(browser,source):
             else:
                 expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
                 page.evaluate("window.orbitDebug.board.focus('space',{initial:true})")
+                page.locator('.cloud-account-details').evaluate('details => { details.open = true; }')
                 page.locator('.cloud-toolbar').get_by_role('button',name='Sign out',exact=True).click()
                 expect(page.locator('#app')).to_be_hidden()
             assert page.get_by_label('Password',exact=True).input_value()==''
