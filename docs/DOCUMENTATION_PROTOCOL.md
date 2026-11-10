@@ -14,7 +14,7 @@ ORBIT's owner works directly in **ChatGPT**, not a Codex-specific client. The ma
 
 1. **Observed system state:** live GitHub branch/PR/check SHA, Vercel deployment/domain/protection, Supabase migrations/RLS/Storage. Never infer a present result from a historical document.
 2. **Current human-readable digest:** [CURRENT_STATE.md](CURRENT_STATE.md). One short page containing deployed source, known-good rollback, live capabilities, blockers, issue state and next task.
-3. **Executable plan:** [ORBIT_POST_2_4_EXECUTION.md](../plans/ORBIT_POST_2_4_EXECUTION.md), work-unit IDs and dependencies. Proposals are not shipped features.
+3. **ONLY active execution roadmap:** [ORBIT_POST_2_4_EXECUTION.md](../plans/ORBIT_POST_2_4_EXECUTION.md), all BP-00–BP-16 **and** integrated SP/PJ/BR/TOUCH/FO/PUB/AUTH work units, priorities, dependencies and gates. Do not maintain another active roadmap or task queue; historic design/proposal files and docs/ROADMAP.md are archival/navigation only.
 4. **Contributor rules:** [AGENTS.md](../AGENTS.md), stable constraints, privacy, cost budget and test gates. Avoid copying the live checkpoint into every rule.
 5. **Handoff:** [CHATGPT_HANDOFF.md](../CHATGPT_HANDOFF.md), maximum useful summary of next step, branch/ref, results and unresolved decisions.
 6. **Operational runbook:** [OPERATIONS.md](OPERATIONS.md), staging, data backups, rollback, Auth/CSP/aliases and incident response.
@@ -35,13 +35,15 @@ ORBIT's owner works directly in **ChatGPT**, not a Codex-specific client. The ma
 
 ## Product-count clarification
 
-The six original named widgets are a historical layout/default, **not a maximum**. Future widgets and a linked public portfolio/blog are permitted in active plans. Preservation means existing IDs, positions, sizes, data and the freeform spatial experience continue to work. Do not let an old milestone screenshot or historical status paragraph block extensibility. See [feature blueprint](../plans/ORBIT_EXPANDABLE_SPACE_PROJECTS_BLOG_FOCUS.md).
+The six original named widgets are a historical layout/default, **not a maximum**. Future widgets and a linked public portfolio/blog are permitted in active plans. Preservation means existing IDs, positions, sizes, data and the freeform spatial experience continue to work. Do not let an old milestone screenshot or historical status paragraph block extensibility. See the [integrated spatial and Projects work units](../plans/ORBIT_POST_2_4_EXECUTION.md#integrated-feature-work-contracts--all-tracked-in-this-master-roadmap).
 
 ## Work-unit state machine
 
+**New requirements must be inserted into the existing master roadmap at the right dependency edge and priority—not into a separate plan.** Supporting technical contracts, visual evidence and security RFCs may live elsewhere as evidence, but cannot introduce another independent implementation order.
+
 Use only **PROPOSED**, **READY**, **IN PROGRESS**, **BLOCKED**, **SOURCE MERGED**, **RELEASED**, **VERIFIED** or **DEFERRED**. A feature can be RELEASED but still not VERIFIED for a specific acceptance criterion (example: #26). Link evidence next to each state; don't collapse independent source/preview/production/owner-check states.
 
-Each BP or EX unit must contain: ID, user value, evidence and issue, dependencies, scope and target paths, out-of-scope, security/data/cost risks, tests with precise pass criteria, rollback, required owner action, artifact/PR SHA and next session task. Revise dependency edges whenever a requirement changes. One unit, one focused PR, unless tightly coupled changes demonstrably require batching.
+Each BP, EX, SP, PJ, BR, TOUCH, FO, PUB and AUTH work unit must contain: ID, user value, evidence and issue, dependencies, scope and target paths, out-of-scope, security/data/cost risks, tests with precise pass criteria, rollback, required owner action, artifact/PR SHA and next session task. Revise dependency edges whenever a requirement changes. One unit, one focused PR, unless tightly coupled changes demonstrably require batching.
 
 ## Version language
 
