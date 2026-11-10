@@ -101,11 +101,18 @@
 </div>
 </form>
 <div class="space-actions space-primary-actions">
-<button class="glass-button" id="new-sticky" type="button">+ sticky note</button>
+<button class="glass-button" id="new-sticky" type="button">+ New note</button>
+</div>
+<details class="space-manage">
+<summary>Manage space <span>Rename and organize branches</span></summary>
+<div class="space-actions space-manage-actions">
 <button class="glass-button" id="rename-space" aria-controls="space-name-form" aria-expanded="false" type="button">Rename space</button>
 <button class="glass-button" id="expand-all-branches" type="button">Expand branches</button>
 <button class="glass-button" id="collapse-all-branches" type="button">Collapse branches</button>
 </div>
+</details>
+<details class="space-appearance">
+<summary>Appearance <span>Theme and motion</span></summary>
 <fieldset class="appearance-controls" id="appearance-controls">
   <legend>Make this space yours</legend>
   <div class="appearance-choices" role="radiogroup" aria-label="Choose one of ten canvas themes">
@@ -125,6 +132,7 @@
     <label class="appearance-motion"><input type="checkbox" id="appearance-reduce-motion"/> Reduce interface motion</label>
   </div>
 </fieldset>
+</details>
 <details class="space-more-tools">
 <summary>More tools <span>Backup, import and export</span></summary>
 <div class="space-actions space-secondary-actions">
