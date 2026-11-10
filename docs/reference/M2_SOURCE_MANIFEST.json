@@ -64,7 +64,7 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/cloud/sync.js": {
-      "sha256": "eba91b976c7fdf5051dad7ae5727f2f2b0b5263085bc0bcbffb2cdb3d6f4114c",
+      "sha256": "2f5f6745b3c77e98bc996b114f9b0d72296d80ef48f03149566e3db602601374",
       "reason": "BP-03: retain unchanged native polling behavior while injecting deterministic poll scheduler for nonprivate traffic cost tests."
     },
     "src/constellation.js": {
