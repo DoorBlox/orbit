@@ -42,7 +42,7 @@ PROPOSED = specified only; READY = prerequisites/research sufficient; IN PROGRES
 | 00 | Docs #35, ChatGPT handoff #37 SOURCE MERGED | Release/package version coordination unfinished |
 | 01 | Private Blob display mitigation in 2.4 | BLOCKED: signed-in owner and second-account Production images, issue #26 |
 | 02 | Image-inclusive portable backup #39 SOURCE MERGED | Not deployed or owner restore-tested; Excalidraw binary images excluded |
-| 03 | Hidden/offline safe polling #42, synthetic traffic #45 SOURCE MERGED | Foreground full reads every 15s; revision-only read, real traffic/multidevice validation pending |
+| 03 | #42 hidden polling and #45 synthetic baseline SOURCE MERGED; **adaptive idle foreground source in review** | 15s active / 30s quiet after 2m designed; exact PR checks, real traffic/multidevice acceptance and any revision-only API still pending |
 | 04 | Local-hosted migration filename parity #38 SOURCE MERGED | Full hosted object parity / future SQL separately gated |
 | 05 | Legacy 1.0 staging retired in SOURCE MERGED PR #57, 4/4 checks, squash 416d301f | Modern reviewed-SHA staging, secure release checks and rollback still TODO; no Production action |
 | 06 | Synthetic spatial five-viewports/ten-themes #47 SOURCE MERGED | Physical Safari/Android, zoom, assistive tech, owner assets and perf not verified |
@@ -64,7 +64,7 @@ PROPOSED = specified only; READY = prerequisites/research sufficient; IN PROGRES
 
 | Priority | Work ID and why it matters | Gate / measurable exit |
 | --- | --- | --- |
-| **P0 next code** | **BP-03** safe foreground snapshot traffic reduction | Synthetic request/byte evidence, no lost pending drafts or CAS conflict regressions; no hosted revision RPC or SQL unless separately approved |
+| **P0 source in review** | **BP-03** adaptive clean-foreground snapshot traffic reduction | Synthetic request/byte evidence, no lost pending drafts or CAS conflict regressions; no hosted revision RPC or SQL unless separately approved |
 | **P0 release safety** | **BP-05** modern exact-reviewed-SHA stage-only pipeline, **BP-16** CI verification | Old manual workflow removed in #57; replacement NOT implemented. Four protected statuses, safe secrets and no automatic domain assignment |
 | **P0 user evidence** | **BP-01** private image QA (#26); **BP-02** real backup/restore; **BP-06** real-device/a11y baseline; owner acceptance of **PJ-02B** Preview | Source/synthetic work exists; authenticated owner + separate account, actual Safari/Android and restored private media remain unverified and may block Production |
 | **P1 narrow UX bugs** | **BR-02** collapsed false add prompt, **BR-01** nested collapse discoverability, **TOUCH-01** touchscreen minimap drag | Repair documented regressions using BP-06 fixtures without moving/resetting saved nodes |
@@ -74,7 +74,7 @@ PROPOSED = specified only; READY = prerequisites/research sufficient; IN PROGRES
 | **P2/P3 protected media** | **BP-12** private media library/#29, **EX-02** embedded Excalidraw assets, complete **BP-13/#31** | Require BP-01 verified isolation + BP-02 restore confidence + BP-04 parity; hosted/deletion change separately authorized |
 | **P3 design first, public later** | **PUB-00** publication threat model; **PUB-01** Journal→blog; **PUB-02** separate portfolio/blog site; **BP-15** scoped OAuth/MCP | Design/read-only allowed; actual public writes, schema, Auth, hosting, domain or provider changes separately approved |
 
-**Immediate path:** BP-03 source-only safe improvement and benchmarks; then BP-05 modern release safeguards and quick BR-02 repair; continue BP-06/owner-gated BP-01 and PJ-02B validation in parallel when owner testing is available. PJ-03 and touch fixes remain active priorities rather than deferred indefinitely. Reorder only with a stated reason in this table.
+**Immediate path:** verify/merge the BP-03 adaptive source PR and benchmarks; then BP-05 modern release safeguards and quick BR-02 repair; continue BP-06/owner-gated BP-01 and PJ-02B validation in parallel when owner testing is available. PJ-03 and touch fixes remain active priorities rather than deferred indefinitely. Reorder only with a stated reason in this table.
 
 ## Dependency map — existing BP units and additional experiences
 
@@ -265,4 +265,4 @@ PROPOSED = specified only; READY = prerequisites/research sufficient; IN PROGRES
 
 ## Next executable code unit
 
-**BP-03** source-only foreground sync reliability/traffic improvement, synthetic TDD and measured full-snapshot behavior, preserving revision CAS and pending drafts. Then modern BP-05 stage-only safeguards and narrow BR-02 UX bug, with BP-06 evidence and PJ-03 private project details in sequence. Use Color Expert for BP-07 semantic colors, Impeccable for evidence-backed interface polish, Apple Design for touch/a11y and Hallmark for truly new surfaces only; they cannot override current ORBIT identity. All changes flow through this one roadmap. No hosted writes, public posting or automatic Production release.
+**BP-03** adaptive clean-foreground full-snapshot polling (15s active; 30s after 2m unchanged/without input), synthetic test and [benchmark contract](../docs/BP03_SYNC_TRAFFIC_BASELINE_2026-11-09.md). Verify exact-head CI, preserve revision CAS, pending drafts and 30s maximum idle remote-update latency. No hosted revision RPC. Then modern BP-05 stage-only safeguards and narrow BR-02 UX bug, with BP-06 evidence and PJ-03 private project details in sequence. Use Color Expert for BP-07 semantic colors, Impeccable for evidence-backed interface polish, Apple Design for touch/a11y and Hallmark for truly new surfaces only; they cannot override current ORBIT identity. All changes flow through this one roadmap. No hosted writes, public posting or automatic Production release.
