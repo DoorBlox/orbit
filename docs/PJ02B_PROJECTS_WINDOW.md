@@ -4,7 +4,7 @@
 
 ## Experience
 
-- A real, first-party seventh `projects` widget is mounted through `SpatialBoard.registerWidget`. It starts near the existing six widgets at `(1940,155)`, can be moved/resized with keyboard or pointer, and is reachable from Space **◆ My projects** or Places map. Hide/Reopen persists in private `extensions.spatialWidgets`. The six original positions/sizes and legacy V6 root layout stay unchanged.
+- A real, first-party seventh `projects` widget is mounted through `SpatialBoard.registerWidget`. It starts near the existing six widgets at `(1940,115)`, uses a narrower first-party initial width on phones for legibility, and can be moved/resized with keyboard or pointer, and is reachable from Space **◆ My projects** or Places map. Hide/Reopen persists in private `extensions.spatialWidgets`. The six original positions/sizes and legacy V6 root layout stay unchanged.
 - Empty state offers an explicit branch selector and **Add private project**; the existing right-click/Shift+F10 branch action is unchanged. Project card title and path follow branch ID, with **Open branch** focusing the original constellation after expanding ancestor branches.
 - Cards show project description, status (`active/paused/completed`), direct unique task count, including-descendant count, and a progress indicator based on task `status==='completed'`. A completed project status does not automatically mark its tasks completed. Zero tasks displays 'No tasks to measure yet', not 100%.
 - Owner can edit status and description (up to 4,000 plain-text characters) using the existing `extensions.projects` validator and CAS-backed owner snapshot path; no new SQL. Links already present in private metadata render as validated external HTTP(S) anchors.

@@ -191,7 +191,7 @@ const projectsShelf=new ProjectsShelf({
   onUpdate:(id,patch)=>updateProjectDetails(id,patch)
 });
 board.registerWidget({
-  id:'projects',position:{x:1940,y:155},
+  id:'projects',position:{x:1940,y:115},
   limits:{minW:350,minH:340,maxW:1150,maxH:1600},icon:'◆'
 },projectsShelf.element);
 const openProjects=document.createElement('button');

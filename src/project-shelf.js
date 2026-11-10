@@ -17,7 +17,7 @@ export class ProjectsShelf {
     this.element=node('section','glass-widget spatial-item projects-widget');
     this.element.id='projects-widget';this.element.dataset.widget='projects';
     this.element.setAttribute('aria-labelledby','projects-title');
-    this.element.style.width='530px';this.element.style.height='615px';
+    this.element.style.width=innerWidth<650?'430px':'530px';this.element.style.height='615px';
 
     const header=node('header','widget-heading projects-heading');
     const grip=node('button','widget-grip','⠿');grip.type='button';

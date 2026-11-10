@@ -1,7 +1,7 @@
 {
   "baselineCommit": "846ad7df3fa3fdf4c63fd22f2830fed56f83a06e",
   "milestone": "M2",
-  "review": "ORBIT 2.4 retained V6/M1 immutable provenance; BP-02 portable private media backup, EX-00 safe scene adapter, and EX-01 official Excalidraw lazy React island from exact pinned npm lockfile. No hosted database migration or Production alias change. BP-03 focused hidden-tab read reduction on a separate source branch, with existing CAS and owner isolation unchanged. BP-03 follow-up adds deterministic synthetic request/JSON-byte measurement with no hosted API change. SP-01A extracts the six legacy widget descriptors into a safe extensible registry; no seventh UI or storage migration. SP-01B adds a real mounted seventh test widget and owner-private extension layout without changing the six-ID V6 root layout. SP-01B Chromium diagnosed lost initial optional widget dimensions; preserved default inline size before applying saved size. PJ-01 adds reversible private project metadata keyed to existing branches; hosted security and public projection unchanged. PJ-02A exposes reversible private branch-project actions via accessible unscaled menu; original V6 spatial coordinates and public projection remain untouched. PJ-02B adds the functional private Projects window and synthetic eighth test fixture; no public project projection or hosted migration.",
+  "review": "ORBIT 2.4 retained V6/M1 immutable provenance; BP-02 portable private media backup, EX-00 safe scene adapter, and EX-01 official Excalidraw lazy React island from exact pinned npm lockfile. No hosted database migration or Production alias change. BP-03 focused hidden-tab read reduction on a separate source branch, with existing CAS and owner isolation unchanged. BP-03 follow-up adds deterministic synthetic request/JSON-byte measurement with no hosted API change. SP-01A extracts the six legacy widget descriptors into a safe extensible registry; no seventh UI or storage migration. SP-01B adds a real mounted seventh test widget and owner-private extension layout without changing the six-ID V6 root layout. SP-01B Chromium diagnosed lost initial optional widget dimensions; preserved default inline size before applying saved size. PJ-01 adds reversible private project metadata keyed to existing branches; hosted security and public projection unchanged. PJ-02A exposes reversible private branch-project actions via accessible unscaled menu; original V6 spatial coordinates and public projection remain untouched. PJ-02B adds the functional private Projects window and synthetic eighth test fixture; no public project projection or hosted migration. PJ-02B visual audit of synthetic desktop/phone screenshots moved the new shelf away from the active rail and increased phone text legibility by reducing default first-party width.",
   "files": {
     "assets/orbit.svg": {
       "sha256": "97eb19dd4e0773d0b6489b1f49d794ffd272fb3bc2d42af4faffd6a1adca78c3",
@@ -12,8 +12,8 @@
       "reason": "BP-02: distinguish path-only JSON export from authenticated private-media inclusive portable backup."
     },
     "src/app.js": {
-      "sha256": "b8c4f998cfd20bf56b3250a48c271b0b5132d5ad9415c5720fa77ddf7c258805",
-      "reason": "PJ-02B integrates Projects shelf with owner scoped extension snapshots and V6-compatible optional widget layout, shared non-destructive project toggle and Space launcher."
+      "sha256": "cded9fb285c7c288131c2bc1178ad8b4ccaeb6375c1dfff3bf3b25fc2f7dbe42",
+      "reason": "PJ-02B: register the real seventh window with separated default spatial positioning, owner-scoped project metadata and Space launcher."
     },
     "src/auth/README.md": {
       "sha256": "1ec9f199e2ab8b76ff9a7d462f1804d6653706a8eb4b005e23311d76c9d1f7d5",
@@ -144,8 +144,8 @@
       "reason": "PJ-02B aggregates unique direct and descendant task counts for nested private projects without duplicating portfolio totals."
     },
     "src/project-shelf.js": {
-      "sha256": "a25de28e9316da7aea93cbcfe7d93702dacc54c15b780658c10f6a83722352fb",
-      "reason": "PJ-02B mounts a first-party seventh private Projects spatial window, meaningful empty state, status/description edit, branch navigation and DOM-text rendering."
+      "sha256": "03033d529106e8f5b74e94937071cc2a313ab5039ac942279ca4fa1f512c648e",
+      "reason": "PJ-02B: first-party private Projects shelf with phone-friendly initial width, accessible editing and actual task progress."
     }
   }
 }
