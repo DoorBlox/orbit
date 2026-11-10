@@ -136,10 +136,22 @@ def normal_flows(browser):
     task_id=task.get_attribute('data-task-id')
     task.focus();task.press('Enter')
     task.get_by_role('button',name='Edit',exact=True).press('Enter')
-    task.locator('[name=title]').fill('M1 edited task')
-    task.locator('[name=criteria]').fill('Synthetic done criteria')
-    task.locator('[name=dueDate]').fill('2026-11-18')
-    task.get_by_role('button',name='Save changes').press('Enter')
+    inspector=page.locator('.orbit-task-dialog')
+    expect(inspector).to_be_visible()
+    # The editor lives in the viewport's top layer, not in a scaled task node.
+    assert inspector.evaluate("""element=>{
+      const r=element.getBoundingClientRect();
+      return r.left>=0 && r.top>=0 && r.right<=innerWidth+1 &&
+        r.bottom<=innerHeight+1 && r.width>=260;
+    }""")
+    assert task.locator('.task-editor').count()==0
+    inspector.locator('[name=title]').fill('M1 edited task')
+    inspector.locator('[name=criteria]').fill('Synthetic done criteria')
+    inspector.locator('[name=dueDate]').fill('2026-11-18')
+    inspector.locator('.task-editor-more summary').click()
+    inspector.locator('[name=checklistText]').fill('- [ ] Read the chapters\n- [x] Plan the review')
+    inspector.get_by_role('button',name='Save changes').press('Enter')
+    expect(page.locator('.orbit-task-dialog')).to_have_count(0)
     assert page.locator('.task-row').filter(has_text='M1 edited task').count()==1
     focus(page,'active')
     rail=page.locator('.rail-task').filter(has_text='M1 edited task')
