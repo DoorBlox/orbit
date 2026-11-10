@@ -1,5 +1,11 @@
 /** PJ-01: Private reversible branch identity. Never a publishing permission. */
 const object=value=>!!value&&typeof value==='object'&&!Array.isArray(value);
+const validTargetDate=value=>{
+  if(value==='')return true;
+  if(typeof value!=='string'||!/^\\d{4}-\\d{2}-\\d{2}$/.test(value))return false;
+  const d=new Date(value);
+  return Number.isFinite(d.getTime())&&d.toISOString().slice(0,10)===value;
+};
 const validId=id=>typeof id==='string'&&/^[A-Za-z0-9_-]{1,100}$/.test(id)&&
   !['constructor','prototype','__proto__','root'].includes(id);
 
@@ -10,10 +16,14 @@ export function normalizeProjects(raw={}){
   if(entries.length>128)throw Error('Too many private projects.');
   const result={};
   for(const [id,entry] of entries){
-    if(!validId(id)||!object(entry)||Object.keys(entry).some(key=>!['description','status','links'].includes(key))||
+    if(!validId(id)||!object(entry)||Object.keys(entry).some(key=>!['description','status','links','goal','nextAction','blockers','targetDate'].includes(key))||
        (entry.description!==undefined&&(typeof entry.description!=='string'||entry.description.length>4000))||
        (entry.status!==undefined&&!['active','paused','completed'].includes(entry.status))||
-       (entry.links!==undefined&&(!Array.isArray(entry.links)||entry.links.length>12)))
+       (entry.links!==undefined&&(!Array.isArray(entry.links)||entry.links.length>12))||
+       (entry.goal!==undefined&&(typeof entry.goal!=='string'||entry.goal.length>500))||
+       (entry.nextAction!==undefined&&(typeof entry.nextAction!=='string'||entry.nextAction.length>240))||
+       (entry.blockers!==undefined&&(typeof entry.blockers!=='string'||entry.blockers.length>1000))||
+       (entry.targetDate!==undefined&&!validTargetDate(entry.targetDate)))
       throw Error('Invalid private project metadata.');
     const links=(entry.links??[]).map(link=>{
       if(!object(link)||Object.keys(link).some(key=>!['label','url'].includes(key))||
@@ -26,6 +36,8 @@ export function normalizeProjects(raw={}){
       return {label:link.label.trim(),url:url.href};
     });
     result[id]={description:entry.description??'',status:entry.status??'active',links};
+    for(const key of ['goal','nextAction','blockers','targetDate'])
+      if(entry[key])result[id][key]=entry[key];
   }
   return result;
 }
@@ -96,6 +108,8 @@ export function summarizeProjectPortfolio(projects,branches,tasks){
     }
     rows.push({id,label:branch.label,path:path.join(' / '),color:branch.color||'',
       description:metadata.description,status:metadata.status,links:metadata.links,
+      goal:metadata.goal??'',nextAction:metadata.nextAction??'',
+      blockers:metadata.blockers??'',targetDate:metadata.targetDate??'',
       direct:numbers(directTasks),including:included,
       progress:included.total?Math.round(included.completed/included.total*100):null});
   }
