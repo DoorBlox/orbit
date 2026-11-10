@@ -173,6 +173,7 @@ def teardown(page):
     }''')
     # Preserve the moving graph state; trigger its in-widget sign-out without
     # shifting the camera while this test measures teardown.
+    page.locator('.cloud-account-details').evaluate('details => { details.open = true; }')
     page.locator('.cloud-toolbar').get_by_role('button', name='Sign out', exact=True).evaluate('button => button.click()')
     expect(page.locator('#app')).to_be_hidden()
     assert page.locator('#app').inner_text() == ''
