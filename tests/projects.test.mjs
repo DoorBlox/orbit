@@ -126,3 +126,31 @@ test('PJ-02B empty project counts are not displayed as fake 100% progress',()=>{
   assert.deepEqual(summarizeProjectPortfolio({},branches,[]),{projects:[],totals:{total:0,completed:0}});
   assert.throws(()=>summarizeProjectPortfolio({orphan:{}},branches,[]),/existing branch/i);
 });
+
+test('PJ-03 private project brief supports optional goal, next action, blockers and real target date',()=>{
+  const raw={research:{description:'Private research',status:'active',links:[],
+    goal:'Publish the validated model',nextAction:'Run synthetic regression checks',
+    blockers:'Waiting for sample approval',targetDate:'2027-03-15'}};
+  const parsed=normalizeProjects(raw);
+  assert.deepEqual(parsed,raw);
+  assert.deepEqual(normalizeProjects(parsed),parsed);
+  assert.deepEqual(summarizeProjectPortfolio(parsed,branches(),tasks()).projects[0].goal,
+    'Publish the validated model');
+  const item=summarizeProjectPortfolio(parsed,branches(),tasks()).projects[0];
+  assert.equal(item.nextAction,'Run synthetic regression checks');
+  assert.equal(item.blockers,'Waiting for sample approval');
+  assert.equal(item.targetDate,'2027-03-15');
+  assert.equal(item.progress,0,'Goal and target date do not fabricate task completion');
+  assert.deepEqual(setBranchProject({},'research',branches(),true),
+    {research:{description:'',status:'active',links:[]}});
+});
+test('PJ-03 rejects unsafe brief types, overlong fields, malformed dates and unknown properties',()=>{
+  for(const [key,value] of [
+    ['goal',42],['goal','x'.repeat(501)],['nextAction','x'.repeat(241)],
+    ['blockers','x'.repeat(1001)],['targetDate','2027-02-29'],
+    ['targetDate','2027-13-01'],['targetDate','tomorrow'],
+    ['targetDate','2027-03-15<script>'],['milestones',[{title:'unreviewed'}]],
+  ])assert.throws(()=>normalizeProjects({research:{[key]:value}}));
+  assert.deepEqual(normalizeProjects({research:{goal:'',nextAction:'',blockers:'',targetDate:''}}),
+    {research:{description:'',status:'active',links:[]}});
+});
