@@ -1,6 +1,6 @@
 # PJ-02B — functional private Projects spatial window
 
-**Status:** source PR under review (not Production, not public portfolio publishing). This follows PJ-02A branch actions [PR #53](https://github.com/DoorBlox/orbit/pull/53) and SP-01B optional first-party widget mounting.
+**Status: SOURCE MERGED + PROTECTED PREVIEW READY.** [PJ-02B PR #55](https://github.com/DoorBlox/orbit/pull/55) merged at `abfea03c743ad01c95f3a5847d574911856b3bd0`, four exact-head green checks. [protected PJ-02B Preview](https://orbit-ne9qywarm-doorbloxs-projects.vercel.app) on READY `dpl_4oAw8fM18Z2gY9gCvYC3ddsjQHcD` from reviewed feature SHA `657d7f3395fc51e7665ef15940defdd17727efaf`. **Not Production, not public portfolio publishing.** This follows PJ-02A branch actions [PR #53](https://github.com/DoorBlox/orbit/pull/53) and SP-01B optional first-party widget mounting.
 
 ## Experience
 

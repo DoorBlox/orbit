@@ -5,7 +5,7 @@
 
 ## PJ-02B private Projects shelf implementation
 
-The source branch `feat/pj02b-private-projects-window-20261110` adds an actual first-party seventh movable Projects window (not a placeholder) with nested unique-task summary, private status/description edits, branch focus and hide/reopen. It preserves the six legacy root layout IDs and no private data is automatically published. [PJ-02B contract](../docs/PJ02B_PROJECTS_WINDOW.md). Source CI and Preview remain separate gates.
+**PJ-02B SOURCE MERGED** at `abfea03c743ad01c95f3a5847d574911856b3bd0` via [PJ-02B PR #55](https://github.com/DoorBlox/orbit/pull/55), with a Vercel-auth [protected PJ-02B Preview](https://orbit-ne9qywarm-doorbloxs-projects.vercel.app) READY; signed-in owner acceptance and Production gate remain. The implementation adds an actual first-party seventh movable Projects window (not a placeholder) with nested unique-task summary, private status/description edits, branch focus and hide/reopen. It preserves the six legacy root layout IDs and no private data is automatically published. [PJ-02B contract](../docs/PJ02B_PROJECTS_WINDOW.md). Source CI passed four exact-head checks and protected Preview is READY; Production and public publishing remain separate gates.
 
 ## New 10 November 2026 owner feedback and next implementation
 
