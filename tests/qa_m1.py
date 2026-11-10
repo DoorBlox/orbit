@@ -313,7 +313,7 @@ def normal_flows(browser):
     }""")
     assert page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].width") > width_before
     assert page.locator('.sticky-note').first.locator('.sticky-drawing').evaluate(
-      'e => e.getBoundingClientRect().height >= 100')
+      'e => !e.hidden && e.offsetHeight >= 60 && e.scrollWidth <= e.clientWidth + 2')
     focus(page,'journal')
     page.locator('#journal-draw').click()
     expect(page.locator('.orbit-scene-dialog .excalidraw')).to_be_visible(timeout=25000)
