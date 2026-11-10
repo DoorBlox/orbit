@@ -1423,3 +1423,60 @@ body.cloud-space-mounted .app-shell{height:100dvh!important}
   .orbit-scene-dialog .orbit-excalidraw-host{min-height:0}
   .journal-drawing-preview{height:clamp(240px,45dvh,480px);min-height:240px}
 }
+
+/* BP-06 owner QA: sparse Space command surface, with status always in view. */
+:root .space-widget{display:flex;flex-direction:column;gap:0}
+:root .space-widget>.space-heading{order:0}
+:root .space-widget>.summary-text{order:1;margin-bottom:9px}
+:root .space-widget>.space-primary-actions{order:2}
+:root .space-widget>.cloud-toolbar{order:3}
+:root .space-widget>.space-name-form{order:4}
+:root .space-widget>.space-manage{order:5}
+:root .space-widget>.space-appearance{order:6}
+:root .space-widget>.space-more-tools{order:7}
+:root .space-widget .space-primary-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:6px}
+:root .space-widget .space-primary-actions .glass-button{font-size:12px;font-weight:680;min-height:42px;padding:9px 12px;border-radius:12px}
+:root .space-manage,:root .space-appearance,:root .space-more-tools{
+  min-width:0;margin:7px 0 0;padding:0;border:1px solid var(--orbit-outline);
+  border-radius:14px;background:color-mix(in srgb,var(--orbit-paper) 25%,transparent);
+}
+:root .space-manage>summary,:root .space-appearance>summary,:root .space-more-tools>summary{
+  box-sizing:border-box;padding:10px 13px;display:flex;align-items:center;gap:10px;
+  min-height:44px;cursor:pointer;font-size:13px;font-weight:700;list-style:revert;
+  color:var(--orbit-widget-ink);
+}
+:root .space-manage>summary>span,:root .space-appearance>summary>span,
+:root .space-more-tools>summary>span{margin-left:auto;font-size:11px;font-weight:500;opacity:.78}
+:root .space-manage[open],:root .space-appearance[open],:root .space-more-tools[open]{padding-bottom:10px}
+:root .space-manage .space-manage-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:1px 10px 3px}
+:root .space-manage-actions .glass-button{font-size:11px;min-width:0;min-height:38px;white-space:normal}
+:root .space-appearance .appearance-controls{min-width:0;margin:3px 10px 0!important;padding:0;border:0}
+:root .space-appearance .appearance-choices{grid-template-columns:repeat(auto-fit,minmax(90px,1fr));max-height:168px;gap:6px}
+:root .space-appearance .appearance-switches{padding:7px 0 0;display:grid;gap:8px}
+:root .space-widget .space-more-tools .space-secondary-actions{padding:1px 10px 3px}
+body.cloud-space-mounted #space-widget>.cloud-toolbar{
+  box-sizing:border-box;order:3;margin:7px 0 0;padding:11px 12px;
+  border-radius:14px;background:var(--orbit-widget-surface);border-color:var(--orbit-outline);
+}
+body.cloud-space-mounted #space-widget .cloud-mode{font-size:12px;font-weight:750;letter-spacing:.01em}
+body.cloud-space-mounted #space-widget .cloud-sync-state{display:block;font-size:12px;font-weight:600;min-height:0;margin:4px 0 7px;line-height:1.45}
+body.cloud-space-mounted #space-widget .cloud-quick-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+body.cloud-space-mounted #space-widget .cloud-quick-actions>.glass-button{
+  flex:0 1 auto;min-height:36px;padding:7px 12px;font-size:11px;
+}
+body.cloud-space-mounted #space-widget .cloud-quick-actions>[hidden]{display:none}
+body.cloud-space-mounted #space-widget .cloud-account-details{margin-top:5px;border-top:1px solid var(--orbit-outline);padding-top:4px;min-width:0}
+body.cloud-space-mounted #space-widget .cloud-account-details>summary{cursor:pointer;min-height:36px;padding:8px 3px;font-size:12px;font-weight:650;line-height:1.3}
+body.cloud-space-mounted #space-widget .cloud-account-details .cloud-controls{margin-top:6px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+body.cloud-space-mounted #space-widget>.cloud-toolbar[data-sync-state="error"],
+body.cloud-space-mounted #space-widget>.cloud-toolbar[data-sync-state="conflict"],
+body.cloud-space-mounted #space-widget>.cloud-toolbar[data-sync-state="offline"]{
+  border-color:var(--orbit-warning,#c57d60);
+  background:color-mix(in srgb,var(--orbit-warning,#c57d60) 10%,var(--orbit-widget-surface));
+}
+body.cloud-space-mounted #space-widget>.cloud-toolbar[data-sync-state="error"] .cloud-sync-state,
+body.cloud-space-mounted #space-widget>.cloud-toolbar[data-sync-state="conflict"] .cloud-sync-state{font-weight:750}
+@media(max-width:430px){
+  :root .space-manage .space-manage-actions{grid-template-columns:1fr}
+  :root .space-manage>summary>span,:root .space-appearance>summary>span{display:none}
+}
