@@ -320,10 +320,19 @@ def normal_flows(browser):
     assert not canvas_geometry['hidden'] and canvas_geometry['display']!='none',canvas_geometry
     assert canvas_geometry['offsetHeight']>=50,canvas_geometry
     focus(page,'journal')
+    page.locator('#journal-editor').fill('Journal writing remains separate from canvas art.')
     page.locator('#journal-draw').click()
     expect(page.locator('.orbit-scene-dialog .excalidraw')).to_be_visible(timeout=25000)
     page.get_by_role('button',name='Save drawing').click()
     assert page.evaluate("Object.keys(JSON.parse(localStorage.getItem('orbit.v8.extensions')).journalScenes).length") == 1
+    assert page.evaluate("Object.values(JSON.parse(localStorage.getItem('orbit.v8.extensions')).journalModes).includes('canvas')")
+    expect(page.locator('#journal-editor')).to_be_hidden()
+    expect(page.locator('#journal-canvas-view')).to_be_visible()
+    page.locator('.journal-mode-tab[data-journal-mode="write"]').click()
+    expect(page.locator('#journal-editor')).to_be_visible()
+    assert 'Journal writing remains separate' in page.locator('#journal-editor').inner_text()
+    page.locator('.journal-mode-tab[data-journal-mode="canvas"]').click()
+    expect(page.locator('#journal-canvas-view')).to_be_visible()
     # Both editing hosts launch the same lazy upstream editor and preserve the
     # saved note/entry objects through repeated opens without scribble steps.
     page.locator('.sticky-note').first.get_by_role('button',name='Edit canvas').evaluate('e=>e.click()')
@@ -332,7 +341,7 @@ def normal_flows(browser):
     page.get_by_role('button',name='Save drawing').click()
     assert page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].scene.type") == 'excalidraw'
     focus(page,'journal')
-    page.locator('#journal-draw').click()
+    page.locator('#journal-canvas-edit').click()
     expect(page.locator('.orbit-scene-dialog .excalidraw')).to_be_visible(timeout=25000)
     page.get_by_role('button',name='Save drawing').click()
     assert page.evaluate("Object.keys(JSON.parse(localStorage.getItem('orbit.v8.extensions')).journalScenes).length") == 1
