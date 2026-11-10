@@ -3,6 +3,10 @@
 **Owner clarification:** 9 November 2026. **Status:** APPROVED PRODUCT DIRECTION; implementation units below are PROPOSED, not shipped or authorized for public release/hosted migration.
 **Companion:** [post-2.4 engineering blueprint](ORBIT_POST_2_4_EXECUTION.md), [current state](../docs/CURRENT_STATE.md), [active handoff](../CHATGPT_HANDOFF.md).
 
+## New 10 November 2026 owner feedback and next implementation
+
+PJ-02A branch action is underway; PJ-02B will deliver a genuinely useful Projects shelf before considering a gated Production release. Future project-to-website portfolio publication must be an explicit curated, versioned public projection, never automatic private snapshot exposure. Nested collapsing already works at arbitrary depth in source/tests, but its UI affordance needs attention; collapsed branches must not show an empty 'add something here' terminal. Touch mini-map dragging requires a targeted pointer-gesture investigation. A playful original login mascot is planned without Auth/CSP/privacy regression. [Complete prioritized product and UX brief](ORBIT_PROJECT_EXPERIENCE_BACKLOG_2026_11_10.md). Owner's Production approval is conditional on usable behavior and release checks, not blanket permission for hosted migrations or public content writes.
+
 ## PJ-01 private project identity model
 
 The source branch introduces bounded `extensions.projects` records keyed by existing branch IDs, V6 backup validation and branch deletion/Undo symmetry. No task/branch ID, parent relationship or position changes when a branch is marked. [PJ-01 model contract](../docs/PJ01_PRIVATE_PROJECT_IDENTITY.md). This is **model only**: the context-menu action and Projects shelf remain PJ-02, and no project is automatically public.

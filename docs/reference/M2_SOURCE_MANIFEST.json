@@ -1,7 +1,7 @@
 {
   "baselineCommit": "846ad7df3fa3fdf4c63fd22f2830fed56f83a06e",
   "milestone": "M2",
-  "review": "ORBIT 2.4 retained V6/M1 immutable provenance; BP-02 portable private media backup, EX-00 safe scene adapter, and EX-01 official Excalidraw lazy React island from exact pinned npm lockfile. No hosted database migration or Production alias change. BP-03 focused hidden-tab read reduction on a separate source branch, with existing CAS and owner isolation unchanged. BP-03 follow-up adds deterministic synthetic request/JSON-byte measurement with no hosted API change. SP-01A extracts the six legacy widget descriptors into a safe extensible registry; no seventh UI or storage migration. SP-01B adds a real mounted seventh test widget and owner-private extension layout without changing the six-ID V6 root layout. SP-01B Chromium diagnosed lost initial optional widget dimensions; preserved default inline size before applying saved size. PJ-01 adds reversible private project metadata keyed to existing branches; hosted security and public projection unchanged.",
+  "review": "ORBIT 2.4 retained V6/M1 immutable provenance; BP-02 portable private media backup, EX-00 safe scene adapter, and EX-01 official Excalidraw lazy React island from exact pinned npm lockfile. No hosted database migration or Production alias change. BP-03 focused hidden-tab read reduction on a separate source branch, with existing CAS and owner isolation unchanged. BP-03 follow-up adds deterministic synthetic request/JSON-byte measurement with no hosted API change. SP-01A extracts the six legacy widget descriptors into a safe extensible registry; no seventh UI or storage migration. SP-01B adds a real mounted seventh test widget and owner-private extension layout without changing the six-ID V6 root layout. SP-01B Chromium diagnosed lost initial optional widget dimensions; preserved default inline size before applying saved size. PJ-01 adds reversible private project metadata keyed to existing branches; hosted security and public projection unchanged. PJ-02A exposes reversible private branch-project actions via accessible unscaled menu; original V6 spatial coordinates and public projection remain untouched.",
   "files": {
     "assets/orbit.svg": {
       "sha256": "97eb19dd4e0773d0b6489b1f49d794ffd272fb3bc2d42af4faffd6a1adca78c3",
@@ -12,8 +12,8 @@
       "reason": "BP-02: distinguish path-only JSON export from authenticated private-media inclusive portable backup."
     },
     "src/app.js": {
-      "sha256": "fc59340098e56848d368b14ba15b189d0a3f1b0db050d13fac6ea793d1797ddd",
-      "reason": "PJ-01: branch deletion drops private project label and Undo restores it without moving tasks."
+      "sha256": "d1d68ece2ef4c2cfd46a0a28ba2d36e3d7118c280f5b2c101ce001227d1751b8",
+      "reason": "PJ-02A safe project identity toggle wired to private existing owner snapshot, read-only guard and spatial rendering."
     },
     "src/auth/README.md": {
       "sha256": "1ec9f199e2ab8b76ff9a7d462f1804d6653706a8eb4b005e23311d76c9d1f7d5",
@@ -68,8 +68,8 @@
       "reason": "BP-03: retain unchanged native polling behavior while injecting deterministic poll scheduler for nonprivate traffic cost tests."
     },
     "src/constellation.js": {
-      "sha256": "0fb05ccadccad958f48afa1b6111dd94411659f571c22255e50a32c852ef56d8",
-      "reason": "Expose checkbox progress and checklist editing within task details alongside existing criteria/links and state."
+      "sha256": "5eac26f028baf183b11cdc12213d41df998543da90ea6d7cb5280852c1c00558",
+      "reason": "PJ-02A accessible first-party branch menu, right-click and keyboard, private project badge; existing graph nodes and hierarchy preserved."
     },
     "src/csv.js": {
       "sha256": "e5de107e78d76d26553d25dca1b200765aaafeb2b836216b1ae11f57e5499178",
@@ -104,8 +104,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "b408bae9047bd25c9324273aef1c7597a134fef4775c4bc654dacab30f88b3c2",
-      "reason": "SP-01B: hide optional windows and show reopen map markers across existing themes."
+      "sha256": "c651dc0fec5ae9e11728b29fbda94f22580fe75664cb0a48eead826ab27d1b6c",
+      "reason": "PJ-02A original-theme fixed-position accessible context menu and private project visual distinction."
     },
     "src/widgets.js": {
       "sha256": "aee68a4ce8a37edbb2de2fa1b0a2fc4589fcaf28a00603db2b148c6875a8ec58",
