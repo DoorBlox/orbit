@@ -1323,7 +1323,7 @@ body.cloud-space-mounted .app-shell{height:100dvh!important}
 .projects-empty p{max-width:270px;font-size:12px;line-height:1.7;color:var(--orbit-chrome-muted,#6b7d90)}
 .project-card{position:relative;flex:none;border:1px solid var(--orbit-outline,rgba(154,178,206,.34));
   border-left:3px solid var(--project-branch-color,var(--orbit-accent,#7795b5));
-  border-radius:18px;background:var(--orbit-paper-glass,rgba(255,255,255,.59));
+  border-radius:18px;background:color-mix(in srgb,var(--orbit-widget-surface,#f8fafb) 87%,var(--orbit-field,#edf3f7) 13%);
   padding:14px 14px 12px;box-shadow:0 9px 24px rgba(35,57,83,.045)}
 .project-card-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .project-name-group{min-width:0}
