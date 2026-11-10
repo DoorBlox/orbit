@@ -81,3 +81,16 @@ test('sticky markdown formatting preserves plaintext persistence and selection s
   assert.throws(()=>formatStickySelection('site',0,4,'link','https://alice:pwd@example.org/'),/valid/);
   assert.equal(formatStickySelection('z'.repeat(5999),0,0,'bold'),null);
 });
+
+test('BP-06 duplicating a Canvas note preserves its mode and hidden writing independently',()=>{
+  const source={...createNote(),mode:'canvas'};
+  const {state}=fake([source]);
+  assert.equal(StickyNotes.prototype.duplicate.call(state,'original'),true);
+  const copy=state.notes[1];
+  assert.equal(copy.mode,'canvas');
+  assert.equal(copy.text,source.text);
+  assert.deepEqual(copy.scene,source.scene);
+  copy.mode='write';copy.text='New independent idea';
+  assert.equal(state.notes[0].mode,'canvas');
+  assert.equal(state.notes[0].text,source.text);
+});
