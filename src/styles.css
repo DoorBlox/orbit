@@ -1347,6 +1347,11 @@ body.cloud-space-mounted .app-shell{height:100dvh!important}
 .project-detail-row{margin:0 0 10px}
 .project-description{font-size:12px;line-height:1.5;color:var(--orbit-widget-ink,#344b63);
   margin:0;max-height:5em;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+.project-brief{margin:9px 0 3px;display:flex;flex-direction:column;gap:6px}
+.project-brief-line{display:grid;grid-template-columns:minmax(72px,93px) minmax(0,1fr);gap:9px;align-items:start}
+.project-brief-label{color:var(--orbit-chrome-muted,#5b7790);font-size:10px;font-weight:700}
+.project-brief-value{margin:0;color:var(--orbit-widget-ink,#344b63);font-size:11px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.project-description-form .project-description-input:not(textarea){min-height:37px;height:37px;resize:none}
 .project-edit{display:block;margin:5px 0 0;padding:2px 0;border:0;background:transparent;
   color:var(--orbit-chrome-muted,#5b7790);font-size:11px;text-decoration:underline;text-underline-offset:3px}
 .project-description-form{display:flex;flex-direction:column;gap:8px}
