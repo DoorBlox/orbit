@@ -207,11 +207,32 @@ const journal=new Journal({initialEntries:initialSnapshot?(initialSnapshot.journ
 widgets.setJournalEntries(journal.entries);
 journal.onPageChange=()=>{refreshJournalDrawing();refreshJournalImage();};
 refreshJournalDrawing();refreshJournalImage();
+function journalMode(){
+  const id=journal.entries[journal.index]?.id;
+  return id&&state.extensions.journalModes?.[id]==='canvas'?'canvas':'write';
+}
+function refreshJournalMode(){
+  const mode=journalMode();
+  const widget=$('journal-widget');widget.dataset.journalMode=mode;
+  for(const button of widget.querySelectorAll('[data-journal-mode]')){
+    button.setAttribute('aria-pressed',String(button.dataset.journalMode===mode));
+  }
+  $('journal-editor').hidden=mode==='canvas';
+  widget.querySelector('.journal-formatbar').hidden=mode==='canvas';
+  $('journal-canvas-view').hidden=mode!=='canvas';
+}
 function refreshJournalDrawing(){
   const holder=$('journal-drawing-preview');if(!holder)return;
   const page=journal.entries[journal.index];
   const drawing=page?state.extensions.journalScenes[page.id]:null;
-  holder.hidden=!drawing;renderScene(drawing,holder);
+  renderScene(drawing,holder);
+  if(!drawing||!drawing.elements?.some(el=>!el.isDeleted)){
+    const empty=document.createElement('p');empty.className='journal-canvas-empty';
+    empty.textContent='A free space for your ideas, mindmaps, shapes and drawings.';
+    holder.append(empty);
+  }
+  $('journal-canvas-edit').textContent=drawing?.elements?.some(el=>!el.isDeleted)?'Edit canvas':'Open canvas';
+  refreshJournalMode();
 }
 function refreshJournalImage(){
   const element=$('journal-image-preview');if(!element)return;
@@ -497,14 +518,38 @@ function initTools(){
       refreshJournalImage();message('Private journal image attached.');
     }catch(error){message(error.message,6500);}finally{imagePicker.value='';}
   });
-  $('journal-draw').addEventListener('click',()=>{
+  const openJournalCanvas=()=>{
     if(readOnly||disposed)return;
     journal.commit();const page=journal.entries[journal.index];if(!page)return;
-    openSceneEditor(state.extensions.journalScenes[page.id],{title:'Journal drawing — '+(page.title||page.date),
+    openSceneEditor(state.extensions.journalScenes[page.id],{title:'Journal canvas — '+(page.title||page.date),
       notify:(...args)=>message(...args),onSave:drawing=>{
-        state.extensions.journalScenes[page.id]=drawing;refreshJournalDrawing();extensionsChanged();
+        state.extensions.journalScenes[page.id]=drawing;
+        state.extensions.journalModes??={};state.extensions.journalModes[page.id]='canvas';
+        refreshJournalDrawing();extensionsChanged();
       }});
-  });
+  };
+  $('journal-draw').addEventListener('click',openJournalCanvas);
+  $('journal-canvas-edit').disabled=readOnly;
+  $('journal-canvas-edit').addEventListener('click',openJournalCanvas);
+  for(const button of document.querySelectorAll('.journal-mode-tab')){
+    button.addEventListener('click',()=>{
+      if(disposed||journalMode()===button.dataset.journalMode)return;
+      journal.commit();const page=journal.entries[journal.index];if(!page)return;
+      if(readOnly){
+        $('journal-widget').dataset.journalMode=button.dataset.journalMode;
+        for(const item of document.querySelectorAll('.journal-mode-tab'))
+          item.setAttribute('aria-pressed',String(item===button));
+        $('journal-editor').hidden=button.dataset.journalMode==='canvas';
+        $('journal-widget').querySelector('.journal-formatbar').hidden=button.dataset.journalMode==='canvas';
+        $('journal-canvas-view').hidden=button.dataset.journalMode!=='canvas';
+        return;
+      }
+      state.extensions.journalModes??={};
+      if(button.dataset.journalMode==='canvas')state.extensions.journalModes[page.id]='canvas';
+      else delete state.extensions.journalModes[page.id];
+      refreshJournalMode();extensionsChanged();
+    });
+  }
   $('expand-all-branches').addEventListener('click',()=>{setCollapsedBranches([]);scene.fitAll();message('All branches expanded.');});
   $('collapse-all-branches').addEventListener('click',()=>{
     const parents=state.branches.filter(branch=>state.branches.some(child=>child.parentId===branch.id)).map(branch=>branch.id);
