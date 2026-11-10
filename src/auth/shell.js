@@ -147,6 +147,7 @@ export function createAuthShell({ publicRelease, onGoogleSignIn, onPasswordSignI
     accountDetails.open=false;measure();
   }
   function setSyncStatus(next) {
+    toolbar.dataset.syncState=next.state;
     status.textContent=syncText[next.state]||syncText.error;
     retry.disabled=!['error','offline','pending'].includes(next.state);
     retry.hidden=retry.disabled;
