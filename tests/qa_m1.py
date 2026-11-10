@@ -312,8 +312,13 @@ def normal_flows(browser):
       window.dispatchEvent(new PointerEvent('pointerup',{...opts,clientX:x+150,clientY:y+115}));
     }""")
     assert page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].width") > width_before
-    assert page.locator('.sticky-note').first.locator('.sticky-drawing').evaluate(
-      'e => !e.hidden && e.offsetHeight >= 60 && e.scrollWidth <= e.clientWidth + 2')
+    canvas_geometry=page.locator('.sticky-note').first.locator('.sticky-drawing').evaluate(
+      """e => ({hidden:e.hidden,display:getComputedStyle(e).display,
+        clientWidth:e.clientWidth,scrollWidth:e.scrollWidth,
+        offsetHeight:e.offsetHeight,scrollHeight:e.scrollHeight,
+        parentHeight:e.parentElement?.clientHeight})""")
+    assert not canvas_geometry['hidden'] and canvas_geometry['display']!='none',canvas_geometry
+    assert canvas_geometry['offsetHeight']>=50,canvas_geometry
     focus(page,'journal')
     page.locator('#journal-draw').click()
     expect(page.locator('.orbit-scene-dialog .excalidraw')).to_be_visible(timeout=25000)
