@@ -145,6 +145,9 @@ def normal_flows(browser):
         r.bottom<=innerHeight+1 && r.width>=260;
     }""")
     assert task.locator('.task-editor').count()==0
+    inspector.locator('[name=title]').fill('   ')
+    inspector.get_by_role('button',name='Save changes').click()
+    expect(inspector).to_be_visible()
     inspector.locator('[name=title]').fill('M1 edited task')
     inspector.locator('[name=criteria]').fill('Synthetic done criteria')
     inspector.locator('[name=dueDate]').fill('2026-11-18')
