@@ -24,17 +24,18 @@ function syntheticSnapshot(taskCount){
 }
 
 function fakePollClock(){
-  let callback=null,stopped=false;
+  let callback=null,stopped=false,elapsed=0;
   return {
     start(fn,ms){if(ms!==15000||callback)throw Error('Unexpected poll schedule');callback=fn;return 1;},
     stop(id){if(id!==1)throw Error('Unexpected timer identity');stopped=true;},
-    tick(){if(!callback||stopped)throw Error('Timer missing or stopped');callback();},
+    tick(){if(!callback||stopped)throw Error('Timer missing or stopped');elapsed+=15000;callback();},
+    now(){return elapsed;},
     get stopped(){return stopped;}
   };
 }
 const settle=()=>new Promise(resolve=>setImmediate(resolve));
 
-async function runScenario(snapshot,{hiddenMinutes=0,visibleMinutes=0}={}){
+async function runScenario(snapshot,{hiddenMinutes=0,visibleMinutes=0,adaptive=false}={}){
   if(!Number.isSafeInteger(hiddenMinutes)||!Number.isSafeInteger(visibleMinutes)||
     hiddenMinutes<0||visibleMinutes<0)throw Error('Invalid simulation minutes');
   let visible=hiddenMinutes===0,online=true,reads=0,writes=0;
@@ -44,6 +45,7 @@ async function runScenario(snapshot,{hiddenMinutes=0,visibleMinutes=0}={}){
     async saveSnapshot(){writes++;throw Error('No synthetic simulation should save');}
   };
   const controller=createSyncController({repository,initialRevision:0,pollMs:15000,
+    idleAfterMs:120000,idlePollMs:adaptive?30000:15000,now:()=>clock.now(),
     eventTarget,visibilityTarget,isVisible:()=>visible,isOnline:()=>online,
     pollScheduler:{setInterval:(cb,ms)=>clock.start(cb,ms),clearInterval:id=>clock.stop(id)}
   });
@@ -61,22 +63,28 @@ async function runScenario(snapshot,{hiddenMinutes=0,visibleMinutes=0}={}){
 
 export async function measureSyncTraffic(taskCount=100){
   const snapshot=syntheticSnapshot(taskCount),responseBytes=Buffer.byteLength(JSON.stringify({revision:0,snapshot}),'utf8');
-  const [foreground,hidden,mixed]=await Promise.all([
+  const [foreground,hidden,mixed,adaptiveForeground,adaptiveHidden,adaptiveMixed]=await Promise.all([
     runScenario(snapshot,{visibleMinutes:60}),
     runScenario(snapshot,{hiddenMinutes:60}),
-    runScenario(snapshot,{hiddenMinutes:45,visibleMinutes:15})
+    runScenario(snapshot,{hiddenMinutes:45,visibleMinutes:15}),
+    runScenario(snapshot,{visibleMinutes:60,adaptive:true}),
+    runScenario(snapshot,{hiddenMinutes:60,adaptive:true}),
+    runScenario(snapshot,{hiddenMinutes:45,visibleMinutes:15,adaptive:true}),
   ]);
   return {
     taskCount,responseBytes,
     fullForegroundReads:foreground,fullForegroundBytes:foreground*responseBytes,
     fullHiddenReads:hidden,fullHiddenBytes:hidden*responseBytes,
-    mixedReads:mixed,mixedBytes:mixed*responseBytes
+    mixedReads:mixed,mixedBytes:mixed*responseBytes,
+    adaptiveForegroundReads:adaptiveForeground,adaptiveForegroundBytes:adaptiveForeground*responseBytes,
+    adaptiveHiddenReads:adaptiveHidden,adaptiveHiddenBytes:adaptiveHidden*responseBytes,
+    adaptiveMixedReads:adaptiveMixed,adaptiveMixedBytes:adaptiveMixed*responseBytes
   };
 }
 
 if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
   for(const tasks of [30,100,300]){
     const result=await measureSyncTraffic(tasks);
-    console.log(JSON.stringify({...result,note:'synthetic JSON-only estimates; not billed network or Production measurements'}));
+    console.log(JSON.stringify({...result,note:'synthetic JSON-only estimates; idle backoff caps remote-read delay at 30s; not billed network or Production measurements'}));
   }
 }

@@ -2,7 +2,13 @@ const clone = value => structuredClone(value);
 const knownCodes = new Set(['AUTH_REQUIRED','FORBIDDEN','CONFLICT','NETWORK','VALIDATION','INVALID_RESPONSE','ABORTED']);
 /** One serialized save queue per signed-in owner. Drafts never enter telemetry. */
 export function createSyncController({ repository, initialRevision = 0, onSnapshot = () => {}, onStatus = () => {},
-  debounceMs = 500, pollMs = 15000, eventTarget = globalThis.window,
+  debounceMs = 500, pollMs = 15000,
+  // Clean, unchanged foreground workspaces poll at 30 s after 2 min without
+  // interaction; active typing/pointer use keeps the existing 15 s cadence.
+  // A second device may take up to 30 s to appear while this tab is idle.
+  idleAfterMs = 120000, idlePollMs = 30000,
+  now = () => globalThis.performance?.now?.() ?? Date.now(),
+  eventTarget = globalThis.window,
   visibilityTarget = globalThis.document,
   isOnline = () => globalThis.navigator?.onLine !== false,
   isVisible = () => visibilityTarget?.visibilityState !== 'hidden',
@@ -12,6 +18,14 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
   if (!repository?.saveSnapshot || !repository?.loadOwnerSnapshot || !Number.isSafeInteger(initialRevision) || initialRevision < 0) {
     throw Error('A snapshot repository and valid initial revision are required.');
   }
+  if (typeof now !== 'function' || !Number.isFinite(idleAfterMs) || idleAfterMs < 0 ||
+      !Number.isFinite(idlePollMs) || idlePollMs < Math.max(0,pollMs)) {
+    throw Error('Invalid idle poll timing or clock.');
+  }
+  const startedAt = now();
+  if (!Number.isFinite(startedAt)) throw Error('Invalid idle poll clock.');
+  let lastInteractionAt = startedAt, lastReadAt = startedAt;
+  const markInteraction = () => { lastInteractionAt = now(); };
   let revision = initialRevision, state = 'saved', errorCode = null;
   let pending = null, changeVersion = 0, debounceTimer = null, pollTimer = null;
   let writePromise = null, readPromise = null, disposed = false;
@@ -29,6 +43,7 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
   function request() { const controller = new AbortController(); requests.add(controller); return controller; }
   function queue(snapshot) {
     if (disposed) return false;
+    markInteraction();
     pending = {snapshot:clone(snapshot),version:++changeVersion};
     cancelDebounce();
     // A stale base version requires an explicit review, never automatic overwrite.
@@ -72,11 +87,12 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
     readPromise = (async () => {
       try {
         if (!isOnline()) { status('offline','NETWORK'); return {ok:false,changed:false}; }
+        lastReadAt = now();
         const result = await repository.loadOwnerSnapshot({signal:controller.signal});
         if (disposed || changeVersion !== requestVersion || pending || writePromise) return {ok:false,changed:false};
         if (!Number.isSafeInteger(result?.revision) || result.revision < revision) throw Object.assign(Error(),{code:'INVALID_RESPONSE'});
         const changed = result.revision > revision;
-        if (changed) { revision = result.revision; onSnapshot(clone(result.snapshot)); }
+        if (changed) { revision = result.revision; markInteraction(); onSnapshot(clone(result.snapshot)); }
         if (!pending && !disposed) status('saved');
         return {ok:true,changed};
       } catch (error) {
@@ -116,11 +132,25 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
   }
   // Hidden tabs must not repeatedly download full owner snapshots. A visible
   // transition revalidates immediately; pending drafts still use CAS on save.
-  const onFocus = () => { if (isVisible()) void refresh(); };
-  const onVisibility = () => { if (isVisible()) void refresh(); };
-  const onPoll = () => { if (isVisible() && isOnline()) void refresh(); };
-  const onOnline = () => { if (pending) void retry(); else if (isVisible()) void refresh(); };
+  const onActivity = () => { if (isVisible()) markInteraction(); };
+  const onFocus = () => { if (isVisible()) { markInteraction(); void refresh(); } };
+  const onVisibility = () => { if (isVisible()) { markInteraction(); void refresh(); } };
+  const onPoll = () => {
+    if (!isVisible() || !isOnline()) return;
+    // Never delay error recovery, pending writes, or interactive revalidation.
+    // Idle backoff skips only clean, unchanged full-snapshot reads.
+    const quiet = state === 'saved' && !pending && !writePromise && !errorCode &&
+      now() - lastInteractionAt >= idleAfterMs;
+    if (quiet && now() - lastReadAt < idlePollMs) return;
+    void refresh();
+  };
+  const onOnline = () => {
+    if (pending) void retry();
+    else if (isVisible()) { markInteraction(); void refresh(); }
+  };
   const onOffline = () => { if (pending) status('offline','NETWORK'); };
+  eventTarget?.addEventListener?.('pointerdown',onActivity);
+  eventTarget?.addEventListener?.('keydown',onActivity);
   eventTarget?.addEventListener?.('focus',onFocus);
   eventTarget?.addEventListener?.('online',onOnline);
   eventTarget?.addEventListener?.('offline',onOffline);
@@ -129,6 +159,8 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
   function dispose() {
     if (disposed) return;
     disposed = true; cancelDebounce(); if(pollTimer!==null)pollScheduler.clearInterval(pollTimer);
+    eventTarget?.removeEventListener?.('pointerdown',onActivity);
+    eventTarget?.removeEventListener?.('keydown',onActivity);
     eventTarget?.removeEventListener?.('focus',onFocus);
     eventTarget?.removeEventListener?.('online',onOnline);
     eventTarget?.removeEventListener?.('offline',onOffline);
