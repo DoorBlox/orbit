@@ -129,35 +129,53 @@ export class ProjectsShelf {
 
     const details=node('div','project-detail-row');
     const description=node('p','project-description',project.description||'No description yet.');
-    details.append(description);
+    const brief=node('dl','project-brief');
+    for(const [label,value] of [
+      ['Goal',project.goal],['Next action',project.nextAction],
+      ['Blockers',project.blockers],['Target date',project.targetDate]
+    ]){
+      if(!value)continue;
+      const pair=node('div','project-brief-line');
+      pair.append(node('dt','project-brief-label',label),node('dd','project-brief-value',value));
+      brief.append(pair);
+    }
+    const view=()=>details.replaceChildren(description,...(brief.children.length?[brief]:[]),...(this.readOnly?[]:[edit]));
+    let edit;
     if(!this.readOnly){
-      const edit=node('button','project-edit','Edit description');
-      edit.type='button';edit.setAttribute('aria-label','Edit description for '+project.label);
+      edit=node('button','project-edit','Edit project brief');
+      edit.type='button';edit.setAttribute('aria-label','Edit project brief for '+project.label);
       edit.addEventListener('click',()=>{
-        details.replaceChildren();
-        const form=node('form','project-description-form');
-        const field=node('label','project-description-label','Description');
-        const input=node('textarea','project-description-input');
-        input.setAttribute('aria-label','Description for '+project.label);
-        input.maxLength=4000;input.rows=3;input.value=project.description;
-        field.append(input);form.append(field);
+        const form=node('form','project-description-form'),inputs={};
+        for(const [key,label,maxLength,rows] of [
+          ['description','Description',4000,3],['goal','Goal or outcome',500,2],
+          ['nextAction','Next action',240,2],['blockers','Blockers or decisions',1000,2],
+          ['targetDate','Target date',10,0]
+        ]){
+          const field=node('label','project-description-label',label);
+          const input=node(rows?'textarea':'input','project-description-input');
+          if(rows)input.rows=rows;else input.type='date';
+          input.maxLength=maxLength;input.value=project[key]||'';
+          input.setAttribute('aria-label',label+' for '+project.label);
+          field.append(input);form.append(field);inputs[key]=input;
+        }
         const controls=node('div','project-edit-actions');
-        const save=node('button','project-save','Save description');save.type='submit';
+        const save=node('button','project-save','Save project brief');save.type='submit';
         const cancel=node('button','project-cancel','Cancel');cancel.type='button';
-        cancel.addEventListener('click',()=>{details.replaceChildren(description,edit);edit.focus({preventScroll:true});});
+        cancel.addEventListener('click',()=>{view();edit.focus({preventScroll:true});});
         form.addEventListener('submit',event=>{
           event.preventDefault();
-          if(this.onUpdate(project.id,{description:input.value})===false){input.focus();return;}
+          const patch=Object.fromEntries(Object.entries(inputs).map(([key,input])=>[key,input.value]));
+          if(this.onUpdate(project.id,patch)===false){inputs.description.focus();return;}
           requestAnimationFrame(()=>{
             [...this.list.querySelectorAll('.project-card')].find(element=>element.dataset.projectId===project.id)
               ?.querySelector('.project-edit')?.focus({preventScroll:true});
           });
         });
         controls.append(save,cancel);form.append(controls);
-        details.append(form);input.focus({preventScroll:true});
+        details.replaceChildren(form);inputs.description.focus({preventScroll:true});
       });
-      details.append(edit);
     }
+    view();
     card.append(details);
 
     const bottom=node('div','project-card-bottom');
