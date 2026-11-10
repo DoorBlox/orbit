@@ -31,6 +31,11 @@ export function createAuthShell({ publicRelease, onGoogleSignIn, onPasswordSignI
   const mode=document.createElement('span');mode.className='cloud-mode';
   const status=document.createElement('span');status.className='cloud-sync-state';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
   const controls=document.createElement('div');controls.className='cloud-controls';
+  const quickActions=document.createElement('div');quickActions.className='cloud-quick-actions';
+  const accountDetails=document.createElement('details');accountDetails.className='cloud-account-details';
+  const accountSummary=document.createElement('summary');
+  accountSummary.textContent='Account, import & backups';
+  accountDetails.append(accountSummary,controls);
   function button(label,handler,parent=controls) {
     const element=document.createElement('button');element.type='button';element.className='glass-button';element.textContent=label;
     element.addEventListener('click',()=>{void handler?.();});parent.append(element);return element;
@@ -86,13 +91,13 @@ export function createAuthShell({ publicRelease, onGoogleSignIn, onPasswordSignI
   const gateSignOut=button('Sign out',onSignOut,gate);gateSignOut.hidden=true;
   const retryGate=button('Try again',onRetry,gate);retryGate.hidden=true;
   gate.prepend(title,description,release);
-  const exportDraft=button('Export backup',onExport);
-  const retry=button('Retry save',onRetry);
+  const exportDraft=button('Export backup',onExport,quickActions);
+  const retry=button('Retry save',onRetry,quickActions);
   const reload=button('Reload cloud version',onReload);
   const signOut=button('Sign out',onSignOut);
   const visitorSignIn=button('Sign in',()=>{gate.hidden=false;passwordEmail.focus();});
   const ownerTools=document.createElement('div');ownerTools.id='cloud-owner-tools';ownerTools.hidden=true;
-  controls.append(ownerTools);toolbar.append(mode,status,controls);root.append(gate,toolbar);document.body.append(root);
+  controls.append(ownerTools);toolbar.append(mode,status,quickActions,accountDetails);root.append(gate,toolbar);document.body.append(root);
   // The access gate stays outside the private app. Account controls live in
   // the movable Space widget while signed in; the bottom cloud dock is gone.
   function detachSpaceControls(){
@@ -138,13 +143,16 @@ export function createAuthShell({ publicRelease, onGoogleSignIn, onPasswordSignI
     signOut.hidden=!owner&&state.status!=='unauthorized';
     visitorSignIn.hidden=owner;ownerTools.hidden=!owner;
     status.textContent=owner?'Cloud snapshot loaded':'Only explicitly published content is shown';
-    retry.disabled=true;reload.hidden=true;
-    measure();
+    retry.disabled=true;retry.hidden=true;reload.hidden=true;
+    accountDetails.open=false;measure();
   }
   function setSyncStatus(next) {
+    toolbar.dataset.syncState=next.state;
     status.textContent=syncText[next.state]||syncText.error;
     retry.disabled=!['error','offline','pending'].includes(next.state);
+    retry.hidden=retry.disabled;
     reload.hidden=next.state!=='conflict';
+    if(next.state==='conflict')accountDetails.open=true;
     if(next.errorCode==='AUTH_REQUIRED')status.textContent='Session verification required — this draft is not saved';
   }
   function showError(message='Cloud setup is unavailable. Your private space remains closed.') {
