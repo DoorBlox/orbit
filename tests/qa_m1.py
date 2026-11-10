@@ -296,6 +296,22 @@ def normal_flows(browser):
     reload_page(page)
     expect(page.locator('.sticky-note')).to_have_count(2)
     expect(page.locator('.sticky-note').last.locator('.sticky-body')).to_have_value('Independent copy')
+    assert page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].mode") == 'canvas'
+    assert page.evaluate("""() => !Object.hasOwn(
+      JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[1],'mode')""")
+    # BP-06: a resized Canvas note must retain the full surface and persist
+    # pointer movement even after leaving the original resize-handle bounds.
+    width_before=page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].width")
+    page.locator('.sticky-note').first.locator('.sticky-resizer').evaluate("""handle=>{
+      const r=handle.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;
+      const opts={bubbles:true,cancelable:true,pointerId:991,pointerType:'touch',button:0};
+      handle.dispatchEvent(new PointerEvent('pointerdown',{...opts,clientX:x,clientY:y}));
+      window.dispatchEvent(new PointerEvent('pointermove',{...opts,clientX:x+150,clientY:y+115}));
+      window.dispatchEvent(new PointerEvent('pointerup',{...opts,clientX:x+150,clientY:y+115}));
+    }""")
+    assert page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].width") > width_before
+    assert page.locator('.sticky-note').first.locator('.sticky-drawing').evaluate(
+      'e => e.getBoundingClientRect().height >= 100')
     focus(page,'journal')
     page.locator('#journal-draw').click()
     expect(page.locator('.orbit-scene-dialog .excalidraw')).to_be_visible(timeout=25000)
