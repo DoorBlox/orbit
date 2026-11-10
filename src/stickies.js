@@ -111,11 +111,14 @@ export class StickyNotes {
     return true;
   }
   startDrag(e,n,element,mode){
-    if(this.disposed||this.readOnly||e.button!==0)return;
+    if(this.disposed||this.readOnly||(e.button!==0&&e.pointerType!=='touch'))return;
     e.preventDefault();e.stopPropagation();
-    const startX=e.clientX,startY=e.clientY,initial={x:n.x,y:n.y,width:n.width,height:n.height};
-    const target=e.currentTarget;target.setPointerCapture(e.pointerId);
+    const target=e.currentTarget,pointer=e.pointerId,startX=e.clientX,startY=e.clientY;
+    const initial={x:n.x,y:n.y,width:n.width,height:n.height};
+    let finished=false;
     const move=event=>{
+      if(finished||event.pointerId!==pointer)return;
+      event.preventDefault();
       const scale=clamp(Number(this.getScale())||1,.1,5);
       const dx=(event.clientX-startX)/scale,dy=(event.clientY-startY)/scale;
       if(mode==='move'){n.x=clamp(initial.x+dx,-5000,7500);n.y=clamp(initial.y+dy,-5000,7500);}
@@ -123,12 +126,31 @@ export class StickyNotes {
       element.style.left=n.x+'px';element.style.top=n.y+'px';
       element.style.width=n.width+'px';element.style.height=n.height+'px';
     };
-    const finish=()=>{
-      target.removeEventListener('pointermove',move);target.removeEventListener('pointerup',finish);
-      target.removeEventListener('pointercancel',finish);this.changed();
+    const end=(event,cancel=false)=>{
+      if(finished||(event&&event.pointerId!==pointer))return;
+      finished=true;
+      window.removeEventListener('pointermove',move);
+      window.removeEventListener('pointerup',endUp);
+      window.removeEventListener('pointercancel',endCancel);
+      target.removeEventListener('lostpointercapture',endLost);
+      if(cancel){
+        Object.assign(n,initial);
+        element.style.left=n.x+'px';element.style.top=n.y+'px';
+        element.style.width=n.width+'px';element.style.height=n.height+'px';
+      }
+      try{if(target.hasPointerCapture?.(pointer))target.releasePointerCapture(pointer);}catch{}
+      if(!cancel&&Object.keys(initial).some(key=>initial[key]!==n[key]))this.changed();
     };
-    target.addEventListener('pointermove',move);target.addEventListener('pointerup',finish);
-    target.addEventListener('pointercancel',finish);
+    const endUp=event=>end(event);
+    const endCancel=event=>end(event,true);
+    const endLost=event=>end(event,true);
+    // Window fallback is essential on hybrid touchscreen laptops when capture
+    // silently fails or the finger crosses the resized note's original edge.
+    window.addEventListener('pointermove',move,{passive:false});
+    window.addEventListener('pointerup',endUp);
+    window.addEventListener('pointercancel',endCancel);
+    target.addEventListener('lostpointercapture',endLost);
+    try{target.setPointerCapture?.(pointer);}catch{}
   }
   render(){
     this.layer.replaceChildren();
@@ -222,7 +244,7 @@ export class StickyNotes {
       const preview=document.createElement('div');preview.className='sticky-drawing';
       preview.setAttribute('aria-label','Freeform note canvas');
       renderScene(n.scene,preview);
-      if(mode==='canvas'&&!n.scene){
+      if(mode==='canvas'&&(!n.scene||!n.scene.elements?.some(e=>!e.isDeleted))){
         const empty=document.createElement('p');empty.className='sticky-canvas-empty';
         empty.textContent='Your canvas is ready for text, arrows, shapes and sketches.';
         preview.append(empty);
