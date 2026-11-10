@@ -51,3 +51,57 @@ export function setBranchProject(projects,branchId,branches,enabled){
   }else delete next[branchId];
   return next;
 }
+
+
+/** PJ-02B: parent and nested projects share tasks, never duplicate them.
+ * Completion here is task.status === 'completed', independent of project status.
+ */
+export function summarizeProjectPortfolio(projects,branches,tasks){
+  const checked=validateProjectBranches(projects,branches);
+  if(!Array.isArray(tasks))throw Error('Expected existing tasks.');
+  const byId=new Map(branches.map(branch=>[branch.id,branch]));
+  const children=new Map();
+  for(const branch of branches){
+    if(!children.has(branch.parentId))children.set(branch.parentId,[]);
+    children.get(branch.parentId).push(branch.id);
+  }
+  const descendants=id=>{
+    const result=new Set([id]),pending=[id];
+    while(pending.length){
+      for(const child of children.get(pending.pop())||[]){
+        if(!result.has(child)){result.add(child);pending.push(child);}
+      }
+    }
+    return result;
+  };
+  const matching=ids=>{
+    const seen=new Map();
+    for(const task of tasks){
+      if(!task||typeof task.id!=='string'||!ids.has(task.projectId)||seen.has(task.id))continue;
+      seen.set(task.id,task);
+    }
+    return seen;
+  };
+  const numbers=items=>({total:items.size,
+    completed:[...items.values()].filter(task=>task.status==='completed').length});
+  const allTaskIds=new Set(),rows=[];
+  for(const [id,metadata] of Object.entries(checked)){
+    const directTasks=matching(new Set([id])),includedTasks=matching(descendants(id));
+    for(const taskId of includedTasks.keys())allTaskIds.add(taskId);
+    const branch=byId.get(id),included=numbers(includedTasks);
+    let path=[],current=branch,visited=new Set();
+    while(current&&!visited.has(current.id)){
+      visited.add(current.id);path.unshift(current.label);
+      current=byId.get(current.parentId);
+    }
+    rows.push({id,label:branch.label,path:path.join(' / '),color:branch.color||'',
+      description:metadata.description,status:metadata.status,links:metadata.links,
+      direct:numbers(directTasks),including:included,
+      progress:included.total?Math.round(included.completed/included.total*100):null});
+  }
+  const portfolioTasks=new Map();
+  for(const task of tasks)
+    if(task&&allTaskIds.has(task.id)&&!portfolioTasks.has(task.id))
+      portfolioTasks.set(task.id,task);
+  return {projects:rows,totals:numbers(portfolioTasks)};
+}
