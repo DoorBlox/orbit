@@ -81,6 +81,7 @@ def mobile_flow(browser, width):
         assert_preserved(page, original)
         page.screenshot(path=str(qa.OUT / f'm2-closeout-mobile-{width}.png'))
         page.evaluate("window.orbitDebug.board.focus('space',{initial:true})")
+        page.locator('.cloud-account-details').evaluate('details => { details.open = true; }')
         page.locator('.cloud-toolbar').get_by_role('button', name='Sign out', exact=True).click()
         expect(page.locator('#app')).to_be_hidden()
         assert page.locator('#app').inner_text() == ''
