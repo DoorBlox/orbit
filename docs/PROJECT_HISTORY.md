@@ -1,3 +1,10 @@
+## 10 November 2026 — BP-05 preflight, TOUCH-01 and PJ-03 first slice; source and protected Preview
+
+- [PR #62](https://github.com/DoorBlox/orbit/pull/62) (squash `e43319d7c9f1a7fb98e3c9db4ec57b459d3a8161`) merges isolated NO-DEPLOY manual exact-main SHA/clean-worktree/private-format synthetic artifact preflight, four required exact-head checks green. Existing full stage-only release/approval/rollback environment remains open; no Vercel token or alias operation.
+- [PR #63](https://github.com/DoorBlox/orbit/pull/63) (squash `7557b479f0c3e8a7041a5c1b96599942cf60d87c`) fixes mini-map viewport grab snap; tests cover cancellation, second pointer, direct map tap, five synthetic Chromium viewports. Four exact-head required checks green. Physical touch not yet verified.
+- [PR #64](https://github.com/DoorBlox/orbit/pull/64) (squash `512b4b675c0779915d1642979839556814f865e0`) adds owner-private project goal, next action, blockers and target date with bounded validator and editing/reload/browser QA, four exact-head required checks green. Project milestone/link editing and health filtering remain separate PJ-03 contracts. No public posting or new SQL.
+- Protected Vercel Preview READY `dpl_F3aLWWU2XaiVMNFCcaKsf31yzfgm` at https://orbit-cwjgxy9mi-doorbloxs-projects.vercel.app/ from reviewed `512b4b67`. Vercel Authentication remains enabled for previews. Production continues on READY `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4` from `4e57aca` (ORBIT 2.4); private owner signed-in checks and release gate outstanding.
+
 ## 10 November 2026 — unified roadmap and adaptive foreground sync source milestones
 
 - **One plan:** [PR #58](https://github.com/DoorBlox/orbit/pull/58) merged at `29dd1084e9df638ddc68d5d3fb2db51639bc0404` after four exact-head checks. All original BP units and additional Projects, Focus, publishing, UX and mascot units now share [one prioritized master roadmap](../plans/ORBIT_POST_2_4_EXECUTION.md), with historical side-plan text linked from archival pointers. [PR #57](https://github.com/DoorBlox/orbit/pull/57) retired obsolete manual 1.0 staging workflow at `416d301f`; modern stage-only tooling still outstanding.
