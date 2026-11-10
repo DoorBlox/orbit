@@ -155,6 +155,22 @@ export class StickyNotes {
       remove.textContent='×';remove.title='Remove sticky note';remove.setAttribute('aria-label','Remove sticky note');
       remove.disabled=this.readOnly;remove.addEventListener('click',()=>this.remove(n.id));
       grip.disabled=this.readOnly;head.append(grip,title,remove);
+      // One surface at a time. Switching never erases the other private data:
+      // legacy notes containing both text and scenes remain fully recoverable.
+      const mode=n.mode==='canvas'?'canvas':'write';
+      const modeTabs=document.createElement('div');modeTabs.className='sticky-mode-tabs';
+      modeTabs.setAttribute('role','group');modeTabs.setAttribute('aria-label','Note content mode');
+      for(const [value,label] of [['write','Write'],['canvas','Canvas']]){
+        const button=document.createElement('button');button.type='button';
+        button.className='sticky-mode-tab';button.textContent=label;
+        button.setAttribute('aria-pressed',String(mode===value));
+        button.addEventListener('click',()=>{
+          if(n.mode===value||(n.mode===undefined&&value==='write'))return;
+          if(value==='canvas')n.mode='canvas';else delete n.mode;
+          this.render();if(!this.readOnly)this.changed();
+        });
+        modeTabs.append(button);
+      }
       const editor=document.createElement('textarea');editor.className='sticky-body';editor.rows=5;
       editor.maxLength=6000;editor.value=n.text;editor.disabled=this.readOnly;
       editor.setAttribute('aria-label','Sticky note text');
@@ -185,17 +201,35 @@ export class StickyNotes {
           }catch(error){this.notify(error.message,5000);}
         });formatBar.append(button);
       }
-      const showPreview=document.createElement('button');showPreview.type='button';showPreview.className='sticky-format-button sticky-preview-toggle';
-      showPreview.textContent='Preview';showPreview.setAttribute('aria-label','Preview formatted sticky note');
-      const formatted=document.createElement('div');formatted.className='sticky-text-preview';formatted.hidden=true;
-      showPreview.addEventListener('click',()=>{
-        const next=formatted.hidden;formatted.hidden=!next;editor.hidden=next;
-        showPreview.textContent=next?'Edit':'Preview';
-        showPreview.setAttribute('aria-label',next?'Edit sticky note text':'Preview formatted sticky note');
-        if(next){renderStickyMarkdown(n.text,formatted);}else editor.focus();
-      });formatBar.append(showPreview);
+      const done=document.createElement('button');done.type='button';
+      done.className='sticky-format-button sticky-done';done.textContent='Done';
+      const formatted=document.createElement('div');formatted.className='sticky-text-preview';
+      formatted.setAttribute('aria-label','Formatted note');
+      const showFormatted=()=>{
+        formatted.replaceChildren();
+        if(n.text.trim())renderStickyMarkdown(n.text,formatted);
+        else {formatted.textContent='A little space for your thoughts…';formatted.classList.add('is-empty');}
+      };
+      const editText=editing=>{
+        editor.hidden=!editing;
+        formatted.hidden=editing||mode==='canvas';
+        formatBar.hidden=!editing;
+        if(!editing){clearTimeout(timer);showFormatted();if(!this.readOnly)this.changed();}
+        else editor.focus({preventScroll:true});
+      };
+      done.addEventListener('click',()=>editText(false));
+      formatBar.append(done);
       const preview=document.createElement('div');preview.className='sticky-drawing';
+      preview.setAttribute('aria-label','Freeform note canvas');
       renderScene(n.scene,preview);
+      if(mode==='canvas'&&!n.scene){
+        const empty=document.createElement('p');empty.className='sticky-canvas-empty';
+        empty.textContent='Your canvas is ready for text, arrows, shapes and sketches.';
+        preview.append(empty);
+      }
+      editor.hidden=true;formatBar.hidden=true;
+      formatted.hidden=mode==='canvas';preview.hidden=mode!=='canvas';
+      if(mode==='write')showFormatted();
       let image=null;
       if(n.imagePath&&this.media){
         image=document.createElement('img');image.className='sticky-image';image.alt='Private image attached to '+n.title;
@@ -212,20 +246,44 @@ export class StickyNotes {
         image._orbitStatus=status;
       }
       const actions=document.createElement('div');actions.className='sticky-actions';
-      const draw=document.createElement('button');draw.className='glass-button';draw.type='button';
-      draw.textContent=n.scene?'Edit drawing':'Draw';draw.disabled=this.readOnly;
-      draw.addEventListener('click',()=>openSceneEditor(n.scene,{title:'Drawing on '+n.title,notify:this.notify,
-        onSave:scene=>{n.scene=scene;renderScene(scene,preview);draw.textContent='Edit drawing';this.changed();}}));
-      const tint=document.createElement('select');tint.className='sticky-color';tint.disabled=this.readOnly;
-      tint.setAttribute('aria-label','Sticky note color');
-      for(const color of ['sand','peach','lavender','mint']){const option=document.createElement('option');option.value=color;option.textContent=color;tint.append(option);}
-      tint.value=n.color;tint.addEventListener('change',()=>{article.classList.replace('sticky-'+n.color,'sticky-'+tint.value);n.color=tint.value;this.changed();});
+      const primary=document.createElement('button');primary.type='button';
+      primary.className='sticky-primary-action';
+      primary.textContent=mode==='canvas'?(n.scene?'Edit canvas':'Open canvas'):'Edit note';
+      primary.disabled=this.readOnly;
+      primary.addEventListener('click',()=>{
+        if(mode==='write'){editText(true);return;}
+        openSceneEditor(n.scene,{title:'Canvas — '+n.title,notify:this.notify,
+          onSave:scene=>{n.scene=scene;this.render();this.changed();}});
+      });
+      const tint=document.createElement('details');tint.className='sticky-color-menu';
+      const trigger=document.createElement('summary');trigger.className='sticky-color-trigger';
+      trigger.setAttribute('aria-label','Choose sticky paper color');trigger.title='Paper color';
+      const swatch=document.createElement('span');swatch.className='sticky-color-swatch sticky-swatch-'+n.color;
+      trigger.append(swatch,document.createTextNode('Paper'));
+      const palette=document.createElement('div');palette.className='sticky-color-options';
+      for(const value of ['sand','peach','lavender','mint']){
+        const choice=document.createElement('button');choice.type='button';
+        choice.className='sticky-color-choice sticky-swatch-'+value;
+        choice.textContent=value;choice.setAttribute('aria-pressed',String(value===n.color));
+        choice.setAttribute('aria-label',value+' paper');
+        choice.disabled=this.readOnly;
+        choice.addEventListener('click',()=>{n.color=value;this.render();this.changed();});
+        palette.append(choice);
+      }
+      tint.append(trigger,palette);
+      if(this.readOnly)trigger.setAttribute('aria-disabled','true');
+      const more=document.createElement('details');more.className='sticky-more-menu';
+      const moreTrigger=document.createElement('summary');moreTrigger.textContent='More';
+      moreTrigger.setAttribute('aria-label','More note actions');
+      const moreActions=document.createElement('div');moreActions.className='sticky-more-actions';
+      more.append(moreTrigger,moreActions);
       const duplicate=document.createElement('button');duplicate.className='glass-button sticky-duplicate';
-      duplicate.type='button';duplicate.textContent='Copy';duplicate.title='Duplicate this note';
+      duplicate.type='button';duplicate.textContent='Duplicate note';duplicate.title='Duplicate this note';
       duplicate.setAttribute('aria-label','Duplicate sticky note');
       duplicate.disabled=this.readOnly||this.notes.length>=80;
       duplicate.addEventListener('click',()=>this.duplicate(n.id));
-      actions.append(draw,duplicate,tint);
+      moreActions.append(duplicate);
+      actions.append(primary,tint,more);
       if(this.media&&!this.readOnly){
         const upload=document.createElement('input');upload.type='file';upload.hidden=true;
         upload.accept='image/png,image/jpeg,image/webp';
@@ -240,12 +298,12 @@ export class StickyNotes {
           }catch(error){this.notify(error.message,6500);}
           finally{pick.disabled=false;upload.value='';}
         });
-        actions.append(pick,upload);
+        moreActions.append(pick,upload);
         if(n.imagePath){
           const detach=document.createElement('button');detach.className='glass-button subtle sticky-detach';
           detach.type='button';detach.textContent='Detach image';
           detach.setAttribute('aria-label','Detach image from sticky note without deleting private file');
-          detach.addEventListener('click',()=>this.detachImage(n.id));actions.append(detach);
+          detach.addEventListener('click',()=>this.detachImage(n.id));moreActions.append(detach);
         }
       }
       const resizer=document.createElement('button');resizer.type='button';resizer.className='sticky-resizer';
@@ -259,7 +317,11 @@ export class StickyNotes {
         article.style.width=n.width+'px';article.style.height=n.height+'px';this.changed();
       });
       article.addEventListener('pointerdown',e=>e.stopPropagation());
-      article.append(head,formatBar,editor,formatted,preview);if(image)article.append(image,image._orbitStatus);article.append(actions,resizer);this.layer.append(article);
+      if(image){
+        const attachment=document.createElement('div');attachment.className='sticky-attachment';
+        attachment.append(image,image._orbitStatus);moreActions.append(attachment);
+      }
+      article.append(head,modeTabs,formatBar,editor,formatted,preview,actions,resizer);this.layer.append(article);
     }
   }
   dispose(){this.disposed=true;this.layer.remove();this.notes=[];}
