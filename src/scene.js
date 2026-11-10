@@ -90,10 +90,42 @@ export function normalizeExtensions(raw={}){
   }
   return {notes:cleanNotes,taskLinks:links,taskChecklists:checklists,journalScenes:scenes,journalImages:images,spatialWidgets,projects,appearance};
 }
+/** Fit the entire retained drawing, not an arbitrary 800×460 crop. No mutation. */
+export function scenePreviewBounds(scene){
+  const elements=(normalizeScene(scene)?.elements||[]).filter(item=>!item.isDeleted);
+  if(!elements.length)return {x:0,y:0,width:800,height:460};
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  const add=(x,y)=>{
+    if(!Number.isFinite(x)||!Number.isFinite(y))return;
+    minX=Math.min(minX,x);minY=Math.min(minY,y);
+    maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);
+  };
+  for(const item of elements){
+    const x=item.x,y=item.y,w=item.width,h=item.height;
+    add(x,y);add(x+w,y+h);add(x+w,y);add(x,y+h);
+    // A freehand path can extend outside the element's stored width/height,
+    // including strokes drawn upwards and to the left of the starting point.
+    if(Array.isArray(item.points))for(const p of item.points)add(x+p[0],y+p[1]);
+    if(item.type==='text'){
+      const font=Math.min(120,Math.max(8,item.fontSize||20));
+      const lines=String(item.text||'').split('\n');
+      add(x+Math.max(Math.abs(w),Math.max(...lines.map(v=>v.length),1)*font*.58),y+
+        Math.max(Math.abs(h),font*1.3*lines.length));
+    }
+  }
+  if(!Number.isFinite(minX))return {x:0,y:0,width:800,height:460};
+  const padding=32;
+  const width=Math.max(180,maxX-minX+padding*2);
+  const height=Math.max(132,maxY-minY+padding*2);
+  const x=(minX+maxX-width)/2,y=(minY+maxY-height)/2;
+  return {x,y,width,height};
+}
 export function renderScene(scene,target){
   target.replaceChildren();
   scene=normalizeScene(scene);if(!scene||!scene.elements.length)return;
-  const canvas=svgNode('svg',{viewBox:'0 0 800 460',role:'img','aria-label':'Drawing preview'});
+  const b=scenePreviewBounds(scene);
+  const canvas=svgNode('svg',{viewBox:[b.x,b.y,b.width,b.height].join(' '),
+    preserveAspectRatio:'xMidYMid meet',role:'img','aria-label':'Full drawing preview'});
   for(const item of scene.elements){
     if(item.isDeleted)continue;
     const attrs={stroke:color(item.strokeColor),'stroke-width':Number.isFinite(item.strokeWidth)?Math.min(15,Math.max(1,item.strokeWidth)):2,fill:'none'};
@@ -106,8 +138,13 @@ export function renderScene(scene,target){
       canvas.append(svgNode('ellipse',{...attrs,cx:item.x+item.width/2,cy:item.y+item.height/2,
         rx:Math.abs(item.width/2),ry:Math.abs(item.height/2)}));
     }else if(item.type==='text'&&typeof item.text==='string'){
-      const t=svgNode('text',{x:item.x,y:item.y+20,fill:attrs.stroke,'font-size':20});
-      t.textContent=item.text.slice(0,1000);canvas.append(t);
+      const font=Math.min(120,Math.max(8,item.fontSize||20));
+      const t=svgNode('text',{x:item.x,y:item.y+font,fill:attrs.stroke,'font-size':font});
+      String(item.text).slice(0,4000).split('\n').forEach((line,i)=>{
+        const span=svgNode('tspan',{x:item.x,dy:i?font*1.3:0});
+        span.textContent=line;t.append(span);
+      });
+      canvas.append(t);
     }
   }
   target.append(canvas);
@@ -123,7 +160,7 @@ export function openSceneEditor(initial,{title='Drawing',onSave,notify=()=>{}}={
   const dialog=document.createElement('dialog');dialog.className='orbit-scene-dialog';
   const panel=document.createElement('div');panel.className='orbit-scene-panel';
   const heading=document.createElement('h2');heading.textContent=title;
-  const help=document.createElement('p');help.textContent='Draw here or use Export, edit the file at Excalidraw.com, and Import it back. Image files are not supported yet.';
+  const help=document.createElement('p');help.textContent='Opening your full drawing canvas. Text, shapes, arrows and freehand belong together here.';
   const bar=document.createElement('div');bar.className='orbit-scene-tools';
   const surface=document.createElement('div');surface.className='orbit-scene-surface';
   const preview=document.createElement('div');preview.className='orbit-scene-preview';surface.append(preview);
@@ -142,8 +179,8 @@ export function openSceneEditor(initial,{title='Drawing',onSave,notify=()=>{}}={
   button('Edit externally at Excalidraw.com',()=>{downloadScene(scene);
     window.open('https://excalidraw.com/','_blank','noopener,noreferrer');
     notify('Import the downloaded file into Excalidraw, export it when done, then import the updated file here.');});
-  // The actual upstream React Excalidraw editor loads ONLY on an explicit click.
-  // Both Journal and spatial stickies enter through this same shared function.
+  // Full upstream Excalidraw is the DEFAULT editor for both Journals and Stickies;
+  // the old minimal pen remains a local fallback only if the editor fails to load.
   const fullButton=button('Open full Excalidraw inside ORBIT',async()=>{
     if(disposed||embedded||fullButton.disabled)return;
     fullButton.disabled=true;
@@ -241,5 +278,10 @@ export function openSceneEditor(initial,{title='Drawing',onSave,notify=()=>{}}={
     scene={...scene,elements:[...scene.elements,active]};active=null;repaint();});
   preview.addEventListener('pointercancel',()=>{active=null;repaint();});
   dialog.addEventListener('close',()=>{disposed=true;embedded?.dispose?.();embedded=null;dialog.remove();});
-  dialog.showModal();repaint();return dialog;
+  dialog.showModal();repaint();
+  // Lazy load on the user's explicit Draw/Edit canvas action, no second click.
+  // If the official island cannot mount, preserve the original scene and leave
+  // the fallback pen plus import/export controls operable.
+  queueMicrotask(()=>{if(!disposed&&dialog.open)fullButton.click();});
+  return dialog;
 }
