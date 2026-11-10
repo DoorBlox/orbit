@@ -180,6 +180,7 @@ export class StickyNotes {
       // One surface at a time. Switching never erases the other private data:
       // legacy notes containing both text and scenes remain fully recoverable.
       const mode=n.mode==='canvas'?'canvas':'write';
+      article.dataset.noteMode=mode;
       const modeTabs=document.createElement('div');modeTabs.className='sticky-mode-tabs';
       modeTabs.setAttribute('role','group');modeTabs.setAttribute('aria-label','Note content mode');
       for(const [value,label] of [['write','Write'],['canvas','Canvas']]){
