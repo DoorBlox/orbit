@@ -29,6 +29,33 @@ See [active ChatGPT handoff](../CHATGPT_HANDOFF.md), [tool/skills playbook](../d
 
 PROPOSED = specified only; READY = prerequisites/research sufficient; IN PROGRESS = active bounded changes; BLOCKED = needs user/external prerequisite; SOURCE MERGED = tested and merged to main but not necessarily deployed; RELEASED = mapped to actual Production source; VERIFIED = all stated acceptance evidence captured; DEFERRED = intentionally parked. No work unit advances to VERIFIED solely on reading source.
 
+## 10 November 2026 — reconciled master BP ledger
+
+**This is the single master execution blueprint.** The expandable-space and Projects UX plans are subordinate feature backlogs, not replacements for BP-00–BP-16. Earlier statuses in this file are dated contracts. SOURCE MERGED does not mean deployed or signed-in verified.
+
+| BP | Evidence / current status | Unfinished acceptance |
+| --- | --- | --- |
+| 00 | Docs #35, ChatGPT handoff #37 SOURCE MERGED | Release/package version coordination unfinished |
+| 01 | Private Blob display mitigation in 2.4 | BLOCKED: signed-in owner and second-account Production images, issue #26 |
+| 02 | Image-inclusive portable backup #39 SOURCE MERGED | Not deployed or owner restore-tested; Excalidraw binary images excluded |
+| 03 | Hidden/offline safe polling #42, synthetic traffic #45 SOURCE MERGED | Foreground full reads every 15s; revision-only read, real traffic/multidevice validation pending |
+| 04 | Local-hosted migration filename parity #38 SOURCE MERGED | Full hosted object parity / future SQL separately gated |
+| 05 | IN PROGRESS on focused regression and removal of obsolete manual 1.0 staging workflow | Modern approved exact-SHA staging, secrets and rollback gates still TODO; no Production action |
+| 06 | Synthetic spatial five-viewports/ten-themes #47 SOURCE MERGED | Physical Safari/Android, zoom, assistive tech, owner assets and perf not verified |
+| 07 | PROPOSED | Semantic color tokens, contrast and specificity reduction |
+| 08 | PROPOSED | Optional mobile Focus/offscreen recovery, no forced dashboard |
+| 09 | PROPOSED | Deferred snapshot cloning and measured CAS-safe write cost |
+| 10 | PROPOSED | rAF drawing performance and private Blob cache lifetime |
+| 11 | PROPOSED | Structured-text pilot with journal/IME/undo compatibility |
+| 12 | PROPOSED, security gated | Private media library and reference-safe delete #29, pending BP-01/02/04 and authorization |
+| 13 | EX-00 #40 and EX-01 #41 SOURCE MERGED (partial) | EX-02 private files, preview fidelity and signed-in mobile checks; #31 open |
+| 14 | PROPOSED | Client-side ICS export and timezone verification |
+| 15 | PROPOSED, hosted gated | Delegated OAuth/MCP with consent and revocation #32 |
+| 16 | Required CI fast path #36 SOURCE MERGED (partial) | Semantic lint/type and measured refinements unfinished |
+
+**Adjacent features:** SP-01A/B #48/#50; PJ-01 #51; PJ-02A #53; PJ-02B #55 all SOURCE MERGED. PJ-02B protected Preview READY, not Production. PJ-03, PUB-00/01/02, FO-01, BR-01/02, TOUCH-01 and mascot remain in subordinate backlogs and do not close any BP.
+
+**Priority after the BP-05 retirement PR:** BP-03 foreground-read feasibility (no hosted SQL), BP-06 evidence and BP-01 owner-assisted acceptance. Do not auto-promote Production; do not start a replacement roadmap.
 ## Immediate work order
 
 **Source completed:** BP-00 foundation docs PR #35 and initial BP-16 CI optimization PR #36. **Current:** ChatGPT-native active handoff and tool/skill routing. App/package metadata harmonization remains NOT DONE because release tooling expects 1.0.0.
@@ -84,8 +111,8 @@ PROPOSED = specified only; READY = prerequisites/research sufficient; IN PROGRES
 
 ### BP-05 — retire or safely modernize the old 1.0 release job
 
-- **Status:** PROPOSED. **Prereq:** BP-00 and existing branch rules/protection confirmation.
-- **Surfaces:** .github/workflows/m6-stage-only-production.yml, m6-release-dry-run.yml, scripts/verify-release.mjs, scripts/production-guard.mjs, docs/OPERATIONS.md.
+- **Status:** IN PROGRESS: obsolete manually dispatchable stage workflow retired in focused source PR; modern staging remains NOT IMPLEMENTED. **Prereq:** BP-00 and existing branch rules/protection confirmation.
+- **Surfaces:** retired historical .github/workflows/m6-stage-only-production.yml, m6-release-dry-run.yml, scripts/verify-release.mjs, scripts/production-guard.mjs, docs/OPERATIONS.md.
 - **Implementation:** old manual staging workflow pins fc5af5a and expects version 1.0.0; first disable/archive misleading usage in documentation, then design SHA-parameterized gated staging with no implicit custom domain reassignment. Separate source-verified artifact build from Promotion and Auth/CSP/no-private-content checks.
 - **Acceptance:** synthetic dry-run checks correct reviewed ref, expected site and protection, hashed artifact, no secret output and no custom alias changes; required four status checks remain enforced.
 - **Rollback:** restore previous workflow file if gate is faulty; no Production staging or alias changes as part of workflow refactor without separate approval.
