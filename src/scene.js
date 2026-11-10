@@ -37,7 +37,7 @@ export function normalizeScene(scene){
 export function normalizeExtensions(raw={}){
   if(raw===undefined||raw===null)raw={};
   if(!object(raw)||JSON.stringify(raw).length>900000)throw Error('Invalid or oversized workspace extensions.');
-  const notes=raw.notes??[],taskLinks=raw.taskLinks??{},journalScenes=raw.journalScenes??{},journalImages=raw.journalImages??{};
+  const notes=raw.notes??[],taskLinks=raw.taskLinks??{},journalScenes=raw.journalScenes??{},journalImages=raw.journalImages??{},journalModes=raw.journalModes??{};
   const taskChecklists=raw.taskChecklists??{};
   const spatialWidgets=normalizeExtraWidgetLayout(raw.spatialWidgets);
   const projects=normalizeProjects(raw.projects);
@@ -49,6 +49,7 @@ export function normalizeExtensions(raw={}){
     ambient:rawAppearance.ambient??false};
   if(!Array.isArray(notes)||notes.length>80||!object(taskLinks)||Object.keys(taskLinks).length>10000||
      !object(journalScenes)||Object.keys(journalScenes).length>600||!object(journalImages)||Object.keys(journalImages).length>600||
+     !object(journalModes)||Object.keys(journalModes).length>600||
      !object(taskChecklists)||Object.keys(taskChecklists).length>10000)throw Error('Invalid workspace extensions.');
   const ids=new Set();
   const cleanNotes=notes.map(n=>{
@@ -85,12 +86,18 @@ export function normalizeExtensions(raw={}){
     if(!validId(id))throw Error('Invalid journal drawing ID.');
     scenes[id]=normalizeScene(scene);
   }
+  const pageModes={};
+  for(const [id,mode] of Object.entries(journalModes)){
+    if(!validId(id)||mode!=='canvas')throw Error('Invalid journal content mode.');
+    pageModes[id]='canvas';
+  }
   const images={};
   for(const [id,path] of Object.entries(journalImages)){
     if(!validId(id))throw Error('Invalid journal image ID.');
     images[id]=assertImagePath(path);
   }
-  return {notes:cleanNotes,taskLinks:links,taskChecklists:checklists,journalScenes:scenes,journalImages:images,spatialWidgets,projects,appearance};
+  return {notes:cleanNotes,taskLinks:links,taskChecklists:checklists,journalScenes:scenes,journalImages:images,
+    ...(Object.keys(pageModes).length?{journalModes:pageModes}:{}),spatialWidgets,projects,appearance};
 }
 /** Fit the entire retained drawing, not an arbitrary 800×460 crop. No mutation. */
 export function scenePreviewBounds(scene){
