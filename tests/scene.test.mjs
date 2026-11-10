@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {emptyScene,normalizeScene,normalizeExtensions} from '../src/scene.js';
+import {emptyScene,normalizeScene,normalizeExtensions,scenePreviewBounds} from '../src/scene.js';
 
 const note=(extra={})=>({id:'note_one',title:'A note',text:'Private text',x:1500,y:1500,
   width:310,height:270,color:'sand',...extra});
@@ -75,4 +75,30 @@ test('PJ-01 project metadata remains private and normalized inside account exten
   assert.deepEqual(actual.projects,privateMetadata);
   assert.deepEqual(normalizeExtensions(actual).projects,actual.projects);
   assert.throws(()=>normalizeExtensions({projects:{research:{visibility:'public'}}}),/project/i);
+});
+
+test('BP-06 drawing preview fits positive, negative and distant Excalidraw elements',()=>{
+  const scene=emptyScene();
+  scene.elements=[
+    {id:'a',type:'rectangle',x:-2450,y:1200,width:40,height:30},
+    {id:'b',type:'freedraw',x:100,y:-1800,width:0,height:0,points:[[-200,-30],[340,260]]},
+    {id:'c',type:'text',x:5100,y:2650,width:120,height:120,fontSize:40,text:'Canvas notes'},
+    {id:'z',type:'rectangle',x:9000,y:8000,width:400,height:300,isDeleted:true},
+  ];
+  const bounds=scenePreviewBounds(scene);
+  assert.ok(bounds.x<=-2450&&bounds.y<=-1830);
+  assert.ok(bounds.x+bounds.width>=5220&&bounds.y+bounds.height>=2770);
+  assert.ok(bounds.x+bounds.width<9000,'deleted objects never expand visible canvas');
+  const copy=structuredClone(scene);
+  scenePreviewBounds(scene);
+  assert.deepEqual(scene,copy,'view fitting never mutates private scene data');
+});
+test('BP-06 preview stays sensible for empty/dot/vertical drawings',()=>{
+  assert.deepEqual(scenePreviewBounds(null),{x:0,y:0,width:800,height:460});
+  const s=emptyScene();s.elements=[{id:'dot',type:'freedraw',x:1,y:2,width:0,height:0,points:[[0,0]]}];
+  const box=scenePreviewBounds(s);
+  assert.ok(box.width>=180&&box.height>=132);
+  assert.ok(box.x<=1&&box.y<=2);
+  s.elements=[{id:'v',type:'line',x:4,y:5,width:0,height:0,points:[[0,0],[0,-700]]}];
+  assert.ok(scenePreviewBounds(s).y<=-695);
 });
