@@ -1388,3 +1388,38 @@ body.cloud-space-mounted .app-shell{height:100dvh!important}
 .projects-widget button:focus-visible,.projects-widget select:focus-visible,.projects-widget textarea:focus-visible{
   outline:2px solid var(--orbit-accent,#5a7fba);outline-offset:2px}
 @media(prefers-reduced-transparency:reduce){.projects-widget .project-card{backdrop-filter:none}}
+
+/* BP-06 Canvas-first: actual Excalidraw is an editing surface, not a strip.
+   The SVG overview scales to full content bounds; no fixed-height crop. */
+.orbit-scene-dialog{
+  width:min(1360px,calc(100vw - 20px));
+  height:min(900px,calc(100dvh - 20px));
+  max-height:calc(100dvh - 20px);
+  overflow:hidden;
+}
+.orbit-scene-panel{
+  box-sizing:border-box;height:100%;min-height:0;
+  display:flex;flex-direction:column;gap:10px;
+  padding:clamp(12px,2vw,22px);
+}
+.orbit-scene-dialog .orbit-scene-surface--embedded{
+  height:auto;min-height:0;flex:1 1 auto;overflow:hidden;
+}
+.orbit-scene-dialog .orbit-excalidraw-host{height:100%;min-height:0}
+.orbit-scene-dialog .orbit-scene-footer{flex:none;padding-top:6px}
+.orbit-scene-dialog .orbit-scene-panel p{flex:none}
+.sticky-drawing{max-height:none;min-height:0;overflow:hidden;flex-shrink:0}
+.sticky-drawing:has(svg){flex:1 1 120px;min-height:85px}
+.sticky-drawing svg,.journal-drawing-preview svg{
+  display:block;width:100%;height:100%;object-fit:contain;
+}
+.journal-drawing-preview{
+  box-sizing:border-box;max-height:none;min-height:280px;
+  height:clamp(280px,47dvh,620px);overflow:hidden;
+}
+@media(max-width:560px){
+  .orbit-scene-dialog{width:calc(100vw - 12px);height:calc(100dvh - 12px);max-height:calc(100dvh - 12px)}
+  .orbit-scene-dialog .orbit-scene-surface--embedded{min-height:0}
+  .orbit-scene-dialog .orbit-excalidraw-host{min-height:0}
+  .journal-drawing-preview{height:clamp(240px,45dvh,480px);min-height:240px}
+}
