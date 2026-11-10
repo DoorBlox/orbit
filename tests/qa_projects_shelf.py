@@ -27,14 +27,27 @@ def run_projects_shelf(browser,open_page,reload_page,out):
         assert 'research' in page.evaluate("""() => JSON.parse(
           localStorage.getItem('orbit.v8.extensions')).projects""")
         card.get_by_role('combobox',name='Status for Research').select_option('paused')
-        card.get_by_role('button',name='Edit description for Research').click()
+        card.get_by_role('button',name='Edit project brief for Research').click()
         card.get_by_role('textbox',name='Description for Research').fill(
             'A private plan; not a published portfolio item.')
-        card.get_by_role('button',name='Save description').click()
+        card.get_by_role('textbox',name='Goal or outcome for Research').fill(
+            'Prepare a validated model')
+        card.get_by_role('textbox',name='Next action for Research').fill(
+            'Verify synthetic test fixtures')
+        card.get_by_role('textbox',name='Blockers or decisions for Research').fill(
+            'Await lab approval')
+        card.get_by_label('Target date for Research').fill('2027-03-15')
+        card.get_by_role('button',name='Save project brief').click()
         data=page.evaluate("""() => JSON.parse(localStorage.getItem(
           'orbit.v8.extensions')).projects.research""")
         assert data['status']=='paused'
         assert 'private plan' in data['description']
+        assert data['goal']=='Prepare a validated model'
+        assert data['nextAction']=='Verify synthetic test fixtures'
+        assert data['blockers']=='Await lab approval'
+        assert data['targetDate']=='2027-03-15'
+        assert 'Prepare a validated model' in card.inner_text()
+        assert 'Verify synthetic test fixtures' in card.inner_text()
         result['addAndEdit']=True
         result['privateState']=True
 
@@ -70,6 +83,10 @@ def run_projects_shelf(browser,open_page,reload_page,out):
         expect(page.locator('[data-widget="projects"]')).to_be_hidden()
         assert page.evaluate("""() => JSON.parse(localStorage.getItem(
           'orbit.v8.extensions')).projects.research.status""")=='paused'
+        assert page.evaluate("""() => JSON.parse(localStorage.getItem(
+          'orbit.v8.extensions')).projects.research.targetDate""")=='2027-03-15'
+        assert 'Await lab approval' in page.locator(
+            '.project-card[data-project-id="research"]').inner_text()
         assert page.evaluate('() => window.orbitDebug.board.getLayout()')==original
         page.locator('.space-point-projects').evaluate('element=>element.click()')
         expect(page.locator('.project-card')).to_have_count(2)
