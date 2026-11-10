@@ -1,0 +1,56 @@
+name: ORBIT BP-05 reviewed-SHA release preflight (NO DEPLOY)
+on:
+  workflow_dispatch:
+    inputs:
+      reviewed_sha:
+        description: 'Exact, tested 40-character main commit SHA. Never supply a branch name.'
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: orbit-bp05-preflight
+  cancel-in-progress: false
+
+jobs:
+  preflight-no-deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - name: Checkout exact requested commit
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          ref: ${{ inputs.reviewed_sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Assert checkout equals current main, no uncommitted changes
+        env:
+          ORBIT_REVIEWED_SHA: ${{ inputs.reviewed_sha }}
+        run: node scripts/bp05-release-preflight.mjs
+      - name: Node 22
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install exact lockfile without lifecycle scripts
+        run: npm ci --ignore-scripts
+      - name: Verify source integrity and unit regressions
+        run: |
+          npm run lint
+          npm test
+          npm run verify:source
+      - name: Build and validate private Production-format artifact using SYNTHETIC public key
+        env:
+          ORBIT_SUPABASE_URL: https://ixfgavgtwuzdgucjriec.supabase.co
+          ORBIT_SITE_URL: https://orbit.starscene.com/
+          ORBIT_SUPABASE_PUBLISHABLE_KEY: sb_publishable_orbit_synthetic_ci_never_live
+        run: |
+          npm run build:release
+          npm run verify:release
+      - name: Declare NO DEPLOYMENT result
+        run: echo 'PASS only for source provenance and synthetic-key artifact; no live environment or deployment is authorized.'
+# Deliberately no Vercel token, GitHub write permission, environment secrets, deploy, promotion or alias change.
+# This workflow is NOT the future approved Production staging workflow.
