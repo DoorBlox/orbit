@@ -23,8 +23,8 @@ test('TOUCH-01 dragging from inside cursor retains finger offset; tapping elsewh
   const center={x:95,y:37},size={width:31,height:31};
   assert.deepEqual(navigatorGrabOffset({x:101,y:43},center,size),{x:6,y:6});
   assert.deepEqual(navigatorGrabOffset({x:95,y:37},center,size),{x:0,y:0});
-  assert.deepEqual(navigatorGrabOffset({x:145,y:85},center,size),{x:0,y:0});
+  assert.equal(navigatorGrabOffset({x:145,y:85},center,size),null);
   assert.deepEqual(navigatorGrabOffset({x:78,y:37},center,size),{x:-17,y:0});
-  assert.deepEqual(navigatorGrabOffset({x:77,y:37},center,size),{x:0,y:0});
-  assert.deepEqual(navigatorGrabOffset({x:0,y:0},center,{width:0,height:0}),{x:0,y:0});
+  assert.equal(navigatorGrabOffset({x:77,y:37},center,size),null);
+  assert.equal(navigatorGrabOffset({x:0,y:0},center,{width:0,height:0}),null);
 });
