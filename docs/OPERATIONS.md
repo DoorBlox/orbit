@@ -1,5 +1,7 @@
 # ORBIT production operations and recovery
 
+**10 November 2026 source vs preview:** [PJ-02B PR #55](https://github.com/DoorBlox/orbit/pull/55) merged at `abfea03c743ad01c95f3a5847d574911856b3bd0` (four exact-head checks green), with [protected PJ-02B Preview](https://orbit-ne9qywarm-doorbloxs-projects.vercel.app) READY as `dpl_4oAw8fM18Z2gY9gCvYC3ddsjQHcD` from reviewed feature commit `657d7f3395fc51e7665ef15940defdd17727efaf`. Vercel Authentication still protects previews. **Production canonical alias remains on** `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`; do not promote or alter user data before signed-in owner verification, privacy check, and rollback gate.
+
 **Migration safety (BP-04):** [source-vs-hosted migration history and safe next-migration gate](SUPABASE_MIGRATION_PARITY_2026-11-09.md). The seven existing SQL bodies matched hosted records, but their historical filename timestamps differed; repository-only normalization is separately tested. Never use hosted db push or repair merely to test a filename change, and never treat this as Production database mutation approval.
 
 **ChatGPT engineering continuity:** [CHATGPT_HANDOFF.md](../CHATGPT_HANDOFF.md) and [connected tools/skills](CHATGPT_TOOL_PLAYBOOK.md). This remains the operational release and rollback runbook; a GitHub merge does not authorize a Production promotion.
