@@ -1591,3 +1591,8 @@ body.cloud-space-mounted #space-widget>.cloud-toolbar[data-sync-state="conflict"
   .orbit-task-dialog .inline-edit-pair{grid-template-columns:1fr}
   .orbit-task-dialog .editor-actions{bottom:-17px}
 }
+
+/* TOUCH-01 hybrid pointer follow-through; scope gesture lock to the mini-map. */
+:root .space-nav-map,:root .space-nav-map :is(button,.space-nav-cursor,.space-point){
+  touch-action:none!important;overscroll-behavior:contain;
+}
