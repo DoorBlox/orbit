@@ -86,6 +86,8 @@ jobs:
             qa/bp06-results.json
             qa/sp01b-*.png
             qa/sp01b-results.json
+            qa/pj02a-*.png
+            qa/pj02a-results.json
             qa/m25-*.png
             qa/m25-results.json
             qa/m2-results.json
