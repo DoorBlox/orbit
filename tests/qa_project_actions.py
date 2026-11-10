@@ -13,8 +13,8 @@ BRANCHES='orbit.phase1.branches.v1'
 
 def snapshot(page):
     return page.evaluate("""() => ({
-      branches: JSON.parse(localStorage.getItem('orbit.phase1.branches.v1')).map(b=>({id:b.id,parentId:b.parentId,label:b.label})),
-      tasks: JSON.parse(localStorage.getItem('orbit.phase1.tasks.v1')).map(t=>({id:t.id,projectId:t.projectId,title:t.title})),
+      branches: window.orbitDebug.scene.branches.map(b=>({id:b.id,parentId:b.parentId,label:b.label})),
+      tasks: window.orbitDebug.scene.tasks.map(t=>({id:t.id,projectId:t.projectId,title:t.title})),
       layout: window.orbitDebug.board.getLayout()
     })""")
 
