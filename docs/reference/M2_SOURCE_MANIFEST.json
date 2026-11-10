@@ -104,7 +104,7 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "78b2a01797a9eaca782020a92afcb7d76be9ce4fa1bc402e95d3aa7274515498",
+      "sha256": "87bb99073c43c36d395b1014d8b24a82750ea270fef579766a4db2a5c5e98c79",
       "reason": "BP-06: responsive Space, Sticky and private status controls using existing theme tokens."
     },
     "src/widgets.js": {
@@ -116,7 +116,7 @@
       "reason": "BP-06/13: reversible validated sticky writing/canvas mode with fitted complete Excalidraw scene previews."
     },
     "src/stickies.js": {
-      "sha256": "96c3a4730911d1967bc0effb693a902f802fd8e808cd08ed7c263cf2e5bb851e",
+      "sha256": "2eca3eeb1bae77c635c5d445e93898f958104f4f5a4c09084131faa12f57929d",
       "reason": "BP-06: quiet sticky reading view, full canvas, contextual tools and stable touch resize."
     },
     "src/cloud/media.js": {
