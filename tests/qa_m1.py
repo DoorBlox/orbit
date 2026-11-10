@@ -195,7 +195,8 @@ def normal_flows(browser):
     assert page.locator(f'.task-stack[data-branch-id="{nested_id}"] .task-empty').count()==1
     renamed.focus();renamed.press('ArrowLeft')
     expect(renamed).to_have_attribute('aria-expanded','false')
-    focus(page,'space');page.locator('#expand-all-branches').click()
+    focus(page,'space');page.locator('.space-manage summary').click()
+    page.locator('#expand-all-branches').click()
     expect(renamed).to_have_attribute('aria-expanded','true')
     page.locator('#collapse-all-branches').click()
     # A collapsed ancestor deliberately removes this descendant from the graph.
