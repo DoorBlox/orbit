@@ -458,6 +458,8 @@ def main():
         results['bp06_spatial_baseline']=run_baseline(browser,open_page,focus,reload_page,OUT)
         from qa_spatial_extra import run_extra_widget
         results['sp01b_extra_widget']=run_extra_widget(browser,open_page,reload_page,OUT)
+        from qa_project_actions import run_project_actions
+        results['pj02a_project_actions']=run_project_actions(browser,open_page,reload_page,OUT)
         browser.close()
     (OUT/'m1-results.json').write_text(json.dumps(results,indent=2)+'\n')
     print(json.dumps(results,indent=2))

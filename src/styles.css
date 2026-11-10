@@ -1280,3 +1280,22 @@ body.cloud-space-mounted .app-shell{height:100dvh!important}
   .orbit-scene-dialog .orbit-scene-surface--embedded{height:min(62dvh,590px);min-height:300px}
   .orbit-scene-dialog .orbit-excalidraw-host{min-height:300px}
 }
+
+
+/* PJ-02A: readable, theme-aware branch context menu outside the scaled map. */
+.graph-node.is-project .node-secondary{font-weight:700;color:color-mix(in srgb,var(--branch-color) 70%,#294968)}
+.branch-action-menu{position:fixed;z-index:320;min-width:228px;max-width:calc(100vw - 16px);
+  max-height:calc(100dvh - 16px);overflow-y:auto;padding:7px;border-radius:16px;
+  border:1px solid var(--orbit-outline,#CEDCE9);background:var(--orbit-solid-chrome,#F8FBFF);
+  box-shadow:0 16px 50px rgba(43,66,110,.24);font-family:var(--orbit-font-ui,system-ui,sans-serif);
+  color:var(--orbit-ink,#293F59);backdrop-filter:blur(18px)}
+.branch-action-menu-item{display:block;width:100%;min-height:44px;padding:10px 13px;text-align:left;
+  border:0;border-radius:9px;background:transparent;color:inherit;font:inherit;font-size:13px;
+  font-weight:570;line-height:1.3;cursor:pointer}
+.branch-action-menu-item:hover,.branch-action-menu-item:focus-visible{
+  background:color-mix(in srgb,var(--orbit-accent,#6797C7) 14%,transparent);outline:2px solid transparent}
+.branch-action-menu-item:focus-visible{outline:2px solid var(--orbit-accent,#527AB3);outline-offset:-2px}
+.branch-action-menu-item.is-danger{color:#925751}
+@media(prefers-reduced-transparency:reduce){
+  .branch-action-menu{backdrop-filter:none;background:var(--orbit-solid-chrome,#F8FBFF)}
+}

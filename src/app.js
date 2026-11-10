@@ -74,10 +74,20 @@ if(!initialSnapshot)try{
 let toastTimer=0,clearDemoPrimed=false,clearDemoTimer=0,undoLast=null,lastSaveOk=true;
 const pendingWrites=new Set();
 
-const scene=new Constellation({viewport:$('map-viewport'),world:$('map-world'),edgesEl:$('connections'),
+const scene=new Constellation({viewport:$('map-viewport'),world:$('map-world'),edgesEl:$('connections'),readOnly,
   nodesEl:$('node-layer'),decorEl:$('world-decor'),
   onBranchSelected(id){if(id!=='root')setBranch(id);},
   onBranchToggle(id){if(readOnly||disposed)return false;toggleBranch(id);},
+  onBranchProjectToggle(id){
+    if(readOnly||disposed)return false;
+    const current=Object.hasOwn(state.extensions.projects,id);
+    try{state.extensions.projects=setBranchProject(state.extensions.projects,id,state.branches,!current);}
+    catch(error){message(error.message,6500);return false;}
+    sync();scene.focusNode(id,{instant:true});
+    scene.domNodes.get(id)?.focus({preventScroll:true});
+    message(current?'Project status removed. Branch and tasks kept.':'Branch is now a private project. Nothing is published.');
+    return true;
+  },
   onBranchAdd(parentId,label){if(readOnly||disposed)return false;
     try{
       expandBranchPath(parentId,true);
@@ -147,7 +157,7 @@ const widgets=new ScrapWidgets({
     if(task.status==='completed'){board.focus('completed');return;}
     board.focus('constellation');
     expandBranchPath(task.projectId);setBranch(task.projectId);scene.expandedTaskId=task.id;scene.selectedTaskId=task.id;
-    scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'),state.preferences.colorMode,state.profile.displayName,state.collapsedBranchIds);
+    scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'),state.preferences.colorMode,state.profile.displayName,state.collapsedBranchIds,Object.keys(state.extensions.projects));
     scene.focusTask(task);
   },
   onComplete(id){if(readOnly||disposed)return false;const t=state.tasks.find(x=>x.id===id);if(!t)return;
@@ -267,7 +277,7 @@ function updateSearch(){
 function setCollapsedBranches(ids,{focusId=null,persist=true}={}){
   state.collapsedBranchIds=normalizeCollapsedBranches(ids);
   if(persist&&!saveCollapsedBranches())message('Branch view could not be saved on this device; it remains available for this session.',6500);
-  scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'),state.preferences.colorMode,state.profile.displayName,state.collapsedBranchIds);
+  scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'),state.preferences.colorMode,state.profile.displayName,state.collapsedBranchIds,Object.keys(state.extensions.projects));
   if(focusId&&scene.nodeMap.has(focusId))scene.focusNode(focusId,{instant:true});
 }
 function toggleBranch(id){
@@ -307,7 +317,7 @@ function sync({persist=true}={}){
       for(const [key,ok] of [[STORAGE_KEYS.tasks,tasksOk],[STORAGE_KEYS.branches,branchesOk],[STORAGE_KEYS.profile,profileOk],[STORAGE_KEYS.extensions,extensionsOk]]){if(ok)pendingWrites.delete(key);else pendingWrites.add(key);}
     }
   }
-  scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'),state.preferences.colorMode,state.profile.displayName,state.collapsedBranchIds);
+  scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'),state.preferences.colorMode,state.profile.displayName,state.collapsedBranchIds,Object.keys(state.extensions.projects));
   widgets.setData(state.branches,state.tasks,state.preferences.colorMode,milestones);
   if(state.captureMode==='find')updateSearch();
   const s=taskSummary(state.tasks);

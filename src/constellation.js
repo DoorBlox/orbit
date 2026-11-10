@@ -10,9 +10,9 @@ const hoverPossible=()=>matchMedia('(hover:hover) and (pointer:fine)').matches;
 const NS='http://www.w3.org/2000/svg';
 
 export class Constellation {
-  constructor({viewport,world,edgesEl,nodesEl,decorEl,onBranchSelected,onBranchAdd,onBranchRename,onBranchMove,onBranchDelete,onBranchToggle,onTaskSelected,onTaskUpdate,onTaskDelete,onTaskError}) {
-    Object.assign(this,{viewport,world,edgesEl,nodesEl,decorEl,onBranchSelected,onBranchAdd,onBranchRename,onBranchMove,onBranchDelete,onBranchToggle,onTaskSelected,onTaskUpdate,onTaskDelete,onTaskError});
-    this.branches=[];this.tasks=[];this.mode='deadline';this.displayName='My space';this.collapsedBranchIds=[];this.layout=createLayout([],[],this.displayName);this.bounds=getDisplayBounds(this.layout);
+  constructor({viewport,world,edgesEl,nodesEl,decorEl,onBranchSelected,onBranchAdd,onBranchRename,onBranchMove,onBranchDelete,onBranchToggle,onBranchProjectToggle,readOnly=false,onTaskSelected,onTaskUpdate,onTaskDelete,onTaskError}) {
+    Object.assign(this,{viewport,world,edgesEl,nodesEl,decorEl,onBranchSelected,onBranchAdd,onBranchRename,onBranchMove,onBranchDelete,onBranchToggle,onBranchProjectToggle,readOnly,onTaskSelected,onTaskUpdate,onTaskDelete,onTaskError});
+    this.branches=[];this.tasks=[];this.projectIds=new Set();this.closeBranchMenu=null;this.mode='deadline';this.displayName='My space';this.collapsedBranchIds=[];this.layout=createLayout([],[],this.displayName);this.bounds=getDisplayBounds(this.layout);
     this.nodeMap=new Map();this.stackMap=new Map();this.domNodes=new Map();this.domStacks=new Map();this.edgeEntries=[];
     this.camera={x:0,y:0,scale:.2};this.cameraAnimation=0;this.springAnimation=0;
     this.focusedNode='';this.expandedTaskId='';this.selectedTaskId='';this.offsets=new Map();
@@ -26,9 +26,11 @@ export class Constellation {
     const ring=node('div','world-ring inner');this.decorEl.append(ring);
     this.decorEl.append(node('div','world-ring outer'));
   }
-  setData(branches,tasks,mode='deadline',displayName=this.displayName,collapsedBranchIds=this.collapsedBranchIds){
+  setData(branches,tasks,mode='deadline',displayName=this.displayName,collapsedBranchIds=this.collapsedBranchIds,projectIds=[...this.projectIds]){
     const focus=this.focusedNode;
     this.branches=branches;this.tasks=tasks;this.mode=mode;
+    const known=new Set(branches.map(branch=>branch.id));
+    this.projectIds=new Set((Array.isArray(projectIds)?projectIds:[]).filter(id=>known.has(id)));
     this.displayName=String(displayName||'My space').trim().slice(0,100)||'My space';
     this.collapsedBranchIds=Array.isArray(collapsedBranchIds)?[...collapsedBranchIds]:[];
     this.layout=createLayout(branches,tasks,this.displayName,this.collapsedBranchIds);this.bounds=getDisplayBounds(this.layout);
@@ -207,6 +209,7 @@ export class Constellation {
     }
   }
   render(){
+    this.closeBranchMenu?.(false);
     const active=document.activeElement;
     const activeTask=active?.closest('.task-row'),activeNode=active?.closest('.graph-node');
     const focusId=this.nodesEl.contains(active)?{task:activeTask?.dataset.taskId,branch:activeNode?.dataset.id,
@@ -269,15 +272,25 @@ export class Constellation {
     const el=node('div',`graph-node node-${item.type}`);el.dataset.id=item.id;el.style.left=item.x+'px';el.style.top=item.y+'px';
     el.style.setProperty('--branch-color',item.color);el.dataset.depth=String(item.depth||0);el.dataset.collapsed=String(Boolean(item.collapsed));el.classList.toggle('has-children',Boolean(item.hasChildren));el.tabIndex=0;el.setAttribute('role','button');
     const path=item.id==='root'?item.label:branchPath(item.id,this.branches);
-    el.title=path;el.setAttribute('aria-label',item.id==='root'?`${item.label}, center of the constellation; focus`:`${path}; focus, edit or add a branch${item.hasChildren?`; ${item.collapsed?'collapsed':'expanded'}`:''}`);
+    const isProject=item.id!=='root'&&this.projectIds.has(item.id);
+    el.classList.toggle('is-project',isProject);
+    el.title=path;el.setAttribute('aria-label',item.id==='root'? `${item.label}, center of the constellation; focus`:`${path}${isProject?'; private project':''}; focus, edit or add a branch${item.hasChildren?'; '+(item.collapsed?'collapsed':'expanded'):''}`);
     if(item.hasChildren)el.setAttribute('aria-expanded',String(!item.collapsed));
     el.addEventListener('keydown',e=>{
       if(e.target!==el)return;
       if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();this.focusNode(item.id);this.onBranchSelected?.(item.id);}
       if(item.hasChildren&&e.key==='ArrowRight'&&item.collapsed){e.preventDefault();e.stopPropagation();this.onBranchToggle?.(item.id);}
       if(item.hasChildren&&e.key==='ArrowLeft'&&!item.collapsed){e.preventDefault();e.stopPropagation();this.onBranchToggle?.(item.id);}
+      if(item.id!=='root'&&!this.readOnly&&((e.key==='F10'&&e.shiftKey)||e.key==='ContextMenu')){
+        e.preventDefault();e.stopPropagation();this.openBranchMenu(el,item,{trigger:el});return;
+      }
       if(e.key==='F2'&&item.id!=='root'){e.preventDefault();e.stopPropagation();this.focusNode(item.id);this.openBranchEditor(el,item,'rename');}
       if(e.key==='Insert'){e.preventDefault();e.stopPropagation();this.focusNode(item.id);this.openBranchEditor(el,item,'add');}
+    });
+    if(item.id!=='root'&&!this.readOnly)el.addEventListener('contextmenu',e=>{
+      if(e.target.closest('.node-inline-editor,textarea,input,select'))return;
+      e.preventDefault();e.stopPropagation();
+      this.openBranchMenu(el,item,{trigger:el,x:e.clientX,y:e.clientY});
     });
     el.addEventListener('focus',()=>{if(el.matches(':focus-visible')&&this.camera.scale<.62)this.focusNode(item.id,{instant:true});});
     if(item.id==='root'){
@@ -288,7 +301,7 @@ export class Constellation {
       el.append(node('div','node-label',item.label));
       const count=this.tasks.filter(t=>t.projectId===item.id&&t.status!=='completed').length;
       const ch=this.layout.children.get(item.id)||[];
-      const small=[ch.length?(ch.length+' branch'+(ch.length===1?'':'es')):'',count?(count+' action'+(count===1?'':'s')):'',item.collapsed?'collapsed':''].filter(Boolean).join(' · ');
+      const small=[isProject?'project':'',ch.length?(ch.length+' branch'+(ch.length===1?'':'es')):'',count?(count+' action'+(count===1?'':'s')):'',item.collapsed?'collapsed':''].filter(Boolean).join(' · ');
       if(small)el.append(node('div','node-secondary',small));
     }
     const controls=node('div','node-actions');controls.setAttribute('aria-label','Branch actions');
@@ -303,7 +316,16 @@ export class Constellation {
       toggle.addEventListener('pointerdown',e=>e.stopPropagation());
       toggle.addEventListener('click',e=>{e.stopPropagation();this.focusNode(item.id);this.onBranchToggle?.(item.id);});el.append(toggle);
     }
-    if(item.id!=='root'){action('Rename branch','✎','rename');action('Move branch to another parent','↗','move');}
+    if(item.id!=='root'){
+      action('Rename branch','✎','rename');action('Move branch to another parent','↗','move');
+      const more=node('button','node-action node-more','⋯');more.type='button';
+      more.setAttribute('aria-label','More actions for '+item.label);
+      more.title='Branch menu (Shift+F10 or right-click)';
+      more.setAttribute('aria-haspopup','menu');
+      more.addEventListener('pointerdown',e=>e.stopPropagation());
+      more.addEventListener('click',e=>{e.stopPropagation();this.openBranchMenu(el,item,{trigger:more});});
+      controls.append(more);
+    }
     if(!['root','inbox','just-because'].includes(item.id)){
       const del=node('button','node-action','×');del.type='button';
       del.setAttribute('aria-label','Remove branch, preserving tasks and child branches');
@@ -314,6 +336,66 @@ export class Constellation {
     }
     el.append(controls);
     return el;
+  }
+  openBranchMenu(el,item,{trigger=el,x=null,y=null}={}){
+    if(this.readOnly||this.disposed||item.id==='root')return;
+    this.closeBranchMenu?.(false);
+    const menu=node('div','branch-action-menu');
+    menu.setAttribute('role','menu');menu.setAttribute('aria-label','Actions for '+item.label);
+    const controller=new AbortController();
+    const close=(restoreFocus=true)=>{
+      if(this.closeBranchMenu!==close)return;
+      controller.abort();menu.remove();this.closeBranchMenu=null;
+      if(restoreFocus){
+        const target=trigger?.isConnected?trigger:this.domNodes.get(item.id);
+        target?.focus?.({preventScroll:true});
+      }
+    };
+    this.closeBranchMenu=close;
+    const buttons=[];
+    const action=(label,run,kind='normal')=>{
+      const button=node('button','branch-action-menu-item'+(kind==='danger'?' is-danger':''),label);
+      button.type='button';button.setAttribute('role','menuitem');
+      button.addEventListener('click',e=>{e.stopPropagation();close(false);run();});
+      menu.append(button);buttons.push(button);
+    };
+    const isProject=this.projectIds.has(item.id);
+    action(isProject?'Remove project status':'Turn into project',()=>this.onBranchProjectToggle?.(item.id));
+    action('Add child branch',()=>this.openBranchEditor(el,item,'add'));
+    action('Rename branch',()=>this.openBranchEditor(el,item,'rename'));
+    action('Move branch',()=>this.openBranchEditor(el,item,'move'));
+    if(item.hasChildren)action(item.collapsed?'Expand branch':'Collapse branch',
+      ()=>this.onBranchToggle?.(item.id));
+    if(!['inbox','just-because'].includes(item.id))
+      action('Remove branch',()=>this.onBranchDelete?.(item.id),'danger');
+    document.body.append(menu);
+    const rect=trigger?.getBoundingClientRect?.()||el.getBoundingClientRect();
+    const wantedX=Number.isFinite(x)?x:rect.right-6;
+    const wantedY=Number.isFinite(y)?y:rect.bottom+8;
+    menu.style.left=clamp(wantedX,8,Math.max(8,innerWidth-menu.offsetWidth-8))+'px';
+    menu.style.top=clamp(wantedY,8,Math.max(8,innerHeight-menu.offsetHeight-8))+'px';
+    menu.addEventListener('pointerdown',e=>e.stopPropagation());
+    menu.addEventListener('click',e=>e.stopPropagation());
+    menu.addEventListener('keydown',e=>{
+      e.stopPropagation();
+      if(e.key==='Escape'){e.preventDefault();close(true);return;}
+      if(e.key==='Tab'){close(false);return;}
+      if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)){
+        e.preventDefault();
+        const index=buttons.indexOf(document.activeElement);
+        const next=e.key==='Home'?0:e.key==='End'?buttons.length-1:
+          e.key==='ArrowDown'?(index+1)%buttons.length:
+          (index+buttons.length-1)%buttons.length;
+        buttons[next].focus({preventScroll:true});
+      }
+    });
+    document.addEventListener('pointerdown',e=>{
+      if(!menu.contains(e.target))close(false);
+    },{capture:true,signal:controller.signal});
+    document.addEventListener('focusin',e=>{
+      if(!menu.contains(e.target))close(false);
+    },{signal:controller.signal});
+    buttons[0]?.focus({preventScroll:true});
   }
   openBranchEditor(el,item,mode){
     el.querySelector('.node-inline-editor')?.remove();
@@ -476,6 +558,6 @@ export class Constellation {
     for(const r of this.nodesEl.querySelectorAll('.task-row'))r.classList.toggle('is-selected',r.dataset.taskId===this.selectedTaskId);
     for(const e of this.edgeEntries)e.path.classList.toggle('is-selected',e.to===this.focusedNode);
   }
-  dispose(){this.disposed=true;this.observer.disconnect();cancelAnimationFrame(this.cameraAnimation);cancelAnimationFrame(this.springAnimation);this.cameraAnimation=0;this.springAnimation=0;this.nodesEl.replaceChildren();this.edgesEl.replaceChildren();this.domNodes.clear();this.domStacks.clear();}
+  dispose(){this.closeBranchMenu?.(false);this.disposed=true;this.observer.disconnect();cancelAnimationFrame(this.cameraAnimation);cancelAnimationFrame(this.springAnimation);this.cameraAnimation=0;this.springAnimation=0;this.nodesEl.replaceChildren();this.edgesEl.replaceChildren();this.domNodes.clear();this.domStacks.clear();}
 
 }

@@ -1,3 +1,10 @@
+## 10 November 2026 — PJ-02A branch and expanded owner roadmap
+
+- Before this feature, verified source `main` = `5f51da3cbee269ea5e2ff462828ded68ed11b135` after SP-01B #50, PJ-01 #51 and docs closeout #52. No open PR at branch start.
+- PJ-02A source branch `feat/pj02a-accessible-branch-project-actions-20261110`: right-click/Shift+F10/visible More actions for private project marking, original branch tree and task IDs untouched, body-mounted accessible context menu, synthetic real-origin Chromium test + mobile check. Do **not** claim it is a complete Projects hub or Production deployment.
+- Owner additionally requested richer private project management, later explicitly curated publication to a public portfolio website, more discoverable nested collapse and removal of collapsed empty `add something here`, smoother touchscreen mini-map dragging, and an original playful mascot login. [Prioritized UX and publication brief](plans/ORBIT_PROJECT_EXPERIENCE_BACKLOG_2026_11_10.md). No work should auto-expose private projects.
+- **Production authorization is conditional:** the owner approves deployment once a genuinely usable feature passes all existing security, signed-in, preview and rollback gates. PJ-02A only remains source-only; PJ-02B actual Projects window is the next product-value threshold. Hosted migrations/Auth/Storage and public publication require separate scoped review.
+- Merge PJ-02A only after exact-head four CI checks and source-manifest integrity; if browser fails, review synthetic trace. Keep read-only viewer safe. Preserve historical V6/M1 immutable source lists and all legacy coordinates.
 ## Latest verified main — 9 November 2026 after SP-01B and PJ-01
 
 - **Source main:** `50d8a6fe88645588eb37bc3fb0e6dcc35b3c24e3`, squash of [PJ-01 PR #51](https://github.com/DoorBlox/orbit/pull/51), four required exact-head CI checks green. Before it, [SP-01B PR #50](https://github.com/DoorBlox/orbit/pull/50) squash `0a8e1a92bf91f0e9af79b076a2158cb7c18bb8fe`, likewise four green checks. These are **source-only**.
