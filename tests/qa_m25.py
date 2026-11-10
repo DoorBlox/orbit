@@ -156,10 +156,35 @@ def navigator_grab_continuity(page):
         throw Error('Outside-outline tap stopped direct travel');
       fire('pointerup',33,r.left+7,r.top+7);
       if(b.navPointer!==null||b.navDragStart!==null)throw Error('Tap did not clean up');
+      // Physical hybrid devices can lose capture while the finger continues
+      // outside this small map. The window must still receive travel and up.
+      b.navigatorToWorld({clientX:r.left+r.width/2,clientY:r.top+r.height/2});
+      const current=n.querySelector('#space-nav-cursor').getBoundingClientRect();
+      const gx=(current.left+current.right)/2,gy=(current.top+current.bottom)/2;
+      fire('pointerdown',41,gx,gy);
+      if(b.navPointer!==41)throw Error('Hybrid drag did not begin');
+      const original={...b.pan};
+      n.dispatchEvent(new PointerEvent('lostpointercapture',{
+        bubbles:true,pointerId:41,pointerType:'touch'
+      }));
+      window.dispatchEvent(new PointerEvent('pointermove',{
+        bubbles:true,cancelable:true,pointerId:41,pointerType:'touch',
+        clientX:gx+60,clientY:gy+25,button:0
+      }));
+      if(b.pan.x===original.x||b.pan.y===original.y)
+        throw Error('Hybrid drag stopped when pointer capture was lost');
+      window.dispatchEvent(new PointerEvent('pointerup',{
+        bubbles:true,pointerId:41,pointerType:'touch',
+        clientX:gx+60,clientY:gy+25,button:0
+      }));
+      if(b.navPointer!==null||b.navDragStart!==null)
+        throw Error('Outside-map pointerup did not end drag');
+      if(getComputedStyle(n).touchAction!=='none')
+        throw Error('Mini-map still allows native scroll takeover');
       return {noTouchSnap:true,deltaX:before.x-expectedX,deltaY:before.y-expectedY,
-        directMapTap:true,canceledSafely:true};
+        directMapTap:true,canceledSafely:true,hybridOffMap:true};
     }""")
-    assert result['noTouchSnap'] and result['directMapTap'] and result['canceledSafely'],result
+    assert result['noTouchSnap'] and result['directMapTap'] and result['canceledSafely'] and result['hybridOffMap'],result
 
 def teardown(page):
     page.evaluate('''()=>{
@@ -173,6 +198,7 @@ def teardown(page):
     }''')
     # Preserve the moving graph state; trigger its in-widget sign-out without
     # shifting the camera while this test measures teardown.
+    page.locator('.cloud-account-details').evaluate('details => { details.open = true; }')
     page.locator('.cloud-toolbar').get_by_role('button', name='Sign out', exact=True).evaluate('button => button.click()')
     expect(page.locator('#app')).to_be_hidden()
     assert page.locator('#app').inner_text() == ''
