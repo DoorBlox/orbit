@@ -32,8 +32,8 @@
       "reason": "PJ-01: reject orphan project identity keys before V6 atomic restore."
     },
     "src/board.js": {
-      "sha256": "aa5a33869ca43d7fb0ae192e4780dcd25471ede0229f6e56fc148294041632f6",
-      "reason": "SP-01B: dynamic optional DOM widgets preserve first-party unsaved sizes and safe reset, with keyboard resizing and private extension layout."
+      "sha256": "07e5b4d838641f06e94ff985c5891c43c5df5a251c33726a5141583d6bfe816e",
+      "reason": "TOUCH-01: navigator cursor drags preserve original finger offset across touch/zoom without snapping; direct map tap and pointer cancellation remain supported."
     },
     "src/bootstrap.js": {
       "sha256": "d890dbb33689b72f19e1713618734831718bdcf7979056a506ed8db89b44eb99",

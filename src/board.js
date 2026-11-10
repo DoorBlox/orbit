@@ -39,6 +39,16 @@ export function navigatorWorldPoint(px,py,bounds){
   const x=clamp(px,0,1),y=clamp(py,0,1);
   return {x:bounds.x0+(bounds.x1-bounds.x0)*x,y:bounds.y0+(bounds.y1-bounds.y0)*y};
 }
+export function navigatorGrabOffset(pointer,center,size){
+  const {x,y}=pointer??{}, {x:cx,y:cy}=center??{};
+  const {width,height}=size??{};
+  if(![x,y,cx,cy,width,height].every(Number.isFinite)||width<=0||height<=0)return null;
+  const dx=x-cx,dy=y-cy;
+  // A small tolerance makes the viewport outline touchable without grabbing
+  // the map for a tap significantly outside it.
+  if(Math.abs(dx)>width/2+2||Math.abs(dy)>height/2+2)return null;
+  return {x:dx,y:dy};
+}
 export class SpatialBoard {
   constructor({notify=()=>{},initialLayout,readOnly=false,persistLocally=true,onLayoutChange=()=>{},
     optionalWidgetLayout={},onOptionalLayoutChange=()=>{},widgetRegistry=DEFAULT_WIDGET_REGISTRY}={}){
@@ -66,7 +76,7 @@ export class SpatialBoard {
       }
     }
     this.scale=1;this.pan={x:0,y:0};this.gesture=null;this.pointers=new Map();this.raf=0;
-    this.widgets=new Map();this.stickyNotes=[];this.navPointer=null;
+    this.widgets=new Map();this.stickyNotes=[];this.navPointer=null;this.navDragStart=null;
     this.nav=document.getElementById('space-nav-map');
     this.nav.tabIndex=0;this.nav.setAttribute('role','group');
     this.nav.setAttribute('aria-label','Spatial map: click or drag to travel, arrow keys to move the focus');
@@ -84,6 +94,7 @@ export class SpatialBoard {
     this.nav.addEventListener('pointermove',e=>this.moveNavigatorPan(e),{signal:this.events.signal});
     this.nav.addEventListener('pointerup',e=>this.endNavigatorPan(e),{signal:this.events.signal});
     this.nav.addEventListener('pointercancel',e=>this.endNavigatorPan(e),{signal:this.events.signal});
+    this.nav.addEventListener('lostpointercapture',e=>this.endNavigatorPan(e),{signal:this.events.signal});
     this.nav.addEventListener('keydown',e=>{
       if(e.target!==this.nav)return;
       const d={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];
@@ -309,19 +320,39 @@ export class SpatialBoard {
     this.render();
   }
   startNavigatorPan(e){
-    if(this.disposed||(e.button!==0&&e.pointerType!=='touch')||e.target.closest('button'))return;
+    if(this.disposed||this.navPointer!==null||
+      (e.button!==0&&e.pointerType!=='touch')||e.target.closest('button'))return;
     e.preventDefault();e.stopPropagation();
     this.navPointer=e.pointerId;
+    const cursor=this.nav.querySelector('#space-nav-cursor');
+    const box=cursor?.getBoundingClientRect(),rect=this.nav.getBoundingClientRect();
+    const offset=box?navigatorGrabOffset({x:e.clientX,y:e.clientY},
+      {x:(box.left+box.right)/2,y:(box.top+box.bottom)/2},
+      {width:box.width,height:box.height}):null;
+    this.navDragStart=offset&&rect.width&&rect.height&&this.navBounds?{
+      x:e.clientX,y:e.clientY,pan:{...this.pan},rect,
+      bounds:{...this.navBounds},scale:this.scale
+    }:null;
     try{this.nav.setPointerCapture(e.pointerId);}catch{}
-    this.nav.classList.add('is-dragging');this.navigatorToWorld(e);
+    this.nav.classList.add('is-dragging');
+    // Tap outside the outline keeps direct travel. Grabbing the outline must
+    // NOT snap the camera to the finger, including when the cursor is clamped.
+    if(!this.navDragStart)this.navigatorToWorld(e);
   }
   moveNavigatorPan(e){
     if(e.pointerId!==this.navPointer)return;
-    e.preventDefault();this.navigatorToWorld(e);
+    e.preventDefault();
+    const drag=this.navDragStart;
+    if(!drag){this.navigatorToWorld(e);return;}
+    const dx=(e.clientX-drag.x)/drag.rect.width*(drag.bounds.x1-drag.bounds.x0);
+    const dy=(e.clientY-drag.y)/drag.rect.height*(drag.bounds.y1-drag.bounds.y0);
+    cancelAnimationFrame(this.raf);this.raf=0;
+    this.pan={x:drag.pan.x-dx*drag.scale,y:drag.pan.y-dy*drag.scale};
+    this.render();
   }
   endNavigatorPan(e){
     if(e.pointerId!==this.navPointer)return;
-    this.navPointer=null;this.nav.classList.remove('is-dragging');
+    this.navPointer=null;this.navDragStart=null;this.nav.classList.remove('is-dragging');
     try{if(this.nav.hasPointerCapture?.(e.pointerId))this.nav.releasePointerCapture(e.pointerId);}catch{}
   }
   render(){this.world.style.transform=`translate3d(${this.pan.x.toFixed(2)}px,${this.pan.y.toFixed(2)}px,0) scale(${this.scale.toFixed(4)})`;
@@ -493,6 +524,6 @@ export class SpatialBoard {
     el.style.left=`${clampNavigatorPercent((wx-x0)/(x1-x0)*100,this.nav.clientWidth||180)}%`;
     el.style.top=`${clampNavigatorPercent((wy-y0)/(y1-y0)*100,this.nav.clientHeight||90)}%`;
   }
-  dispose(){this.disposed=true;this.navPointer=null;this.navigatorObserver?.disconnect();cancelAnimationFrame(this.raf);this.raf=0;this.events.abort();this.pointers.clear();this.widgets.clear();}
+  dispose(){this.disposed=true;this.navPointer=null;this.navDragStart=null;this.navigatorObserver?.disconnect();cancelAnimationFrame(this.raf);this.raf=0;this.events.abort();this.pointers.clear();this.widgets.clear();}
 
 }
