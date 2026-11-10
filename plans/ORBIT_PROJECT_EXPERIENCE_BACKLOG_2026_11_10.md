@@ -17,7 +17,7 @@
 
 ## Delivery sequence and acceptance
 
-### PJ-02A — branch conversion UI (IN PROGRESS, source branch)
+### PJ-02A — branch conversion UI (SOURCE MERGED; PR #53, four checks green)
 
 - Add **Turn into project / Remove project status** in a real branch menu. Invocation paths: right-click, Shift+F10 or keyboard ContextMenu key on the focused branch, and the existing branch's visible More actions button for touch/keyboard. Keep menu legible at any graph zoom: fixed-position viewport overlay, focus management, Escape/Tab/outside dismissal, arrow keys, responsive bounds.
 - Private identity uses validated `extensions.projects` and existing branch IDs. Show a subtle project tag in constellation. No task/branch movement or publication, no additional window yet. No new table, provider or dependency.
@@ -60,6 +60,8 @@
 
 - Explore an original ORBIT mascot, expressions and tiny context-aware motion, a welcoming sign-in hero and optional seasonal variation. Keep the branded sign-in safe and recognizable, lightweight, contrast-correct, fully keyboard-accessible and reduced-motion friendly.
 - Do not modify Supabase OAuth redirects/Auth/RLS or expose owner data for decoration. Mascot identity, poses and asset/license review will come before high-fidelity artwork or rollout. No mascot image is required in this work unit.
+
+**PJ-02A source acceptance:** [PR #53](https://github.com/DoorBlox/orbit/pull/53), squash `0b2df5d6709014adef78c8348d98ecc5ca241186`, exact-head four checks green. Chromium covers nested/phone and private mark/unmark, but screenshots have not received independent visual signoff and signed-in Production still requires owner verification.
 
 ## Release decision
 
