@@ -233,6 +233,11 @@ def owner_case(browser,size,source):
         assert LOCAL_SECRET not in json.dumps(saved)
         assert_no_local_leak(page)
         page.evaluate("window.orbitDebug.board.focus('space',{initial:true})")
+        # Rename is deliberately a secondary action: reveal the keyboard-accessible
+        # Manage space disclosure as an actual user would, instead of bypassing it.
+        expect(page.locator('.space-manage')).not_to_have_attribute('open', '')
+        page.locator('.space-manage > summary').click()
+        expect(page.locator('#rename-space')).to_be_visible()
         page.locator('#rename-space').click()
         page.locator('#space-name-input').fill('My Starfield')
         page.locator('#space-name-form').get_by_role('button',name='Save name').click()
