@@ -10,7 +10,8 @@ import { validDateKey } from './dates.js';
 import { Journal,sanitizeJournal } from './journal.js';
 import { StickyNotes } from './stickies.js';
 import { normalizeExtensions,openSceneEditor,renderScene } from './scene.js';
-import { setBranchProject } from './projects.js';
+import { setBranchProject, normalizeProjects } from './projects.js';
+import { ProjectsShelf } from './project-shelf.js';
 
 /** Mount the same spatial scrapbook over either local or authenticated owner state. */
 export function mountOrbit({initialSnapshot=null,readOnly=false,persistLocally=true,onSnapshotChange=()=>{},viewStateKey='local',media=null}={}){
@@ -78,16 +79,7 @@ const scene=new Constellation({viewport:$('map-viewport'),world:$('map-world'),e
   nodesEl:$('node-layer'),decorEl:$('world-decor'),
   onBranchSelected(id){if(id!=='root')setBranch(id);},
   onBranchToggle(id){if(readOnly||disposed)return false;toggleBranch(id);},
-  onBranchProjectToggle(id){
-    if(readOnly||disposed)return false;
-    const current=Object.hasOwn(state.extensions.projects,id);
-    try{state.extensions.projects=setBranchProject(state.extensions.projects,id,state.branches,!current);}
-    catch(error){message(error.message,6500);return false;}
-    sync();scene.focusNode(id,{instant:true});
-    scene.domNodes.get(id)?.focus({preventScroll:true});
-    message(current?'Project status removed. Branch and tasks kept.':'Branch is now a private project. Nothing is published.');
-    return true;
-  },
+  onBranchProjectToggle(id){return toggleProject(id,{focusScene:true});},
   onBranchAdd(parentId,label){if(readOnly||disposed)return false;
     try{
       expandBranchPath(parentId,true);
@@ -187,6 +179,26 @@ const board=new SpatialBoard({notify:(...args)=>message(...args),
   },
   readOnly,persistLocally,onLayoutChange:()=>emitChange()});
 board.onWidgetResize=id=>{if(id==='constellation')requestAnimationFrame(()=>scene.onResize());};
+const projectsShelf=new ProjectsShelf({
+  readOnly,
+  onCreate:id=>toggleProject(id,{enabled:true}),
+  onOpen:id=>{
+    board.focus('constellation');
+    expandBranchPath(id,true);
+    setBranch(id);
+    scene.focusNode(id);
+  },
+  onUpdate:(id,patch)=>updateProjectDetails(id,patch)
+});
+board.registerWidget({
+  id:'projects',position:{x:1940,y:115},
+  limits:{minW:350,minH:340,maxW:1150,maxH:1600},icon:'◆'
+},projectsShelf.element);
+const openProjects=document.createElement('button');
+openProjects.type='button';openProjects.className='glass-button';
+openProjects.id='open-projects';openProjects.textContent='◆ My projects';
+openProjects.addEventListener('click',()=>board.focus('projects'),{signal:events.signal});
+document.querySelector('.space-primary-actions')?.append(openProjects);
 const stickies=new StickyNotes({world:$('spatial-world'),notes:state.extensions.notes,readOnly,
   getScale:()=>board.scale,media,notify:(...args)=>message(...args),
   onChange:notes=>{state.extensions.notes=notes;board.setStickyNotes(notes);extensionsChanged();}});
@@ -303,6 +315,26 @@ function switchCaptureMode(mode){
   $('capture-submit').setAttribute('aria-label',mode==='find'?'Find task':'Add task');
   scene.highlightTasks(null);updateCaptureTarget();input.focus();
 }
+function toggleProject(id,{enabled=null,focusScene=false}={}){
+  if(readOnly||disposed)return false;
+  const current=Object.hasOwn(state.extensions.projects,id);
+  const next=typeof enabled==='boolean'?enabled:!current;
+  try{state.extensions.projects=setBranchProject(state.extensions.projects,id,state.branches,next);}
+  catch(error){message(error.message,6500);return false;}
+  sync();
+  if(focusScene){scene.focusNode(id,{instant:true});scene.domNodes.get(id)?.focus({preventScroll:true});}
+  message(next?'Branch is now a private project. Nothing is published.':
+    'Project status removed; branch and tasks kept.');
+  return true;
+}
+function updateProjectDetails(id,patch){
+  if(readOnly||disposed||!Object.hasOwn(state.extensions.projects,id))return false;
+  try{
+    state.extensions.projects=normalizeProjects({...state.extensions.projects,
+      [id]:{...state.extensions.projects[id],...patch}});
+  }catch(error){message(error.message,6500);return false;}
+  sync();return true;
+}
 function sync({persist=true}={}){
   if(disposed)return false;
   const normalizedCollapsed=normalizeCollapsedBranches(state.collapsedBranchIds);
@@ -319,6 +351,7 @@ function sync({persist=true}={}){
   }
   scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'),state.preferences.colorMode,state.profile.displayName,state.collapsedBranchIds,Object.keys(state.extensions.projects));
   widgets.setData(state.branches,state.tasks,state.preferences.colorMode,milestones);
+  projectsShelf.setData(state.branches,state.tasks,state.extensions.projects);
   if(state.captureMode==='find')updateSearch();
   const s=taskSummary(state.tasks);
   $('task-summary').textContent=`${s.active} active · ${s.completed} finished${s.dueSoon?` · ${s.dueSoon} approaching`:''}${s.overdue?` · ${s.overdue} overdue`:''}`;
@@ -632,6 +665,6 @@ function applySnapshot(snapshot){
   sync({persist:false});hydrating=false;
 }
 function setCloudStatus(status){cloudStatus=status;journal.setCloudStatus(status);}
-function dispose(){if(disposed)return;disposed=true;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);board.dispose();journal.dispose();stickies.dispose();scene.dispose();media?.dispose?.();document.documentElement.dataset.theme='parchment';document.documentElement.dataset.motion='system';document.documentElement.dataset.ambient='off';window.orbitDebug=null;}
+function dispose(){if(disposed)return;disposed=true;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);projectsShelf.dispose();board.dispose();journal.dispose();stickies.dispose();scene.dispose();media?.dispose?.();document.documentElement.dataset.theme='parchment';document.documentElement.dataset.motion='system';document.documentElement.dataset.ambient='off';window.orbitDebug=null;}
 return {getSnapshot,applySnapshot,setCloudStatus,dispose,flushEditor:()=>journal.commit(),exportBackup:backupJson};
 }

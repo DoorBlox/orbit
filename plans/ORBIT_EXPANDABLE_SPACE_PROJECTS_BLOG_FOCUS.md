@@ -3,6 +3,10 @@
 **Owner clarification:** 9 November 2026. **Status:** APPROVED PRODUCT DIRECTION; implementation units below are PROPOSED, not shipped or authorized for public release/hosted migration.
 **Companion:** [post-2.4 engineering blueprint](ORBIT_POST_2_4_EXECUTION.md), [current state](../docs/CURRENT_STATE.md), [active handoff](../CHATGPT_HANDOFF.md).
 
+## PJ-02B private Projects shelf implementation
+
+The source branch `feat/pj02b-private-projects-window-20261110` adds an actual first-party seventh movable Projects window (not a placeholder) with nested unique-task summary, private status/description edits, branch focus and hide/reopen. It preserves the six legacy root layout IDs and no private data is automatically published. [PJ-02B contract](../docs/PJ02B_PROJECTS_WINDOW.md). Source CI and Preview remain separate gates.
+
 ## New 10 November 2026 owner feedback and next implementation
 
 **PJ-02A SOURCE MERGED** via [PR #53](https://github.com/DoorBlox/orbit/pull/53) at `0b2df5d6709014adef78c8348d98ecc5ca241186` with 4/4 exact-head checks green. PJ-02B will deliver a genuinely useful Projects shelf before considering a gated Production release. Future project-to-website portfolio publication must be an explicit curated, versioned public projection, never automatic private snapshot exposure. Nested collapsing already works at arbitrary depth in source/tests, but its UI affordance needs attention; collapsed branches must not show an empty 'add something here' terminal. Touch mini-map dragging requires a targeted pointer-gesture investigation. A playful original login mascot is planned without Auth/CSP/privacy regression. [Complete prioritized product and UX brief](ORBIT_PROJECT_EXPERIENCE_BACKLOG_2026_11_10.md). Owner's Production approval is conditional on usable behavior and release checks, not blanket permission for hosted migrations or public content writes.

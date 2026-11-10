@@ -428,7 +428,11 @@ def local_compatibility(browser,source):
     try:
         page.goto(BASE);wait_until(page,'Boolean(window.orbitDebug)')
         assert page.locator('#cloud-shell').count()==0
-        assert page.locator('.spatial-world > .spatial-item').count()==6
+        # Preserve the six legacy widget identities, not a hard-coded widget cap.
+        core=('timeline','constellation','active','completed','space','journal')
+        assert all(page.locator(f'.spatial-world > [data-widget="{wid}"]').count()==1 for wid in core)
+        assert page.locator('.spatial-world > [data-widget="projects"]').count()==1
+        assert page.locator('.spatial-world > .spatial-item').count()>=7
         page.evaluate("window.orbitDebug.board.focus('journal',{initial:true})")
         page.locator('#journal-editor').fill('Synthetic M2 compatibility text')
         expect(page.locator('#journal-save-state')).to_have_text('saved on this device')
