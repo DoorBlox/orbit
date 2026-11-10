@@ -104,16 +104,16 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "379a17e814d7703ff02d5a14a8e0a23974ef8c00d1e78b3095bc4740b15c6884",
-      "reason": "PJ-03: readable optional private project brief rows and inputs across existing theme tokens."
+      "sha256": "733ad7e9c915cb8994bdc4e0b93cea54de731955002cfb5cc86ede0e23587345",
+      "reason": "BP-06 UX: native canvas grows to responsive dialog and removes fixed-height drawing preview crop."
     },
     "src/widgets.js": {
       "sha256": "aee68a4ce8a37edbb2de2fa1b0a2fc4589fcaf28a00603db2b148c6875a8ec58",
       "reason": "Preserve task/timeline projection over canonical owner snapshots and read-only controls."
     },
     "src/scene.js": {
-      "sha256": "871b5e6fca498ad6a01b7e163a53e8c4fa1d6ad19ec30ceb8a4c4945c8824e34",
-      "reason": "PJ-01: normalize owner-private project identity in existing extensions without removing other data."
+      "sha256": "06f749d2ea6d98b214c622f6cd6b22f4be10bec9d7d003755e223ca2d7f473d3",
+      "reason": "BP-13 UX: full official Excalidraw opens on first action, dynamically fit all SVG preview geometry (no 800x460 crop)."
     },
     "src/stickies.js": {
       "sha256": "96b8fd73b59e8b836e631d124d4614525cd664f1e9aae657edee8fbf6b460dcd",

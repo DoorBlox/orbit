@@ -260,11 +260,16 @@ def normal_flows(browser):
     page.locator('.sticky-title').dispatch_event('change')
     page.locator('.sticky-body').fill('Private note in the same world')
     page.locator('.sticky-body').dispatch_event('blur')
+    # BP-06 canvas-first: clicking Draw opens the real editor immediately.
+    # No extra full-editor button or hidden native pen prerequisite.
+    assert page.evaluate("performance.getEntriesByType('resource').every(r=>!r.name.includes('/excalidraw-island.js'))")
     page.locator('.sticky-note').get_by_role('button',name='Draw',exact=True).evaluate('e=>e.click()')
-    expect(page.locator('.orbit-scene-dialog')).to_be_visible()
-    page.locator('.orbit-scene-preview').click(position={'x':40,'y':40})
+    expect(page.locator('.orbit-scene-dialog .excalidraw')).to_be_visible(timeout=25000)
+    assert page.evaluate("window.EXCALIDRAW_ASSET_PATH.startsWith(location.origin)")
     page.get_by_role('button',name='Save drawing').click()
-    assert page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].scene.elements.length") == 1
+    assert page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].scene.type") == 'excalidraw'
+    # The previous native pen is only a failure fallback; editor Save always
+    # preserves a complete scene object, including an intentionally empty one.
     # Duplicate a drawn sticky; the copy must have a new ID, independent text,
     # matching paper tint and drawing, and remain after a full page reload.
     page.locator('.sticky-note').first.get_by_role('button',name='Duplicate sticky note').evaluate('e=>e.click()')
@@ -282,24 +287,18 @@ def normal_flows(browser):
     expect(page.locator('.sticky-note').last.locator('.sticky-body')).to_have_value('Independent copy')
     focus(page,'journal')
     page.locator('#journal-draw').click()
-    expect(page.locator('.orbit-scene-dialog')).to_be_visible()
-    page.locator('.orbit-scene-preview').click(position={'x':90,'y':80})
+    expect(page.locator('.orbit-scene-dialog .excalidraw')).to_be_visible(timeout=25000)
     page.get_by_role('button',name='Save drawing').click()
     assert page.evaluate("Object.keys(JSON.parse(localStorage.getItem('orbit.v8.extensions')).journalScenes).length") == 1
-    # EX-01: real upstream React Excalidraw is NOT in the initial browser load.
-    # Both hosts share the same native Save/Cancel dialog and one lazy island.
-    assert page.evaluate("performance.getEntriesByType('resource').every(r=>!r.name.includes('/excalidraw-island.js'))")
+    # Both editing hosts launch the same lazy upstream editor and preserve the
+    # saved note/entry objects through repeated opens without scribble steps.
     page.locator('.sticky-note').first.get_by_role('button',name='Edit drawing').evaluate('e=>e.click()')
-    page.get_by_role('button',name='Open full Excalidraw inside ORBIT').click()
     expect(page.locator('.orbit-scene-dialog .excalidraw')).to_be_visible(timeout=25000)
-    assert page.evaluate("window.EXCALIDRAW_ASSET_PATH.startsWith(location.origin)")
     assert page.evaluate("document.querySelector('link[data-orbit-excalidraw-styles]') !== null")
     page.get_by_role('button',name='Save drawing').click()
-    sticky_saved=page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].scene.elements.map(e=>({type:e.type,id:e.id,deleted:e.isDeleted,x:e.x,y:e.y}))")
-    assert len(sticky_saved) == 1, f"Official editor changed legacy sticky unexpectedly: {sticky_saved}"
+    assert page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].scene.type") == 'excalidraw'
     focus(page,'journal')
     page.locator('#journal-draw').click()
-    page.get_by_role('button',name='Open full Excalidraw inside ORBIT').click()
     expect(page.locator('.orbit-scene-dialog .excalidraw')).to_be_visible(timeout=25000)
     page.get_by_role('button',name='Save drawing').click()
     assert page.evaluate("Object.keys(JSON.parse(localStorage.getItem('orbit.v8.extensions')).journalScenes).length") == 1
