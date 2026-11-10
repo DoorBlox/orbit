@@ -189,7 +189,10 @@ export class StickyNotes {
         button.addEventListener('click',()=>{
           if(n.mode===value||(n.mode===undefined&&value==='write'))return;
           if(value==='canvas')n.mode='canvas';else delete n.mode;
-          this.render();if(!this.readOnly)this.changed();
+          this.render();
+          this.layer.querySelector('[data-note-id="'+n.id+'"] .sticky-mode-tab[aria-pressed="true"]')
+            ?.focus({preventScroll:true});
+          if(!this.readOnly)this.changed();
         });
         modeTabs.append(button);
       }
@@ -229,8 +232,9 @@ export class StickyNotes {
       formatted.setAttribute('aria-label','Formatted note');
       const showFormatted=()=>{
         formatted.replaceChildren();
+        formatted.classList.toggle('is-empty',!n.text.trim());
         if(n.text.trim())renderStickyMarkdown(n.text,formatted);
-        else {formatted.textContent='A little space for your thoughts…';formatted.classList.add('is-empty');}
+        else formatted.textContent='A little space for your thoughts…';
       };
       const editText=editing=>{
         editor.hidden=!editing;
