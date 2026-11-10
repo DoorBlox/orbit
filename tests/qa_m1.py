@@ -176,17 +176,23 @@ def normal_flows(browser):
     nested=page.locator('.graph-node').filter(has_text='M1 nested branch').first
     nested_id=nested.get_attribute('data-id')
     expect(renamed).to_have_attribute('aria-expanded','true')
+    # BR-02: an expanded, genuinely empty terminal leaf still offers an add affordance.
+    assert page.locator(f'.task-stack[data-branch-id="{nested_id}"] .task-empty').count()==1
     renamed.get_by_role('button',name='Collapse branch').press('Enter')
     expect(renamed).to_have_attribute('aria-expanded','false')
     assert page.locator(f'.graph-node[data-id="{nested_id}"]').count()==0
+    # BR-02: collapsed ancestor hides descendants, so it must not claim "add something here".
+    assert page.locator(f'.task-stack[data-branch-id="{branch_id}"] .task-empty').count()==0
     assert page.evaluate("(id)=>JSON.parse(localStorage.getItem('orbit.v7.collapsed-branches.local')).includes(id)",branch_id)
     reload_page(page)
     renamed=page.locator(f'.graph-node[data-id="{branch_id}"]')
     expect(renamed).to_have_attribute('aria-expanded','false')
     assert page.locator(f'.graph-node[data-id="{nested_id}"]').count()==0
+    assert page.locator(f'.task-stack[data-branch-id="{branch_id}"] .task-empty').count()==0
     renamed.focus();renamed.press('ArrowRight')
     expect(renamed).to_have_attribute('aria-expanded','true')
     assert page.locator(f'.graph-node[data-id="{nested_id}"]').count()==1
+    assert page.locator(f'.task-stack[data-branch-id="{nested_id}"] .task-empty').count()==1
     renamed.focus();renamed.press('ArrowLeft')
     expect(renamed).to_have_attribute('aria-expanded','false')
     focus(page,'space');page.locator('#expand-all-branches').click()

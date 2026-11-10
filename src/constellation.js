@@ -431,7 +431,9 @@ export class Constellation {
     const el=node('div','task-stack');el.dataset.branchId=stack.branchId;el.style.left=stack.x+'px';el.style.top=stack.y+'px';
     el.style.setProperty('--branch-color',stack.color);
     for(const task of sortedProjectTasks(this.tasks,stack.branchId,this.mode))el.append(this.buildTaskRow(task));
-    if(!el.children.length)el.append(node('div','task-empty','add something here  +'));
+    // A collapsed branch may hide many descendants; never label it as empty.
+    if(!el.children.length&&!this.layout.collapsed.has(stack.branchId))
+      el.append(node('div','task-empty','add something here  +'));
     return el;
   }
   buildTaskRow(task){

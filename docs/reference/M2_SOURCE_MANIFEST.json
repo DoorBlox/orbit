@@ -65,11 +65,11 @@
     },
     "src/cloud/sync.js": {
       "sha256": "2f5f6745b3c77e98bc996b114f9b0d72296d80ef48f03149566e3db602601374",
-      "reason": "BP-03: retain unchanged native polling behavior while injecting deterministic poll scheduler for nonprivate traffic cost tests."
+      "reason": "BP-03: keep 15s active polling and adaptive 30s idle full-snapshot checks after 2min; deterministic scheduler and CAS-safe draft/remote-change tests."
     },
     "src/constellation.js": {
-      "sha256": "5eac26f028baf183b11cdc12213d41df998543da90ea6d7cb5280852c1c00558",
-      "reason": "PJ-02A accessible first-party branch menu, right-click and keyboard, private project badge; existing graph nodes and hierarchy preserved."
+      "sha256": "2b22798faaa2bae6c0be2d45cd10a9472b05dfb712438879da66bc0c3b751c93",
+      "reason": "BR-02: collapsed parent branches with hidden descendants no longer show misleading empty add placeholder; true expanded leaf empty state preserved."
     },
     "src/csv.js": {
       "sha256": "e5de107e78d76d26553d25dca1b200765aaafeb2b836216b1ae11f57e5499178",
