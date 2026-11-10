@@ -56,9 +56,11 @@ export function normalizeExtensions(raw={}){
       typeof n.title!=='string'||n.title.length>100||!coord(n.x)||!coord(n.y)||
       !Number.isFinite(n.width)||n.width<220||n.width>850||
       !Number.isFinite(n.height)||n.height<160||n.height>850||
-      !['sand','peach','lavender','mint'].includes(n.color))throw Error('Invalid sticky note.');
+      !['sand','peach','lavender','mint'].includes(n.color)||
+      (n.mode!==undefined&&!['write','canvas'].includes(n.mode)))throw Error('Invalid sticky note.');
     ids.add(n.id);
     return {id:n.id,title:n.title,text:n.text,x:n.x,y:n.y,width:n.width,height:n.height,color:n.color,
+      ...(n.mode==='canvas'?{mode:'canvas'}:{}),
       ...(n.scene?{scene:normalizeScene(n.scene)}:{}),
       ...(n.imagePath?{imagePath:assertImagePath(n.imagePath)}:{})};
   });
