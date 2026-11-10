@@ -460,6 +460,8 @@ def main():
         results['sp01b_extra_widget']=run_extra_widget(browser,open_page,reload_page,OUT)
         from qa_project_actions import run_project_actions
         results['pj02a_project_actions']=run_project_actions(browser,open_page,reload_page,OUT)
+        from qa_projects_shelf import run_projects_shelf
+        results['pj02b_projects_shelf']=run_projects_shelf(browser,open_page,reload_page,OUT)
         browser.close()
     (OUT/'m1-results.json').write_text(json.dumps(results,indent=2)+'\n')
     print(json.dumps(results,indent=2))

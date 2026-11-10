@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {normalizeProjects,setBranchProject,validateProjectBranches} from '../src/projects.js';
+import {normalizeProjects,setBranchProject,validateProjectBranches,summarizeProjectPortfolio} from '../src/projects.js';
 import {removeBranchPreservingContents} from '../src/data.js';
 
 const branches=()=>[
@@ -76,4 +76,53 @@ test('PJ-01 project metadata never becomes public without a separate publishing 
   assert.equal(Object.hasOwn(value,'visibility'),false);
   assert.equal(Object.hasOwn(value.research,'published'),false);
   assert.equal(Object.hasOwn(value.research,'public'),false);
+});
+
+
+test('PJ-02B parent and nested projects count unique task IDs without duplicate portfolio totals',()=>{
+  const branches=[
+    {id:'research',parentId:'root',label:'Research',color:'#9674C8'},
+    {id:'researcher',parentId:'research',label:'Research practice'},
+    {id:'writing',parentId:'researcher',label:'Writing'},
+    {id:'unrelated',parentId:'root',label:'Elsewhere'}
+  ];
+  const input=[
+    {id:'a',projectId:'research',status:'completed'},
+    {id:'b',projectId:'researcher',status:'ready'},
+    {id:'c',projectId:'writing',status:'completed'},
+    {id:'d',projectId:'writing',status:'captured'},
+    {id:'d',projectId:'writing',status:'captured'},
+    {id:'other',projectId:'unrelated',status:'completed'}
+  ];
+  const identities={research:{description:'Private lab',status:'paused',links:[]},
+    writing:{status:'active'}};
+  const branchesBefore=structuredClone(branches),tasksBefore=structuredClone(input);
+  const summary=summarizeProjectPortfolio(identities,branches,input);
+  assert.equal(summary.projects.length,2);
+  const parent=summary.projects.find(item=>item.id==='research');
+  assert.equal(parent.label,'Research');
+  assert.equal(parent.description,'Private lab');
+  assert.equal(parent.status,'paused');
+  assert.deepEqual(parent.direct,{total:1,completed:1});
+  assert.deepEqual(parent.including,{total:4,completed:2});
+  assert.equal(parent.progress,50);
+  const nested=summary.projects.find(item=>item.id==='writing');
+  assert.equal(nested.path,'Research / Research practice / Writing');
+  assert.deepEqual(nested.direct,{total:2,completed:1});
+  assert.deepEqual(nested.including,{total:2,completed:1});
+  assert.equal(nested.progress,50);
+  // The nested project is also part of Research, not a duplicate portfolio task.
+  assert.deepEqual(summary.totals,{total:4,completed:2});
+  assert.deepEqual(branches,branchesBefore);
+  assert.deepEqual(input,tasksBefore);
+});
+
+test('PJ-02B empty project counts are not displayed as fake 100% progress',()=>{
+  const branches=[{id:'inbox',parentId:'root',label:'Inbox'}];
+  const empty=summarizeProjectPortfolio({inbox:{status:'completed'}},branches,[]);
+  assert.deepEqual(empty.totals,{total:0,completed:0});
+  assert.equal(empty.projects[0].progress,null);
+  assert.deepEqual(empty.projects[0].including,{total:0,completed:0});
+  assert.deepEqual(summarizeProjectPortfolio({},branches,[]),{projects:[],totals:{total:0,completed:0}});
+  assert.throws(()=>summarizeProjectPortfolio({orphan:{}},branches,[]),/existing branch/i);
 });
