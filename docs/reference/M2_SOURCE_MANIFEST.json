@@ -104,8 +104,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "318eaaaa09d50fad9289ed706e1a31b55d6836c2dac1ed31bc77911098c24687",
-      "reason": "PJ-02B theme-aware original glass project cards, task progress, accessible controls and responsive scroll."
+      "sha256": "379a17e814d7703ff02d5a14a8e0a23974ef8c00d1e78b3095bc4740b15c6884",
+      "reason": "PJ-03: readable optional private project brief rows and inputs across existing theme tokens."
     },
     "src/widgets.js": {
       "sha256": "aee68a4ce8a37edbb2de2fa1b0a2fc4589fcaf28a00603db2b148c6875a8ec58",
@@ -140,12 +140,12 @@
       "reason": "SP-01B: bounded private optional-widget state and explicit first-party registry extension without executable snapshot descriptors."
     },
     "src/projects.js": {
-      "sha256": "1856355b3ddd0cbdc36d1c2b1a85f1b55bed297d234d48f611a9a437a8ad8528",
-      "reason": "PJ-02B aggregates unique direct and descendant task counts for nested private projects without duplicating portfolio totals."
+      "sha256": "833092589f86d09494cf3fd5948663e70a04b4d8f1fea426c9d0ca3b074e4ba1",
+      "reason": "PJ-03: bounded private optional goal, next action, blockers and ISO target date metadata with safe V6 project validation."
     },
     "src/project-shelf.js": {
-      "sha256": "03033d529106e8f5b74e94937071cc2a313ab5039ac942279ca4fa1f512c648e",
-      "reason": "PJ-02B: first-party private Projects shelf with phone-friendly initial width, accessible editing and actual task progress."
+      "sha256": "d4ffd2ff00da3f100a2fbefc130ef8744a7cdc8331df480e79136d36147e601e",
+      "reason": "PJ-03: edit and display private project brief fields, preserving task progress/status distinction and read-only presentation."
     }
   }
 }
