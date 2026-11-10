@@ -303,6 +303,7 @@ def owner_tools_case(browser,source):
     try:
         expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
         assert_no_local_leak(page)
+        page.locator('.cloud-account-details').evaluate('details => { details.open = true; }')
         page.locator('.cloud-owner-panel summary').click()
         page.get_by_role('button',name='Review local import',exact=True).click()
         expect(page.locator('.cloud-tool-status')).to_contain_text('Nothing has been uploaded')
