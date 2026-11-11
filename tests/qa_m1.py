@@ -136,10 +136,25 @@ def normal_flows(browser):
     task_id=task.get_attribute('data-task-id')
     task.focus();task.press('Enter')
     task.get_by_role('button',name='Edit',exact=True).press('Enter')
-    task.locator('[name=title]').fill('M1 edited task')
-    task.locator('[name=criteria]').fill('Synthetic done criteria')
-    task.locator('[name=dueDate]').fill('2026-11-18')
-    task.get_by_role('button',name='Save changes').press('Enter')
+    inspector=page.locator('.orbit-task-dialog')
+    expect(inspector).to_be_visible()
+    # The editor lives in the viewport's top layer, not in a scaled task node.
+    assert inspector.evaluate("""element=>{
+      const r=element.getBoundingClientRect();
+      return r.left>=0 && r.top>=0 && r.right<=innerWidth+1 &&
+        r.bottom<=innerHeight+1 && r.width>=260;
+    }""")
+    assert task.locator('.task-editor').count()==0
+    inspector.locator('[name=title]').fill('   ')
+    inspector.get_by_role('button',name='Save changes').click()
+    expect(inspector).to_be_visible()
+    inspector.locator('[name=title]').fill('M1 edited task')
+    inspector.locator('[name=criteria]').fill('Synthetic done criteria')
+    inspector.locator('[name=dueDate]').fill('2026-11-18')
+    inspector.locator('.task-editor-more summary').click()
+    inspector.locator('[name=checklistText]').fill('- [ ] Read the chapters\n- [x] Plan the review')
+    inspector.get_by_role('button',name='Save changes').press('Enter')
+    expect(page.locator('.orbit-task-dialog')).to_have_count(0)
     assert page.locator('.task-row').filter(has_text='M1 edited task').count()==1
     focus(page,'active')
     rail=page.locator('.rail-task').filter(has_text='M1 edited task')
@@ -282,7 +297,7 @@ def normal_flows(browser):
     # preserves a complete scene object, including an intentionally empty one.
     # Duplicate a drawn sticky; the copy must have a new ID, independent text,
     # matching paper tint and drawing, and remain after a full page reload.
-    page.locator('.sticky-note').first.locator('.sticky-more-menu summary').click()
+    page.locator('.sticky-note').first.locator('.sticky-more-menu > summary').click()
     page.locator('.sticky-note').first.get_by_role('button',name='Duplicate sticky note').click()
     expect(page.locator('.sticky-note')).to_have_count(2)
     notes=page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes")
@@ -312,13 +327,8 @@ def normal_flows(browser):
       window.dispatchEvent(new PointerEvent('pointerup',{...opts,clientX:x+150,clientY:y+115}));
     }""")
     assert page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].width") > width_before
-    canvas_geometry=page.locator('.sticky-note').first.locator('.sticky-drawing').evaluate(
-      """e => ({hidden:e.hidden,display:getComputedStyle(e).display,
-        clientWidth:e.clientWidth,scrollWidth:e.scrollWidth,
-        offsetHeight:e.offsetHeight,scrollHeight:e.scrollHeight,
-        parentHeight:e.parentElement?.clientHeight})""")
-    assert not canvas_geometry['hidden'] and canvas_geometry['display']!='none',canvas_geometry
-    assert canvas_geometry['offsetHeight']>=50,canvas_geometry
+    assert page.locator('.sticky-note').first.locator('.sticky-drawing').evaluate(
+      'e => e.getBoundingClientRect().height >= 100')
     focus(page,'journal')
     page.locator('#journal-draw').click()
     expect(page.locator('.orbit-scene-dialog .excalidraw')).to_be_visible(timeout=25000)

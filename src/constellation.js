@@ -15,7 +15,7 @@ export class Constellation {
     this.branches=[];this.tasks=[];this.projectIds=new Set();this.closeBranchMenu=null;this.mode='deadline';this.displayName='My space';this.collapsedBranchIds=[];this.layout=createLayout([],[],this.displayName);this.bounds=getDisplayBounds(this.layout);
     this.nodeMap=new Map();this.stackMap=new Map();this.domNodes=new Map();this.domStacks=new Map();this.edgeEntries=[];
     this.camera={x:0,y:0,scale:.2};this.cameraAnimation=0;this.springAnimation=0;
-    this.focusedNode='';this.expandedTaskId='';this.selectedTaskId='';this.offsets=new Map();
+    this.focusedNode='';this.expandedTaskId='';this.selectedTaskId='';this.taskDialog=null;this.offsets=new Map();
     this.pointerPositions=new Map();this.gesture=null;this.mapInitialized=false;this.atOverview=true;this.matchIds=null;this.lastBackgroundTap=null;
     this.width=innerWidth;this.height=innerHeight;
     this.labelLayer=node('div','overview-label-layer');this.viewport.append(this.labelLayer);this.overviewLabels=new Map();
@@ -503,38 +503,52 @@ export class Constellation {
   }
   openTaskEditor(row,task){
     this.expandedTaskId=task.id;row.classList.add('is-expanded');row.setAttribute('aria-expanded','true');
+    if(this.taskDialog?.open)return;
     const content=row.querySelector('.task-reveal-content'),view=content.querySelector('.task-detail-view');
-    if(content.querySelector('.task-editor'))return;
     view.hidden=true;
+    const dialog=node('dialog','orbit-task-dialog');
+    dialog.setAttribute('aria-label','Edit task: '+task.title);
+    const heading=node('header','task-dialog-heading');
+    heading.append(node('h2','task-dialog-title',task.title));
+    dialog.append(heading);this.taskDialog=dialog;
     const form=node('form','task-editor');
-    const field=(label,key,tag='input')=>{
+    const field=(label,key,tag='input',parent=form)=>{
       const wrapper=node('label','inline-field');wrapper.append(node('span','inline-field-title',label));
       const input=node(tag,'inline-input');input.name=key;
       if(tag==='textarea'){input.rows=2;}
       else if(key==='dueDate')input.type='date';else if(key==='effortMinutes') {input.type='number';input.min=0;input.max=1440;}
       else if(key==='resourceUrl')input.type='url';
-      input.value=String(task[key]??'');wrapper.append(input);form.append(wrapper);return input;
+      input.value=String(task[key]??'');wrapper.append(input);parent.append(wrapper);return input;
     };
     const title=field('Task','title');title.maxLength=180;
     field('Done when','criteria','textarea');field('Description','description','textarea');
     const pair=node('div','inline-edit-pair');
     const due=node('label','inline-field');due.append(node('span','inline-field-title','Deadline'));const date=node('input','inline-input');date.type='date';date.name='dueDate';date.value=task.dueDate;due.append(date);pair.append(due);
     const urg=node('label','inline-field');urg.append(node('span','inline-field-title','Urgency'));const urgency=node('select','inline-input');urgency.name='urgency';for(let i=1;i<=5;i++){const op=node('option','',`U${i}`);op.value=String(i);urgency.append(op);}urgency.value=String(task.urgency);urg.append(urgency);pair.append(urg);form.append(pair);
+    const extras=node('details','task-editor-more');
+    const extrasSummary=node('summary','', 'Additional fields');
+    extras.append(extrasSummary);form.append(extras);
     const branch=node('label','inline-field');branch.append(node('span','inline-field-title','Attached to branch'));
     const select=node('select','inline-input');select.name='projectId';
     for(const b of this.branches){const option=node('option','',branchPath(b.id,this.branches));option.value=b.id;select.append(option);}
-    select.value=task.projectId;branch.append(select);form.append(branch);
+    select.value=task.projectId;branch.append(select);extras.append(branch);
     const pair2=node('div','inline-edit-pair');
     const effort=node('label','inline-field');effort.append(node('span','inline-field-title','Minutes'));const mins=node('input','inline-input');mins.type='number';mins.min='0';mins.max='1440';mins.name='effortMinutes';mins.value=String(task.effortMinutes||'');effort.append(mins);pair2.append(effort);
-    const statusWrap=node('label','inline-field');statusWrap.append(node('span','inline-field-title','Status'));const status=node('select','inline-input');status.name='status';for(const s of STATUS){const opt=node('option','',STATUS_LABEL[s]);opt.value=s;status.append(opt);}status.value=task.status;statusWrap.append(status);pair2.append(statusWrap);form.append(pair2);
-    field('Supporting link','resourceUrl');
-    const links=field('More links (one per line: Name | https://url)','extraLinks','textarea');
+    const statusWrap=node('label','inline-field');statusWrap.append(node('span','inline-field-title','Status'));const status=node('select','inline-input');status.name='status';for(const s of STATUS){const opt=node('option','',STATUS_LABEL[s]);opt.value=s;status.append(opt);}status.value=task.status;statusWrap.append(status);pair2.append(statusWrap);extras.append(pair2);
+    field('Supporting link','resourceUrl','input',extras);
+    const links=field('More links (one per line: Name | https://url)','extraLinks','textarea',extras);
     links.rows=3;links.value=(task.links||[]).map(link=>link.label+' | '+link.url).join('\n');
-    const checklistField=field('Checklist (one line per item; - [x] marks done)','checklistText','textarea');
+    const checklistField=field('Checklist (one line per item; - [x] marks done)','checklistText','textarea',extras);
     checklistField.rows=3;checklistField.maxLength=7500;
     checklistField.value=taskChecklistLines(task.checklist||[]);
     const actions=node('div','editor-actions');const save=node('button','node-mini-primary','Save changes');save.type='submit';const cancel=node('button','node-mini-secondary','Cancel');cancel.type='button';actions.append(save,cancel);form.append(actions);
-    const dismiss=()=>{form.remove();view.hidden=false;row.focus({preventScroll:true});};
+    const dismiss=()=>{if(dialog.open)dialog.close();};
+    dialog.addEventListener('close',()=>{
+      this.taskDialog=null;dialog.remove();view.hidden=false;
+      const current=[...this.nodesEl.querySelectorAll('.task-row')]
+        .find(item=>item.dataset.taskId===task.id);
+      if(!this.disposed)current?.focus({preventScroll:true});
+    });
     cancel.addEventListener('click',e=>{e.stopPropagation();dismiss();});
     form.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();dismiss();}});
     form.addEventListener('click',e=>e.stopPropagation());form.addEventListener('pointerdown',e=>e.stopPropagation());
@@ -546,9 +560,11 @@ export class Constellation {
       }catch(error){this.onTaskError?.(error.message);return;}
       delete patch.extraLinks;delete patch.checklistText;
       if(!String(patch.title).trim()){title.focus();return;}
-      this.onTaskUpdate?.(task.id,patch);
+      const result=this.onTaskUpdate?.(task.id,patch);
+      if(result!==false)dismiss();
     });
-    content.append(form);title.focus({preventScroll:true});
+    dialog.append(form);document.body.append(dialog);dialog.showModal();
+    title.focus({preventScroll:true});
   }
   selectTask(id){this.selectedTaskId=id;this.applySelectedStyles();}
   highlightTasks(ids=null){this.matchIds=ids===null?null:new Set(ids);this.nodesEl.classList.toggle('search-active',this.matchIds!==null);
@@ -560,6 +576,6 @@ export class Constellation {
     for(const r of this.nodesEl.querySelectorAll('.task-row'))r.classList.toggle('is-selected',r.dataset.taskId===this.selectedTaskId);
     for(const e of this.edgeEntries)e.path.classList.toggle('is-selected',e.to===this.focusedNode);
   }
-  dispose(){this.closeBranchMenu?.(false);this.disposed=true;this.observer.disconnect();cancelAnimationFrame(this.cameraAnimation);cancelAnimationFrame(this.springAnimation);this.cameraAnimation=0;this.springAnimation=0;this.nodesEl.replaceChildren();this.edgesEl.replaceChildren();this.domNodes.clear();this.domStacks.clear();}
+  dispose(){this.closeBranchMenu?.(false);this.disposed=true;this.taskDialog?.close();this.taskDialog?.remove();this.taskDialog=null;this.observer.disconnect();cancelAnimationFrame(this.cameraAnimation);cancelAnimationFrame(this.springAnimation);this.cameraAnimation=0;this.springAnimation=0;this.nodesEl.replaceChildren();this.edgesEl.replaceChildren();this.domNodes.clear();this.domStacks.clear();}
 
 }
