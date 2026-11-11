@@ -6,7 +6,7 @@ const synthetic=()=>({
   id:'projects',position:{x:2250,y:250},limits:{minW:340,minH:230,maxW:1500,maxH:1800},icon:'◆'
 });
 
-test('SP-01A original widgets keep their IDs, coordinates and bounds exactly',()=>{
+test('SP-01A original widget identities and positions are preserved; Journal uses storage-safe expanded bounds',()=>{
   assert.deepEqual(CORE_WIDGET_IDS,['timeline','constellation','active','completed','space','journal']);
   assert.deepEqual(DEFAULT_WIDGET_REGISTRY.defaults(),{
     timeline:{x:445,y:105},constellation:{x:410,y:670},
@@ -14,7 +14,7 @@ test('SP-01A original widgets keep their IDs, coordinates and bounds exactly',()
     space:{x:280,y:1725},journal:{x:930,y:1780},
   });
   assert.deepEqual(DEFAULT_WIDGET_REGISTRY.get('journal').limits,
-    {minW:420,minH:720,maxW:1500,maxH:2400});
+    {minW:420,minH:720,maxW:4000,maxH:4000});
   assert.equal(DEFAULT_WIDGET_REGISTRY.get('missing'),null);
 });
 
