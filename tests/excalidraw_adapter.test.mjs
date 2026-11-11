@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { emptyScene } from '../src/scene.js';
-import { createEmbeddedInitialData, captureEmbeddedScene, embeddedEditorOptions, embeddedEditorTheme } from '../src/excalidraw-adapter.js';
+import { createEmbeddedInitialData, captureEmbeddedScene, loadEmbeddedFiles,
+  captureEmbeddedSceneWithMedia, embeddedEditorOptions, embeddedEditorTheme } from '../src/excalidraw-adapter.js';
 
 const pen=()=>({id:'orbit_pen_1',type:'freedraw',x:2,y:3,width:30,height:14,points:[[0,0],[30,14]],
   strokeColor:'#785C45',backgroundColor:'transparent',angle:0});
@@ -78,8 +79,8 @@ test('EX-00: malicious or oversize scene import fails before changing the existi
   assert.throws(()=>captureEmbeddedScene([{...pen(),id:'duplicate'},{...rectangle(),id:'duplicate'}],{},{}),/duplicate/i);
 });
 
-test('EX-00: Excalidraw is constrained to local, image-free, explicit-save editing',()=>{
-  assert.equal(embeddedEditorOptions.tools.image,false);
+test('EX-02: Excalidraw supports private images while disabling remote scene publishing',()=>{
+  assert.equal(embeddedEditorOptions.tools.image,true);
   assert.equal(embeddedEditorOptions.canvasActions.loadScene,false);
   assert.equal(embeddedEditorOptions.canvasActions.saveToActiveFile,false);
   assert.equal(embeddedEditorOptions.canvasActions.export,false);
@@ -99,4 +100,74 @@ test('EX-01: a legacy native pen click is retained as a tiny visible point, not 
   assert.deepEqual(initial.elements[0].points,[[0,0],[4,4]]);
   assert.deepEqual(initial.elements[0].pressures,[0.5,0.5]);
   assert.deepEqual(legacy,unchanged,'Original private scene must be immutable until explicit Save');
+});
+
+const OWNER='11111111-1111-4111-8111-111111111111';
+const OTHER='22222222-2222-4222-8222-222222222222';
+const PATH=OWNER+'/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa.png';
+const PNG=new Blob([Uint8Array.from([137,80,78,71,13,10,26,10,0,0,0,0])],{type:'image/png'});
+const fileData=async()=>({id:'file_1',mimeType:'image/png',
+  dataURL:'data:image/png;base64,'+btoa(String.fromCharCode(...new Uint8Array(await PNG.arrayBuffer()))),
+  created:Date.now()});
+const image=()=>({id:'image_1',type:'image',x:-450,y:90,width:320,height:180,fileId:'file_1',
+  strokeColor:'#785C45',backgroundColor:'transparent',angle:0});
+
+test('EX-02 private image placed freely in Excalidraw saves only owner-scoped file reference',async()=>{
+  let uploads=0;
+  const file=await fileData();
+  const media={ownerId:OWNER,upload:async blob=>{
+    uploads++;assert.equal(blob.type,'image/png');assert.equal(blob.size,12);return PATH;
+  },download:async path=>{assert.equal(path,PATH);return PNG;}};
+  const saved=await captureEmbeddedSceneWithMedia([image(),pen()],{viewBackgroundColor:'#eeddcc'},
+    {file_1:file},{media,originalScene:null});
+  assert.equal(uploads,1);
+  assert.equal(saved.elements.length,2);
+  assert.deepEqual(saved.files,{file_1:{path:PATH,mimeType:'image/png'}});
+  assert.equal(JSON.stringify(saved).includes('data:image/'),false);
+  const initial=createEmbeddedInitialData(saved);
+  assert.equal(initial.elements[0].fileId,'file_1');
+  const restored=await loadEmbeddedFiles(saved,{media});
+  assert.equal(restored.file_1.mimeType,'image/png');
+  assert.equal(restored.file_1.dataURL,file.dataURL);
+  const unchanged=structuredClone(saved);
+  const edit=await captureEmbeddedSceneWithMedia([{...image(),x:850,y:-690}],{},restored,
+    {media,originalScene:saved});
+  assert.equal(uploads,1,'repositioning existing images never reuploads private files');
+  assert.equal(edit.elements[0].x,850);
+  assert.deepEqual(edit.files,saved.files);
+  assert.deepEqual(saved,unchanged,'editor opens and saves clones; source snapshot never mutates');
+});
+
+test('EX-02 image save failure leaves prior scene intact and prevents foreign image references',async()=>{
+  const existing=emptyScene();existing.elements=[rectangle()];
+  const file=await fileData();
+  let uploaded=0;
+  const media={ownerId:OWNER,upload:async()=>{uploaded++;throw Error('offline');}};
+  await assert.rejects(captureEmbeddedSceneWithMedia([image()],{}, {file_1:file},
+    {media,originalScene:existing}),/offline/);
+  assert.equal(uploaded,1);
+  assert.deepEqual(existing.elements,[rectangle()]);
+  await assert.rejects(captureEmbeddedSceneWithMedia([image()],{}, {file_1:file},
+    {media:{ownerId:OWNER,upload:async()=>OTHER+'/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa.png'}}),
+    /wrong account|path/i);
+  for(const files of [{}, {file_1:{...file,mimeType:'image/svg+xml'}},
+    {file_1:{...file,dataURL:'javascript:alert(1)'}},
+    {file_1:{...file,dataURL:'data:image/png;base64,AAAA'}}]){
+    await assert.rejects(captureEmbeddedSceneWithMedia([image()],{}, files,{media,originalScene:null}));
+  }
+  await assert.rejects(loadEmbeddedFiles({...emptyScene(),elements:[image()],
+    files:{file_1:{path:PATH,mimeType:'image/png'}}},
+  {media:{ownerId:OTHER,download:async()=>PNG}}),/another account/i);
+});
+
+test('EX-02 deleted image references are pruned without deleting storage objects',async()=>{
+  const original=emptyScene();
+  original.elements=[image()];
+  original.files={file_1:{path:PATH,mimeType:'image/png'}};
+  const saved=await captureEmbeddedSceneWithMedia([{...image(),isDeleted:true},rectangle()],{}, {},
+    {media:null,originalScene:original});
+  assert.deepEqual(saved.files,{});
+  assert.equal(saved.elements.length,1);
+  assert.deepEqual(original.files,{file_1:{path:PATH,mimeType:'image/png'}},
+    'deleting an image from canvas must not delete Storage blobs');
 });

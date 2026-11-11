@@ -139,3 +139,39 @@ test('BP-13 Journal Write/Canvas view modes remain private, reversible and porta
   assert.throws(()=>normalizeExtensions({journalModes:{journal_1:'script'}}),/journal/i);
   assert.throws(()=>normalizeExtensions({journalModes:{__proto__:'canvas',good:'invalid'}}),/journal/i);
 });
+
+test('EX-02 canvas image references remain private, bounded and geometry-aware',()=>{
+  const path='11111111-1111-4111-8111-111111111111/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa.png';
+  const scene=emptyScene();
+  scene.files.file_1={path,mimeType:'image/png'};
+  scene.elements=[{id:'my-image',type:'image',fileId:'file_1',
+    x:-1100,y:900,width:550,height:230,angle:Math.PI/4}];
+  const original=structuredClone(scene);
+  assert.deepEqual(normalizeScene(scene),original);
+  const extensions=normalizeExtensions({notes:[note({scene,mode:'canvas'})],
+    journalScenes:{journal_1:scene},journalModes:{journal_1:'canvas'}});
+  assert.equal(extensions.notes[0].scene.files.file_1.path,path);
+  assert.equal(extensions.journalScenes.journal_1.files.file_1.mimeType,'image/png');
+  assert.deepEqual(normalizeExtensions(extensions),extensions);
+  const bounds=scenePreviewBounds(scene);
+  assert.ok(bounds.x<=-1100&&bounds.y<=900);
+  assert.ok(bounds.x+bounds.width>=-550&&bounds.y+bounds.height>=1130);
+  assert.deepEqual(scene,original,'preview must not mutate stored private references');
+  assert.equal(JSON.stringify(scene).includes('data:image/'),false,'no binary data in workspace snapshot');
+});
+
+test('EX-02 scene rejects binary data URLs, forged paths, orphan image elements and unsafe media',()=>{
+  const path='11111111-1111-4111-8111-111111111111/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa.png';
+  const image={id:'img_1',type:'image',x:0,y:0,width:80,height:70,fileId:'file_1'};
+  for(const invalid of [
+    {...emptyScene(),elements:[image]},
+    {...emptyScene(),elements:[image],files:{file_1:{path:'../../escape.png',mimeType:'image/png'}}},
+    {...emptyScene(),elements:[image],files:{file_1:{path,mimeType:'image/jpeg'}}},
+    {...emptyScene(),elements:[image],files:{file_1:{path,mimeType:'image/png',dataURL:'data:image/png;base64,AAAA'}}},
+    {...emptyScene(),elements:[image],files:{__proto__:{path,mimeType:'image/png'}}},
+    {...emptyScene(),elements:[{...image,fileId:'unknown'}],files:{file_1:{path,mimeType:'image/png'}}},
+    {...emptyScene(),elements:[{...image,type:'embeddable'}]},
+    {...emptyScene(),elements:[{...image,type:'iframe'}]},
+    {...emptyScene(),elements:[image],files:Object.fromEntries(Array.from({length:33},(_,i)=>['f_'+i,{path,mimeType:'image/png'}]))}
+  ])assert.throws(()=>normalizeScene(invalid),undefined,JSON.stringify(invalid));
+});

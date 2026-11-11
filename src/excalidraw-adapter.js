@@ -1,15 +1,14 @@
-/** EX-00: a tested, framework-neutral seam for the official upstream React Excalidraw island.
- *
- * The existing ORBIT drawing model is .excalidraw v2 with files:{}.
- * This adapter intentionally stores only durable drawing data. Private binary
- * assets require the separately reviewed EX-02 storage/backup extension.
- *
+/** EX-02: framework-neutral bridge between Excalidraw binary image files and
+ * ORBIT's owner-private, portable media path references. No inline binaries in snapshots.
  * This module contains NO React imports or browser side effects.
  */
 import { emptyScene, normalizeScene } from './scene.js';
+import { validateImage, validMediaOwner } from './cloud/media.js';
 
 const MAX_ELEMENTS=400;
-const BLOCKED_TYPES=new Set(['image','embeddable','iframe']);
+const BLOCKED_TYPES=new Set(['embeddable','iframe']);
+const MAX_IMAGE_BYTES=5*1024*1024;
+const IMAGE_TYPES=new Set(['image/png','image/jpeg','image/webp']);
 const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const hexColor=value=>typeof value==='string'&&/^#[0-9a-fA-F]{6}$/.test(value);
 const safeUrl=href=>{
@@ -24,24 +23,48 @@ const sanitizeAppState=appState=>({
     : emptyScene().appState.viewBackgroundColor,
 });
 
-function assertSceneSafety(elements,files){
-  if(!Array.isArray(elements)||!object(files)||Object.keys(files).length)
-    throw Error('Drawing scene cannot include embedded image files.');
+function assertSceneSafety(elements,files,{allowImages=false}={}){
+  if(!Array.isArray(elements)||!object(files)||(!allowImages&&Object.keys(files).length))
+    throw Error('Drawing scene has unsupported embedded files.');
   const ids=new Set();
   for(const item of elements){
-    if(!object(item)||BLOCKED_TYPES.has(item.type))
-      throw Error('Drawing scene contains unsupported binary images or remote embeds.');
+    if(!object(item)||BLOCKED_TYPES.has(item.type)||(!allowImages&&item.type==='image'))
+      throw Error('Drawing scene contains unsupported images or remote embeds.');
     if(ids.has(item.id))throw Error('Duplicate drawing element ID.');
     ids.add(item.id);
-    if(item.link&& !safeUrl(item.link))
-      throw Error('Drawing scene contains an unsafe external link.');
+    if(item.link&&!safeUrl(item.link))throw Error('Drawing scene contains an unsafe external link.');
+    if(item.type==='image'&&(typeof item.fileId!=='string'||!item.fileId||item.fileId.length>100))
+      throw Error('Invalid Excalidraw image file ID.');
   }
+}
+
+const toBase64=bytes=>{
+  let text='';
+  for(let i=0;i<bytes.length;i+=24576)
+    text+=btoa(String.fromCharCode(...bytes.subarray(i,i+24576)));
+  return text;
+};
+
+async function embeddedBlob(file){
+  if(!object(file)||!IMAGE_TYPES.has(file.mimeType)||typeof file.dataURL!=='string')
+    throw Error('Only private PNG, JPEG and WebP images under 5 MB can be saved.');
+  const prefix='data:'+file.mimeType+';base64,';
+  const encoded=file.dataURL.startsWith(prefix)?file.dataURL.slice(prefix.length):'';
+  if(!encoded||encoded.length>4*Math.ceil(MAX_IMAGE_BYTES/3)||
+    !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(encoded))
+    throw Error('Invalid or oversized Excalidraw image data.');
+  let bytes;
+  try{bytes=Uint8Array.from(atob(encoded),char=>char.charCodeAt(0));}
+  catch{throw Error('Invalid Excalidraw base64 image.');}
+  const blob=new Blob([bytes],{type:file.mimeType});
+  await validateImage(blob);
+  return blob;
 }
 
 /** Data for official <Excalidraw initialData={...}/>; never hands it the live ORBIT object. */
 export function createEmbeddedInitialData(savedScene){
   const normalized=normalizeScene(savedScene)||emptyScene();
-  assertSceneSafety(normalized.elements,normalized.files);
+  assertSceneSafety(normalized.elements,normalized.files,{allowImages:true});
   // The legacy native pen allows a single-pointer click: 0x0 with one point.
   // Upstream Excalidraw treats such strokes as invisible and drops them during
   // restoration. Expand the *clone* to a minimal visible dot, never mutate the
@@ -58,8 +81,27 @@ export function createEmbeddedInitialData(savedScene){
   return {
     elements,
     appState:sanitizeAppState(normalized.appState),
-    files:{},
+    files:{}, // populated through authenticated loadEmbeddedFiles before mounting React
   };
+}
+
+/** Load only referenced owner-private images. BinaryFiles live only in editor memory. */
+export async function loadEmbeddedFiles(savedScene,{media}={}){
+  const normalized=normalizeScene(savedScene)||emptyScene();
+  const entries=Object.entries(normalized.files);
+  if(!entries.length)return {};
+  if(!media?.download||typeof media.ownerId!=='string')
+    throw Error('Sign in to access private Excalidraw images. Your scene has not changed.');
+  const files={};
+  for(const [id,ref] of entries){
+    if(!validMediaOwner(ref.path,media.ownerId))throw Error('A canvas image belongs to another account.');
+    const blob=await media.download(ref.path);
+    if(blob.type!==ref.mimeType)throw Error('Private canvas image type mismatch.');
+    await validateImage(blob);
+    const bytes=new Uint8Array(await blob.arrayBuffer());
+    files[id]={id,mimeType:ref.mimeType,dataURL:'data:'+ref.mimeType+';base64,'+toBase64(bytes),created:Date.now()};
+  }
+  return files;
 }
 
 /** From official onChange(elements, appState, files) at EXPLICIT Save time only.
@@ -70,13 +112,37 @@ export function captureEmbeddedScene(elements,appState,files){
   assertSceneSafety(elements,files);
   const visible=elements.filter(element=>element.isDeleted!==true);
   if(visible.length>MAX_ELEMENTS)throw Error('Drawing scene is larger than the supported 400 elements.');
-  const draft={
-    ...emptyScene(),
-    elements:visible,
-    appState:sanitizeAppState(appState),
-    files:{},
-  };
-  return normalizeScene(draft);
+  return normalizeScene({...emptyScene(),elements:visible,appState:sanitizeAppState(appState),files:{}});
+}
+
+/** Explicit Save only. Upload images first; never modify a scene on partial failure.
+ * Old stored references can be reused, and deleted image elements are pruned.
+ * Uploaded but unreferenced files are kept private for later safe media cleanup.
+ */
+export async function captureEmbeddedSceneWithMedia(elements,appState,files,{media,originalScene}={}){
+  assertSceneSafety(elements,files,{allowImages:true});
+  const visible=elements.filter(element=>element.isDeleted!==true);
+  if(visible.length>MAX_ELEMENTS)throw Error('Drawing scene is larger than the supported 400 elements.');
+  const previous=normalizeScene(originalScene)||emptyScene();
+  const ids=[...new Set(visible.filter(el=>el.type==='image').map(el=>el.fileId))];
+  if(ids.length>32)throw Error('A canvas supports at most 32 private images.');
+  const references={};
+  for(const id of ids){
+    if(Object.hasOwn(previous.files,id)){
+      references[id]=previous.files[id];
+      continue;
+    }
+    if(!media?.upload||typeof media.ownerId!=='string')
+      throw Error('Sign in to save private images in Excalidraw. Nothing was changed.');
+    if(!Object.hasOwn(files,id))throw Error('Excalidraw image data is missing; nothing was saved.');
+    const blob=await embeddedBlob(files[id]);
+    const path=await media.upload(blob);
+    if(!validMediaOwner(path,media.ownerId))
+      throw Error('A private image upload returned the wrong account path. No scene was saved.');
+    references[id]={path,mimeType:blob.type};
+  }
+  return normalizeScene({...emptyScene(),elements:visible,
+    appState:sanitizeAppState(appState),files:references});
 }
 
 /** Curated page themes; dark canvas only for intentionally dark themes. */
@@ -84,11 +150,11 @@ export function embeddedEditorTheme(themeId){
   return ['garden','graphite'].includes(themeId)?'dark':'light';
 }
 
-/** Until EX-02, image uploads and remote embeds cannot be persisted or backed up.
- * Keep built-in remote scene import/export actions hidden; ORBIT owns Save/Cancel.
+/** Images may be placed freely in the editor. ORBIT owns private file upload,
+ * portable backup and explicit Save/Cancel, not upstream remote exports.
  */
 export const embeddedEditorOptions=Object.freeze({
-  tools:Object.freeze({image:false}),
+  tools:Object.freeze({image:true}),
   canvasActions:Object.freeze({
     changeViewBackgroundColor:true,
     clearCanvas:true,

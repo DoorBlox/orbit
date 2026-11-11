@@ -57,6 +57,16 @@ export function collectReferencedPaths(snapshot){
   for(const path of Object.values(extensions.journalImages??{})){
     if(path)paths.push(path);
   }
+  const addCanvasFiles=scene=>{
+    if(!scene)return;
+    if(!object(scene.files))throw imageError();
+    for(const ref of Object.values(scene.files)){
+      if(!object(ref)||!validMediaPath(ref.path))throw imageError();
+      paths.push(ref.path);
+    }
+  };
+  for(const note of extensions.notes??[])addCanvasFiles(note?.scene);
+  for(const scene of Object.values(extensions.journalScenes??{}))addCanvasFiles(scene);
   if(paths.some(path=>!validMediaPath(path)))throw imageError();
   return [...new Set(paths)].sort();
 }
@@ -152,6 +162,15 @@ export async function rehydratePortableArchive(inspection,{ownerId:targetOwnerId
       if(!remap.has(path))throw imageError();
       restored.extensions.journalImages[id]=remap.get(path);
     }
+    const remapCanvas=scene=>{
+      if(!scene)return;
+      for(const file of Object.values(scene.files??{})){
+        if(!remap.has(file.path))throw imageError();
+        file.path=remap.get(file.path);
+      }
+    };
+    for(const note of restored.extensions.notes??[])remapCanvas(note.scene);
+    for(const scene of Object.values(restored.extensions.journalScenes??{}))remapCanvas(scene);
   }
   return restored;
 }

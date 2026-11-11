@@ -49,6 +49,7 @@ export function createPrivateMedia(client,{ownerId}={}){
     return blob;
   }
   return {
+    ownerId, // public account identifier for owner-bound canvas path verification; never an auth credential
     download,
     async upload(file){
       const extension=await validateImage(file);
@@ -71,10 +72,10 @@ export function createPrivateMedia(client,{ownerId}={}){
       await checkUser();
       if(previews.has(path))return previews.get(path);
       const pending=(async()=>{
-        const result=await bucket.download(path);
-        if(result.error||!(result.data instanceof Blob)||result.data.size<12||result.data.size>MAX)
-          throw Error('Private image could not be downloaded.');
-        const url=URL.createObjectURL(result.data);
+        // Download validates owner, session both before AND after Storage resolves,
+        // as well as file signature. Never cache a foreign or stale-session Blob.
+        const blob=await download(path);
+        const url=URL.createObjectURL(blob);
         if(disposed){URL.revokeObjectURL(url);throw Error('Your media session expired. Sign in again.');}
         return url;
       })().catch(error=>{previews.delete(path);throw error;});
