@@ -32,8 +32,8 @@
       "reason": "PJ-01: reject orphan project identity keys before V6 atomic restore."
     },
     "src/board.js": {
-      "sha256": "90fc70a86ecaa4d90aa7b55301f324aefbfd509f5a673aa3f64112846e7cc9fe",
-      "reason": "TOUCH-01: window-level pointer tracking and cancellation for hybrid touchscreen navigator drag."
+      "sha256": "05620f6fef22db098a26c2b6b08cacaa7a60be39e11c4e2299e36a35f1397bd1",
+      "reason": "TOUCH-01: robust cancellation handles missing/stale capture and synthetic teardown; track hybrid touch on window."
     },
     "src/bootstrap.js": {
       "sha256": "d890dbb33689b72f19e1713618734831718bdcf7979056a506ed8db89b44eb99",

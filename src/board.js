@@ -359,9 +359,9 @@ export class SpatialBoard {
   }
   cancelNavigatorPan(){
     const id=this.navPointer;
-    if(id===null)return;
-    this.navPointer=null;this.navDragStart=null;this.nav.classList.remove('is-dragging');
-    try{if(this.nav.hasPointerCapture?.(id))this.nav.releasePointerCapture(id);}catch{}
+    if(id==null)return;
+    this.navPointer=null;this.navDragStart=null;this.nav?.classList?.remove('is-dragging');
+    try{if(this.nav?.hasPointerCapture?.(id))this.nav.releasePointerCapture(id);}catch{}
   }
   render(){this.world.style.transform=`translate3d(${this.pan.x.toFixed(2)}px,${this.pan.y.toFixed(2)}px,0) scale(${this.scale.toFixed(4)})`;
     document.getElementById('board-scale-label').textContent=`${Math.round(this.scale*100)}%`;
