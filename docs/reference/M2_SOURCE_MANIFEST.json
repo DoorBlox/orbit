@@ -12,8 +12,8 @@
       "reason": "BP-13: Journal Write/Canvas mode tabs and separately contained full freeform preview."
     },
     "src/app.js": {
-      "sha256": "b881a74cedfadaae5626087c912380e70e96319ca7d5c610b0fe00f81519717e",
-      "reason": "BP-13: per-page reversible Write/Canvas UX and read-only-safe toggles; retain BP-06 task update success."
+      "sha256": "38e7d01a23c2c4ecc835e2979482d2e1ba053ddb291a3a0fc63e162902d522f2",
+      "reason": "EX-02: private Journal canvas image previews and no legacy bottom attachment in Canvas mode."
     },
     "src/auth/README.md": {
       "sha256": "1ec9f199e2ab8b76ff9a7d462f1804d6653706a8eb4b005e23311d76c9d1f7d5",
@@ -112,24 +112,24 @@
       "reason": "Preserve task/timeline projection over canonical owner snapshots and read-only controls."
     },
     "src/scene.js": {
-      "sha256": "056dc791c4c9e8cdfa61f08dabf0ba6b7eddfdbaffe43ca0934ac35bbfd1d5c6",
-      "reason": "BP-13: validated private optional per-Journal-page canvas mode without replacing legacy text or scenes."
+      "sha256": "cd9aae3cd2d169912363accda29a746f203ca83ed3f8eb493af946d86596508a",
+      "reason": "EX-02: owner-private canvas image file refs, image previews and explicit async upload/save."
     },
     "src/stickies.js": {
-      "sha256": "2eca3eeb1bae77c635c5d445e93898f958104f4f5a4c09084131faa12f57929d",
-      "reason": "BP-06: quiet sticky reading view, full canvas, contextual tools and stable touch resize."
+      "sha256": "09964fbea84c68a34a4eb4c1596059da2a9cbdd7c0b5ca6caafed1199ab66b05",
+      "reason": "EX-02: owner-private media support in Sticky Canvas previews and editor."
     },
     "src/cloud/media.js": {
-      "sha256": "66d990c2e18283442a38970f1c9950fe9989e47b48e9a53b026c105d70482498",
-      "reason": "BP-02: authenticated Storage image download with post-request account recheck and signature verification."
+      "sha256": "99eac387f80b7d9fe7214439ef935eff63686068a3ed3f50e0c9623f526b95a3",
+      "reason": "EX-02: private media owner identity and post-download auth validation before preview caching."
     },
     "src/cloud/portable-backup.js": {
-      "sha256": "00145ed6f440ff793a10e595474008f7490661fab0e7f9383a5b3302c315a7d0",
-      "reason": "BP-02: new versioned image-inclusive portable archive codec; bounded authenticated paths, MIME, SHA-256 and owner remapping."
+      "sha256": "791ae983c344f55671d51056be4aea9b0112dac08eafa3701e258bbda69013c1",
+      "reason": "EX-02: checksummed archive of referenced canvas images and cross-owner path remapping."
     },
     "src/excalidraw-adapter.js": {
-      "sha256": "3f98f283ab5571da5481d9a44b612ab58a073041d7a05a5b5923ee8739ec901b",
-      "reason": "EX-01: upgrade zero-size legacy single-point pen strokes on a cloned Excalidraw initialData scene so upstream does not drop them silently, with original ORBIT scene preserved until explicit Save."
+      "sha256": "518c725d2029ec5a058ece001c93af87faedabdb3eece41f7e7464fdf9cbcd43",
+      "reason": "EX-02: owner-verified private binary hydration, save after Storage upload, image saved-status and cross-account file ID rejection."
     },
     "src/excalidraw-island.entry.mjs": {
       "sha256": "29b7d1a41ab7f21531898688311d124255aecfca3bde9b2c19aa6eb43fdf882e",

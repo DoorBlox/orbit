@@ -1,6 +1,6 @@
 /* Shared .excalidraw scene interchange for journals and spatial stickies.
- * Inline pen editing is intentionally native; the full upstream React editor
- * is not bundled. Binary image payloads await private media storage.
+ * EX-02 keeps binary image assets in authenticated private Storage; scenes save
+ * only bounded fileId -> owner-scoped file references, never data URLs.
  */
 import { normalizeTaskChecklist } from './model.js';
 import { normalizeExtraWidgetLayout } from './widget-registry.js';
@@ -21,16 +21,28 @@ export const emptyScene=()=>({type:'excalidraw',version:2,source:'https://orbit.
 export function normalizeScene(scene){
   if(scene===undefined||scene===null)return null;
   if(!object(scene)||scene.type!=='excalidraw'||scene.version!==2||!object(scene.appState)||
-    !object(scene.files)||Object.keys(scene.files).length||!Array.isArray(scene.elements)||scene.elements.length>400)
-    throw Error('Invalid drawing scene or embedded image files (not supported yet).');
+    !object(scene.files)||Object.keys(scene.files).length>32||!Array.isArray(scene.elements)||scene.elements.length>400)
+    throw Error('Invalid drawing scene or too many elements or image references.');
   const serial=JSON.stringify(scene);
   if(serial.length>180000)throw Error('Drawing is larger than 180 KB.');
+  for(const [id,file] of Object.entries(scene.files)){
+    if(!validId(id)||!object(file)||Object.keys(file).length!==2||
+      !Object.hasOwn(file,'path')||!Object.hasOwn(file,'mimeType'))
+      throw Error('Invalid private canvas image reference.');
+    const path=assertImagePath(file.path);
+    const extension=path.split('.').at(-1).toLowerCase();
+    const type={png:'image/png',jpg:'image/jpeg',webp:'image/webp'}[extension];
+    if(file.mimeType!==type)throw Error('Canvas image MIME and file path disagree.');
+  }
   for(const item of scene.elements){
     if(!object(item)||!validId(item.id)||typeof item.type!=='string'||!coord(item.x)||
       !coord(item.y)||!coord(item.width)||!coord(item.height))throw Error('Invalid drawing element.');
     if(item.points!==undefined&&(!Array.isArray(item.points)||item.points.length>2000||item.points.some(p=>
       !Array.isArray(p)||p.length<2||!coord(p[0])||!coord(p[1]))))throw Error('Invalid drawing points.');
     if(item.text!==undefined&&(typeof item.text!=='string'||item.text.length>4000))throw Error('Invalid drawing text.');
+    if(['embeddable','iframe'].includes(item.type))throw Error('Remote embeds are not allowed.');
+    if(item.type==='image'&&(!validId(item.fileId)||!Object.hasOwn(scene.files,item.fileId)))
+      throw Error('Canvas image requires an authenticated private file reference.');
   }
   return JSON.parse(serial);
 }
@@ -129,7 +141,7 @@ export function scenePreviewBounds(scene){
   const x=(minX+maxX-width)/2,y=(minY+maxY-height)/2;
   return {x,y,width,height};
 }
-export function renderScene(scene,target){
+export function renderScene(scene,target,{media=null}={}){
   target.replaceChildren();
   scene=normalizeScene(scene);if(!scene||!scene.elements.length)return;
   const b=scenePreviewBounds(scene);
@@ -146,6 +158,23 @@ export function renderScene(scene,target){
     }else if(item.type==='ellipse'){
       canvas.append(svgNode('ellipse',{...attrs,cx:item.x+item.width/2,cy:item.y+item.height/2,
         rx:Math.abs(item.width/2),ry:Math.abs(item.height/2)}));
+    }else if(item.type==='image'){
+      const file=scene.files[item.fileId];
+      const x=Math.min(item.x,item.x+item.width),y=Math.min(item.y,item.y+item.height);
+      const width=Math.abs(item.width),height=Math.abs(item.height);
+      const outline=svgNode('rect',{x,y,width,height,fill:color('#ded8cf'),stroke:color('#8e8378'),'stroke-width':1});
+      const image=svgNode('image',{x,y,width,height,preserveAspectRatio:'none'});
+      if(Number.isFinite(item.angle)&&item.angle){
+        const degrees=item.angle*180/Math.PI,cx=x+width/2,cy=y+height/2;
+        const flip=Array.isArray(item.scale)&&item.scale.length===2&&item.scale.every(v=>v===1||v===-1)?item.scale:[1,1];
+        image.setAttribute('transform',`translate(${cx} ${cy}) rotate(${degrees}) scale(${flip[0]} ${flip[1]}) translate(${-cx} ${-cy})`);
+      }
+      canvas.append(outline,image);
+      if(file&&media?.previewUrl){
+        Promise.resolve().then(()=>media.previewUrl(file.path)).then(url=>{
+          if(image.isConnected&&target.firstChild===canvas)image.setAttribute('href',url);
+        }).catch(()=>{image.setAttribute('aria-label','Private image unavailable');});
+      }
     }else if(item.type==='text'&&typeof item.text==='string'){
       const font=Math.min(120,Math.max(8,item.fontSize||20));
       const t=svgNode('text',{x:item.x,y:item.y+font,fill:attrs.stroke,'font-size':font});
@@ -159,12 +188,14 @@ export function renderScene(scene,target){
   target.append(canvas);
 }
 function downloadScene(scene){
+  if(Object.keys(normalizeScene(scene)?.files||{}).length)
+    throw Error('Use Download full backup (.orbit) to include all private canvas image bytes.');
   const blob=new Blob([JSON.stringify(normalizeScene(scene)||emptyScene(),null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob),anchor=document.createElement('a');
   anchor.href=url;anchor.download='orbit-drawing.excalidraw';document.body.append(anchor);anchor.click();anchor.remove();
   setTimeout(()=>URL.revokeObjectURL(url),1200);
 }
-export function openSceneEditor(initial,{title='Drawing',onSave,notify=()=>{}}={}){
+export function openSceneEditor(initial,{title='Drawing',onSave,notify=()=>{},media=null}={}){
   let scene=normalizeScene(initial)||emptyScene(),active=null,embedded=null,disposed=false;
   const dialog=document.createElement('dialog');dialog.className='orbit-scene-dialog';
   const panel=document.createElement('div');panel.className='orbit-scene-panel';
@@ -173,11 +204,11 @@ export function openSceneEditor(initial,{title='Drawing',onSave,notify=()=>{}}={
   const bar=document.createElement('div');bar.className='orbit-scene-tools';
   const surface=document.createElement('div');surface.className='orbit-scene-surface';
   const preview=document.createElement('div');preview.className='orbit-scene-preview';surface.append(preview);
-  const repaint=()=>renderScene({...scene,elements:active?[...scene.elements,active]:scene.elements},preview);
+  const repaint=()=>renderScene({...scene,elements:active?[...scene.elements,active]:scene.elements},preview,{media});
   const button=(label,handler,parent=bar)=>{const b=document.createElement('button');b.type='button';
     b.className='glass-button';b.textContent=label;b.addEventListener('click',handler);parent.append(b);return b;};
   button('Undo',()=>{scene={...scene,elements:scene.elements.slice(0,-1)};repaint();});
-  button('Export .excalidraw',()=>downloadScene(scene));
+  button('Export .excalidraw',()=>{try{downloadScene(scene);}catch(error){notify(error.message,6500);}});
   const file=document.createElement('input');file.type='file';file.accept='.excalidraw,.json,application/json';file.hidden=true;
   file.addEventListener('change',async()=>{
     try{const selected=file.files?.[0];if(!selected)return;if(selected.size>180000)throw Error('File exceeds 180 KB.');
@@ -185,7 +216,7 @@ export function openSceneEditor(initial,{title='Drawing',onSave,notify=()=>{}}={
     }catch(e){notify('Drawing import failed: '+e.message);}finally{file.value='';}
   });
   button('Import .excalidraw',()=>file.click());
-  button('Edit externally at Excalidraw.com',()=>{downloadScene(scene);
+  button('Edit externally at Excalidraw.com',()=>{try{downloadScene(scene);}catch(error){notify(error.message,6500);return;}
     window.open('https://excalidraw.com/','_blank','noopener,noreferrer');
     notify('Import the downloaded file into Excalidraw, export it when done, then import the updated file here.');});
   // Full upstream Excalidraw is the DEFAULT editor for both Journals and Stickies;
@@ -200,6 +231,8 @@ export function openSceneEditor(initial,{title='Drawing',onSave,notify=()=>{}}={
       const adapter=await import('./excalidraw-adapter.js');
       if(disposed||!dialog.open)return;
       const initialData=adapter.createEmbeddedInitialData(scene);
+      initialData.files=await adapter.loadEmbeddedFiles(scene,{media});
+      if(disposed||!dialog.open)return;
       const stylesheetHref=new URL('./excalidraw-island.css',import.meta.url).href;
       let stylesheet=document.querySelector('link[data-orbit-excalidraw-styles]');
       if(!stylesheet){
@@ -227,15 +260,15 @@ export function openSceneEditor(initial,{title='Drawing',onSave,notify=()=>{}}={
       host=document.createElement('div');host.className='orbit-excalidraw-host';
       surface.replaceChildren(host);
       surface.classList.add('orbit-scene-surface--embedded');
-      let latest={elements:initialData.elements,appState:initialData.appState,files:{}};
+      let latest={elements:initialData.elements,appState:initialData.appState,files:initialData.files};
       mounted=mountEmbeddedEditor(host,{
         initialData,theme:adapter.embeddedEditorTheme(document.documentElement.dataset.theme),
         uiOptions:adapter.embeddedEditorOptions,
         onChange:(elements,appState,files)=>{if(!disposed)latest={elements,appState,files};},
       });
-      embedded={dispose:mounted.dispose,read:()=>adapter.captureEmbeddedScene(
-        latest.elements,latest.appState,latest.files)};
-      help.textContent='Full Excalidraw: draw shapes, arrows, text and freehand. Images/remote embeds await private media support. Use Save drawing below to keep changes.';
+      embedded={dispose:mounted.dispose,currentElements:()=>latest.elements,read:()=>adapter.captureEmbeddedSceneWithMedia(
+        latest.elements,latest.appState,latest.files,{media,originalScene:scene})};
+      help.textContent='Draw and place text, arrows, shapes and private images anywhere. Save drawing stores images privately, with the full .orbit backup carrying their bytes.';
       bar.style.display='none';
     }catch(error){
       mounted?.dispose?.();
@@ -252,18 +285,22 @@ export function openSceneEditor(initial,{title='Drawing',onSave,notify=()=>{}}={
   const footer=document.createElement('div');footer.className='orbit-scene-footer';
   const close=()=>{if(dialog.open)dialog.close();else dialog.remove();};
   button('Cancel',close,footer);
-  button('Save drawing',()=>{
+  let saving=false;
+  const saveDrawing=button('Save drawing',async()=>{
+    if(saving||disposed)return;
+    saving=true;saveDrawing.disabled=true;saveDrawing.textContent='Saving private canvas…';
     try{
-      const saved=embedded?embedded.read():normalizeScene(scene);
       if(embedded){
-        const savedIds=new Set(saved.elements.map(item=>item.id));
-        const disappeared=scene.elements.filter(item=>!item.isDeleted&&!savedIds.has(item.id));
+        const savedIds=new Set(embedded.currentElements().filter(el=>!el.isDeleted).map(el=>el.id));
+        const disappeared=scene.elements.filter(el=>!el.isDeleted&&!savedIds.has(el.id));
         if(disappeared.length&&!window.confirm(
-          'Saving would remove '+disappeared.length+' existing drawing element(s). Continue? Cancel to keep the original drawing unchanged.'))
-          return;
+          'Saving would remove '+disappeared.length+' drawing element(s). Continue? Cancel to keep the original unchanged.'))return;
       }
-      onSave?.(saved);close();
-    }catch(e){notify('Drawing not saved: '+e.message);}
+      const saved=embedded?await embedded.read():normalizeScene(scene);
+      if(disposed)return;
+      await onSave?.(saved);close();
+    }catch(error){if(!disposed)notify('Drawing not saved: '+error.message,6500);}
+    finally{saving=false;if(!disposed){saveDrawing.disabled=false;saveDrawing.textContent='Save drawing';}}
   },footer);
   panel.append(heading,help,bar,surface,file,footer);dialog.append(panel);document.body.append(dialog);
   const point=e=>{const r=preview.getBoundingClientRect();return [

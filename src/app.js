@@ -221,12 +221,15 @@ function refreshJournalMode(){
   $('journal-editor').hidden=mode==='canvas';
   widget.querySelector('.journal-formatbar').hidden=mode==='canvas';
   $('journal-canvas-view').hidden=mode!=='canvas';
+  // Legacy attachments remain recoverable in Write, never float below the Canvas.
+  const legacyImage=$('journal-image-preview');
+  if(legacyImage?.getAttribute('src'))legacyImage.hidden=mode==='canvas';
 }
 function refreshJournalDrawing(){
   const holder=$('journal-drawing-preview');if(!holder)return;
   const page=journal.entries[journal.index];
   const drawing=page?state.extensions.journalScenes[page.id]:null;
-  renderScene(drawing,holder);
+  renderScene(drawing,holder,{media});
   if(!drawing||!drawing.elements?.some(el=>!el.isDeleted)){
     const empty=document.createElement('p');empty.className='journal-canvas-empty';
     empty.textContent='A free space for your ideas, mindmaps, shapes and drawings.';
@@ -245,7 +248,7 @@ function refreshJournalImage(){
   const load=media.previewUrl?media.previewUrl.bind(media):media.signedUrl.bind(media);
   load(path).then(url=>{
     if(!disposed&&journal.entries[journal.index]?.id===entry.id&&state.extensions.journalImages[entry.id]===path){
-      element.src=url;element.hidden=false;
+      element.src=url;element.hidden=journalMode()==='canvas';
     }
   }).catch(()=>{
     if(!disposed&&journal.entries[journal.index]?.id===entry.id){
@@ -522,7 +525,7 @@ function initTools(){
   const openJournalCanvas=()=>{
     if(readOnly||disposed)return;
     journal.commit();const page=journal.entries[journal.index];if(!page)return;
-    openSceneEditor(state.extensions.journalScenes[page.id],{title:'Journal canvas — '+(page.title||page.date),
+    openSceneEditor(state.extensions.journalScenes[page.id],{title:'Journal canvas — '+(page.title||page.date),media,
       notify:(...args)=>message(...args),onSave:drawing=>{
         state.extensions.journalScenes[page.id]=drawing;
         state.extensions.journalModes??={};state.extensions.journalModes[page.id]='canvas';

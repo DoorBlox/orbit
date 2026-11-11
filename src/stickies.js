@@ -248,7 +248,7 @@ export class StickyNotes {
       formatBar.append(done);
       const preview=document.createElement('div');preview.className='sticky-drawing';
       preview.setAttribute('aria-label','Freeform note canvas');
-      renderScene(n.scene,preview);
+      renderScene(n.scene,preview,{media:this.media});
       if(mode==='canvas'&&(!n.scene||!n.scene.elements?.some(e=>!e.isDeleted))){
         const empty=document.createElement('p');empty.className='sticky-canvas-empty';
         empty.textContent='Your canvas is ready for text, arrows, shapes and sketches.';
@@ -279,7 +279,7 @@ export class StickyNotes {
       primary.disabled=this.readOnly;
       primary.addEventListener('click',()=>{
         if(mode==='write'){editText(true);return;}
-        openSceneEditor(n.scene,{title:'Canvas — '+n.title,notify:this.notify,
+        openSceneEditor(n.scene,{title:'Canvas — '+n.title,notify:this.notify,media:this.media,
           onSave:scene=>{n.scene=scene;this.render();this.changed();}});
       });
       const tint=document.createElement('details');tint.className='sticky-color-menu';

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {validMediaPath,validMediaOwner,validateImage,createPrivateMedia} from '../src/cloud/media.js';
 const OWNER='11111111-1111-4111-8111-111111111111',OTHER='22222222-2222-4222-8222-222222222222';
 const file='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+const PNG=new Blob([Uint8Array.from([137,80,78,71,13,10,26,10,0,0,0,0])],{type:'image/png'});
 test('only correctly scoped, typed private media paths are accepted',()=>{
   assert.equal(validMediaPath(OWNER+'/'+file+'.png'),true);
   assert.equal(validMediaOwner(OWNER+'/'+file+'.webp',OWNER),true);
@@ -41,7 +42,7 @@ test('authenticated blob previews are cached per account and revoked on dispose'
   URL.createObjectURL=()=>{created++;return 'blob:orbit-private-preview';};
   URL.revokeObjectURL=url=>{assert.equal(url,'blob:orbit-private-preview');revoked++;};
   const client={auth:{getUser:async()=>({data:{user:{id:OWNER}},error:null})},
-    storage:{from:()=>({download:async()=>{calls++;return {data:new Blob(['private-bytes-for-image'],{type:'image/png'}),error:null};}})}};
+    storage:{from:()=>({download:async()=>{calls++;return {data:PNG,error:null};}})}};
   try{
     const media=createPrivateMedia(client,{ownerId:OWNER});
     assert.equal(await media.previewUrl(path),'blob:orbit-private-preview');
@@ -65,7 +66,7 @@ test('cached preview never bypasses a changed authentication session',async()=>{
   const path=OWNER+'/'+file+'.png';let active=OWNER;
   const earlier=URL.createObjectURL;URL.createObjectURL=()=> 'blob:private';
   const media=createPrivateMedia({auth:{getUser:async()=>({data:{user:{id:active}}})},
-    storage:{from:()=>({download:async()=>({data:new Blob(['private-content'],{type:'image/png'})})})}},{ownerId:OWNER});
+    storage:{from:()=>({download:async()=>({data:PNG})})}},{ownerId:OWNER});
   try{
     assert.equal(await media.previewUrl(path),'blob:private');
     active=OTHER;

@@ -105,3 +105,51 @@ test('nonportable objects, invalid version, oversized payload and suspicious bin
     await assert.rejects(inspectPortableArchive(bad,{sanitizeHtml}));
   }
 });
+
+test('EX-02 .orbit backup exports image bytes from canvas-only scenes and restores positions across owners',async()=>{
+  const snapshot=fixture();
+  snapshot.extensions.notes.forEach(note=>{delete note.imagePath;});
+  snapshot.extensions.journalImages={};
+  const scene={type:'excalidraw',version:2,source:'https://orbit.starscene.com/',
+    appState:{viewBackgroundColor:'#f9edda'},
+    elements:[{id:'free_image',type:'image',fileId:'file_1',x:-850,y:1490,width:440,height:360}],
+    files:{file_1:{path:PATH,mimeType:'image/png'}}};
+  snapshot.extensions.notes[0].scene=structuredClone(scene);
+  snapshot.extensions.journalScenes.page_1=structuredClone(scene);
+  assert.deepEqual(collectReferencedPaths(snapshot),[PATH]);
+  let downloads=0;
+  const exported=await make(snapshot,async path=>{downloads++;assert.equal(path,PATH);return PNG;});
+  assert.equal(downloads,1,'identical private image in two scenes fetched once');
+  assert.equal(exported.assets.length,1);
+  assert.equal(JSON.stringify(exported.snapshot).includes('data:image/'),false);
+  const inspected=await inspectPortableArchive(exported,{sanitizeHtml});
+  let uploads=0;
+  const restored=await rehydratePortableArchive(inspected,{ownerId:TARGET,upload:async blob=>{
+    uploads++;assert.equal(blob.type,'image/png');return TARGET+'/'+FILE+'.png';
+  }});
+  assert.equal(uploads,1);
+  assert.equal(restored.extensions.notes[0].scene.files.file_1.path,TARGET+'/'+FILE+'.png');
+  assert.equal(restored.extensions.journalScenes.page_1.files.file_1.path,TARGET+'/'+FILE+'.png');
+  assert.equal(restored.extensions.journalScenes.page_1.elements[0].x,-850);
+  assert.equal(restored.extensions.journalScenes.page_1.elements[0].y,1490);
+  assert.equal(inspected.snapshot.extensions.notes[0].scene.files.file_1.path,PATH,
+    'import must not mutate validated backup or source owner');
+  const corrupted=structuredClone(exported);
+  corrupted.snapshot.extensions.journalScenes.page_1.files.file_1.path=
+    '22222222-2222-4222-8222-222222222222/cccccccc-cccc-4ccc-8ccc-cccccccccccc.png';
+  await assert.rejects(inspectPortableArchive(corrupted,{sanitizeHtml}),
+    /incomplete|invalid|image/i,'no missing or foreign file reference may enter workspace');
+});
+
+test('EX-02 backup refuses missing privately referenced canvas images before returning an archive',async()=>{
+  const snapshot=fixture();
+  snapshot.extensions.notes.forEach(note=>{delete note.imagePath;});
+  snapshot.extensions.journalImages={};
+  snapshot.extensions.notes[0].scene={type:'excalidraw',version:2,
+    appState:{viewBackgroundColor:'#f9edda'},
+    elements:[{id:'image_1',type:'image',fileId:'file_1',x:10,y:10,width:50,height:50}],
+    files:{file_1:{path:PATH,mimeType:'image/png'}}};
+  await assert.rejects(make(snapshot,async()=>{throw Error('Storage offline');}),/offline/);
+  await assert.rejects(make(snapshot,async()=>null),/image|blob/i);
+  await assert.rejects(make(snapshot,async()=>PNG,TARGET),/owner|account/i);
+});
