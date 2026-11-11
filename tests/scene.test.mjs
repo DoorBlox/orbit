@@ -123,3 +123,19 @@ test('BP-06 Sticky Write/Canvas view mode is optional, reversible and never eras
   assert.throws(()=>normalizeExtensions({notes:[note({mode:'<script>alert(1)</script>'})]}),/sticky/i);
   assert.throws(()=>normalizeExtensions({notes:[note({mode:{value:'canvas'}})]}),/sticky/i);
 });
+
+test('BP-13 Journal Write/Canvas view modes remain private, reversible and portable',()=>{
+  const scene=emptyScene();scene.elements=[{id:'text_1',type:'text',x:90,y:-100,width:110,height:35,text:'Canvas note'}];
+  const plain=normalizeExtensions({journalScenes:{journal_1:scene}});
+  assert.equal(Object.hasOwn(plain,'journalModes'),false,'legacy journals remain Write without schema churn');
+  const canvas=normalizeExtensions({...plain,journalModes:{journal_1:'canvas'}});
+  assert.deepEqual(canvas.journalModes,{journal_1:'canvas'});
+  assert.deepEqual(canvas.journalScenes.journal_1,plain.journalScenes.journal_1);
+  assert.deepEqual(normalizeExtensions(canvas),canvas);
+  const writing=structuredClone(canvas);delete writing.journalModes.journal_1;
+  const roundtrip=normalizeExtensions(writing);
+  assert.equal(Object.hasOwn(roundtrip,'journalModes'),false);
+  assert.deepEqual(roundtrip.journalScenes,plain.journalScenes,'switching to Write cannot erase canvas');
+  assert.throws(()=>normalizeExtensions({journalModes:{journal_1:'script'}}),/journal/i);
+  assert.throws(()=>normalizeExtensions({journalModes:{__proto__:'canvas',good:'invalid'}}),/journal/i);
+});
