@@ -1,3 +1,8 @@
+## 11 November 2026 — EX-02 first private canvas-image source slice
+
+- [PR #71](https://github.com/DoorBlox/orbit/pull/71) squash merged `264aaef4db3d2fa3b8f8c439ef7cee709ff2724d` after four exact-head checks PASS (`ae898793e668e44797a958a2657992ed0c4fabb8`). Images are movable official Excalidraw elements in Journal/Sticky, validated private owner Storage path references persist without inline image data, and portable .orbit backup exports and restores referenced bytes with checksums and path remapping. Image removal never auto-deletes files.
+- New protected Preview https://orbit-odh6ir7se-doorbloxs-projects.vercel.app/ READY Vercel `dpl_B7cHefd7bwnsG5N4WgUYRZUcnVX4` from reviewed source `ae898793`, Preview only and SSO enforced. Independently verified Production still `4e57aca` / `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`. Owner signed-in verification, external .excalidraw-with-image interchange, real second-account media isolation, full portable restore and touch hardware acceptance not yet complete; issue #31 stays open.
+
 ## 11 November 2026 — source UX merged; protected Preview READY
 
 - Verified GitHub main: PR #67 Space/Sticky (0b3c32c20e929002a7b60607db35dcd8a97dc0f4), PR #68 task inspector/hybrid touch (fb952a90d55fe6c1a219996706b693c581d30fde), and PR #69 Journal Write/Canvas (dbb7a8b52464df6181a6b33f6c10819d5d6b5e62), each exact-head 4/4 required CI checks PASS before merge. Links: https://github.com/DoorBlox/orbit/pull/67 , https://github.com/DoorBlox/orbit/pull/68 , https://github.com/DoorBlox/orbit/pull/69 .
