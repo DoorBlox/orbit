@@ -129,6 +129,10 @@ export async function captureEmbeddedSceneWithMedia(elements,appState,files,{med
   const references={};
   for(const id of ids){
     if(Object.hasOwn(previous.files,id)){
+      // A stored reference must always belong to the current authenticated owner.
+      // Existing file IDs must not be usable to bypass private Storage checks.
+      if(!media?.ownerId||!validMediaOwner(previous.files[id].path,media.ownerId))
+        throw Error('A canvas image belongs to another account; nothing was saved.');
       references[id]=previous.files[id];
       continue;
     }
@@ -141,7 +145,10 @@ export async function captureEmbeddedSceneWithMedia(elements,appState,files,{med
       throw Error('A private image upload returned the wrong account path. No scene was saved.');
     references[id]={path,mimeType:blob.type};
   }
-  return normalizeScene({...emptyScene(),elements:visible,
+  // The native Excalidraw app transitions image elements to saved after its
+  // file manager has persisted their bytes. ORBIT owns that persistence here.
+  const durable=visible.map(el=>el.type==='image'?{...el,status:'saved'}:el);
+  return normalizeScene({...emptyScene(),elements:durable,
     appState:sanitizeAppState(appState),files:references});
 }
 

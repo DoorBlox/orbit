@@ -123,6 +123,7 @@ test('EX-02 private image placed freely in Excalidraw saves only owner-scoped fi
   assert.equal(uploads,1);
   assert.equal(saved.elements.length,2);
   assert.deepEqual(saved.files,{file_1:{path:PATH,mimeType:'image/png'}});
+  assert.equal(saved.elements[0].status,'saved','image becomes durable only after confirmed Storage upload');
   assert.equal(JSON.stringify(saved).includes('data:image/'),false);
   const initial=createEmbeddedInitialData(saved);
   assert.equal(initial.elements[0].fileId,'file_1');
@@ -134,6 +135,7 @@ test('EX-02 private image placed freely in Excalidraw saves only owner-scoped fi
     {media,originalScene:saved});
   assert.equal(uploads,1,'repositioning existing images never reuploads private files');
   assert.equal(edit.elements[0].x,850);
+  assert.equal(edit.elements[0].status,'saved','reloaded/repositioned image stays durable');
   assert.deepEqual(edit.files,saved.files);
   assert.deepEqual(saved,unchanged,'editor opens and saves clones; source snapshot never mutates');
 });
@@ -147,6 +149,12 @@ test('EX-02 image save failure leaves prior scene intact and prevents foreign im
     {media,originalScene:existing}),/offline/);
   assert.equal(uploaded,1);
   assert.deepEqual(existing.elements,[rectangle()]);
+  const foreignScene=emptyScene();
+  foreignScene.elements=[image()];
+  foreignScene.files={file_1:{path:OTHER+'/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa.png',mimeType:'image/png'}};
+  await assert.rejects(captureEmbeddedSceneWithMedia([image()],{}, {file_1:file},
+    {media:{ownerId:OWNER,upload:async()=>{throw Error('must not upload');}},originalScene:foreignScene}),
+    /another account/i,'existing image IDs must never bypass owner isolation');
   await assert.rejects(captureEmbeddedSceneWithMedia([image()],{}, {file_1:file},
     {media:{ownerId:OWNER,upload:async()=>OTHER+'/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa.png'}}),
     /wrong account|path/i);

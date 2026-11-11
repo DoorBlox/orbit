@@ -128,8 +128,8 @@
       "reason": "EX-02: checksummed archive of referenced canvas images and cross-owner path remapping."
     },
     "src/excalidraw-adapter.js": {
-      "sha256": "ed0670c95a2480734720f64f37d126266f3f6fe6239e8dc9564177b8291f1cc6",
-      "reason": "EX-02: image tool, authenticated binary hydration and validated owner-scoped upload."
+      "sha256": "518c725d2029ec5a058ece001c93af87faedabdb3eece41f7e7464fdf9cbcd43",
+      "reason": "EX-02: owner-verified private binary hydration, save after Storage upload, image saved-status and cross-account file ID rejection."
     },
     "src/excalidraw-island.entry.mjs": {
       "sha256": "29b7d1a41ab7f21531898688311d124255aecfca3bde9b2c19aa6eb43fdf882e",
