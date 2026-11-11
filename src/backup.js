@@ -85,8 +85,8 @@ export function validateBackup(input, { sanitizeHtml } = {}) {
     for (const [id,p] of Object.entries(value.spatialLayout)) {
       if (!widgets.has(id) || !object(p) || !Number.isFinite(p.x) || !Number.isFinite(p.y) ||
           Math.abs(p.x)>10000 || Math.abs(p.y)>10000 ||
-          ((p.width!==undefined || p.height!==undefined) && (!Number.isFinite(p.width)||!Number.isFinite(p.height)||p.width<1||p.height<1||p.width>5000||p.height>5000))) throw Error('Invalid widget dimensions.');
-      normalized.spatialLayout[id] = {x:p.x,y:p.y,...(p.width!==undefined?{width:p.width,height:p.height}:{})};
+          ((p.width!==undefined || p.height!==undefined) && (!Number.isFinite(p.width)||!Number.isFinite(p.height)||p.width<200||p.height<200||p.width>4000||p.height>4000))) throw Error('Invalid widget dimensions.');
+      normalized.spatialLayout[id] = {x:p.x,y:p.y,...(p.width!==undefined?{width:Math.round(p.width),height:Math.round(p.height)}:{})};
     }
   }
   return normalized;
