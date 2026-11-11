@@ -78,6 +78,9 @@ export class SpatialBoard {
     this.scale=1;this.pan={x:0,y:0};this.gesture=null;this.pointers=new Map();this.raf=0;
     this.widgets=new Map();this.stickyNotes=[];this.navPointer=null;this.navDragStart=null;
     this.nav=document.getElementById('space-nav-map');
+    // Keep touch drag gestures in the map even if style bundles or theme overrides lag.
+    // Native panning must never cancel the active pointer stream on hybrid devices.
+    this.nav.style.setProperty('touch-action','none','important');
     this.nav.tabIndex=0;this.nav.setAttribute('role','group');
     this.nav.setAttribute('aria-label','Spatial map: click or drag to travel, arrow keys to move the focus');
     this.navContainer=this.nav.closest('.space-navigator');this.navToggle=document.getElementById('space-nav-toggle');
