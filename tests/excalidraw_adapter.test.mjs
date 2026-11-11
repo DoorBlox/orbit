@@ -73,7 +73,7 @@ test('EX-00: deny image bytes, image elements, remote frames, links with credent
 test('EX-00: malicious or oversize scene import fails before changing the existing drawing',()=>{
   const source=emptyScene();
   source.files={someImage:{dataURL:'data:image/png;base64,AA=='}};
-  assert.throws(()=>createEmbeddedInitialData(source),/scene|files|drawing/i);
+  assert.throws(()=>createEmbeddedInitialData(source),/scene|files|drawing|image/i);
   assert.throws(()=>captureEmbeddedScene(Array.from({length:401},(_,i)=>({
     ...rectangle(),id:'shape_'+i})),{},{}),/drawing|scene|large/i);
   assert.throws(()=>captureEmbeddedScene([{...pen(),id:'duplicate'},{...rectangle(),id:'duplicate'}],{},{}),/duplicate/i);
