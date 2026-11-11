@@ -256,6 +256,7 @@ def normal_flows(browser):
     assert page.evaluate('document.documentElement.dataset.theme') == 'garden'
     assert page.evaluate('document.documentElement.dataset.ambient') == 'on'
     focus(page,'space')
+    page.locator('.space-appearance summary').click()
     page.locator('input[name="space-theme"][value="parchment"]').check()
     page.locator('#appearance-ambient').uncheck()
     page.locator('.space-more-tools summary').click()

@@ -104,8 +104,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "877a4e0ab67e4667bf3413da85ccb9b4a639fc2dd4e03b9c1e44ab2d06cbd71a",
-      "reason": "BP-06: viewport-bounded task inspector and hybrid map touch-action styling; preserve existing themed Sticky and Space."
+      "sha256": "a319fda41ffedbeef4773ff206a1bc9e0d0a7b06b3e1065371cc716eec6b8877",
+      "reason": "BP-06: retain full Sticky Canvas sizing and add viewport task inspector + touch navigator styles."
     },
     "src/widgets.js": {
       "sha256": "aee68a4ce8a37edbb2de2fa1b0a2fc4589fcaf28a00603db2b148c6875a8ec58",

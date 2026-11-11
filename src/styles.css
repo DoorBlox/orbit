@@ -1598,3 +1598,15 @@ body.cloud-space-mounted #space-widget>.cloud-toolbar[data-sync-state="conflict"
 }
 
 @media(pointer:coarse){.orbit-task-dialog .inline-input{font-size:16px}}
+
+/* A Canvas note reserves real space even when its action row wraps or the
+   spatial world is zoomed. Scroll the note; never shrink the drawing to a strip. */
+#sticky-layer .sticky-note[data-note-mode="canvas"]>.sticky-drawing{
+  display:flex!important;align-items:center;justify-content:center;
+  width:100%;min-height:160px!important;flex:1 0 160px!important;
+  max-height:none!important;overflow:hidden!important;
+}
+#sticky-layer .sticky-note[data-note-mode="canvas"]>.sticky-drawing svg{
+  display:block!important;width:100%!important;height:100%!important;
+  min-width:0;min-height:0;
+}
