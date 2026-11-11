@@ -195,7 +195,8 @@ def normal_flows(browser):
     assert page.locator(f'.task-stack[data-branch-id="{nested_id}"] .task-empty').count()==1
     renamed.focus();renamed.press('ArrowLeft')
     expect(renamed).to_have_attribute('aria-expanded','false')
-    focus(page,'space');page.locator('#expand-all-branches').click()
+    focus(page,'space');page.locator('.space-manage summary').click()
+    page.locator('#expand-all-branches').click()
     expect(renamed).to_have_attribute('aria-expanded','true')
     page.locator('#collapse-all-branches').click()
     # A collapsed ancestor deliberately removes this descendant from the graph.
@@ -229,6 +230,9 @@ def normal_flows(browser):
     expect(page.locator('.timeline-milestone')).to_have_count(1)
     # ORBIT 2.4: all ten themes, independent ambient animation and progressive disclosure.
     assert page.locator('input[name="space-theme"]').count()==10
+    # Appearance stays available but no longer fills the Space panel by default.
+    expect(page.locator('.space-appearance')).not_to_have_attribute('open','')
+    page.locator('.space-appearance summary').click()
     page.locator('input[name="space-theme"][value="garden"]').check()
     assert page.evaluate('document.documentElement.dataset.theme') == 'garden'
     page.locator('#appearance-ambient').check()
@@ -237,6 +241,7 @@ def normal_flows(browser):
     assert page.evaluate('document.documentElement.dataset.theme') == 'garden'
     assert page.evaluate('document.documentElement.dataset.ambient') == 'on'
     focus(page,'space')
+    page.locator('.space-appearance summary').click()
     page.locator('input[name="space-theme"][value="parchment"]').check()
     page.locator('#appearance-ambient').uncheck()
     page.locator('.space-more-tools summary').click()
@@ -258,12 +263,17 @@ def normal_flows(browser):
     assert page.evaluate('window.orbitDebug.board.pan.x') != pan_before
     page.locator('.sticky-title').fill('M1 visual note')
     page.locator('.sticky-title').dispatch_event('change')
+    page.locator('.sticky-note').get_by_role('button',name='Edit note').click()
     page.locator('.sticky-body').fill('Private note in the same world')
-    page.locator('.sticky-body').dispatch_event('blur')
-    # BP-06 canvas-first: clicking Draw opens the real editor immediately.
+    page.locator('.sticky-formatbar').get_by_role('button',name='Done').click()
+    # Text formatting controls are hidden while reading; only one surface is shown.
+    expect(page.locator('.sticky-formatbar')).to_be_hidden()
+    page.locator('.sticky-note').get_by_role('button',name='Canvas',exact=True).click()
+    expect(page.locator('.sticky-body')).to_be_hidden()
+    # BP-06 canvas-first: choosing the canvas opens the real editor on its first action.
     # No extra full-editor button or hidden native pen prerequisite.
     assert page.evaluate("performance.getEntriesByType('resource').every(r=>!r.name.includes('/excalidraw-island.js'))")
-    page.locator('.sticky-note').get_by_role('button',name='Draw',exact=True).evaluate('e=>e.click()')
+    page.locator('.sticky-note').get_by_role('button',name='Open canvas',exact=True).evaluate('e=>e.click()')
     expect(page.locator('.orbit-scene-dialog .excalidraw')).to_be_visible(timeout=25000)
     assert page.evaluate("window.EXCALIDRAW_ASSET_PATH.startsWith(location.origin)")
     page.get_by_role('button',name='Save drawing').click()
@@ -272,19 +282,43 @@ def normal_flows(browser):
     # preserves a complete scene object, including an intentionally empty one.
     # Duplicate a drawn sticky; the copy must have a new ID, independent text,
     # matching paper tint and drawing, and remain after a full page reload.
-    page.locator('.sticky-note').first.get_by_role('button',name='Duplicate sticky note').evaluate('e=>e.click()')
+    page.locator('.sticky-note').first.locator('.sticky-more-menu summary').click()
+    page.locator('.sticky-note').first.get_by_role('button',name='Duplicate sticky note').click()
     expect(page.locator('.sticky-note')).to_have_count(2)
     notes=page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes")
     assert notes[0]['id'] != notes[1]['id']
     assert notes[0]['scene'] == notes[1]['scene']
     assert notes[0]['color'] == notes[1]['color']
     assert notes[1]['title'] == 'Copy of M1 visual note'
+    page.locator('.sticky-note').last.get_by_role('button',name='Write',exact=True).click()
+    page.locator('.sticky-note').last.get_by_role('button',name='Edit note').click()
     page.locator('.sticky-note').last.locator('.sticky-body').fill('Independent copy')
-    page.locator('.sticky-note').last.locator('.sticky-body').dispatch_event('blur')
+    page.locator('.sticky-note').last.get_by_role('button',name='Done').click()
     assert page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].text") == 'Private note in the same world'
     reload_page(page)
     expect(page.locator('.sticky-note')).to_have_count(2)
     expect(page.locator('.sticky-note').last.locator('.sticky-body')).to_have_value('Independent copy')
+    assert page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].mode") == 'canvas'
+    assert page.evaluate("""() => !Object.hasOwn(
+      JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[1],'mode')""")
+    # BP-06: a resized Canvas note must retain the full surface and persist
+    # pointer movement even after leaving the original resize-handle bounds.
+    width_before=page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].width")
+    page.locator('.sticky-note').first.locator('.sticky-resizer').evaluate("""handle=>{
+      const r=handle.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;
+      const opts={bubbles:true,cancelable:true,pointerId:991,pointerType:'touch',button:0};
+      handle.dispatchEvent(new PointerEvent('pointerdown',{...opts,clientX:x,clientY:y}));
+      window.dispatchEvent(new PointerEvent('pointermove',{...opts,clientX:x+150,clientY:y+115}));
+      window.dispatchEvent(new PointerEvent('pointerup',{...opts,clientX:x+150,clientY:y+115}));
+    }""")
+    assert page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].width") > width_before
+    canvas_geometry=page.locator('.sticky-note').first.locator('.sticky-drawing').evaluate(
+      """e => ({hidden:e.hidden,display:getComputedStyle(e).display,
+        clientWidth:e.clientWidth,scrollWidth:e.scrollWidth,
+        offsetHeight:e.offsetHeight,scrollHeight:e.scrollHeight,
+        parentHeight:e.parentElement?.clientHeight})""")
+    assert not canvas_geometry['hidden'] and canvas_geometry['display']!='none',canvas_geometry
+    assert canvas_geometry['offsetHeight']>=50,canvas_geometry
     focus(page,'journal')
     page.locator('#journal-draw').click()
     expect(page.locator('.orbit-scene-dialog .excalidraw')).to_be_visible(timeout=25000)
@@ -292,7 +326,7 @@ def normal_flows(browser):
     assert page.evaluate("Object.keys(JSON.parse(localStorage.getItem('orbit.v8.extensions')).journalScenes).length") == 1
     # Both editing hosts launch the same lazy upstream editor and preserve the
     # saved note/entry objects through repeated opens without scribble steps.
-    page.locator('.sticky-note').first.get_by_role('button',name='Edit drawing').evaluate('e=>e.click()')
+    page.locator('.sticky-note').first.get_by_role('button',name='Edit canvas').evaluate('e=>e.click()')
     expect(page.locator('.orbit-scene-dialog .excalidraw')).to_be_visible(timeout=25000)
     assert page.evaluate("document.querySelector('link[data-orbit-excalidraw-styles]') !== null")
     page.get_by_role('button',name='Save drawing').click()

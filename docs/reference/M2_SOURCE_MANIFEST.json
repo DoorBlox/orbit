@@ -8,8 +8,8 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "index.html": {
-      "sha256": "f9c5564a77aebed07a9f8700ff312bba9927b68f191ae0693c2a23fadf334764",
-      "reason": "BP-02: distinguish path-only JSON export from authenticated private-media inclusive portable backup."
+      "sha256": "aa1b0fa14cb7c870d7fa5e639d932cd7d1ec626307b3f5ac446ae9e8c04f5e31",
+      "reason": "BP-06: concise Space actions with accessible Appearance and Manage disclosures."
     },
     "src/app.js": {
       "sha256": "cded9fb285c7c288131c2bc1178ad8b4ccaeb6375c1dfff3bf3b25fc2f7dbe42",
@@ -24,8 +24,8 @@
       "reason": "ORBIT 2.0 reviewed draft: verified-user workspace gate and signup while preserving tenant privacy; Production release requires staged migration."
     },
     "src/auth/shell.js": {
-      "sha256": "80174ff8b9ac15b86218acc0c5742dadc22c30d386302428a7210e2c85ff532c",
-      "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
+      "sha256": "b691170f45a7ec6183a25733b9507855eb1eb4e511ff02d97648fc4b86578d98",
+      "reason": "BP-06: private sync/backup status visible, infrequent account actions disclosed."
     },
     "src/backup.js": {
       "sha256": "ac496fa16c117d8c64b6a6321874c50d6a2ae81194e5e583c888ce1d9c937623",
@@ -104,20 +104,20 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "733ad7e9c915cb8994bdc4e0b93cea54de731955002cfb5cc86ede0e23587345",
-      "reason": "BP-06 UX: native canvas grows to responsive dialog and removes fixed-height drawing preview crop."
+      "sha256": "87bb99073c43c36d395b1014d8b24a82750ea270fef579766a4db2a5c5e98c79",
+      "reason": "BP-06: responsive Space, Sticky and private status controls using existing theme tokens."
     },
     "src/widgets.js": {
       "sha256": "aee68a4ce8a37edbb2de2fa1b0a2fc4589fcaf28a00603db2b148c6875a8ec58",
       "reason": "Preserve task/timeline projection over canonical owner snapshots and read-only controls."
     },
     "src/scene.js": {
-      "sha256": "06f749d2ea6d98b214c622f6cd6b22f4be10bec9d7d003755e223ca2d7f473d3",
-      "reason": "BP-13 UX: full official Excalidraw opens on first action, dynamically fit all SVG preview geometry (no 800x460 crop)."
+      "sha256": "5f458e98928c66ed975fb15a81291b15b45106658d4865750b31d46010c06034",
+      "reason": "BP-06/13: reversible validated sticky writing/canvas mode with fitted complete Excalidraw scene previews."
     },
     "src/stickies.js": {
-      "sha256": "96b8fd73b59e8b836e631d124d4614525cd664f1e9aae657edee8fbf6b460dcd",
-      "reason": "Add bounded Markdown formatting and DOM-based safe preview while preserving original plain text and note position/attachment semantics."
+      "sha256": "2eca3eeb1bae77c635c5d445e93898f958104f4f5a4c09084131faa12f57929d",
+      "reason": "BP-06: quiet sticky reading view, full canvas, contextual tools and stable touch resize."
     },
     "src/cloud/media.js": {
       "sha256": "66d990c2e18283442a38970f1c9950fe9989e47b48e9a53b026c105d70482498",

@@ -102,3 +102,24 @@ test('BP-06 preview stays sensible for empty/dot/vertical drawings',()=>{
   s.elements=[{id:'v',type:'line',x:4,y:5,width:0,height:0,points:[[0,0],[0,-700]]}];
   assert.ok(scenePreviewBounds(s).y<=-695);
 });
+
+test('BP-06 Sticky Write/Canvas view mode is optional, reversible and never erases hidden content',()=>{
+  const scene=emptyScene();
+  scene.elements=[{id:'box',type:'rectangle',x:-400,y:900,width:120,height:80}];
+  const imagePath='11111111-1111-4111-8111-111111111111/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa.png';
+  const initial=note({text:'Private **writing**',scene,imagePath});
+  const old=normalizeExtensions({notes:[initial]}).notes[0];
+  assert.equal(Object.hasOwn(old,'mode'),false,'old notes remain Write by default');
+  const canvas=normalizeExtensions({notes:[{...old,mode:'canvas'}]}).notes[0];
+  assert.equal(canvas.mode,'canvas');
+  assert.equal(canvas.text,old.text,'switching into canvas never clears writing');
+  assert.deepEqual(canvas.scene,old.scene,'scene preserved without rendering crop');
+  assert.equal(canvas.imagePath,old.imagePath,'original private attachment is preserved');
+  const back=normalizeExtensions({notes:[{...canvas,mode:'write'}]}).notes[0];
+  assert.equal(Object.hasOwn(back,'mode'),false,'Write is the legacy-compatible default');
+  assert.equal(back.text,old.text);
+  assert.deepEqual(back.scene,old.scene);
+  assert.equal(back.imagePath,old.imagePath);
+  assert.throws(()=>normalizeExtensions({notes:[note({mode:'<script>alert(1)</script>'})]}),/sticky/i);
+  assert.throws(()=>normalizeExtensions({notes:[note({mode:{value:'canvas'}})]}),/sticky/i);
+});
