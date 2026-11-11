@@ -8,12 +8,12 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "index.html": {
-      "sha256": "aa1b0fa14cb7c870d7fa5e639d932cd7d1ec626307b3f5ac446ae9e8c04f5e31",
-      "reason": "BP-06: concise Space actions with accessible Appearance and Manage disclosures."
+      "sha256": "8b38672847ad0c7a494d470baf7cccf29bdfeb15559081c9d679425b960e078e",
+      "reason": "BP-13: Journal Write/Canvas mode tabs and separately contained full freeform preview."
     },
     "src/app.js": {
-      "sha256": "92b51de96f55401058fbfc2ad605f4299bd40c7751c774b7339e379680027a58",
-      "reason": "BP-06: return validation success for task editor without dismissing invalid drafts."
+      "sha256": "b881a74cedfadaae5626087c912380e70e96319ca7d5c610b0fe00f81519717e",
+      "reason": "BP-13: per-page reversible Write/Canvas UX and read-only-safe toggles; retain BP-06 task update success."
     },
     "src/auth/README.md": {
       "sha256": "1ec9f199e2ab8b76ff9a7d462f1804d6653706a8eb4b005e23311d76c9d1f7d5",
@@ -104,16 +104,16 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "a319fda41ffedbeef4773ff206a1bc9e0d0a7b06b3e1065371cc716eec6b8877",
-      "reason": "BP-06: retain full Sticky Canvas sizing and add viewport task inspector + touch navigator styles."
+      "sha256": "1cae57143b00cb874b9a8569920ad0a0d5e5f1fb53155a4a1a3f4791b60cba0a",
+      "reason": "BP-13: Journal canvas fills its page; preserve enlarged Sticky canvas, task dialog and navigator touch."
     },
     "src/widgets.js": {
       "sha256": "aee68a4ce8a37edbb2de2fa1b0a2fc4589fcaf28a00603db2b148c6875a8ec58",
       "reason": "Preserve task/timeline projection over canonical owner snapshots and read-only controls."
     },
     "src/scene.js": {
-      "sha256": "5f458e98928c66ed975fb15a81291b15b45106658d4865750b31d46010c06034",
-      "reason": "BP-06/13: reversible validated sticky writing/canvas mode with fitted complete Excalidraw scene previews."
+      "sha256": "056dc791c4c9e8cdfa61f08dabf0ba6b7eddfdbaffe43ca0934ac35bbfd1d5c6",
+      "reason": "BP-13: validated private optional per-Journal-page canvas mode without replacing legacy text or scenes."
     },
     "src/stickies.js": {
       "sha256": "2eca3eeb1bae77c635c5d445e93898f958104f4f5a4c09084131faa12f57929d",
