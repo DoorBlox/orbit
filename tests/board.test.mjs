@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {clampNavigatorPercent,navigatorWorldPoint,navigatorGrabOffset} from '../src/board.js';
+import {clampNavigatorPercent,navigatorWorldPoint,navigatorGrabOffset,quantizeWidgetSize} from '../src/board.js';
 
 test('navigator center marker stays inside map for extreme camera positions and zoom',()=>{
   for(const size of [75,96,180,300]){
@@ -27,4 +27,14 @@ test('TOUCH-01 dragging from inside cursor retains finger offset; tapping elsewh
   assert.deepEqual(navigatorGrabOffset({x:78,y:37},center,size),{x:-17,y:0});
   assert.equal(navigatorGrabOffset({x:77,y:37},center,size),null);
   assert.equal(navigatorGrabOffset({x:0,y:0},center,{width:0,height:0}),null);
+});
+
+
+test('BP-06 regression: fractional camera zoom never persists fractional database dimensions',()=>{
+  const limits={minW:420,minH:720,maxW:4000,maxH:4000};
+  const result=quantizeWidgetSize(840+113/0.73,720+57/0.73,limits);
+  assert.deepEqual(result,{w:995,h:798});
+  assert.equal(Number.isInteger(result.w)&&Number.isInteger(result.h),true);
+  assert.deepEqual(quantizeWidgetSize(6000,7000,limits),{w:4000,h:4000});
+  assert.deepEqual(quantizeWidgetSize(100,100,limits),{w:420,h:720});
 });

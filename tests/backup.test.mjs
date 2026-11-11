@@ -111,3 +111,15 @@ test('PJ-01 older V6 backup with no project data preserves current private proje
   assert.equal(persistBackup(validateBackup(old),storage).ok,true);
   assert.equal(storage.getItem(STORAGE_KEYS.extensions),existing);
 });
+
+
+test('BP-06 imported fractional cloud widget dimensions round to DB-safe integers',()=>{
+  const original=fixture();
+  original.spatialLayout={journal:{x:930,y:1780,width:895.121,height:1440.678}};
+  const normalized=validateBackup(original,{sanitizeHtml:s=>s});
+  assert.deepEqual(normalized.spatialLayout.journal,{x:930,y:1780,width:895,height:1441});
+  for(const [width,height] of [[4000.01,1200],[100,1400]]){
+    const bad=fixture();bad.spatialLayout={journal:{x:930,y:1780,width,height}};
+    assert.throws(()=>validateBackup(bad,{sanitizeHtml:s=>s}),/widget dimensions/i);
+  }
+});

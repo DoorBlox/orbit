@@ -6,6 +6,12 @@ const SIZE_KEY='orbit.v6.spatial-sizes';
 const CAMERA_KEY='orbit.v5.spatial-camera';
 const WORLD={w:2990,h:2740};
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
+/** Widget dimensions persisted in PostgreSQL integer columns: zoom-derived
+ * fractional drag distances must never enter an owner snapshot. */
+export const quantizeWidgetSize=(w,h,limits)=>({
+  w:Math.round(clamp(w,limits.minW,limits.maxW)),
+  h:Math.round(clamp(h,limits.minH,limits.maxH))
+});
 function readSizes(registry){try{
   const data=JSON.parse(localStorage.getItem(SIZE_KEY)||'{}');const output={};
   if(!data||typeof data!=='object'||Array.isArray(data))throw Error();
@@ -15,7 +21,7 @@ function readSizes(registry){try{
   for(const id of registry.ids){
     const lim=registry.get(id).limits;
     if(Number.isFinite(data[id]?.w)&&Number.isFinite(data[id]?.h))
-      output[id]={w:clamp(data[id].w,lim.minW,lim.maxW),h:clamp(data[id].h,lim.minH,lim.maxH)};
+      output[id]=quantizeWidgetSize(data[id].w,data[id].h,lim);
   }
   return output;
 }catch{markStorageIssue(SIZE_KEY,'Saved sizes need recovery.');return {};}}
@@ -72,7 +78,7 @@ export class SpatialBoard {
       this.positions[id]={x:saved?.x??def.position.x,y:saved?.y??def.position.y};
       if(saved?.width!==undefined){
         const lim=def.limits;
-        this.sizes[id]={w:clamp(saved.width,lim.minW,lim.maxW),h:clamp(saved.height,lim.minH,lim.maxH)};
+        this.sizes[id]=quantizeWidgetSize(saved.width,saved.height,lim);
       }
     }
     this.scale=1;this.pan={x:0,y:0};this.gesture=null;this.pointers=new Map();this.raf=0;
@@ -191,7 +197,7 @@ export class SpatialBoard {
     this.positions[id]={x:saved?.x??def.position.x,y:saved?.y??def.position.y};
     if(saved?.width!==undefined){
       const lim=def.limits;
-      this.sizes[id]={w:clamp(saved.width,lim.minW,lim.maxW),h:clamp(saved.height,lim.minH,lim.maxH)};
+      this.sizes[id]=quantizeWidgetSize(saved.width,saved.height,lim);
     }
     if(!element.parentElement)this.world.append(element);
     this.attachWidget(id,element);this.buildNavigator();
@@ -205,7 +211,7 @@ export class SpatialBoard {
       if(!element||!position)continue;
       const size=this.sizes[id];
       result[id]={x:position.x,y:position.y,
-        ...(size?{width:size.w,height:size.h}:{}),hidden:element.hidden};
+        ...(size?{width:Math.round(size.w),height:Math.round(size.h)}:{}),hidden:element.hidden};
     }
     return normalizeExtraWidgetLayout(result);
   }
@@ -216,7 +222,7 @@ export class SpatialBoard {
       this.positions[id]={x:saved?.x??descriptor.position.x,y:saved?.y??descriptor.position.y};
       if(saved?.width!==undefined){
         const lim=descriptor.limits;
-        this.sizes[id]={w:clamp(saved.width,lim.minW,lim.maxW),h:clamp(saved.height,lim.minH,lim.maxH)};
+        this.sizes[id]=quantizeWidgetSize(saved.width,saved.height,lim);
       }else delete this.sizes[id];
       if(element){element.hidden=saved?.hidden===true;this.position(id);this.applySize(id);}
     }
@@ -248,7 +254,7 @@ export class SpatialBoard {
     const out={};
     for(const id of CORE_WIDGET_IDS){
       const p=this.positions[id];if(!p)continue;
-      out[id]={...p,...(this.sizes[id]?{width:this.sizes[id].w,height:this.sizes[id].h}:{})};
+      out[id]={...p,...(this.sizes[id]?{width:Math.round(this.sizes[id].w),height:Math.round(this.sizes[id].h)}:{})};
     }
     return out;
   }
@@ -264,7 +270,7 @@ export class SpatialBoard {
     for(const id of CORE_WIDGET_IDS){
       const lim=this.limits[id];
       const obj=value?.[id];if(Number.isFinite(obj?.width)&&Number.isFinite(obj?.height))
-        this.sizes[id]={w:clamp(obj.width,lim.minW,lim.maxW),h:clamp(obj.height,lim.minH,lim.maxH)};
+        this.sizes[id]=quantizeWidgetSize(obj.width,obj.height,lim);
     }
     for(const id of this.widgets.keys()){this.position(id);this.applySize(id);}
     if(persist)this.save();this.render();this.buildNavigator();
@@ -474,7 +480,7 @@ export class SpatialBoard {
     const origin={...size};const pointer=e.pointerId,startX=e.clientX,startY=e.clientY;
     handle.setPointerCapture?.(pointer);handle.classList.add('is-resizing');
     const move=ev=>{if(ev.pointerId!==pointer)return;
-      const next={w:clamp(origin.w+(ev.clientX-startX)/this.scale,lim.minW,lim.maxW),h:clamp(origin.h+(ev.clientY-startY)/this.scale,lim.minH,lim.maxH)};
+      const next=quantizeWidgetSize(origin.w+(ev.clientX-startX)/this.scale,origin.h+(ev.clientY-startY)/this.scale,lim);
       this.sizes[id]=next;this.applySize(id);this.drawNavigatorCursor();
       if(id==='constellation')this.onWidgetResize?.(id);
     };
@@ -486,7 +492,7 @@ export class SpatialBoard {
   }
   resizeViaKeyboard(e,id){if(this.readOnly)return;const d={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(!d)return;
     e.preventDefault();e.stopPropagation();const lim=this.limits[id],size=this.widgetSize(id),step=e.shiftKey?100:24;
-    this.sizes[id]={w:clamp(size.w+d[0]*step,lim.minW,lim.maxW),h:clamp(size.h+d[1]*step,lim.minH,lim.maxH)};
+    this.sizes[id]=quantizeWidgetSize(size.w+d[0]*step,size.h+d[1]*step,lim);
     this.applySize(id);this.save(id);this.buildNavigator();this.onWidgetResize?.(id);
   }
   moveViaKeyboard(e,id){if(this.readOnly)return;const d={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(!d)return;

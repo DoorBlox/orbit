@@ -122,7 +122,7 @@ export class StickyNotes {
       const scale=clamp(Number(this.getScale())||1,.1,5);
       const dx=(event.clientX-startX)/scale,dy=(event.clientY-startY)/scale;
       if(mode==='move'){n.x=clamp(initial.x+dx,-5000,7500);n.y=clamp(initial.y+dy,-5000,7500);}
-      else{n.width=clamp(initial.width+dx,220,850);n.height=clamp(initial.height+dy,160,850);}
+      else{n.width=Math.round(clamp(initial.width+dx,220,5000));n.height=Math.round(clamp(initial.height+dy,160,5000));}
       element.style.left=n.x+'px';element.style.top=n.y+'px';
       element.style.width=n.width+'px';element.style.height=n.height+'px';
     };
@@ -340,7 +340,7 @@ export class StickyNotes {
       resizer.addEventListener('keydown',e=>{
         const delta={ArrowLeft:[-16,0],ArrowRight:[16,0],ArrowUp:[0,-16],ArrowDown:[0,16]}[e.key];
         if(!delta||this.readOnly)return;e.preventDefault();e.stopPropagation();
-        n.width=clamp(n.width+delta[0],220,850);n.height=clamp(n.height+delta[1],160,850);
+        n.width=clamp(n.width+delta[0],220,5000);n.height=clamp(n.height+delta[1],160,5000);
         article.style.width=n.width+'px';article.style.height=n.height+'px';this.changed();
       });
       article.addEventListener('pointerdown',e=>e.stopPropagation());

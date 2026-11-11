@@ -12,8 +12,8 @@
       "reason": "BP-13: Journal Write/Canvas mode tabs and separately contained full freeform preview."
     },
     "src/app.js": {
-      "sha256": "38e7d01a23c2c4ecc835e2979482d2e1ba053ddb291a3a0fc63e162902d522f2",
-      "reason": "EX-02: private Journal canvas image previews and no legacy bottom attachment in Canvas mode."
+      "sha256": "88f417c90a73406a1f4d5655ac7b53b8ae137f2b75b99ba938fa6a07bdc5947c",
+      "reason": "Expand Projects optional first-party resize to 5000px."
     },
     "src/auth/README.md": {
       "sha256": "1ec9f199e2ab8b76ff9a7d462f1804d6653706a8eb4b005e23311d76c9d1f7d5",
@@ -28,12 +28,12 @@
       "reason": "BP-06: private sync/backup status visible, infrequent account actions disclosed."
     },
     "src/backup.js": {
-      "sha256": "ac496fa16c117d8c64b6a6321874c50d6a2ae81194e5e583c888ce1d9c937623",
-      "reason": "PJ-01: reject orphan project identity keys before V6 atomic restore."
+      "sha256": "c5c84b0aa4b77f7f82f76c2c4a1d850af2f0c1ef272febc91fbe5f98655e422a",
+      "reason": "Normalize imported core widget dimensions into supported database-safe integers."
     },
     "src/board.js": {
-      "sha256": "26190b7d1e8b91c5e4633d3e8cc315ed4389e58ee36a9dbad1ea869ed04dc76e",
-      "reason": "TOUCH-01: window-level pointer tracking and explicit touch-action on real map element prevent native scroll takeover."
+      "sha256": "07133e7deb6921b683bb4982cb68763216f65a7348427877e8276552c6086276",
+      "reason": "Fix fractional zoom dimensions for PostgreSQL integer geometry and CAS cloud saves."
     },
     "src/bootstrap.js": {
       "sha256": "d890dbb33689b72f19e1713618734831718bdcf7979056a506ed8db89b44eb99",
@@ -112,12 +112,12 @@
       "reason": "Preserve task/timeline projection over canonical owner snapshots and read-only controls."
     },
     "src/scene.js": {
-      "sha256": "cd9aae3cd2d169912363accda29a746f203ca83ed3f8eb493af946d86596508a",
-      "reason": "EX-02: owner-private canvas image file refs, image previews and explicit async upload/save."
+      "sha256": "cb7c694852a68b90fcb84eb5960b4cc97b36a67bf8c63ea44b3abd127a2d23c7",
+      "reason": "Allow large private Sticky paper up to the extension schema's 5000px bound."
     },
     "src/stickies.js": {
-      "sha256": "09964fbea84c68a34a4eb4c1596059da2a9cbdd7c0b5ca6caafed1199ab66b05",
-      "reason": "EX-02: owner-private media support in Sticky Canvas previews and editor."
+      "sha256": "d651eec13c38d866ab329b8166e5318717f1453e1a936305794b72bdae95b8ce",
+      "reason": "Expand Sticky dimensions and quantize drag geometry."
     },
     "src/cloud/media.js": {
       "sha256": "99eac387f80b7d9fe7214439ef935eff63686068a3ed3f50e0c9623f526b95a3",
@@ -136,8 +136,8 @@
       "reason": "EX-01: reviewed on-demand official React/ReactDOM Excalidraw entrypoint with local CSS and per-dialog mount/unmount; no initial app or sign-in bundle change."
     },
     "src/widget-registry.js": {
-      "sha256": "95c4fdd14a1c690f54086fac2b53d123311ddc89554a82c6b2fe09c7949e7ea2",
-      "reason": "SP-01B: bounded private optional-widget state and explicit first-party registry extension without executable snapshot descriptors."
+      "sha256": "097767f8dd9c6c1e94504ec571c29ca2f1d0684955d2f8c87231d15db1a427f0",
+      "reason": "Increase Journal maximum resize to existing database-supported 4000px."
     },
     "src/projects.js": {
       "sha256": "833092589f86d09494cf3fd5948663e70a04b4d8f1fea426c9d0ca3b074e4ba1",

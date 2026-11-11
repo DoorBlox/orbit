@@ -175,3 +175,13 @@ test('EX-02 scene rejects binary data URLs, forged paths, orphan image elements 
     {...emptyScene(),elements:[image],files:Object.fromEntries(Array.from({length:33},(_,i)=>['f_'+i,{path,mimeType:'image/png'}]))}
   ])assert.throws(()=>normalizeScene(invalid),undefined,JSON.stringify(invalid));
 });
+
+
+test('BP-06 expanded paper dimensions remain reversible and within bounded private schema',()=>{
+  const scene=emptyScene();
+  const big={id:'larger_paper',title:'Poster',text:'A bigger workspace',x:0,y:0,
+    width:3850,height:4100,color:'mint',scene,mode:'canvas'};
+  assert.deepEqual(normalizeExtensions({notes:[big]}).notes[0],big);
+  assert.throws(()=>normalizeExtensions({notes:[{...big,width:5100}]}),/sticky/i);
+  assert.throws(()=>normalizeExtensions({notes:[{...big,height:5100}]}),/sticky/i);
+});

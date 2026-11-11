@@ -193,7 +193,7 @@ const projectsShelf=new ProjectsShelf({
 });
 board.registerWidget({
   id:'projects',position:{x:1940,y:115},
-  limits:{minW:350,minH:340,maxW:1150,maxH:1600},icon:'◆'
+  limits:{minW:350,minH:340,maxW:5000,maxH:5000},icon:'◆'
 },projectsShelf.element);
 const openProjects=document.createElement('button');
 openProjects.type='button';openProjects.className='glass-button';

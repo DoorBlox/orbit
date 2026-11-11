@@ -67,8 +67,8 @@ export function normalizeExtensions(raw={}){
   const cleanNotes=notes.map(n=>{
     if(!object(n)||!validId(n.id)||ids.has(n.id)||typeof n.text!=='string'||n.text.length>6000||
       typeof n.title!=='string'||n.title.length>100||!coord(n.x)||!coord(n.y)||
-      !Number.isFinite(n.width)||n.width<220||n.width>850||
-      !Number.isFinite(n.height)||n.height<160||n.height>850||
+      !Number.isFinite(n.width)||n.width<220||n.width>5000||
+      !Number.isFinite(n.height)||n.height<160||n.height>5000||
       !['sand','peach','lavender','mint'].includes(n.color)||
       (n.mode!==undefined&&!['write','canvas'].includes(n.mode)))throw Error('Invalid sticky note.');
     ids.add(n.id);

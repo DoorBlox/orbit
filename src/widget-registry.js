@@ -9,7 +9,7 @@ const CORE = [
   {id:'active',position:{x:1895,y:760},limits:{minW:300,minH:280,maxW:1400,maxH:2000},icon:'◉'},
   {id:'completed',position:{x:1980,y:1370},limits:{minW:300,minH:235,maxW:1400,maxH:2000},icon:'✓'},
   {id:'space',position:{x:280,y:1725},limits:{minW:300,minH:210,maxW:1050,maxH:950},icon:'·'},
-  {id:'journal',position:{x:930,y:1780},limits:{minW:420,minH:720,maxW:1500,maxH:2400},icon:'✎'},
+  {id:'journal',position:{x:930,y:1780},limits:{minW:420,minH:720,maxW:4000,maxH:4000},icon:'✎'},
 ];
 const safeId = value => typeof value==='string' && /^[a-z][a-z0-9-]{1,39}$/.test(value) &&
   !['constructor','prototype','__proto__'].includes(value);
