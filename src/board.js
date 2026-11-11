@@ -91,10 +91,13 @@ export class SpatialBoard {
     }
     this.buildNavigator();
     this.nav.addEventListener('pointerdown',e=>this.startNavigatorPan(e),{signal:this.events.signal});
-    this.nav.addEventListener('pointermove',e=>this.moveNavigatorPan(e),{signal:this.events.signal});
-    this.nav.addEventListener('pointerup',e=>this.endNavigatorPan(e),{signal:this.events.signal});
-    this.nav.addEventListener('pointercancel',e=>this.endNavigatorPan(e),{signal:this.events.signal});
-    this.nav.addEventListener('lostpointercapture',e=>this.endNavigatorPan(e),{signal:this.events.signal});
+    // Hybrid touchscreen laptops sometimes lose pointer capture when a finger
+    // leaves the mini-map. Keep tracking on the window until up/cancel/blur.
+    window.addEventListener('pointermove',e=>this.moveNavigatorPan(e),{
+      passive:false,signal:this.events.signal});
+    window.addEventListener('pointerup',e=>this.endNavigatorPan(e),{signal:this.events.signal});
+    window.addEventListener('pointercancel',e=>this.endNavigatorPan(e),{signal:this.events.signal});
+    window.addEventListener('blur',()=>this.cancelNavigatorPan(),{signal:this.events.signal});
     this.nav.addEventListener('keydown',e=>{
       if(e.target!==this.nav)return;
       const d={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];
@@ -352,8 +355,13 @@ export class SpatialBoard {
   }
   endNavigatorPan(e){
     if(e.pointerId!==this.navPointer)return;
+    this.cancelNavigatorPan();
+  }
+  cancelNavigatorPan(){
+    const id=this.navPointer;
+    if(id===null)return;
     this.navPointer=null;this.navDragStart=null;this.nav.classList.remove('is-dragging');
-    try{if(this.nav.hasPointerCapture?.(e.pointerId))this.nav.releasePointerCapture(e.pointerId);}catch{}
+    try{if(this.nav.hasPointerCapture?.(id))this.nav.releasePointerCapture(id);}catch{}
   }
   render(){this.world.style.transform=`translate3d(${this.pan.x.toFixed(2)}px,${this.pan.y.toFixed(2)}px,0) scale(${this.scale.toFixed(4)})`;
     document.getElementById('board-scale-label').textContent=`${Math.round(this.scale*100)}%`;
@@ -524,6 +532,6 @@ export class SpatialBoard {
     el.style.left=`${clampNavigatorPercent((wx-x0)/(x1-x0)*100,this.nav.clientWidth||180)}%`;
     el.style.top=`${clampNavigatorPercent((wy-y0)/(y1-y0)*100,this.nav.clientHeight||90)}%`;
   }
-  dispose(){this.disposed=true;this.navPointer=null;this.navDragStart=null;this.navigatorObserver?.disconnect();cancelAnimationFrame(this.raf);this.raf=0;this.events.abort();this.pointers.clear();this.widgets.clear();}
+  dispose(){this.disposed=true;this.cancelNavigatorPan();this.navigatorObserver?.disconnect();cancelAnimationFrame(this.raf);this.raf=0;this.events.abort();this.pointers.clear();this.widgets.clear();}
 
 }

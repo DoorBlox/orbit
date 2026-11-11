@@ -123,7 +123,7 @@ const scene=new Constellation({viewport:$('map-viewport'),world:$('map-world'),e
     state.selectedTaskId=id;const task=state.tasks.find(t=>t.id===id);if(task){expandBranchPath(task.projectId);setBranch(task.projectId);}
   },
   onTaskUpdate(id,patch){if(readOnly||disposed)return false;
-    const index=state.tasks.findIndex(t=>t.id===id);if(index<0)return;
+    const index=state.tasks.findIndex(t=>t.id===id);if(index<0)return false;
     const prev=state.tasks[index];
     try{
       const next=cleanTask({...prev,...patch},prev.projectId);
@@ -133,7 +133,8 @@ const scene=new Constellation({viewport:$('map-viewport'),world:$('map-world'),e
       if(patch.status==='completed')message('Finished. That counts.');
       else if(patch.projectId&&patch.projectId!==prev.projectId){setBranch(next.projectId);scene.focusTask(next);message('Task moved to its new branch.');}
       else message('Saved.');
-    }catch(err){message(`Could not update: ${err.message}`);}
+      return true;
+    }catch(err){message(`Could not update: ${err.message}`);return false;}
   },
   onTaskDelete(id){if(readOnly||disposed)return false;
     const index=state.tasks.findIndex(t=>t.id===id);if(index<0)return;

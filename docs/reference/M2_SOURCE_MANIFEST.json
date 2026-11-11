@@ -12,8 +12,8 @@
       "reason": "BP-06: concise Space actions with accessible Appearance and Manage disclosures."
     },
     "src/app.js": {
-      "sha256": "cded9fb285c7c288131c2bc1178ad8b4ccaeb6375c1dfff3bf3b25fc2f7dbe42",
-      "reason": "PJ-02B: register the real seventh window with separated default spatial positioning, owner-scoped project metadata and Space launcher."
+      "sha256": "92b51de96f55401058fbfc2ad605f4299bd40c7751c774b7339e379680027a58",
+      "reason": "BP-06: return validation success for task editor without dismissing invalid drafts."
     },
     "src/auth/README.md": {
       "sha256": "1ec9f199e2ab8b76ff9a7d462f1804d6653706a8eb4b005e23311d76c9d1f7d5",
@@ -32,8 +32,8 @@
       "reason": "PJ-01: reject orphan project identity keys before V6 atomic restore."
     },
     "src/board.js": {
-      "sha256": "07e5b4d838641f06e94ff985c5891c43c5df5a251c33726a5141583d6bfe816e",
-      "reason": "TOUCH-01: navigator cursor drags preserve original finger offset across touch/zoom without snapping; direct map tap and pointer cancellation remain supported."
+      "sha256": "90fc70a86ecaa4d90aa7b55301f324aefbfd509f5a673aa3f64112846e7cc9fe",
+      "reason": "TOUCH-01: window-level pointer tracking and cancellation for hybrid touchscreen navigator drag."
     },
     "src/bootstrap.js": {
       "sha256": "d890dbb33689b72f19e1713618734831718bdcf7979056a506ed8db89b44eb99",
@@ -68,8 +68,8 @@
       "reason": "BP-03: keep 15s active polling and adaptive 30s idle full-snapshot checks after 2min; deterministic scheduler and CAS-safe draft/remote-change tests."
     },
     "src/constellation.js": {
-      "sha256": "2b22798faaa2bae6c0be2d45cd10a9472b05dfb712438879da66bc0c3b751c93",
-      "reason": "BR-02: collapsed parent branches with hidden descendants no longer show misleading empty add placeholder; true expanded leaf empty state preserved."
+      "sha256": "6d17fe195d35d9e0de6b712855e5f4634d284c7368457b9676cea8d55d8f3c1b",
+      "reason": "BP-06: viewport-native task inspector with scroll, keyboard, cancel, validation and preserved checklist/links."
     },
     "src/csv.js": {
       "sha256": "e5de107e78d76d26553d25dca1b200765aaafeb2b836216b1ae11f57e5499178",
@@ -104,8 +104,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "87bb99073c43c36d395b1014d8b24a82750ea270fef579766a4db2a5c5e98c79",
-      "reason": "BP-06: responsive Space, Sticky and private status controls using existing theme tokens."
+      "sha256": "877a4e0ab67e4667bf3413da85ccb9b4a639fc2dd4e03b9c1e44ab2d06cbd71a",
+      "reason": "BP-06: viewport-bounded task inspector and hybrid map touch-action styling; preserve existing themed Sticky and Space."
     },
     "src/widgets.js": {
       "sha256": "aee68a4ce8a37edbb2de2fa1b0a2fc4589fcaf28a00603db2b148c6875a8ec58",
