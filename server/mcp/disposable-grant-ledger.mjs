@@ -243,6 +243,24 @@ export function createDisposableGrantLedger({directory,macKey,clock=Date.now}={}
       return {changed:true,value:Object.freeze({refreshToken:token,grantEpoch:row.epoch})};
     });
   }
+  /** RFC 7009-style refresh revocation: an existing active bearer may revoke
+   * only its own currently active owner/client/resource grant atomically.
+   * Previously rotated or pre-reconsent bearers MUST NOT revoke newer grants.
+   */
+  async function revokeRefresh(id){
+    identity(id);
+    if(!refreshToken.test(id.refreshToken||''))denied();
+    const digest=hash(id.refreshToken);
+    return transact(state=>{
+      const {row}=get(state,id);
+      if(row?.status!=='active'||row.currentRefresh?.hash!==digest)
+        return {changed:false,value:false};
+      row.epoch=plus(row.epoch);
+      row.status='revoked';row.revokedAt=Math.floor(now()/1000);
+      row.currentRefresh=null;
+      return {changed:true,value:true};
+    });
+  }
   async function rotateRefresh(id){
     identity(id);
     if(!refreshToken.test(id.refreshToken||''))denied();
@@ -277,6 +295,6 @@ export function createDisposableGrantLedger({directory,macKey,clock=Date.now}={}
   }
   return Object.freeze({
     initialize,consent,revoke,revokeToken,readAuthorizationSnapshot,
-    issueRefresh,rotateRefresh,
+    issueRefresh,rotateRefresh,revokeRefresh,
   });
 }
