@@ -7,6 +7,9 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
   // interaction; active typing/pointer use keeps the existing 15 s cadence.
   // A second device may take up to 30 s to appear while this tab is idle.
   idleAfterMs = 120000, idlePollMs = 30000,
+  // A transport that ignores AbortSignal must not pin every subsequent poll.
+  // A 45-second age budget is conservative relative to 15/30-second polling.
+  maxReadAgeMs = 45000,
   now = () => globalThis.performance?.now?.() ?? Date.now(),
   eventTarget = globalThis.window,
   visibilityTarget = globalThis.document,
@@ -19,7 +22,8 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
     throw Error('A snapshot repository and valid initial revision are required.');
   }
   if (typeof now !== 'function' || !Number.isFinite(idleAfterMs) || idleAfterMs < 0 ||
-      !Number.isFinite(idlePollMs) || idlePollMs < Math.max(0,pollMs)) {
+      !Number.isFinite(idlePollMs) || idlePollMs < Math.max(0,pollMs) ||
+      !Number.isFinite(maxReadAgeMs) || maxReadAgeMs < Math.max(0,pollMs)) {
     throw Error('Invalid idle poll timing or clock.');
   }
   const startedAt = now();
@@ -28,7 +32,8 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
   const markInteraction = () => { lastInteractionAt = now(); };
   let revision = initialRevision, state = 'saved', errorCode = null;
   let pending = null, changeVersion = 0, debounceTimer = null, pollTimer = null;
-  let writePromise = null, readPromise = null, readController = null, reloadInFlight = false, disposed = false;
+  let writePromise = null, readPromise = null, readController = null, readStartedAt = null;
+  let reloadInFlight = false, disposed = false;
   const requests = new Set();
   const getState = () => ({state, revision, hasPending:pending !== null, errorCode});
   function status(next, code = null) {
@@ -47,7 +52,9 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
     const obsolete = readController;
     readController = null;
     readPromise = null;
+    readStartedAt = null;
     obsolete?.abort();
+    if (obsolete) requests.delete(obsolete);
   }
   // Default callers may retain and mutate their input, so queue defensively
   // clones it. queueOwned adopts a fully detached mountOrbit.getSnapshot()
@@ -96,9 +103,15 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
   }
   function refresh() {
     if (disposed || pending || writePromise || reloadInFlight || errorCode === 'CONFLICT') return Promise.resolve({ok:!disposed,changed:false});
-    if (readPromise) return readPromise;
+    if (readPromise) {
+      if (now() - readStartedAt < maxReadAgeMs) return readPromise;
+      // The old promise might NEVER settle. Detach first, then retry; its
+      // controller identity gate prevents a late response changing the view.
+      cancelRead();
+    }
     const requestVersion = changeVersion, controller = request();
     readController = controller;
+    readStartedAt = now();
     readPromise = (async () => {
       try {
         if (!isOnline()) { status('offline','NETWORK'); return {ok:false,changed:false}; }
@@ -122,7 +135,7 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
       } finally { requests.delete(controller); }
     })().finally(() => {
       // A late completion belongs to its own generation, never a newer read.
-      if (readController === controller) { readController = null; readPromise = null; }
+      if (readController === controller) { readController = null; readPromise = null; readStartedAt = null; }
     });
     return readPromise;
   }
