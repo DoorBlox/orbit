@@ -126,7 +126,8 @@ test('protocol version header and params._meta must be exactly equal and support
     assert.deepEqual(err.data,{supported:['2026-07-28'],requested:'2025-11-25'});
     return true;
   });
-  await denied(()=>a.invoke(request(payload({params:{name:'list_branches',arguments:{}}})),headerMismatch);
+  const missingMeta=payload({params:{name:'list_branches',arguments:{}}});
+  await denied(()=>a.invoke(request(missingMeta)),headerMismatch);
 });
 
 test('Mcp-Method and Mcp-Name mirror the body exactly, including case and Base64 sentinel',async()=>{
