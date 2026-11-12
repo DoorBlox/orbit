@@ -46,7 +46,12 @@ const denyResult=(res,status)=>{
  * Deliberately not configurable to public interfaces, permanent storage,
  * production project IDs, hosted JWT signing keys or third-party accounts.
  */
-export async function startLocalMcpFixture({maxRequestsPerMinute=120}={}){
+export async function startLocalMcpFixture({maxRequestsPerMinute=120,trustedGrantStore=null}={}){
+  // Opt-in durable adapter is still a synthetic trusted test fixture; NEVER
+  // mount its owner-selection/token signer as an untrusted/public route.
+  if(trustedGrantStore!==null&&
+    typeof trustedGrantStore.readAuthorizationSnapshot!=='function')
+    throw Error('MCP_FIXTURE_DENIED');
   if(!Number.isSafeInteger(maxRequestsPerMinute)||
     maxRequestsPerMinute<1||maxRequestsPerMinute>1000)
     throw Error('MCP_FIXTURE_DENIED');
@@ -80,7 +85,8 @@ export async function startLocalMcpFixture({maxRequestsPerMinute=120}={}){
     },
   };
   const grantAuthorizer=createMcpGrantAuthorizer({
-    readAuthorizationSnapshot:async ({issuer:iss,resource:res,ownerId,clientId:client,
+    readAuthorizationSnapshot:trustedGrantStore?async query=>
+      trustedGrantStore.readAuthorizationSnapshot(query):async ({issuer:iss,resource:res,ownerId,clientId:client,
       tokenId})=>{
       const current=grants.get(ownerId);
       if(iss!==issuer||res!==resource||client!==clientId||!current)return null;
@@ -114,19 +120,26 @@ export async function startLocalMcpFixture({maxRequestsPerMinute=120}={}){
       return true;
     },
   });
-  const tokenFor=label=>{
-    if(!Object.hasOwn(ownerIds,label))throw Error('MCP_FIXTURE_DENIED');
-    const grant=grants.get(ownerIds[label]);
+  const issueForEpoch=(label,epoch)=>{
+    if(!Object.hasOwn(ownerIds,label)||!Number.isSafeInteger(epoch)||
+      epoch<1||epoch>2147483647)throw Error('MCP_FIXTURE_DENIED');
     const sec=now(),jti='fixture-'+label+'-token-'+(++serial);
     const header={alg:'RS256',typ:'at+jwt',kid:'local-synthetic-1'};
     const claims={iss:issuer,aud:resource,sub:ownerIds[label],client_id:clientId,
-      jti,grant_epoch:grant.epoch,role:'authenticated',token_use:'access',
+      jti,grant_epoch:epoch,role:'authenticated',token_use:'access',
       scope:'tasks:read',iat:sec,nbf:sec,exp:sec+300};
     const body=[header,claims].map(v=>Buffer.from(JSON.stringify(v)).toString('base64url')).join('.');
     lastTokens.set(label,jti);
     return body+'.'+signJws('RSA-SHA256',Buffer.from(body),keys.privateKey).toString('base64url');
   };
-  const tokens=Object.freeze({ownerA:tokenFor('ownerA'),ownerB:tokenFor('ownerB')});
+  const tokenFor=label=>{
+    if(trustedGrantStore||!Object.hasOwn(ownerIds,label))
+      throw Error('MCP_FIXTURE_DENIED');
+    return issueForEpoch(label,grants.get(ownerIds[label]).epoch);
+  };
+  // No pre-issued bypass tokens when a persisted consent ledger is active.
+  const tokens=trustedGrantStore?Object.freeze({}):
+    Object.freeze({ownerA:tokenFor('ownerA'),ownerB:tokenFor('ownerB')});
 
   let listeningPort=0;
   const server=createServer(async (req,res)=>{
@@ -179,16 +192,23 @@ export async function startLocalMcpFixture({maxRequestsPerMinute=120}={}){
   return Object.freeze({
     url:'http://127.0.0.1:'+listeningPort+'/mcp',
     tokens,ownerIds,tokenFor,
+    ...(trustedGrantStore?{
+      trustedIssueForEpoch:issueForEpoch,
+      grantIdentity:Object.freeze({issuer,resource,clientId}),
+    }:{}),
     revoke(label){
+      if(trustedGrantStore)throw Error('MCP_FIXTURE_DENIED');
       const id=ownerIds[label];if(!id)throw Error('MCP_FIXTURE_DENIED');
       const entry=grants.get(id);entry.active=false;entry.epoch++;
     },
     regrant(label){
+      if(trustedGrantStore)throw Error('MCP_FIXTURE_DENIED');
       const id=ownerIds[label];if(!id)throw Error('MCP_FIXTURE_DENIED');
       const entry=grants.get(id);
       entry.active=true;entry.epoch++;entry.grantedAt=now()-1;
     },
     revokeToken(label){
+      if(trustedGrantStore)throw Error('MCP_FIXTURE_DENIED');
       const id=ownerIds[label];if(!id)throw Error('MCP_FIXTURE_DENIED');
       const current=lastTokens.get(label);
       if(current)grants.get(id).revokedTokens.add(current);
