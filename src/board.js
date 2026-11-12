@@ -84,6 +84,9 @@ export class SpatialBoard {
       }
     }
     this.scale=1;this.pan={x:0,y:0};this.gesture=null;this.pointers=new Map();this.raf=0;
+    // Keep the same world point under the viewport center across phone rotations
+    // and mobile browser-chrome / soft-keyboard viewport changes.
+    this.lastViewportSize=this.viewportSize();
     this.widgets=new Map();this.stickyNotes=[];this.navPointer=null;this.navDragStart=null;
     this.nav=document.getElementById('space-nav-map');
     this.navPinStart=null;this.navSuppressClick=false;
@@ -139,7 +142,11 @@ export class SpatialBoard {
     document.getElementById('board-zoom-in').addEventListener('click',()=>this.zoomBy(1.23));
     document.getElementById('board-zoom-out').addEventListener('click',()=>this.zoomBy(1/1.23));
     document.getElementById('board-home').addEventListener('click',()=>this.fitAll());
-    window.addEventListener('resize',()=>this.render(),{signal:this.events.signal});
+    window.addEventListener('resize',()=>this.handleViewportResize(),{signal:this.events.signal});
+    if(typeof ResizeObserver!=='undefined'){
+      this.viewportObserver=new ResizeObserver(()=>this.handleViewportResize());
+      this.viewportObserver.observe(this.viewport);
+    }
     if(initialLayout)this.setLayout(initialLayout,{persist:false});
     this.render();
     // Open near the constellation and leave adjacent glass objects discoverable by drifting sideways.
@@ -462,6 +469,29 @@ export class SpatialBoard {
     }
     this.animate(target,initial?0:520);
   }
+  /**
+   * BP-08: viewport geometry changes are camera-only. Redrawing without shifting
+   * the pan changes which world point is centered after rotation. Recenter the
+   * freeform view; while in Focus, also translate the return bookmark and
+   * reframe its selected widget against the new short/portrait viewport.
+   */
+  handleViewportResize(){
+    if(this.disposed)return;
+    const next=this.viewportSize(),previous=this.lastViewportSize??next;
+    if(![next.w,next.h,previous.w,previous.h].every(Number.isFinite)||
+       next.w<=0||next.h<=0)return;
+    this.lastViewportSize=next;
+    const dx=(next.w-previous.w)/2,dy=(next.h-previous.h)/2;
+    if(!dx&&!dy)return;
+    cancelAnimationFrame(this.raf);this.raf=0;
+    if(this.focusReturn){
+      this.focusReturn.pan.x+=dx;this.focusReturn.pan.y+=dy;
+      this.focus(this.focusReturn.id,{initial:true});
+    }else{
+      this.pan.x+=dx;this.pan.y+=dy;
+      this.render();
+    }
+  }
   ensureVisible(control){
     const rect=control.getBoundingClientRect(),view=this.viewport.getBoundingClientRect();
     const {w,h}=this.viewportSize(),left=view.left+24,right=view.left+w-24;
@@ -601,6 +631,6 @@ export class SpatialBoard {
     el.style.left=`${clampNavigatorPercent((wx-x0)/(x1-x0)*100,this.nav.clientWidth||180)}%`;
     el.style.top=`${clampNavigatorPercent((wy-y0)/(y1-y0)*100,this.nav.clientHeight||90)}%`;
   }
-  dispose(){this.exitWidgetFocus();this.disposed=true;this.cancelNavigatorPan();this.navigatorObserver?.disconnect();cancelAnimationFrame(this.raf);this.raf=0;this.events.abort();this.pointers.clear();this.widgets.clear();}
+  dispose(){this.exitWidgetFocus();this.disposed=true;this.cancelNavigatorPan();this.navigatorObserver?.disconnect();this.viewportObserver?.disconnect();cancelAnimationFrame(this.raf);this.raf=0;this.events.abort();this.pointers.clear();this.widgets.clear();}
 
 }
