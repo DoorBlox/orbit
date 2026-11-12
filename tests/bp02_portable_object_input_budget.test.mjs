@@ -44,3 +44,32 @@ test('BP-02: normal small object-form archive remains inspectable without any up
   assert.equal(reviewed.snapshot.journalEntries[0].html,'<p>漢語🙂</p>');
   assert.deepEqual(reviewed.files,[]);
 });
+
+test('BP-02: direct objects inspect exactly the checked toJSON representation',async()=>{
+  const serialized={
+    format:'orbit-portable-backup',version:1,exportedAt:'2026-11-12T00:00:00.000Z',
+    manifest:{assetCount:0,totalBytes:0},
+    snapshot:{...baseSnapshot(),journalEntries:[{
+      id:'page_1',date:'2026-11-12',title:'Serialized page',html:'<p>serialized content</p>'
+    }]},assets:[]
+  };
+  const callerObject={...serialized,
+    snapshot:{...serialized.snapshot,journalEntries:[{
+      id:'page_1',date:'2026-11-12',title:'Caller property',html:'<p>unserialized value</p>'
+    }]},
+    toJSON:()=>serialized
+  };
+  const reviewed=await inspectPortableArchive(callerObject,{sanitizeHtml});
+  assert.equal(reviewed.snapshot.journalEntries[0].html,'<p>serialized content</p>');
+});
+
+test('BP-02: unstringifiable cyclic archive object fails closed with a safe JSON error',async()=>{
+  const archive={
+    format:'orbit-portable-backup',version:1,exportedAt:'2026-11-12T00:00:00.000Z',
+    manifest:{assetCount:0,totalBytes:0},
+    snapshot:{...baseSnapshot(),journalEntries:[]},assets:[]
+  };
+  archive.self=archive;
+  await assert.rejects(inspectPortableArchive(archive,{sanitizeHtml}),
+    {message:'Invalid portable backup JSON.'});
+});
