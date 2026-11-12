@@ -30,8 +30,9 @@ export async function bootstrapOrbit(config=runtimeConfig) {
   appElement.hidden=true;appElement.inert=true;
   let app=null,sync=null,auth=null,ownerTools=null,readRequest=null,viewVersion=0;
   window.addEventListener('beforeunload',event=>{
-    app?.flushEditor();
-    if(sync?.getState().hasPending){event.preventDefault();event.returnValue='';}
+    // beforeunload cannot await private uploads: warn while a canvas is dirty.
+    app?.journalCommit?.();
+    if(app?.hasPendingEditor?.()||sync?.getState().hasPending){event.preventDefault();event.returnValue='';}
   },{signal:lifecycle.signal});
   const publicRelease=config?.publicRelease===true;
   const shell=createAuthShell({publicRelease,
@@ -42,8 +43,8 @@ export async function bootstrapOrbit(config=runtimeConfig) {
     onVerifyOtp:token=>auth?.verifyEmailOtp(token),
     onCancelOtp:()=>auth?.cancelEmailOtp(),
     onSignOut:async()=>{
-      // Commit the in-memory editor into the snapshot before checking pending state.
-      app?.flushEditor();
+      try{await app?.flushEditor();}
+      catch(error){window.alert('Canvas not saved: '+error.message+' Keep editing and retry.');return;}
       if(sync?.getState().hasPending&&!window.confirm('Some changes are not saved to the cloud. Cancel and export a backup to keep them, or sign out and discard this session draft.'))return;
       await auth?.signOut();
     },
