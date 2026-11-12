@@ -52,24 +52,24 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "src/cloud/media.js": {
-      "sha256": "01412a039cc2c88fb9d9d8cb6fa5fb0313f111e52e1a135c34695ae2b512911d",
-      "reason": "BP-01/BP-12: require exact owner-private Storage path acknowledgment before returning a new image reference; ambiguous writes remain non-destructive and retryable."
+      "sha256": "cda3cf728e6682ca29e9ce4ab00d83de94039c2c49efce2acd5d4505e176f24a",
+      "reason": "BP-12: normalize null/undefined resolved private Storage download and signed URL responses, retaining independently retryable authenticated sessions."
     },
     "src/cloud/owner-tools.js": {
       "sha256": "f994bcae3ddf3e7413f2cb5cd7569d08c4f4fe0c525a00a5d418f9b74270271e",
       "reason": "BP-12/EX-02: authenticated owner gallery with bounded previews, valid empty and paginated inventory, reference-safe detached media selection, opt-in .orbit backup."
     },
     "src/cloud/portable-backup.js": {
-      "sha256": "7d18048c7ad7092e5db8c2295ab5d419bb21f51bf41014acef54b0026d986b47",
-      "reason": "BP-02: align .orbit export and import quotas with actual UTF-8 File.size, using bounded encoding while preserving image/base64 limits."
+      "sha256": "a4f869399cbe2df9db468e7626b6e60f1418bc3fbea66fea6b6b82f52526b382",
+      "reason": "BP-02: normalize direct object archive inputs through their checked JSON serialization, enforcing the 96 MiB UTF-8 import boundary without a toJSON inspection mismatch."
     },
     "src/cloud/README.md": {
       "sha256": "2fa23ecebff7de9fa7e5463f3c77031e97850cf192398ea0da66c2f6cd19a4af",
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "src/cloud/repository.js": {
-      "sha256": "23a5093b1664377a384d9fd4fbb46ba619f54625613ede85e70542543e6a9165",
-      "reason": "W1 BP-09: after full fail-closed normalization, retain already-valid tasks when no task-link overlay exists and copy only tasks with extension overrides; preserve Auth/RPC/CAS semantics."
+      "sha256": "4bdb2905cd0e2a11c4dde365ef8310d9b6ce4b619d2e5dc72f531221734436b7",
+      "reason": "W1 BP-03: default-off conditional owner revision probe with strict minimal unchanged envelope, auth recheck, canonical PGRST202/404 fallback and legacy full read; hosted RPC not activated."
     },
     "src/cloud/sync.js": {
       "sha256": "13515feba88f6ecd9d2c4654eed42c9e90ed671847ec9aa40f61f34c2f816bfd",
@@ -104,8 +104,8 @@
       "reason": "BP-07: lazy owner-private Excalidraw island, true-content signature, guards and explicit save/flush with unit regression."
     },
     "src/journal.js": {
-      "sha256": "10b086e07116d06f32a278acc619343fa1982149cef672beb5828757e69ff3e0",
-      "reason": "W3 BP-11: defer interim title/contenteditable IME cloud publication and local debounce until compositionend while preserving interrupted-draft flush, selection and historical HTML."
+      "sha256": "f1d83a56821cd60f6f501e898c633c1be52c5efcd3d151b1ad63bd5becc6981d",
+      "reason": "W3 BP-11: journal date re-sort updates pager metadata without re-rendering current contenteditable editor, retaining native undo/redo and unfinished draft."
     },
     "src/layout.js": {
       "sha256": "1895015e94741e987e696be8ab1d77ab348560dc847a70a41bd7c6ca74626ee3",
