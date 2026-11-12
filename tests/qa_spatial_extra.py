@@ -33,9 +33,9 @@ def run_extra_widget(browser, open_page, reload_page, out):
         assert len(original)==6, 'Original V6 layout still has six known IDs'
         page.evaluate(ADD_WIDGET)
         assert page.locator('[data-widget="scratch"]').count()==1
-        assert page.locator('.spatial-item[data-widget]').count()>=8
+        assert page.locator('.spatial-item[data-widget]').count()>=9
         assert page.locator('.space-point-scratch').count()==1
-        assert page.evaluate('() => window.orbitDebug.board.widgets.size')==8
+        assert page.evaluate('() => window.orbitDebug.board.widgets.size')==9
         assert page.evaluate('() => window.orbitDebug.board.getLayout()')==original
         dimensions=page.locator('[data-widget="scratch"]').evaluate(
             'element => [element.offsetWidth,element.offsetHeight]')
