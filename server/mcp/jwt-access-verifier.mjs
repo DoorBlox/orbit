@@ -72,10 +72,14 @@ function resolveIssuerPublicKey(jwks,kid) {
  * as a network address. Consent and revocation checks must be durable in a
  * future hosted adapter (not local process memory).
  */
-export function createMcpJwtAccessVerifier({issuer,resource,loadJwks,isRevoked,hasConsent,clock=Date.now}={}) {
+export function createMcpJwtAccessVerifier({issuer,resource,loadJwks,isRevoked,hasConsent,authorizeGrant,clock=Date.now}={}) {
   exactHttps(issuer);exactHttps(resource);
-  if(typeof loadJwks!=='function'||typeof isRevoked!=='function'||
-    typeof hasConsent!=='function'||typeof clock!=='function')denied();
+  const atomic=typeof authorizeGrant==='function';
+  // Never allow silent downgrade or a mixed atomic/split authorization path.
+  if(typeof loadJwks!=='function'||typeof clock!=='function'||
+    (atomic ? isRevoked!==undefined||hasConsent!==undefined :
+      authorizeGrant!==undefined||typeof isRevoked!=='function'||
+      typeof hasConsent!=='function'))denied();
   return async function verifyAccessToken(token){
     try {
       if(typeof token!=='string'||token.length<30||token.length>MAX_BEARER)denied();
@@ -100,6 +104,9 @@ export function createMcpJwtAccessVerifier({issuer,resource,loadJwks,isRevoked,h
         !tokenIdPattern.test(claims.jti||'')||
         !clientPattern.test(claims.client_id||'')||
         Object.hasOwn(claims,'cnf')||
+        (atomic&&(!uuidPattern.test(claims.orbit_grant_id||'')||
+          !Number.isSafeInteger(claims.orbit_grant_epoch)||
+          claims.orbit_grant_epoch<1))||
         claims.role!=='authenticated'||claims.token_use!=='access'||
         claims.scope!=='tasks:read'||
         !Number.isSafeInteger(claims.exp)||!Number.isSafeInteger(claims.iat)||
@@ -108,11 +115,18 @@ export function createMcpJwtAccessVerifier({issuer,resource,loadJwks,isRevoked,h
         (claims.nbf!==undefined && (!Number.isSafeInteger(claims.nbf)||
           claims.nbf>seconds||claims.nbf<0)))denied();
       const context=Object.freeze({issuer,subject:claims.sub,clientId:claims.client_id,
-        jti:claims.jti,scopes:Object.freeze(['tasks:read']),expiresAt:claims.exp});
-      // Token revocation and current owner consent must be checked on EVERY
-      // request; Bearer access tokens remain intentionally reusable until exp.
-      if(await isRevoked(context)!==false)denied();
-      if(await hasConsent(context)!==true)denied();
+        jti:claims.jti,scopes:Object.freeze(['tasks:read']),expiresAt:claims.exp,
+        ...(atomic ? {resource,issuedAt:claims.iat,
+          grantId:claims.orbit_grant_id,grantEpoch:claims.orbit_grant_epoch} : {})});
+      // A single transactionally coherent consent+revocation decision avoids
+      // the split-hook consistency gap. Legacy two-port source callers remain
+      // supported but must not be combined with the atomic path.
+      if(atomic){
+        if(await authorizeGrant(context)!==true)denied();
+      }else{
+        if(await isRevoked(context)!==false)denied();
+        if(await hasConsent(context)!==true)denied();
+      }
       return Object.freeze({...claims});
     } catch { denied(); } // No token, cryptographic/key or backend detail leaks.
   };
