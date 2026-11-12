@@ -74,6 +74,65 @@ def saved(page):
     expect(page.locator('#journal-save-state')).to_have_text('saved on this device')
 
 
+def bp08_viewport_rotation_recovery(browser):
+    """Synthetic portrait/short-landscape resize without moving saved spatial geometry."""
+    context,page,errors=open_page(browser,(320,700),is_mobile=True,has_touch=True)
+    try:
+        def camera():
+            return page.evaluate("""() => {
+              const b=window.orbitDebug.board,{w,h}=b.viewportSize();
+              return {w,h,centerX:(w/2-b.pan.x)/b.scale,
+                centerY:(h/2-b.pan.y)/b.scale,scale:b.scale,layout:b.getLayout()};
+            }""")
+
+        def resized(width,height):
+            page.set_viewport_size({'width':width,'height':height})
+            page.wait_for_function("""({w,h}) => {
+              const size=window.orbitDebug.board.lastViewportSize;
+              return size && size.w===w && size.h===h;
+            }""",{'w':width,'h':height})
+
+        def same_world_center(left,right):
+            assert abs(left['centerX']-right['centerX'])<0.001, (left,right)
+            assert abs(left['centerY']-right['centerY'])<0.001, (left,right)
+            assert left['layout']==right['layout'], 'Viewport changed saved geometry'
+
+        focus(page,'journal')
+        first=camera()
+        resized(844,390)
+        second=camera()
+        same_world_center(first,second)
+        assert first['scale']==second['scale']
+        resized(390,844)
+        third=camera()
+        same_world_center(first,third)
+
+        focus(page,'space')
+        bookmark=camera()
+        page.locator('.space-manage > summary').click()
+        page.locator('#bp08-focus-picker').select_option('journal')
+        expect(page.locator('#bp08-focus-exit')).to_be_visible()
+        resized(844,390)
+        assert page.evaluate("""() => {
+          const b=window.orbitDebug.board,el=b.widgets.get('journal');
+          const r=el.querySelector('.widget-heading').getBoundingClientRect();
+          const v=b.viewport.getBoundingClientRect();
+          return b.focusReturn?.id==='journal' && b.widgets.get('space').inert &&
+            r.right>v.left && r.left<v.right && r.bottom>v.top && r.top<v.bottom;
+        }"""), 'Selected Focus widget heading is offscreen after landscape rotation'
+        page.screenshot(path=str(OUT/'m1-bp08-landscape-focus.png'))
+        page.locator('#bp08-focus-exit').click()
+        assert page.evaluate('window.orbitDebug.board.focusReturn===null')
+        same_world_center(bookmark,camera())
+        resized(390,844)
+        same_world_center(bookmark,camera())
+        page.screenshot(path=str(OUT/'m1-bp08-portrait-return.png'))
+        assert not errors,errors
+    finally:
+        context.tracing.stop()
+        context.close()
+
+
 def viewport_flow(browser, label, size):
     context,page,errors=open_page(browser,size,is_mobile=label!='desktop',has_touch=label!='desktop')
     try:
@@ -524,6 +583,8 @@ def main():
         browser=playwright.chromium.launch(headless=True,executable_path=executable,args=['--no-sandbox'])
         for label,size in [('desktop',(1440,900)),('tablet',(900,1100)),('phone',(390,844)),('small',(320,700)),('landscape',(844,390))]:
             viewport_flow(browser,label,size);results[label]='PASS';print('PASS',label,flush=True)
+        bp08_viewport_rotation_recovery(browser)
+        results['bp08_viewport_rotation_recovery']='PASS';print('PASS BP-08 viewport rotation recovery',flush=True)
         for name,fn in [('core flows',normal_flows),('failure and security',failure_security_flows),('preferences and dates',preferences_and_dates)]:
             fn(browser);results[name]='PASS';print('PASS',name,flush=True)
         results['density_load_ms']=density(browser)
