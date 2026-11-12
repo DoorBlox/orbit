@@ -74,8 +74,9 @@ def mobile_flow(browser, width):
         page.locator('#capture-name').press('Enter')
         saved(page)
         focus(page, 'journal')
-        qa.assert_pointer_reachable(page, '#journal-entry-title')
+        qa.assert_pointer_reachable(page, '#journal-edit-toggle')
         ensure_journal_edit(page)
+        qa.assert_pointer_reachable(page, '#journal-entry-title')
         page.locator('#journal-entry-title').fill(f'Closeout journal {width}')
         ensure_journal_edit(page)
         page.locator('#journal-editor').fill(f'Synthetic mobile body {width}')
@@ -161,6 +162,7 @@ def crud_undo(browser):
         saved(page)
         before_pages = page.evaluate('window.__m2Fixture.snapshot.journalEntries')
         ensure_journal_edit(page)
+        page.locator('.journal-more > summary').click()
         page.locator('#journal-delete').click()
         saved(page)
         assert len(page.evaluate('window.__m2Fixture.snapshot.journalEntries')) == len(before_pages) - 1
