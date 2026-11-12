@@ -72,8 +72,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/cloud/sync.js": {
-      "sha256": "2f5f6745b3c77e98bc996b114f9b0d72296d80ef48f03149566e3db602601374",
-      "reason": "BP-03: keep 15s active polling and adaptive 30s idle full-snapshot checks after 2min; deterministic scheduler and CAS-safe draft/remote-change tests."
+      "sha256": "c7dccc8d7cce9d20dc8c3bdebc1720c2d0aa3e9f034abe253f5b00bfe0c726ad",
+      "reason": "BP-07: prevent CAS revision advancement when a dirty canvas refuses a remote snapshot; retain existing poll and serialized save behavior."
     },
     "src/constellation.js": {
       "sha256": "6d17fe195d35d9e0de6b712855e5f4634d284c7368457b9676cea8d55d8f3c1b",
