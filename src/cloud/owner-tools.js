@@ -1,7 +1,10 @@
 import { STORAGE_KEYS } from '../storage.js';
 import { validateBackup } from '../backup.js';
 import { sanitizeJournal } from '../journal.js';
-import { createPortableArchive,inspectPortableArchive,rehydratePortableArchive,PORTABLE_MAX_TEXT_BYTES } from './portable-backup.js';
+import { createPortableArchive,inspectPortableArchive,rehydratePortableArchive,
+  collectMediaReferenceUsage,PORTABLE_MAX_TEXT_BYTES,PORTABLE_MAX_IMAGES }
+  from './portable-backup.js';
+import {validMediaOwner} from './media.js';
 
 /** Legacy storage is read only after the owner requests an import review. */
 export function readLocalImport(storage=globalThis.localStorage) {
@@ -18,6 +21,38 @@ export function readLocalImport(storage=globalThis.localStorage) {
   return validateBackup({format:'orbit-backup',version:6,branches,tasks,
     journalEntries:read(STORAGE_KEYS.journal)||[],milestones:read(STORAGE_KEYS.milestones)||[],
     preferences:read(STORAGE_KEYS.preferences)||{},spatialLayout},{sanitizeHtml:sanitizeJournal});
+}
+
+/** Strictly owner-scoped, immutable gallery projection. No Storage mutation. */
+export function classifyPrivateGalleryItems(items,usage,ownerId){
+  if(!Array.isArray(items)||items.length>100||!(usage instanceof Map)||
+     typeof ownerId!=='string'||!ownerId)
+    throw Error('Invalid private gallery inventory.');
+  const seen=new Set();
+  return items.map(item=>{
+    if(!item||!validMediaOwner(item.path,ownerId)||seen.has(item.path)||
+       !['image/png','image/jpeg','image/webp'].includes(item.mime)||
+       (item.size!==null&&(!Number.isSafeInteger(item.size)||item.size<0))||
+       (item.createdAt!==null&&typeof item.createdAt!=='string'))
+      throw Error('Invalid or foreign private image metadata.');
+    const references=usage.get(item.path)??[];
+    if(!Array.isArray(references))throw Error('Invalid private reference inventory.');
+    seen.add(item.path);
+    return Object.freeze({...item,referenceCount:references.length,detached:!usage.has(item.path)});
+  });
+}
+
+/** Explicit opt-in only: an attached asset is already included by default. */
+export function validateDetachedBackupSelection(paths,usage,ownerId){
+  if(!Array.isArray(paths)||paths.length>PORTABLE_MAX_IMAGES||!(usage instanceof Map))
+    throw Error('Invalid private backup selection.');
+  const selected=new Set();
+  for(const path of paths){
+    if(!validMediaOwner(path,ownerId)||usage.has(path)||selected.has(path))
+      throw Error('Selected private image is no longer detached or belongs to another account.');
+    selected.add(path);
+  }
+  return [...selected].sort();
 }
 
 /** Opt-in import/publication controls; user content is always assigned as text. */
@@ -38,25 +73,43 @@ export function createOwnerTools({repository,app,sync,container,media,ownerId,ca
   // Explicit portable recovery with referenced image bytes; no automatic cloud mutation.
   const portableGroup=element('div');portableGroup.className='cloud-tool-group';
   const ready=()=>!disposed&&media?.download&&media?.upload&&typeof ownerId==='string';
-  let portableBusy=false,portableDraft=null;
-  const portableExport=button('Download full backup (with images)',async()=>{
+  let portableBusy=false,portableDraft=null,selectedGalleryExport=null;
+  async function exportPortable(libraryPaths=[]){
     if(!ready()||portableBusy)return;
     portableBusy=true;portableExport.disabled=true;
+    if(selectedGalleryExport)selectedGalleryExport.disabled=true;
     try{
       await app.flushEditor();
-      say('Preparing full private backup; verifying each referenced image…');
-      const archive=await createPortableArchive(app.getSnapshot(),{
-        ownerId,download:path=>media.download(path),sanitizeHtml:sanitizeJournal});
+      const snapshot=app.getSnapshot();
+      const usage=collectMediaReferenceUsage(snapshot,{ownerId});
+      const extras=validateDetachedBackupSelection(libraryPaths,usage,ownerId);
+      say(extras.length?'Verifying referenced images and '+extras.length+' selected detached private image(s)…':
+        'Preparing full private backup; verifying each referenced image…');
+      const archive=await createPortableArchive(snapshot,{
+        ownerId,download:path=>media.download(path),sanitizeHtml:sanitizeJournal,
+        libraryPaths:extras
+      });
       if(disposed)return;
       const blob=new Blob([JSON.stringify(archive)],{type:'application/json'});
       const url=URL.createObjectURL(blob),anchor=document.createElement('a');
       anchor.href=url;anchor.download='orbit-private-backup-'+new Date().toISOString().slice(0,10)+'.orbit';
       document.body.append(anchor);anchor.click();anchor.remove();
       setTimeout(()=>URL.revokeObjectURL(url),1800);
-      say('Full portable backup exported: '+archive.assets.length+' referenced image(s), including bytes and checksums. Keep this private file safe.');
-    }catch(error){if(!disposed)say('Full backup was NOT exported: '+error.message+' Your existing data was not changed.');}
-    finally{portableBusy=false;if(!disposed)portableExport.disabled=!ready();}
-  },portableGroup);
+      say('Private backup download started: '+archive.assets.length+' checked image(s), including '+
+        extras.length+' explicitly selected detached file(s). Keep this unencrypted .orbit file private.');
+    }catch(error){
+      if(!disposed)say('Full backup was NOT exported: '+error.message+
+        ' No file was intentionally changed; review any missing image and retry.');
+    }finally{
+      portableBusy=false;
+      if(!disposed){
+        portableExport.disabled=!ready();
+        if(selectedGalleryExport)selectedGalleryExport.disabled=!ready()||!gallerySelection.size;
+      }
+    }
+  }
+  const portableExport=button('Download full backup (with images)',
+    ()=>void exportPortable(),portableGroup);
   portableExport.disabled=!ready();
   const portableInput=element('input',null,portableGroup);
   portableInput.type='file';portableInput.accept='.orbit,application/json';portableInput.hidden=true;
