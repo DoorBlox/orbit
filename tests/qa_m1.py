@@ -90,7 +90,7 @@ def bp08_viewport_rotation_recovery(browser):
             page.wait_for_function("""({w,h}) => {
               const size=window.orbitDebug.board.lastViewportSize;
               return size && size.w===w && size.h===h;
-            }""",{'w':width,'h':height})
+            }""",arg={'w':width,'h':height})
 
         def same_world_center(left,right):
             assert abs(left['centerX']-right['centerX'])<0.001, (left,right)
