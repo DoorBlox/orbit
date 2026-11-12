@@ -1,5 +1,19 @@
 # ORBIT Worker W1 — Core Engine
 
+## 12 November 2026 ~10:10 UTC — replacement W1 BP-04 checkpoint
+
+**Status: PR #114 OPEN; exact-head CI PENDING; NOT MERGED.** This replacement independently recovered the live repository, protocol, master plan, worker handoff and activity. W1 #89, #98, #101, #107, #109 and #110 are source merged; #104 is a merged, design-only hosted-gated RPC RFC. PR #109 source-merged as 40b21450764850799c30de65496fbb45d5eae1f2. Existing predecessor branches preserved; see [coordination comment](https://github.com/DoorBlox/orbit/pull/109#issuecomment-6820658309).
+
+**New independent PR:** [#114](https://github.com/DoorBlox/orbit/pull/114), branch test/orbit-w1-bp04-rpc-source-contract-20261112, head 85a6679400441d4960156422005a731b12ef9b98. Only new tests/bp04_snapshot_rpc_contract.test.mjs: six tests covering revision triggers, owner-scoped read, single-statement snapshot, security invoker, PT409 CAS, private extensions, and mutation-negative cases. No runtime, migrations, hosted, private-data or Production changes. Initial head 9ac321c5471a80853c63b99b7679ea344456b857 failed quality/artifact because a mutation-negative test replaced only the first task-read occurrence. Fixed test fixture in head 85a6679 using replaceAll.
+
+**Exact-head CI as last queried:** local-postgres-rls SUCCESS [43197759402](https://github.com/DoorBlox/orbit/actions/runs/43197759402), unauthenticated-protection SUCCESS [43197759197](https://github.com/DoorBlox/orbit/actions/runs/43197759197), static-quality PENDING [43197759442](https://github.com/DoorBlox/orbit/actions/runs/43197759442), production-artifact-dry-run PENDING [43197759320](https://github.com/DoorBlox/orbit/actions/runs/43197759320). Recheck; never inherit results from earlier head.
+
+**Next executable action:** check #114 head/diff and all four CI. If green and nonconflicting, squash merge; if failed, read exact job logs and fix. Then BP-04 read-only hosted-to-clean-local function-definition/grant/trigger parity and BP-03/09 realistic benchmark evidence. W1 owns sync/repository and their tests; avoid W2 media, W3 UI and W4 workflows. No hosted function rollout under #104 without separately explicit owner authorization; no hosted SQL/Auth/Storage writes, private data deletion, paid service, Production, domain or protection edits.
+
+**Copyable replacement prompt:** You are ORBIT W1 Core Engine. Recover DoorBlox/orbit live main, open PRs, CI, AGENTS.md, docs/ORBIT_PARALLEL_COMMAND_PROTOCOL.md, CHATGPT_HANDOFF.md, plans/ORBIT_POST_2_4_EXECUTION.md, and docs/handoffs/ORBIT_W1.md. Complete PR #114 from exact current head, investigate any failures, review full diff, merge only with four green exact-head checks and no conflicts. Do not duplicate merged #89/#98/#101/#104/#107/#109/#110. Continue BP-04 read-only parity and BP-03/BP-09 measurable synthetic performance/sync reliability. Checkpoint on GitHub around 8–10 minutes and end turn 12–15 minutes with precise SHA/CI and copyable prompt. Preserve separately gated hosted/Production/private-data actions.
+
+---
+
 **Current state: ACTIVE; 12 November 2026.** Re-query live `main`, open PRs and four exact-head checks before working. Follow [parallel command protocol](../ORBIT_PARALLEL_COMMAND_PROTOCOL.md) and [single BP roadmap](../../plans/ORBIT_POST_2_4_EXECUTION.md). This is a worker checkpoint, **not a competing roadmap**. Source-only engineering is delegated; hosted SQL/RLS/Auth/Storage changes, private deletion, paid services, and Production/domain changes are **NOT** authorized.
 
 ## Completed W1 milestones (source, NOT Production)
