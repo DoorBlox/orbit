@@ -16,6 +16,12 @@
 
 # ORBIT — unified post-2.4 execution roadmap (BP-00–BP-16 and integrated features)
 
+**W5 reconciliation (12 November 2026):** Live Production remains **ORBIT 2.4**, independently verified canonical Vercel alias `orbit.starscene.com` → READY deployment `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`, source `4e57aca785259192b92010c5d0e1634a4c1efe14`. Latest W5 observed GitHub main `6c2f1c3465a959faaf96b6db9260e168b3063bd6` is newer **SOURCE ONLY**. Source merges, CI and localhost MCP **are not Production**, and owner/device acceptance remains pending. Requery all state before release.
+
+**Current authoritative status mirror:** [PROGRESS.md](../docs/PROGRESS.md). The dated 10 November ledger and priority queue below are historical baselines; their outdated PROPOSED cells do not override later merges. New source-only evidence: W1 local conditional RPC [#160](https://github.com/DoorBlox/orbit/pull/160), W2 archive quota [#154](https://github.com/DoorBlox/orbit/pull/154), W4 disposable PKCE [#162](https://github.com/DoorBlox/orbit/pull/162), W6 synthetic integration [#165](https://github.com/DoorBlox/orbit/pull/165) **SOURCE MERGED**. W3 Journal [#161](https://github.com/DoorBlox/orbit/pull/161) and W5 docs [#164](https://github.com/DoorBlox/orbit/pull/164) were open at this audit. None confirms a new Production build, real owner/device acceptance or hosted auth/RPC permissions.
+
+
+
 **Established:** 9 November 2026. **Source audit baseline:** main b8f76a6ee4660c135ec0e2604915a6b96097f664; live app 4e57aca785259192b92010c5d0e1634a4c1efe14. **User decision:** proceed with documentation and BP-00–BP-06 reliability foundation. Full official Excalidraw is a top product priority, not a low-priority indefinite option. This blueprint plans work; individual production, hosted-data, provider and paid actions retain separate approval gates.
 
 See [active ChatGPT handoff](../CHATGPT_HANDOFF.md), [tool/skills playbook](../docs/CHATGPT_TOOL_PLAYBOOK.md), [current state](../docs/CURRENT_STATE.md), [documentation protocol](../docs/DOCUMENTATION_PROTOCOL.md), [operations](../docs/OPERATIONS.md), [visual evidence](../docs/DESIGN_EVIDENCE_PLAN.md) and [Issue #31](https://github.com/DoorBlox/orbit/issues/31). Historical [2.0–2.3 blueprint](ORBIT_2_0_BLUEPRINT.md) is preserved as a record, not as current orders.

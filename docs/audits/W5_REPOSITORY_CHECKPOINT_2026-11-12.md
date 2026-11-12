@@ -1,0 +1,17 @@
+# ORBIT W5 — Release draft and branch stewardship checkpoint (12 November 2026)
+
+**Verified:** GitHub main observed `a3b5203ef755e10a3976cb8e722c89ab7d5a0d00`; Production 2.4 alias `orbit.starscene.com` to READY `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4` from Git `4e57aca`. GitHub Releases **zero**, `delete_branch_on_merge=false`. **No deletion or Release publication performed**.
+
+W5 enumerated **167** remote branches in two pages; the conservative exploratory register found **10 retain**, **86 hold (recently merged)**, **62 review only** and **9 investigate**. These categories are **not deletion eligibility certifications**. Crucially, squash merges mean direct ancestry checks may misclassify safe heads; each candidate requires PR match, exact tip SHA, unique/unmerged diff, rollback/branch references, active-worker quiet interval, and **explicit named-batch owner approval**. The current three draft PR heads #154, #160 and #161 are retained. W1 specifically preserves `fix/orbit-w1-bp03-network-write-backoff-20261112` and `perf/orbit-w1-bp09-deferred-owned-snapshot-api-20261112`; preserve `release/*`, `wip/*` and all unknown refs.
+
+**Recommended controls (NOT changed):** owner may enable GitHub repository Settings → General → Pull Requests → Automatically delete head branches after choosing a retention policy; no enabled setting or bulk delete is represented here. GitHub Projects and Milestones can mirror the single master roadmap with columns `ID`, `status`, `worker`, `next task`, `blocker`, `target release`, but connected tools did not establish supported creation, so none is claimed configured.
+
+**Suggested release candidate:** GitHub `v2.4.0` from exact shipped commit `4e57aca785259192b92010c5d0e1634a4c1efe14` only after explicit owner permission, confirmed tag noncollision, review of notes and source SHA; published date must be actual publication date, not falsely backdated. See [2.4 evidence](../releases/2.4.md) and [publication draft](../releases/GITHUB_2_4_RELEASE_DRAFT.md).
+
+**Next W5 action:** inspect specific old merged branches with PR diff + unique commits, propose small named owner deletion batch, and maintain current BP statuses as W1–W4 merge. Do not touch production, hosted security, private data, paid services or publishing without separate permission.
+
+## 12 Nov continuation — additional source merges and owner tracking decision
+
+Source `6c2f1c3465a959faaf96b6db9260e168b3063bd6` verified (W6 #165). Since the earlier checkpoint, W2 #154/#163, W1 #160/#166, W4 #162 and W6 #165 have merged **source only**; W3 #161 remains open as of this snapshot. The canonical Production alias is reverified unchanged. The full inventory's **170-ref count** is its dated snapshot; it is not a timeless current branch total. Five older merged documentation branches were independently rechecked using exact head refs, merged PR patch parity and indexed-main reference searches; see [named cleanup review](BRANCH_CLEANUP_CANDIDATES_2026-11-12.md). **No deletion or settings mutation.**
+
+Command HQ [comment on PR #164](https://github.com/DoorBlox/orbit/pull/164#issuecomment-6828784329) reports **owner approval** to create a GitHub Project, but connected tools do not expose Projects v2 create/fields/items; no live board was created. [Manual setup](../GITHUB_PROJECT_SETUP.md) is ready for owner. This approval is **not** approval of PR #164's docs diff, merged-branch deletion, auto-delete setting or GitHub Release publication.
