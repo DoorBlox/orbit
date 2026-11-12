@@ -151,6 +151,9 @@ export function createQuickJump({getItems,onNavigate,triggerParent}={}){
     if(event.key==='Escape'){event.preventDefault();event.stopPropagation();close();}
   });
   dialog.addEventListener('close',()=>{
+    // The close event is queued. Ignore it if a new shortcut already reopened
+    // this same dialog, or it would erase the new search results and focus.
+    if(dialog.open)return;
     entries=[];visible=[];results.replaceChildren();input.removeAttribute('aria-activedescendant');
     const target=focusAfter?.isConnected?focusAfter:previousFocus?.isConnected?previousFocus:trigger;
     focusAfter=null;
