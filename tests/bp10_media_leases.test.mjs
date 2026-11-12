@@ -36,8 +36,9 @@ test('BP-10: LRU evicts idle previews but never revokes an active note',async t=
   assert.equal(oneAgain.url,one.url,'An active image keeps its original Object URL');
   assert.equal(storage.downloads,3,'An active cache hit must avoid downloading twice');
   one.release();oneAgain.release();
-  // After both releases, the newer idle preview wins; no active URL was revoked.
-  assert.ok(revoked.includes(one.url));
+  // Releasing the last active consumer makes that image the newest idle entry.
+  assert.ok(revoked.includes(three.url));
+  assert.ok(!revoked.includes(one.url));
   media.dispose();
   assert.equal(new Set(revoked).size,revoked.length,'Each Blob URL must be revoked once');
 });
