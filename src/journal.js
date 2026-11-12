@@ -213,9 +213,20 @@ export class Journal {
     if(!range||!this.editor.contains(range.commonAncestorContainer)){
       range=document.createRange();range.selectNodeContents(this.editor);range.collapse(false);
     }
-    const fragment=html?range.createContextualFragment(sanitizeJournal(html)):document.createTextNode(text.slice(0,80000));
-    const last=fragment.lastChild||fragment;range.deleteContents();range.insertNode(fragment);
-    if(last.parentNode){range.setStartAfter(last);range.collapse(true);selection.removeAllRanges();selection.addRange(range);}
+    // Prefer the browser's native editing transaction so paste joins undo/redo
+    // history. Only sanitized markup or plain text reaches the command.
+    const safeHtml=html?sanitizeJournal(html):'';
+    const safeText=text.slice(0,80000);
+    if(!selection.rangeCount||selection.getRangeAt(0)!==range){
+      selection.removeAllRanges();selection.addRange(range);
+    }
+    const inserted=document.execCommand?.(html?'insertHTML':'insertText',false,html?safeHtml:safeText);
+    if(!inserted){
+      // Keep the original sanitized fallback for engines without edit commands.
+      const fragment=html?range.createContextualFragment(safeHtml):document.createTextNode(safeText);
+      const last=fragment.lastChild||fragment;range.deleteContents();range.insertNode(fragment);
+      if(last.parentNode){range.setStartAfter(last);range.collapse(true);selection.removeAllRanges();selection.addRange(range);}
+    }
     this.queueSave();
   }
   deletePage(){
