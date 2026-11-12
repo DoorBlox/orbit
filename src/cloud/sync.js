@@ -103,7 +103,9 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
       try {
         if (!isOnline()) { status('offline','NETWORK'); return {ok:false,changed:false}; }
         lastReadAt = now();
-        const result = await repository.loadOwnerSnapshot({signal:controller.signal});
+        // The repository may skip CPU-heavy normalization when this already-loaded
+        // CAS revision is unchanged. The existing RPC still transfers full JSON.
+        const result = await repository.loadOwnerSnapshot({signal:controller.signal,knownRevision:revision});
         if (disposed || readController !== controller || changeVersion !== requestVersion || pending || writePromise) return {ok:false,changed:false};
         if (!Number.isSafeInteger(result?.revision) || result.revision < revision) throw Object.assign(Error(),{code:'INVALID_RESPONSE'});
         const changed = result.revision > revision;
