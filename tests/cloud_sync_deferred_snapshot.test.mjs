@@ -153,3 +153,51 @@ test('BP-09: disposal and explicit CAS conflict never execute a newly stale prod
   assert.equal(c.queueDeferredOwned(()=>{captures++;return snap('after dispose');}),false);
   assert.equal(captures,2);
 });
+
+test('BP-09 export follows the latest reentrant owner edit rather than returning an empty backup',async()=>{
+  const writes=[];
+  const repository={
+    async saveSnapshot(value,revision){writes.push({value,revision});return {revision:revision+1};},
+    async loadOwnerSnapshot(){throw Error('No read expected');}
+  };
+  const c=make(repository);
+  try{
+    let oldCaptures=0,newCaptures=0;
+    c.queueDeferredOwned(()=>{
+      oldCaptures++;
+      // A synchronous editor commit inside getSnapshot can queue another edit.
+      c.queueDeferredOwned(()=>{newCaptures++;return snap('latest exportable draft');});
+      return snap('superseded draft');
+    });
+    const exported=c.getPendingSnapshot();
+    assert.equal(exported.tasks[0].title,'latest exportable draft');
+    assert.equal(oldCaptures,1);
+    assert.equal(newCaptures,1);
+    assert.equal(c.getState().hasPending,true);
+    assert.equal((await c.flush()).ok,true);
+    assert.equal(writes.length,1);
+    assert.equal(writes[0].value.tasks[0].title,'latest exportable draft');
+    assert.equal(writes[0].revision,0);
+  }finally{c.dispose();}
+});
+
+test('BP-09 endlessly reentrant export fails boundedly and keeps the latest dirty draft',()=>{
+  const repository={
+    async saveSnapshot(){throw Error('An unstable producer must not write');},
+    async loadOwnerSnapshot(){throw Error('No read expected');}
+  };
+  const c=make(repository);
+  let captures=0;
+  const unstable=()=>{
+    captures++;
+    c.queueDeferredOwned(unstable);
+    return snap('superseded');
+  };
+  try{
+    c.queueDeferredOwned(unstable);
+    assert.throws(()=>c.getPendingSnapshot(),error=>error?.code==='INVALID_RESPONSE');
+    assert.ok(captures>1&&captures<=16,'Exporter must never spin indefinitely');
+    assert.equal(c.getState().hasPending,true,'Keep latest draft for later recovery');
+    assert.equal(c.getState().revision,0);
+  }finally{c.dispose();}
+});
