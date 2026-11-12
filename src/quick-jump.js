@@ -129,7 +129,7 @@ export function createQuickJump({getItems,onNavigate,triggerParent}={}){
     if(disposed)return;
     if(dialog.open){input.focus();return;}
     previousFocus=document.activeElement instanceof HTMLElement?document.activeElement:trigger;
-    entries=Array.isArray(getItems())?getItems():[];
+    const indexed=getItems();entries=Array.isArray(indexed)?indexed:[];
     focusAfter=null;input.value='';
     dialog.showModal();render();input.focus({preventScroll:true});
   };
