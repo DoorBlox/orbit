@@ -1081,6 +1081,7 @@ body.cloud-space-mounted .app-shell{height:100dvh!important}
   --orbit-font-paper:"Iowan Old Style","Palatino Linotype",Georgia,serif;
 }
 :root{--orbit-swatch-parchment:#e9e7dd;--orbit-swatch-garden:#132b28;--orbit-swatch-frost:#e8f0f3;--orbit-swatch-celestial:#111c32;--orbit-swatch-ember:#32231f;--orbit-swatch-tidepool:#0c3036;--orbit-swatch-sundown:#efdacf;--orbit-swatch-sakura:#f2e5e9;--orbit-swatch-graphite:#191d21;--orbit-swatch-linen:#e9e4d9;
+}
 :root .appearance-option:has(input[value="parchment"]) .appearance-swatch{background:var(--orbit-swatch-parchment)}
 :root .appearance-option:has(input[value="garden"]) .appearance-swatch{background:var(--orbit-swatch-garden)}
 :root .appearance-option:has(input[value="frost"]) .appearance-swatch{background:var(--orbit-swatch-frost)}
