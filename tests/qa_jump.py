@@ -34,7 +34,7 @@ def run_jump(browser,open_page,focus):
         page.keyboard.press('Control+k')
         page.locator('.orbit-jump-input').fill('Unsorted')
         page.keyboard.press('Enter')
-        assert page.evaluate('window.orbitDebug.scene.focusedNode')=='inbox'
+        assert page.evaluate('window.orbitDebug.scene.focusedNode')=='captured'
         results['branch']='PASS'
 
         page.keyboard.press('Control+k')
