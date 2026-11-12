@@ -140,8 +140,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "c924d32341ee3646b86cd7151edd762351ad18fe5ca5703187c2f3f81e8ed656",
-      "reason": "BP-07: reviewed inline Edit/Preview and responsive spatial UI changes; preserve private drawings and source provenance."
+      "sha256": "17f9a86dfa6a1f3b203d92853f2d0ec76961d7576ed6e93c52f45e1d9a9d3783",
+      "reason": "BP-07: inline journal/sticky surfaces, immersive Excalidraw, responsive mobile controls and unobstructed Journal Edit hit area."
     },
     "src/widget-registry.js": {
       "sha256": "097767f8dd9c6c1e94504ec571c29ca2f1d0684955d2f8c87231d15db1a427f0",
