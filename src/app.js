@@ -6,7 +6,7 @@ import { Constellation } from './constellation.js';
 import { ScrapWidgets } from './widgets.js';
 import { SpatialBoard } from './board.js';
 import { validateBackup,persistBackup,recoverInterruptedRestore,RESTORE_RECOVERY_KEY } from './backup.js';
-import { validDateKey } from './dates.js';
+import { validDateKey,exportTasksIcs } from './dates.js';
 import { Journal,sanitizeJournal } from './journal.js';
 import { StickyNotes } from './stickies.js';
 import { normalizeExtensions,renderScene } from './scene.js';
@@ -651,6 +651,12 @@ function initTools(){
   $('export-csv').addEventListener('click',()=>{
     journal.commit();const date=new Date().toISOString().slice(0,10);
     switch($('export-kind').value){
+      case 'calendar':{
+        const {content,count}=exportTasksIcs(state.tasks);
+        if(!count){message('No active tasks with a due date to export.');break;}
+        download(content,'orbit-deadlines-'+date+'.ics','text/calendar;charset=utf-8');
+        message('Exported '+count+' active deadlines as an all-day calendar. Import the file into your calendar app when ready.',6500);break;
+      }
       case 'branches':
         download(exportBranchesCsv(state.branches),`orbit-branches-${date}.csv`,'text/csv;charset=utf-8');
         message(`Exported ${state.branches.length} branches as CSV.`);break;
