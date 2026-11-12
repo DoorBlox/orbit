@@ -60,8 +60,8 @@
       "reason": "BP-12/EX-02: authenticated owner gallery with bounded previews, valid empty and paginated inventory, reference-safe detached media selection, opt-in .orbit backup."
     },
     "src/cloud/portable-backup.js": {
-      "sha256": "d89bda8ce1c41f13175d9226efd0ff59c7aef03e198b188aa9a5c86683ac2ca7",
-      "reason": "BP-02/12: enforce 96 unique media files after explicit library selection deduplication; retain bounded raw-selection work."
+      "sha256": "aecedb94a6fe05bd537282e7d0c6c76fa7c2f86454b8a7c1d120fb48862bda8c",
+      "reason": "BP-02/12: reject portable exports exceeding the 96 MiB importer text budget, including Base64 overhead; preserve owner-private image quotas."
     },
     "src/cloud/README.md": {
       "sha256": "2fa23ecebff7de9fa7e5463f3c77031e97850cf192398ea0da66c2f6cd19a4af",

@@ -16,6 +16,7 @@ const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value)
 const mimeFor=path=>MIME[path.split('.').at(-1).toLowerCase()];
 const imageError=()=>Error('Private image archive is incomplete or invalid.');
 const bytesLimit=()=>Error('Private images exceed the 64 MB / 96-image portable backup limit. Keep the legacy JSON as an additional recovery copy.');
+const textLimit=()=>Error('Portable backup exceeds the 96 MB import-file limit. Export was stopped to avoid an unusable recovery copy.');
 const toHex=bytes=>Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
 // Proof of review stays private to this module; callers cannot forge an
 // inspected archive or silently replace its bytes/snapshot between UI steps.
@@ -185,6 +186,10 @@ export async function createPortableArchive(snapshot,{ownerId:currentOwnerId,dow
   if(typeof download!=='function'||typeof currentOwnerId!=='string')throw Error('Signed-in private image access is required.');
   if(!Array.isArray(libraryPaths))throw Error('Private media library paths must be an array.');
   const clean=prepareSnapshot(snapshot,sanitizeHtml);
+  // Check workspace text before fetching private images: the v1 importer has
+  // a combined 96 MiB JSON text limit, not just an image count/byte budget.
+  const snapshotChars=JSON.stringify(clean).length;
+  if(snapshotChars>PORTABLE_MAX_TEXT_BYTES)throw textLimit();
   const referenced=collectReferencedPaths(clean);
   // Bound raw selection work, but enforce the 96-image archive budget on
   // unique files after deduplication (including already referenced images).
@@ -208,10 +213,18 @@ export async function createPortableArchive(snapshot,{ownerId:currentOwnerId,dow
     const bytes=new Uint8Array(await blob.arrayBuffer());
     assets.push({path,mime:blob.type,size:blob.size,sha256:await sha256(bytes),data:encodeBase64(bytes)});
   }
-  return {format:FORMAT,version:VERSION,exportedAt:new Date().toISOString(),
+  const archive={format:FORMAT,version:VERSION,exportedAt:new Date().toISOString(),
     manifest:{assetCount:assets.length,totalBytes,
       ...(libraryOnlyPaths.length?{libraryOnlyPaths}:{})},
     snapshot:clean,assets};
+  // Base64 uses only JSON-safe ASCII. Substitute empty data payloads and a
+  // null snapshot, then add their exact serialized lengths without allocating
+  // another full Base64 archive string just to measure it.
+  const skeleton={...archive,snapshot:null,assets:assets.map(asset=>({...asset,data:''}))};
+  const serializedChars=JSON.stringify(skeleton).length-4+snapshotChars+
+    assets.reduce((size,asset)=>size+asset.data.length,0);
+  if(serializedChars>PORTABLE_MAX_TEXT_BYTES)throw textLimit();
+  return archive;
 }
 
 /** Fully validate the archive before the first Storage upload or workspace change. */
