@@ -135,6 +135,74 @@ def bp08_viewport_rotation_recovery(browser):
 
 
 
+def bp11_paste_sanitized_empty_html_falls_back_to_text(browser):
+    """Rejected HTML must never swallow clipboard plain text or remove a selected draft."""
+    context,page,errors=open_page(browser)
+    try:
+        focus(page,'journal')
+        ensure_journal_edit(page)
+        editor=page.locator('#journal-editor')
+        editor.fill('Keep REPLACE tail')
+        page.evaluate("window.__bp11RejectedPasteXss=0")
+
+        def paste_over(selected,html,plain):
+            editor.evaluate("""(el,args) => {
+              el.focus();
+              const node=el.firstChild;
+              if(!node || node.nodeType!==Node.TEXT_NODE)
+                throw Error('Synthetic selected text is not a native editor text node');
+              const start=node.textContent.indexOf(args.selected);
+              if(start<0)throw Error('Expected selection text is missing');
+              const range=document.createRange();
+              range.setStart(node,start);
+              range.setEnd(node,start+args.selected.length);
+              const selection=window.getSelection();
+              selection.removeAllRanges();
+              selection.addRange(range);
+              const data=new DataTransfer();
+              if(args.html)data.setData('text/html',args.html);
+              if(args.plain)data.setData('text/plain',args.plain);
+              const paste=new ClipboardEvent('paste',{
+                bubbles:true,cancelable:true,clipboardData:data
+              });
+              el.dispatchEvent(paste);
+              if(!paste.defaultPrevented)
+                throw Error('Untrusted clipboard paste was not intercepted');
+            }""",{'selected':selected,'html':html,'plain':plain})
+
+        rejected='<img src=x onerror="window.__bp11RejectedPasteXss=1">'
+        paste_over('REPLACE',rejected,'安全な文字')
+        expect(editor).to_have_text('Keep 安全な文字 tail'), \
+            'All-rejected HTML must use the available plain-text clipboard payload'
+        assert editor.locator('img').count()==0, 'Rejected image must never enter the editor'
+        assert page.evaluate("window.__bp11RejectedPasteXss")==0, 'Rejected paste ran an event handler'
+        editor.press('Control+z')
+        expect(editor).to_have_text('Keep REPLACE tail'), \
+            'Fallback must be one native undoable paste over the selected text'
+        editor.press('Control+Shift+z')
+        expect(editor).to_have_text('Keep 安全な文字 tail'), \
+            'Native redo must restore sanitized plain-text fallback'
+
+        paste_over('安全な文字',rejected,'')
+        expect(editor).to_have_text('Keep 安全な文字 tail'), \
+            'All-rejected HTML without plain text must not erase selected writing'
+
+        paste_over('安全な文字','<strong>強調</strong>'+rejected,'untrusted formatting')
+        expect(editor).to_have_text('Keep 強調 tail')
+        assert editor.locator('strong').count()==1, 'Safe rich-text formatting must survive'
+        assert editor.locator('img').count()==0
+        assert page.evaluate("window.__bp11RejectedPasteXss")==0
+        editor.press('Control+z')
+        expect(editor).to_have_text('Keep 安全な文字 tail'), \
+            'Normal sanitized rich-text paste must remain natively undoable'
+        editor.press('Control+Shift+z')
+        expect(editor).to_have_text('Keep 強調 tail')
+        assert not errors,errors
+    finally:
+        context.tracing.stop()
+        context.close()
+
+
 def bp11_paste_native_undo(browser):
     """Synthetic clipboard paste must participate in native contenteditable undo/redo."""
     context,page,errors=open_page(browser)
@@ -779,6 +847,8 @@ def main():
         results['bp11_ime_composition']='PASS';print('PASS BP-11 IME cloud publish recovery',flush=True)
         bp11_paste_native_undo(browser)
         results['bp11_paste_native_undo']='PASS';print('PASS BP-11 native paste undo/redo',flush=True)
+        bp11_paste_sanitized_empty_html_falls_back_to_text(browser)
+        results['bp11_paste_sanitized_empty_html']='PASS';print('PASS BP-11 empty-sanitized HTML fallback and undo',flush=True)
         bp11_date_reorder_preserves_native_undo(browser)
         results['bp11_date_reorder']='PASS';print('PASS BP-11 date reorder preserves editor undo',flush=True)
         for name,fn in [('core flows',normal_flows),('failure and security',failure_security_flows),('preferences and dates',preferences_and_dates)]:
