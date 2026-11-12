@@ -78,6 +78,34 @@ def run_projects_shelf(browser,open_page,reload_page,out):
           'orbit.v8.extensions')).projects.research.links""")==[]
         result['privateState']=True
 
+        # PJ-03 milestones are a private project checklist, distinct from
+        # both the global calendar milestone store and task completion.
+        progress_before=card.locator('.project-progress').inner_text()
+        card.get_by_role('button',name='Edit milestones for Research').click()
+        card.get_by_role('button',name='Add milestone').click()
+        card.get_by_label('Milestone 1 title for Research').fill('Prototype verified')
+        card.get_by_label('Milestone 1 target date for Research').fill('2027-04-25')
+        card.get_by_role('button',name='Save milestones').click()
+        expect(card.locator('.project-milestone-item')).to_have_count(1)
+        expect(card.locator('.project-milestone-item')).to_contain_text('Prototype verified')
+        assert '2027-04-25' in card.locator('.project-milestone-item').inner_text()
+        assert card.locator('.project-progress').inner_text()==progress_before
+        card.get_by_role('button',name='Edit milestones for Research').click()
+        card.get_by_label('Milestone 1 title for Research').fill('Unsaved edit')
+        card.get_by_role('button',name='Cancel milestone edits').click()
+        assert 'Prototype verified' in card.locator('.project-milestone-item').inner_text()
+        card.get_by_role('button',name='Edit milestones for Research').click()
+        card.get_by_label('Milestone 1 completed for Research').check()
+        card.get_by_role('button',name='Save milestones').click()
+        expect(card.locator('.project-milestone-status')).to_have_text('Done')
+        stored_milestones=page.evaluate("""() => JSON.parse(localStorage.getItem(
+          'orbit.v8.extensions')).projects.research.milestones""")
+        assert len(stored_milestones)==1 and stored_milestones[0]['done'] is True
+        assert stored_milestones[0]['title']=='Prototype verified'
+        assert stored_milestones[0]['targetDate']=='2027-04-25'
+        assert card.locator('.project-progress').inner_text()==progress_before
+        result['projectMilestones']=True
+
         # A nested project references the same work, without copying tasks.
         page.get_by_role('combobox',name='Choose a branch for a private project').select_option('researcher')
         page.get_by_role('button',name='Add private project').click()
@@ -112,6 +140,9 @@ def run_projects_shelf(browser,open_page,reload_page,out):
           'orbit.v8.extensions')).projects.research.status""")=='paused'
         assert page.evaluate("""() => JSON.parse(localStorage.getItem(
           'orbit.v8.extensions')).projects.research.targetDate""")=='2027-03-15'
+        restored_milestones=page.evaluate("""() => JSON.parse(localStorage.getItem(
+          'orbit.v8.extensions')).projects.research.milestones""")
+        assert restored_milestones==stored_milestones
         assert 'Await lab approval' in page.locator(
             '.project-card[data-project-id="research"]').inner_text()
         assert page.evaluate('() => window.orbitDebug.board.getLayout()')==original
@@ -119,6 +150,14 @@ def run_projects_shelf(browser,open_page,reload_page,out):
         expect(page.locator('.project-card')).to_have_count(2)
         page.evaluate("() => window.orbitDebug.board.focus('projects',{initial:true})")
         page.screenshot(path=str(out/'pj02b-desktop-projects.png'),animations='disabled')
+        # Removing a project milestone is scoped to the project metadata only.
+        restored=page.locator('.project-card[data-project-id="research"]')
+        restored.get_by_role('button',name='Edit milestones for Research').click()
+        restored.get_by_role('button',name='Remove milestone 1').click()
+        restored.get_by_role('button',name='Save milestones').click()
+        expect(restored.locator('.project-milestone-item')).to_have_count(0)
+        assert page.evaluate("""() => JSON.parse(localStorage.getItem(
+          'orbit.v8.extensions')).projects.research.milestones""")==[]
         result['hideReopenReload']=True
         assert not errors,errors
     except Exception:

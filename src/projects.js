@@ -16,7 +16,7 @@ export function normalizeProjects(raw={}){
   if(entries.length>128)throw Error('Too many private projects.');
   const result={};
   for(const [id,entry] of entries){
-    if(!validId(id)||!object(entry)||Object.keys(entry).some(key=>!['description','status','links','goal','nextAction','blockers','targetDate'].includes(key))||
+    if(!validId(id)||!object(entry)||Object.keys(entry).some(key=>!['description','status','links','goal','nextAction','blockers','targetDate','milestones'].includes(key))||
        (entry.description!==undefined&&(typeof entry.description!=='string'||entry.description.length>4000))||
        (entry.status!==undefined&&!['active','paused','completed'].includes(entry.status))||
        (entry.links!==undefined&&(!Array.isArray(entry.links)||entry.links.length>12))||
@@ -35,9 +35,26 @@ export function normalizeProjects(raw={}){
         throw Error('Invalid private project link.');
       return {label:link.label.trim(),url:url.href};
     });
+    // PJ-03: project milestones are private, finite metadata rather than
+    // timeline/global milestones or task records. Preserve IDs across edits.
+    const rawMilestones=entry.milestones===undefined?[]:entry.milestones;
+    if(!Array.isArray(rawMilestones)||rawMilestones.length>12)
+      throw Error('Invalid private project milestones.');
+    const milestoneIds=new Set();
+    const milestones=rawMilestones.map(item=>{
+      if(!object(item)||Object.keys(item).some(key=>!['id','title','targetDate','done'].includes(key))||
+        !validId(item.id)||milestoneIds.has(item.id)||
+        typeof item.title!=='string'||!item.title.trim()||item.title.length>140||
+        typeof item.targetDate!=='string'||!validTargetDate(item.targetDate)||
+        typeof item.done!=='boolean')
+        throw Error('Invalid private project milestone.');
+      milestoneIds.add(item.id);
+      return {id:item.id,title:item.title.trim(),targetDate:item.targetDate,done:item.done};
+    });
     result[id]={description:entry.description??'',status:entry.status??'active',links};
     for(const key of ['goal','nextAction','blockers','targetDate'])
       if(entry[key])result[id][key]=entry[key];
+    if(entry.milestones!==undefined)result[id].milestones=milestones;
   }
   return result;
 }
@@ -110,6 +127,7 @@ export function summarizeProjectPortfolio(projects,branches,tasks){
       description:metadata.description,status:metadata.status,links:metadata.links,
       goal:metadata.goal??'',nextAction:metadata.nextAction??'',
       blockers:metadata.blockers??'',targetDate:metadata.targetDate??'',
+      milestones:metadata.milestones??[],
       direct:numbers(directTasks),including:included,
       progress:included.total?Math.round(included.completed/included.total*100):null});
   }
