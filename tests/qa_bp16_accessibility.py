@@ -37,23 +37,41 @@ def assert_modal_accessibility(page):
 
 def assert_tab_stays_modal(page, dialog):
     # Real keyboard Tab/Shift+Tab must not reach the spatial canvas behind modal.
+    # Chromium's native showModal() sequential navigation intentionally has a
+    # BODY sentinel stop when wrapping from the last tabbable element. This is
+    # not a background focus escape: controls outside the top layer stay inert,
+    # and the following Tab returns focus to the dialog. Confirm both invariants.
+    needs_return = False
     for key in ['Tab'] * 8 + ['Shift+Tab'] * 8:
         page.keyboard.press(key)
         evidence = page.evaluate('''() => {
           const dialog = document.querySelector('#orbit-jump-dialog');
           const active = document.activeElement;
+          const background = document.querySelector('#capture-name');
+          const inside = dialog?.open && dialog.matches(':modal') &&
+            (active === dialog || dialog.contains(active));
+          const bodySentinel = dialog?.open && dialog.matches(':modal') &&
+            active === document.body;
+          // An outside control must be inert even during the BODY sentinel.
+          if (bodySentinel) background?.focus({preventScroll: true});
           return {
-            inside: Boolean(dialog?.open && dialog.matches(':modal') &&
-              (active === dialog || dialog.contains(active))),
+            inside: Boolean(inside),
+            bodySentinel: Boolean(bodySentinel),
+            backgroundFocusBlocked: !background || document.activeElement !== background,
             activeTag: active?.tagName || null,
             activeId: active?.id || null,
             dialogOpen: Boolean(dialog?.open),
             nativeModal: Boolean(dialog?.matches(':modal')),
           };
         }''')
-        assert evidence['inside'], (
-            f'Modal focus escaped after {key}: {evidence}'
-        )
+        assert (evidence['inside'] or (
+            evidence['bodySentinel'] and evidence['backgroundFocusBlocked']
+        )), f'Background control received focus after {key}: {evidence}'
+        if needs_return:
+            assert evidence['inside'], (
+                f'Tab failed to return from native BODY sentinel to dialog: {evidence}'
+            )
+        needs_return = evidence['bodySentinel']
     # Restore input without invoking a non-keyboard activation.
     page.get_by_role('combobox', name='Search your private space').focus()
     expect(dialog).to_be_visible()
