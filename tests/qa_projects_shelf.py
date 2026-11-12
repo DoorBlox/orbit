@@ -147,6 +147,17 @@ def run_projects_shelf(browser,open_page,reload_page,out):
         expect(researcher).to_be_hidden()
         finder.fill('')
         expect(researcher).to_be_visible()
+        # Transient filter switches hide DOM cards instead of rebuilding them;
+        # unfinished project edits must still be there when the filter clears.
+        research.get_by_role('button',name='Edit milestones for Research').click()
+        research.get_by_label('Milestone 1 title for Research').fill('Not yet saved')
+        finder.fill('no match here')
+        expect(research).to_be_hidden()
+        finder.fill('')
+        expect(research).to_be_visible()
+        expect(research.get_by_label('Milestone 1 title for Research')).to_have_value('Not yet saved')
+        research.get_by_role('button',name='Cancel milestone edits').click()
+        assert 'Prototype verified' in research.locator('.project-milestone-item').inner_text()
         assert page.evaluate('() => window.orbitDebug.board.getLayout()')==original
         result['finderHealth']=True
 
