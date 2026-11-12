@@ -161,18 +161,21 @@ export class Journal {
     if(beforeDate!==entry.date){this.entries=orderJournalEntries(this.entries);this.index=this.entries.findIndex(item=>item.id===entry.id);}
     this.saved=this.persistLocally?save(this.entries):false;this.saveIndicator.textContent=this.readOnly?'published content':this.persistLocally?(this.saved?'saved on this device':'not saved — export a backup'):(this.saved?'saved to cloud':'waiting to sync');
     document.getElementById('journal-date-label').textContent=fmtDate(entry.date).toUpperCase();
-    if(beforeDate!==entry.date)this.render();
+    if(beforeDate!==entry.date)this.updatePageNavigation();
     if(beforeDate!==entry.date||beforeTitle!==entry.title||beforeHtml!==entry.html)this.onEntriesChange(this.entries);
     return this.saved;
+  }
+  updatePageNavigation(){
+    document.getElementById('journal-page-number').textContent=String(this.index+1).padStart(2,'0');
+    document.getElementById('journal-page-label').textContent=`Page ${this.index+1} of ${this.entries.length}`;
+    document.getElementById('journal-prev').disabled=this.index===0;
+    document.getElementById('journal-next').disabled=this.index===this.entries.length-1;
   }
   render(){this.compositionTarget=null;const entry=this.entries[this.index];if(!entry)return;
     this.title.value=entry.title;this.editor.innerHTML=sanitizeJournal(entry.html);
     this.dateInput.value=dateKey(entry.date);
     document.getElementById('journal-date-label').textContent=fmtDate(entry.date).toUpperCase();
-    document.getElementById('journal-page-number').textContent=String(this.index+1).padStart(2,'0');
-    document.getElementById('journal-page-label').textContent=`Page ${this.index+1} of ${this.entries.length}`;
-    document.getElementById('journal-prev').disabled=this.index===0;
-    document.getElementById('journal-next').disabled=this.index===this.entries.length-1;
+    this.updatePageNavigation();
     this.saveIndicator.textContent=this.readOnly?'published content':this.persistLocally?(this.saved?'saved on this device':'not saved — export a backup'):(this.saved?'saved to cloud':'waiting to sync');this.updateCount();
     this.onPageChange?.(entry);
   }
