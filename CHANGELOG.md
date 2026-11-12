@@ -1,13 +1,13 @@
 # Changelog
 
-**W5 reconciliation (12 November 2026):** Live Production remains **ORBIT 2.4**, independently verified canonical Vercel alias `orbit.starscene.com` → READY deployment `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`, source `4e57aca785259192b92010c5d0e1634a4c1efe14`. Latest W5 observed GitHub main `6c2f1c3465a959faaf96b6db9260e168b3063bd6` is newer **SOURCE ONLY**. Source merges, CI and localhost MCP **are not Production**, and owner/device acceptance remains pending. Requery all state before release.
+**W5 verified status snapshot — 13 November 2026:** GitHub source [`2fb868d7d4b7`](https://github.com/DoorBlox/orbit/commit/2fb868d7d4b7439472f462205e5ca28509e8ee40) includes post-2.4 merges, **not** a new Production release. Independently rechecked `orbit.starscene.com` still points to **ORBIT 2.4**, Vercel READY `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4` built from Git `4e57aca785259192b92010c5d0e1634a4c1efe14`. Signed-in owner/device acceptance of newer source remains pending; requery GitHub before acting.
 
 **Release semantics:** this file records historically shipped versions and separately labels unreleased main-only source. [Release notes](RELEASE_NOTES.md) summarize the live app; [GitHub Releases](https://github.com/DoorBlox/orbit/releases) are optional tagged publication records, currently empty.
 
 
 **Which changes are live?** This file separates merged source from real releases. See [BP progress](docs/PROGRESS.md), [GitHub Releases](https://github.com/DoorBlox/orbit/releases), and the [single master roadmap](plans/ORBIT_POST_2_4_EXECUTION.md). A source PR merge is **not** a Production deployment. W5 keeps merged-source evidence separate from the independently inspected Production alias; never retroactively call main deployed.
 
-## Unreleased — source merged on main, NOT independently Production-verified (12 November 2026)
+## Unreleased — source merged on main, NOT independently Production-verified (13 November 2026)
 
 These are **selected milestones**, not a complete generated change history. Newer source includes:
 
@@ -19,6 +19,11 @@ These are **selected milestones**, not a complete generated change history. Newe
 - **Release/QA:** disposable PKCE S256 consent/refresh/grant revocation prototype [#162](https://github.com/DoorBlox/orbit/pull/162), protected stage guards and accessibility checks; independent synthetic cross-feature acceptance [#165](https://github.com/DoorBlox/orbit/pull/165). No owner/device verification or Production deploy.
 
 
+
+- **W1 / BP-09:** opt-in deferred-owned snapshot creation [#170](https://github.com/DoorBlox/orbit/pull/170) with documented W3 UI bridge contract [#115](https://github.com/DoorBlox/orbit/issues/115); the UI bridge is not yet integrated and real performance remains unverified.
+- **W3 / BP-11:** native Journal paste now retains a valid text/plain fallback when all supplied HTML is rejected, preserving selection/undo and sanitizer boundaries [#161](https://github.com/DoorBlox/orbit/pull/161).
+- **W4 / BP-15:** local-only persistent grant/revocation ledger [#167](https://github.com/DoorBlox/orbit/pull/167) wired into disposable PKCE/refresh and actual localhost MCP test flow [#172](https://github.com/DoorBlox/orbit/pull/172); **no hosted OAuth, delegated RLS or public connector**.
+- **W6 / QA:** independent cross-widget Chromium runner [#168](https://github.com/DoorBlox/orbit/pull/168) source merged, **execution NOT RUN** pending [#169](https://github.com/DoorBlox/orbit/issues/169); synthetic cross-feature tests [#165](https://github.com/DoorBlox/orbit/pull/165) pass. Proposed unmerged RED draft [#175](https://github.com/DoorBlox/orbit/pull/175) is tracked in [progress](docs/PROGRESS.md), not misrepresented as a shipped fix.
 
 ## ORBIT 2.4 — LIVE Production, 9 Nov 2026
 
