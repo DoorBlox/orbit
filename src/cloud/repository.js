@@ -30,6 +30,15 @@ function cloudError(error) {
   return new CloudError('UNKNOWN');
 }
 function assertActive(signal) { if (signal?.aborted) throw new CloudError('ABORTED'); }
+/** Backup normalization already owns detached, validated task objects.
+ * Only rehydrate tasks that actually carry a validated extension override.
+ * Preserve the entire original array when no overlay exists.
+ */
+export function hydrateTaskLinks(tasks, overrides = {}) {
+  if (!overrides || Object.keys(overrides).length === 0) return tasks;
+  return tasks.map(task => overrides[task.id] ? {...task,links:overrides[task.id]} : task);
+}
+
 /** The UI receives only V6 models; provider-specific response details remain here. */
 export function createCloudRepository(client, { sanitizeHtml, ownerId } = {}) {
   if (typeof sanitizeHtml !== 'function') throw Error('A journal sanitizer is required.');
@@ -54,7 +63,7 @@ export function createCloudRepository(client, { sanitizeHtml, ownerId } = {}) {
         branches:emptyBranches?[{id:'inbox',parentId:'root',label:'Unsorted'}]:input.branches }, {sanitizeHtml});
       const links=normalized.extensions?.taskLinks||{};
       return { branches:emptyBranches?[]:normalized.branches,
-        tasks:normalized.tasks.map(task=>({...task,links:links[task.id]||task.links})),
+        tasks:hydrateTaskLinks(normalized.tasks,links),
         journalEntries:normalized.journalEntries, milestones:normalized.milestones,
         spatialLayout:normalized.spatialLayout, preferences:{...normalized.preferences,...(timezone?{timezone}:{})},
         ...(input.profile?{profile:{displayName:input.profile.displayName}}:{}),
