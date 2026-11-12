@@ -59,6 +59,11 @@ jobs:
         env:
           ORBIT_BROWSER_BUNDLED: '1'
         run: python tests/qa_m1.py
+      - name: BP-16 keyboard, focus, native dialog and ARIA acceptance
+        if: steps.scope.outputs.docs_only != 'true'
+        env:
+          ORBIT_BROWSER_BUNDLED: '1'
+        run: python tests/qa_bp16_accessibility.py
       - name: Cloud UI integration (mocked SDK)
         if: steps.scope.outputs.docs_only != 'true'
         env:
@@ -82,6 +87,7 @@ jobs:
           path: |
             qa/m1-*.png
             qa/m1-results.json
+            qa/bp16-accessibility-results.json
             qa/bp06-*.png
             qa/bp06-results.json
             qa/sp01b-*.png
