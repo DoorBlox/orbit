@@ -28,7 +28,7 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
   const markInteraction = () => { lastInteractionAt = now(); };
   let revision = initialRevision, state = 'saved', errorCode = null;
   let pending = null, changeVersion = 0, debounceTimer = null, pollTimer = null;
-  let writePromise = null, readPromise = null, disposed = false;
+  let writePromise = null, readPromise = null, readController = null, reloadInFlight = false, disposed = false;
   const requests = new Set();
   const getState = () => ({state, revision, hasPending:pending !== null, errorCode});
   function status(next, code = null) {
@@ -41,6 +41,14 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
   }
   function cancelDebounce() { clearTimeout(debounceTimer); debounceTimer = null; }
   function request() { const controller = new AbortController(); requests.add(controller); return controller; }
+  // An old remote read must never block the next clean refresh. Aborting is a
+  // best-effort bandwidth saving: some transports may still resolve late.
+  function cancelRead() {
+    const obsolete = readController;
+    readController = null;
+    readPromise = null;
+    obsolete?.abort();
+  }
   // Default callers may retain and mutate their input, so queue defensively
   // clones it. queueOwned adopts a fully detached mountOrbit.getSnapshot()
   // value, avoiding the second full-workspace clone on every UI edit.
@@ -48,6 +56,7 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
     if (disposed) return false;
     markInteraction();
     pending = {snapshot:owned?snapshot:clone(snapshot),version:++changeVersion};
+    cancelRead();
     cancelDebounce();
     // A stale base version requires an explicit review, never automatic overwrite.
     if (errorCode === 'CONFLICT') { status('conflict','CONFLICT'); return true; }
@@ -86,15 +95,16 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
     return writePromise;
   }
   function refresh() {
-    if (disposed || pending || writePromise || errorCode === 'CONFLICT') return Promise.resolve({ok:!disposed,changed:false});
+    if (disposed || pending || writePromise || reloadInFlight || errorCode === 'CONFLICT') return Promise.resolve({ok:!disposed,changed:false});
     if (readPromise) return readPromise;
     const requestVersion = changeVersion, controller = request();
+    readController = controller;
     readPromise = (async () => {
       try {
         if (!isOnline()) { status('offline','NETWORK'); return {ok:false,changed:false}; }
         lastReadAt = now();
         const result = await repository.loadOwnerSnapshot({signal:controller.signal});
-        if (disposed || changeVersion !== requestVersion || pending || writePromise) return {ok:false,changed:false};
+        if (disposed || readController !== controller || changeVersion !== requestVersion || pending || writePromise) return {ok:false,changed:false};
         if (!Number.isSafeInteger(result?.revision) || result.revision < revision) throw Object.assign(Error(),{code:'INVALID_RESPONSE'});
         const changed = result.revision > revision;
         if (changed) { // Accept the remote CAS revision only after the UI accepts its snapshot.
@@ -105,15 +115,20 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
         if (!pending && !disposed) status('saved');
         return {ok:true,changed};
       } catch (error) {
-        if (!disposed && changeVersion === requestVersion && !pending) failed(error);
+        if (!disposed && readController === controller && changeVersion === requestVersion && !pending) failed(error);
         return {ok:false,changed:false};
       } finally { requests.delete(controller); }
-    })().finally(() => { readPromise = null; });
+    })().finally(() => {
+      // A late completion belongs to its own generation, never a newer read.
+      if (readController === controller) { readController = null; readPromise = null; }
+    });
     return readPromise;
   }
   async function discardPendingAndReload() {
-    if (disposed || writePromise) return {ok:false,changed:false};
+    if (disposed || writePromise || reloadInFlight) return {ok:false,changed:false};
+    reloadInFlight = true;
     cancelDebounce();
+    cancelRead();
     const requestVersion = changeVersion, controller = request();
     try {
       const result = await repository.loadOwnerSnapshot({signal:controller.signal});
@@ -133,7 +148,7 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
     } catch (error) {
       if (!disposed && requestVersion === changeVersion) failed(error);
       return {ok:false,changed:false};
-    } finally { requests.delete(controller); }
+    } finally { requests.delete(controller); reloadInFlight = false; }
   }
   function retry() {
     if (disposed || errorCode === 'CONFLICT') return Promise.resolve({ok:false,...getState()});
@@ -167,7 +182,7 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
   if (pollMs > 0) pollTimer = pollScheduler.setInterval(onPoll,pollMs);
   function dispose() {
     if (disposed) return;
-    disposed = true; cancelDebounce(); if(pollTimer!==null)pollScheduler.clearInterval(pollTimer);
+    disposed = true; cancelDebounce(); cancelRead(); if(pollTimer!==null)pollScheduler.clearInterval(pollTimer);
     eventTarget?.removeEventListener?.('pointerdown',onActivity);
     eventTarget?.removeEventListener?.('keydown',onActivity);
     eventTarget?.removeEventListener?.('focus',onFocus);
