@@ -1738,6 +1738,12 @@ body.cloud-space-mounted #space-widget>.cloud-toolbar[data-sync-state="conflict"
   pointer-events:none;user-select:text;background:transparent;border:0;
   box-shadow:none!important;outline:0!important;
 }
+/* The resize handle occupies the corner of the journal on touch screens.
+   Keep the Edit/Preview action entirely outside its hit box at every zoom. */
+:root #journal-widget .journal-page-footer{
+  padding-inline-end:64px!important;
+  box-sizing:border-box;
+}
 :root .journal-primary-toggle{
   padding:9px 20px;min-height:40px;border-radius:999px;
   border:1px solid var(--orbit-editor-outline);
