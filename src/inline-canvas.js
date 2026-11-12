@@ -27,7 +27,7 @@ function ensureStyles(){
   return stylesheetPromise;
 }
 
-const signature=(elements,files,appState)=>{
+export const canvasSceneSignature=(elements,files,appState)=>{
   // Compare real scene content, not only text/points lengths.
   return JSON.stringify({elements,files:Object.entries(files||{}).map(([id,file])=>
     [id,file?.created,file?.mimeType,file?.dataURL?.length]),background:appState?.viewBackgroundColor});
@@ -54,13 +54,13 @@ export function mountInlineCanvas({host,scene,media=null,notify=()=>{},onSave=()
     const surface=document.createElement('div');surface.className='orbit-inline-excalidraw';
     host.replaceChildren(surface);
     latest={elements:initial.elements,appState:initial.appState,files:initial.files};
-    priorSignature=signature(initial.elements,initial.files,initial.appState);
+    priorSignature=canvasSceneSignature(initial.elements,initial.files,initial.appState);
     mounted=mountEmbeddedEditor(surface,{
       initialData:initial,theme:embeddedEditorTheme(theme),uiOptions:embeddedEditorOptions,
       onChange:(elements,appState,files)=>{
         if(disposed)return;
         latest={elements,appState,files};
-        const next=signature(elements,files,appState);
+        const next=canvasSceneSignature(elements,files,appState);
         if(next===priorSignature)return;
         priorSignature=next;version++;markDirty(true);
         clearTimeout(timer);
