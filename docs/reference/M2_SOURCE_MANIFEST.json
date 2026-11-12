@@ -68,12 +68,12 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "src/cloud/repository.js": {
-      "sha256": "d525d05e0fab6811ae0dde88e483e42f7c245cfe1276e82ccefe4ac2073c2f13",
-      "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
+      "sha256": "69525c3259c17bb1dddca4dc6edab915fdc206ad4361fbbe0ca009592ee67730",
+      "reason": "W1 BP-09: revision-aware clean refresh avoids redundant model/HTML normalization at identical CAS revision; initial or changed reads remain validated."
     },
     "src/cloud/sync.js": {
-      "sha256": "4252bf0f5333b23e6b182a35939a90124ecea99284831aed501bac03d6d9dd67",
-      "reason": "W1 BP-09: abort and detach obsolete full owner reads after local edits or explicit reload; reject late stale responses without losing CAS drafts."
+      "sha256": "8cb182d84f248d114b7e1173ea540345fda27c7807ea89a577d74fd83d5dbae6",
+      "reason": "W1 BP-09: revision-aware clean refresh avoids redundant model/HTML normalization at identical CAS revision; initial or changed reads remain validated."
     },
     "src/constellation.js": {
       "sha256": "6d17fe195d35d9e0de6b712855e5f4634d284c7368457b9676cea8d55d8f3c1b",
