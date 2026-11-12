@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {auditStaticHtmlSemantics} from '../scripts/check-html-semantics.mjs';
 
 const shell=(body)=>`<!doctype html><html lang="en"><body><main>${body}</main></body></html>`;
@@ -46,4 +47,12 @@ test('document must have a language, one main, and no aria-hidden focusables',()
   assert.ok(noLang.errors.some(e=>e.code==='missing-language'));
   fail(`<main>Extra main</main>`,'multiple-main');
   fail(`<button type="button" aria-hidden="true">Hidden but focusable</button>`,'hidden-focusable');
+});
+
+test('checked-in ORBIT index preserves its static semantic contract',async()=>{
+  const markup=await readFile(new URL('../index.html',import.meta.url),'utf8');
+  const result=auditStaticHtmlSemantics(markup);
+  assert.deepEqual(result.errors,[]);
+  assert.ok(result.summary.buttons>=40,'Button inventory must be exercised, not silently empty.');
+  assert.ok(result.summary.references>=10,'Cross-reference inventory must be exercised.');
 });
