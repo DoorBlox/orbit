@@ -1744,6 +1744,14 @@ body.cloud-space-mounted #space-widget>.cloud-toolbar[data-sync-state="conflict"
   padding-inline-end:64px!important;
   box-sizing:border-box;
 }
+/* The edit/preview control is on the page footer; relocate the resize grip
+   to the frame header instead of allowing two stacked corner hit targets. */
+:root .spatial-world>.journal-widget>.widget-resizer{
+  top:8px;bottom:auto;right:8px;
+}
+:root #journal-widget .journal-heading #journal-new{
+  margin-inline-end:54px;
+}
 :root .journal-primary-toggle{
   padding:9px 20px;min-height:40px;border-radius:999px;
   border:1px solid var(--orbit-editor-outline);
