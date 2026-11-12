@@ -56,8 +56,8 @@
       "reason": "BP-12: read-only bounded owner media listing; verify active session after uploads and signed URL issuance."
     },
     "src/cloud/owner-tools.js": {
-      "sha256": "fbe66e463040f8a26c5b016a4e08ff26a3e001ec64319319b6dbddebe55992ab",
-      "reason": "BP-07: reviewed inline Edit/Preview and responsive spatial UI changes; preserve private drawings and source provenance."
+      "sha256": "86412e0d92bed12af2e5de7ccc9135144505ed7c72c79aa8752f1484e10e5b81",
+      "reason": "W3 BP-12/EX-02: auth-scoped owner-private gallery with release-safe leased previews, opt-in detached media export, keyboard/mobile and fail-closed behavior."
     },
     "src/cloud/portable-backup.js": {
       "sha256": "b48c5a06e608859aadef6c90b47cb0391d7fa58eea9b6a007fbbcb51e2555515",
@@ -140,8 +140,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "90b35eba461289960cdd8db6bc1556d665e559a01a7f84b6cccbc539dea8b336",
-      "reason": "PJ-03: explicit qualitative project health and local private finder/status filter, with saved task/layout data unchanged."
+      "sha256": "8160b9b63d2a9b020035e502d2b2d688b9a36cfd8499a73bfea025e0eabfed31",
+      "reason": "W3 BP-12/EX-02: auth-scoped owner-private gallery with release-safe leased previews, opt-in detached media export, keyboard/mobile and fail-closed behavior."
     },
     "src/widget-registry.js": {
       "sha256": "097767f8dd9c6c1e94504ec571c29ca2f1d0684955d2f8c87231d15db1a427f0",
