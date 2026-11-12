@@ -383,7 +383,15 @@ export function openSceneEditor(initial,{title='Drawing',onSave,notify=()=>{},me
     }
     strokePaint.request();
   });
-  const finishStroke=()=>{if(!active)return;
+  const finishStroke=event=>{if(!active)return;
+    // A release can arrive after the last pointermove; retain that final sample.
+    if(event?.type==='pointerup'&&active.points.length<2000){
+      const [x,y]=point(event),last=active.points.at(-1);
+      if(x-active.x!==last[0]||y-active.y!==last[1]){
+        active.points.push([x-active.x,y-active.y]);
+        active.width=x-active.x;active.height=y-active.y;
+      }
+    }
     scene={...scene,elements:[...scene.elements,active]};active=null;strokePaint.flush();};
   preview.addEventListener('pointerup',finishStroke);
   preview.addEventListener('lostpointercapture',finishStroke);
