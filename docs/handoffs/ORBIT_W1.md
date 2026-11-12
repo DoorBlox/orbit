@@ -1,5 +1,17 @@
 # ORBIT Worker W1 — Core Engine
 
+## 12 November 2026 ~10:21 UTC — BP-04 PR #114 SOURCE MERGED
+
+**Source verified:** [PR #114](https://github.com/DoorBlox/orbit/pull/114) exact head `85a6679400441d4960156422005a731b12ef9b98` passed all four required checks, was reviewed with no unresolved threads or source conflicts, and squash-merged to main as `9d45032ce8281de7763a437d406a8ed24950bcd6`. New `tests/bp04_snapshot_rpc_contract.test.mjs` contains six local source-contract tests (revision triggers, owner-specific read shape, SECURITY INVOKER, single-statement snapshot, PT409 CAS, legacy private extension preservation and mutation-negative guards). They guard against certain source edits, **not** complete hosted function parity or actual transaction isolation; no SQL/runtime/Production or hosted operations.
+
+**Check runs on exact #114 head:** static-quality [43197759442](https://github.com/DoorBlox/orbit/actions/runs/43197759442) PASS, local-postgres-rls [43197759402](https://github.com/DoorBlox/orbit/actions/runs/43197759402) PASS, production-artifact-dry-run [43197759320](https://github.com/DoorBlox/orbit/actions/runs/43197759320) PASS, unauthenticated-protection [43197759197](https://github.com/DoorBlox/orbit/actions/runs/43197759197) PASS. Earlier failed initial PR head `9ac321c` was fixed and superseded.
+
+**Checkpoint PR:** [#118](https://github.com/DoorBlox/orbit/pull/118) updates only this worker-owned handoff; its exact head and checks must be re-verified after this latest update, and must not be merged before four checks succeed. The preceding 10:10 UTC entry records a historical *pre-merge* snapshot, not live current state. New main and other workers' PRs can advance; inspect live GitHub before touching source.
+
+**Next independent W1 work:** verify BP-04 **read-only** hosted function and trigger definitions/grants/RLS against seven local immutable migrations and latest extension projection, without reading owner rows or performing hosted DDL/DML. Record object-by-object drift and check client CAS semantics using disposable fixtures. Then measure BP-03/BP-09 network/request/serialization bottlenecks and implement a focused owned-source fix only if benchmark evidence and collision checks justify it. Avoid concurrent predecessor W1 branches and W2/W3/W4 files. The revision-only RPC RFC #104 is NOT approved for hosted activation.
+
+---
+
 ## 12 November 2026 ~10:10 UTC — replacement W1 BP-04 checkpoint
 
 **Status: PR #114 OPEN; exact-head CI PENDING; NOT MERGED.** This replacement independently recovered the live repository, protocol, master plan, worker handoff and activity. W1 #89, #98, #101, #107, #109 and #110 are source merged; #104 is a merged, design-only hosted-gated RPC RFC. PR #109 source-merged as 40b21450764850799c30de65496fbb45d5eae1f2. Existing predecessor branches preserved; see [coordination comment](https://github.com/DoorBlox/orbit/pull/109#issuecomment-6820658309).
