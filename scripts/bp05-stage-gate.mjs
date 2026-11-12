@@ -3,6 +3,7 @@
 import {readFile} from 'node:fs/promises';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
+import {isArtifactPackageVersion} from './version-contract.mjs';
 
 const SHA = /^[0-9a-f]{40}$/;
 const PROJECT_ID = 'prj_FZH5dyyZvUXfVmTz04HBCMbIrQk5';
@@ -110,7 +111,7 @@ async function getEvidence(url, token) {
 
 export function assertStageArtifact(report, reviewedSha) {
   if (!SHA.test(reviewedSha || '') || !report || typeof report !== 'object' ||
-      report.commit !== reviewedSha || report.version !== '1.0.0' ||
+      report.commit !== reviewedSha || !isArtifactPackageVersion(report.version) ||
       report.mode !== 'protected-private' || report.siteUrl !== SITE_URL ||
       report.supabaseUrl !== SUPABASE_URL)
     noGo('production-format artifact does not match reviewed source and private target.');

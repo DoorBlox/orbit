@@ -6,10 +6,12 @@ import { pathToFileURL } from 'node:url';
 import { build } from 'esbuild';
 import { browserModules, resolveBuildConfig, sdkBuildOptions, editorBuildOptions } from './build.mjs';
 import { assertProductionConfig } from './production-guard.mjs';
+import {assertPackageLockAgreement} from './version-contract.mjs';
 
 export async function verifyReleaseArtifact({root=process.cwd(),outdir=path.join(root,'dist'),productionOptions}={}){
-  const pkg=JSON.parse(await readFile(path.join(root,'package.json'),'utf8'));
-  if(pkg.version!=='1.0.0')throw Error('Release artifact requires version 1.0.0.');
+  const [pkg,lock]=await Promise.all(['package.json','package-lock.json'].map(async file=>
+    JSON.parse(await readFile(path.join(root,file),'utf8'))));
+  assertPackageLockAgreement(pkg,lock);
   if(!(await lstat(outdir)).isDirectory()||(await lstat(outdir)).isSymbolicLink())
     throw Error('Release artifact directory must be a real directory.');
   const text=await readFile(path.join(outdir,'src/runtime-config.js'),'utf8');
