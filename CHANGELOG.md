@@ -1,5 +1,19 @@
 # Changelog
 
+**Which changes are live?** This file separates merged source from real releases. See [BP progress](docs/PROGRESS.md), [GitHub Releases](https://github.com/DoorBlox/orbit/releases), and the [single master roadmap](plans/ORBIT_POST_2_4_EXECUTION.md). A source PR merge is **not** a Production deployment. W5 will reconcile all merged BP work and independently confirm any live release; do not retroactively claim current main is deployed.
+
+## Unreleased — source merged on main, NOT independently Production-verified (12 November 2026)
+
+These are **selected milestones**, not a complete generated change history. Newer source includes:
+
+- **W1 synchronization:** bounded retry storms and clean online/focus coalescing in [#136](https://github.com/DoorBlox/orbit/pull/136) and [#143](https://github.com/DoorBlox/orbit/pull/143); read-only hosted SQL/RPC proposal remains separately gated.
+- **W2 private media:** reference-safe library APIs [#90](https://github.com/DoorBlox/orbit/pull/90), portable detached media recovery [#95](https://github.com/DoorBlox/orbit/pull/95) and preflight restore safety [#111](https://github.com/DoorBlox/orbit/pull/111). Signed-in owner and two-account acceptance remain open.
+- **W3 product:** spatial mobile camera and Focus [#133](https://github.com/DoorBlox/orbit/pull/133), and continuing Journal editing fixes; see [current PRs](https://github.com/DoorBlox/orbit/pulls).
+- **W4 security/platform:** cryptographic private MCP read boundary, grant revocation and Streamable HTTP admission through [#147](https://github.com/DoorBlox/orbit/pull/147); no live OAuth connector or released MCP endpoint.
+- **Release/QA:** source-based release gate and accessibility checks advanced. None of these bullet points changes the documented Production 2.4 source without a separately verified deployment.
+
+
+
 ## ORBIT 2.4 — LIVE Production, 9 Nov 2026
 
 - PR #33 merged to `4e57aca`, all four required exact-head CI checks passed. Vercel staged artifact `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4` READY; canonical `orbit.starscene.com` explicitly switched after restricted header/runtime-config checks, HTTP 200 and no private anonymous HTML.
