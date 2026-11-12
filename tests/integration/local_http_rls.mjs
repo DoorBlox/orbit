@@ -117,3 +117,6 @@ try{
   await client.auth.signOut().catch(()=>{});
   // Disposable stack is removed by the workflow regardless of test outcome.
 }
+
+// W1 local-only conditional RPC acceptance runs after the established bearer/RLS gate.
+await import('./local_conditional_rpc.mjs');
