@@ -99,6 +99,7 @@ export function createMcpJwtAccessVerifier({issuer,resource,loadJwks,isRevoked,h
         !uuidPattern.test(claims.sub||'')||
         !tokenIdPattern.test(claims.jti||'')||
         !clientPattern.test(claims.client_id||'')||
+        Object.hasOwn(claims,'cnf')||
         claims.role!=='authenticated'||claims.token_use!=='access'||
         claims.scope!=='tasks:read'||
         !Number.isSafeInteger(claims.exp)||!Number.isSafeInteger(claims.iat)||
