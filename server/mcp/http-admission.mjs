@@ -205,11 +205,13 @@ export function createMcpStreamableReadAdmission({
   return Object.freeze({
     async invoke(request){
       if(!plain(request))denied();
-      if(request.method!=='POST')denied(405);
-      if(request.path!==endpointPath)denied(404);
       const headers=headersFromRaw(request.headers);
       const origin=headers.get('origin');
+      // The 2026-07-28 transport requires Origin validation on every
+      // connection, including otherwise unsupported legacy methods.
       if(origin!==undefined&&!origins.has(origin))denied(403);
+      if(request.method!=='POST')denied(405);
+      if(request.path!==endpointPath)denied(404);
       if(!acceptsBoth(headers.get('accept')))denied(406);
       if(!/^application\/json(?:;\s*charset=utf-8)?$/i.test(headers.get('content-type')||''))
         denied(415);
