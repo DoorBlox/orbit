@@ -52,16 +52,16 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "src/cloud/media.js": {
-      "sha256": "f0dfbf92d1f3c91039534423ec71e6c4de91d50565cee49ff26f5c425eb8dea6",
-      "reason": "BP-10: owner-private image previews have explicit lease/teardown lifetimes; idle Blob URLs have count/byte caps; no hosted media deletion."
+      "sha256": "abd09282ff6965abea336e38867f8f91788e794837d7fa8c723b07f07377c165",
+      "reason": "BP-12: read-only bounded owner media listing; verify active session after uploads and signed URL issuance."
     },
     "src/cloud/owner-tools.js": {
       "sha256": "fbe66e463040f8a26c5b016a4e08ff26a3e001ec64319319b6dbddebe55992ab",
       "reason": "BP-07: reviewed inline Edit/Preview and responsive spatial UI changes; preserve private drawings and source provenance."
     },
     "src/cloud/portable-backup.js": {
-      "sha256": "791ae983c344f55671d51056be4aea9b0112dac08eafa3701e258bbda69013c1",
-      "reason": "EX-02: checksummed archive of referenced canvas images and cross-owner path remapping."
+      "sha256": "ce6d4e784dce399d06e5b41940a6cf40b318ee3b3dd76b87d3192b0e3b71f5cc",
+      "reason": "BP-12: index owner-scoped image references and allow immutable, reference-safe detach without Storage deletion."
     },
     "src/cloud/README.md": {
       "sha256": "2fa23ecebff7de9fa7e5463f3c77031e97850cf192398ea0da66c2f6cd19a4af",

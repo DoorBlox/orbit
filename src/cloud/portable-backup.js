@@ -46,29 +46,116 @@ function decodeBase64(data,size){
   return bytes;
 }
 
-export function collectReferencedPaths(snapshot){
+/**
+ * Every referenced private image, including scene file metadata, is indexed
+ * against its actual owner. Scene file entries remain references even when no
+ * element currently draws them, so backup and deletion preflights stay safe.
+ * This function never lists/queries/deletes Storage.
+ */
+export function collectMediaReferenceUsage(snapshot,{ownerId}={}){
+  if(ownerId!==undefined&&(typeof ownerId!=='string'||!ownerId))
+    throw Error('A valid private media owner is required.');
   const extensions=snapshot?.extensions;
-  const paths=[];
-  if(!extensions)return paths;
+  const usage=new Map();
+  if(extensions===undefined||extensions===null)return usage;
   if(!object(extensions))throw imageError();
-  for(const note of extensions.notes??[]){
-    if(note?.imagePath)paths.push(note.imagePath);
-  }
-  for(const path of Object.values(extensions.journalImages??{})){
-    if(path)paths.push(path);
-  }
-  const addCanvasFiles=scene=>{
-    if(!scene)return;
-    if(!object(scene.files))throw imageError();
-    for(const ref of Object.values(scene.files)){
-      if(!object(ref)||!validMediaPath(ref.path))throw imageError();
-      paths.push(ref.path);
+  const add=(path,kind,id,fileId)=>{
+    if(!validMediaPath(path))throw imageError();
+    if(ownerId&&!validMediaOwner(path,ownerId))
+      throw Error('Private image belongs to another account.');
+    if(!usage.has(path))usage.set(path,[]);
+    usage.get(path).push(Object.freeze({
+      kind,id,...(fileId?{fileId}:{})
+    }));
+  };
+  const canvas=(scene,kind,id)=>{
+    if(scene===null||scene===undefined)return;
+    if(!object(scene)||!object(scene.files))throw imageError();
+    for(const [fileId,ref] of Object.entries(scene.files)){
+      if(!object(ref))throw imageError();
+      add(ref.path,kind,id,fileId);
     }
   };
-  for(const note of extensions.notes??[])addCanvasFiles(note?.scene);
-  for(const scene of Object.values(extensions.journalScenes??{}))addCanvasFiles(scene);
-  if(paths.some(path=>!validMediaPath(path)))throw imageError();
-  return [...new Set(paths)].sort();
+  const notes=extensions.notes??[];
+  if(!Array.isArray(notes))throw imageError();
+  for(const note of notes){
+    if(!object(note)||typeof note.id!=='string')throw imageError();
+    if(note.imagePath)add(note.imagePath,'note-attachment',note.id);
+    canvas(note.scene,'note-canvas',note.id);
+  }
+  const images=extensions.journalImages??{};
+  if(!object(images))throw imageError();
+  for(const [id,path] of Object.entries(images)){
+    if(path)add(path,'journal-attachment',id);
+  }
+  const scenes=extensions.journalScenes??{};
+  if(!object(scenes))throw imageError();
+  for(const [id,scene] of Object.entries(scenes))canvas(scene,'journal-canvas',id);
+  return usage;
+}
+
+export function collectReferencedPaths(snapshot){
+  return [...collectMediaReferenceUsage(snapshot).keys()].sort();
+}
+
+/**
+ * Non-destructive immutable detach. A consumer can explicitly save the returned
+ * snapshot using the existing CAS revision path. Storage bytes are never removed.
+ * Canvas image elements can share one fileId; retain its metadata until the
+ * final element using that fileId is detached.
+ */
+export function detachMediaReference(snapshot,{kind,id,elementId,ownerId}={}){
+  if(!object(snapshot)||typeof kind!=='string'||typeof id!=='string'||!id)
+    throw Error('Invalid private media detach target.');
+  const usage=collectMediaReferenceUsage(snapshot,{ownerId});
+  const clone=structuredClone(snapshot);
+  const extensions=clone.extensions;
+  if(!object(extensions))throw Error('Invalid private media detach target.');
+  let path;
+  if(kind==='note-attachment'||kind==='note-canvas-image'){
+    const matches=(extensions.notes??[]).filter(note=>note?.id===id);
+    if(matches.length!==1)throw Error('Invalid or ambiguous private media note.');
+    const note=matches[0];
+    if(kind==='note-attachment'){
+      path=note.imagePath;
+      if(!path)throw Error('Private image attachment does not exist.');
+      delete note.imagePath;
+    }else{
+      path=detachCanvasElement(note.scene,elementId);
+    }
+  }else if(kind==='journal-attachment'){
+    if(!Object.hasOwn(extensions.journalImages??{},id))
+      throw Error('Private journal image attachment does not exist.');
+    path=extensions.journalImages[id];
+    delete extensions.journalImages[id];
+  }else if(kind==='journal-canvas-image'){
+    if(!Object.hasOwn(extensions.journalScenes??{},id))
+      throw Error('Private journal canvas does not exist.');
+    path=detachCanvasElement(extensions.journalScenes[id],elementId);
+  }else{
+    throw Error('Unsupported private media detach target.');
+  }
+  if(!validMediaPath(path)||ownerId&&!validMediaOwner(path,ownerId)||
+     !usage.has(path))throw imageError();
+  const remaining=collectMediaReferenceUsage(clone,{ownerId});
+  return {snapshot:clone,detachedPath:path,
+    remainingReferences:remaining.get(path)?.length??0};
+}
+
+function detachCanvasElement(scene,elementId){
+  if(!object(scene)||!Array.isArray(scene.elements)||!object(scene.files)||
+     typeof elementId!=='string'||!elementId)throw Error('Invalid private canvas image target.');
+  const matching=scene.elements.filter(element=>element?.id===elementId);
+  if(matching.length!==1||matching[0].type!=='image')
+    throw Error('Invalid or ambiguous private canvas image element.');
+  const fileId=matching[0].fileId;
+  const file=scene.files[fileId];
+  if(!object(file)||!validMediaPath(file.path))
+    throw Error('Invalid private canvas image metadata.');
+  scene.elements=scene.elements.filter(element=>element?.id!==elementId);
+  if(!scene.elements.some(element=>element?.type==='image'&&element.fileId===fileId))
+    delete scene.files[fileId];
+  return file.path;
 }
 
 async function validatedBlob(data,path){

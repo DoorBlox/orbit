@@ -129,6 +129,39 @@ export function createPrivateMedia(client,{ownerId,maxIdlePreviews=8,maxIdleByte
   return {
     ownerId, // public owner identifier for private path validation, never a credential
     download,acquirePreview,
+    /**
+     * Read-only, paginated private file inventory. Storage list results are never
+     * treated as authorization: the folder is owner-scoped, every returned name
+     * is path-validated, and the authenticated account is checked again after IO.
+     * Do not derive a permanent delete action from this inventory.
+     */
+    async listOwnMedia({offset=0,limit=40}={}){
+      if(!Number.isSafeInteger(limit)||limit<1||limit>100||
+         !Number.isSafeInteger(offset)||offset<0||offset>1000000)
+        throw Error('Invalid private media page limit or offset.');
+      await checkUser();
+      const result=await bucket.list(ownerId,{
+        limit,offset,sortBy:{column:'name',order:'asc'}
+      });
+      if(result?.error||!Array.isArray(result?.data))
+        throw Error('Private media list is unavailable.');
+      await checkUser();
+      const seen=new Set(),items=[];
+      for(const item of result.data){
+        if(!item||typeof item.name!=='string'||!item.id)continue;
+        const path=ownerId+'/'+item.name;
+        if(!validMediaOwner(path,ownerId)||seen.has(path))continue;
+        seen.add(path);
+        const mime=Object.entries(TYPES).find(([,ext])=>ext===item.name.split('.').at(-1).toLowerCase())?.[0];
+        items.push({
+          path,mime,
+          size:Number.isSafeInteger(item.metadata?.size)&&item.metadata.size>=0?item.metadata.size:null,
+          createdAt:typeof item.created_at==='string'?item.created_at:null
+        });
+      }
+      return {items,nextOffset:offset+result.data.length,
+        hasMore:result.data.length===limit};
+    },
     async upload(file){
       const extension=await validateImage(file);
       await checkUser();
@@ -136,6 +169,9 @@ export function createPrivateMedia(client,{ownerId,maxIdlePreviews=8,maxIdleByte
       const path=ownerId+'/'+filename+'.'+extension;
       const result=await bucket.upload(path,file,{contentType:file.type,upsert:false,cacheControl:'3600'});
       if(result.error)throw Error('Private upload failed. Try again.');
+      // Never hand a path back to a different account after in-flight upload.
+      // Storage deletion is intentionally NOT attempted on session expiry.
+      await checkUser();
       return path;
     },
     async signedUrl(path){
@@ -143,6 +179,7 @@ export function createPrivateMedia(client,{ownerId,maxIdlePreviews=8,maxIdleByte
       await checkUser();
       const result=await bucket.createSignedUrl(path,600);
       if(result.error||!result.data?.signedUrl)throw Error('Cannot load the private image.');
+      await checkUser();
       return result.data.signedUrl;
     },
     dispose:expire
