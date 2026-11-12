@@ -68,8 +68,8 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "src/cloud/repository.js": {
-      "sha256": "23a5093b1664377a384d9fd4fbb46ba619f54625613ede85e70542543e6a9165",
-      "reason": "W1 BP-09: after full fail-closed normalization, retain already-valid tasks when no task-link overlay exists and copy only tasks with extension overrides; preserve Auth/RPC/CAS semantics."
+      "sha256": "4bdb2905cd0e2a11c4dde365ef8310d9b6ce4b619d2e5dc72f531221734436b7",
+      "reason": "W1 BP-03: default-off conditional owner revision probe with strict minimal unchanged envelope, auth recheck, canonical PGRST202/404 fallback and legacy full read; hosted RPC not activated."
     },
     "src/cloud/sync.js": {
       "sha256": "13515feba88f6ecd9d2c4654eed42c9e90ed671847ec9aa40f61f34c2f816bfd",
