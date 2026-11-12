@@ -347,6 +347,9 @@ def private_gallery_case(browser,source,width=390):
           {name:'22222222-2222-4222-8222-222222222222.png'},
           {name:'33333333-3333-4333-8333-333333333333.png'}
         ];}""")
+        # In a pannable world the Space widget can begin offscreen on mobile.
+        # Use the app's spatial focus path (not force=True) to test reachability.
+        page.evaluate("window.orbitDebug.board.focus('space',{initial:true})")
         page.locator('.cloud-account-details').evaluate('details => { details.open = true; }')
         page.locator('.cloud-owner-panel > summary').click()
         page.get_by_text('Private image library',exact=True).click()
@@ -396,6 +399,9 @@ def private_gallery_failure_case(browser,source):
         page.evaluate("""() => {window.__m2Fixture.mediaFiles=[
           {name:'33333333-3333-4333-8333-333333333333.png'}
         ];window.__m2Fixture.failMediaList=true;}""")
+        # In a pannable world the Space widget can begin offscreen on mobile.
+        # Use the app's spatial focus path (not force=True) to test reachability.
+        page.evaluate("window.orbitDebug.board.focus('space',{initial:true})")
         page.locator('.cloud-account-details').evaluate('details => { details.open = true; }')
         page.locator('.cloud-owner-panel > summary').click()
         page.get_by_text('Private image library',exact=True).click()
