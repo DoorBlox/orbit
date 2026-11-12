@@ -64,7 +64,7 @@ export function createOwnerTools({repository,app,sync,container,media,ownerId,ca
   reviewPortable.disabled=!ready();
   const confirmPortable=button('Restore reviewed backup (private)',async()=>{
     if(!ready()||portableBusy||!portableDraft)return;
-    await app.flushEditor();
+    try{await app.flushEditor();}catch(error){say('Restore blocked: '+error.message);return;}
     if(sync.getState().hasPending||sync.getState().state==='conflict'){
       say('Your current changes are not saved. Export/save them before replacing this workspace.');return;
     }
@@ -111,7 +111,7 @@ export function createOwnerTools({repository,app,sync,container,media,ownerId,ca
 
   const confirmImport=button('Import reviewed data as private',async()=>{
     if(!importDraft||disposed)return;
-    await app.flushEditor();
+    try{await app.flushEditor();}catch(error){say('Import blocked: '+error.message);return;}
     if(sync.getState().hasPending){say('Save or export the current draft before importing.');return;}
     if(!window.confirm(`Upload ${importDraft.journalEntries.length} personal journal pages and the reviewed local data to your private cloud space? This replaces the current cloud snapshot. Export its backup first. Local data will remain on this device.`))return;
     const snapshot=importDraft;importDraft=null;confirmImport.hidden=true;
@@ -141,7 +141,9 @@ export function createOwnerTools({repository,app,sync,container,media,ownerId,ca
     finally{if(!disposed)unpublish.disabled=false;}
   },form);
   form.addEventListener('submit',async event=>{
-    event.preventDefault();await app.flushEditor();refreshSources();
+    event.preventDefault();
+    try{await app.flushEditor();}catch(error){say('Publishing blocked: '+error.message);return;}
+    refreshSources();
     if(!source.value){say('Choose a source first.');return;}
     if(sync.getState().hasPending){say('Save the current draft before publishing.');return;}
     if(!window.confirm(`Publish exactly these fields when public viewing is enabled?\n\n${preview.textContent}\n\nThe private body, resources, criteria, and widget preferences stay private.`))return;
