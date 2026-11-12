@@ -78,12 +78,20 @@ jobs:
           set -euo pipefail
           node scripts/bp05-release-preflight.mjs
           node scripts/bp05-stage-gate.mjs approval
+      - name: Verify real GitHub environment protection and independent reviewer (NO VERCEL)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/bp05-stage-gate.mjs review
       - name: Install reviewed app dependencies without lifecycle scripts
         run: npm ci --ignore-scripts
       - name: Reverify source integrity before accessing stage credentials
         run: npm run verify:source
       - name: Install pinned stable Vercel CLI
         run: npm install --global --ignore-scripts --no-audit --no-fund "vercel@${ORBIT_VERCEL_CLI_VERSION}"
+      - name: Prove raw Production deployment URLs already require Vercel SSO
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: node scripts/bp05-stage-gate.mjs vercel-protection
       - name: Pull reviewed project's Production-format build configuration
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -103,6 +111,7 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           set -euo pipefail
+          node scripts/bp05-stage-gate.mjs vercel-protection
           url="$(vercel deploy --prebuilt --prod --skip-domain)"
           ORBIT_STAGE_URL="$url" node scripts/bp05-stage-gate.mjs protect
           printf 'protected_raw_url=%s\n' "$url" >> "$GITHUB_OUTPUT"
