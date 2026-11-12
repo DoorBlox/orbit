@@ -2,6 +2,12 @@
 
 **Status:** BP-06 synthetic Chromium **SOURCE MERGED** [PR #47](https://github.com/DoorBlox/orbit/pull/47), four exact-head checks passed in [run 42653091662](https://github.com/DoorBlox/orbit/actions/runs/42653091662). `tests/qa_spatial_baseline.py` is called by `tests/qa_m1.py`; this is not complete real-device BP-06 acceptance. Screenshots/JSON are CI artifacts retained seven days. **No authenticated real-user screenshot, real Safari/Android or Production claim.**
 
+## Optional owner-visible previews during active implementation
+
+The owner appreciates **occasional direct visual proof** of meaningful product changes, **not** mandatory images in every PR or status update. Workers may share a screenshot pair, a short clip, an existing CI screenshot artifact, or an existing protected Preview URL when a UI milestone (e.g., private media gallery, spatial navigation, Excalidraw editor) is ready to show. Prefer synthetic seeded data, a useful before/after or desktop/mobile comparison, and links the owner can actually open. Backend-only changes generally need no visual preview; a concise benchmark or security-test evidence summary can be more useful. Never deploy just for decoration.
+
+Label evidence accurately (synthetic vs protected Preview vs owner/real-device verified), keep all private journal/media/account/token material out of screenshots and public artifacts, and never weaken deployment protection or claim Production acceptance from a preview. The [parallel command protocol](ORBIT_PARALLEL_COMMAND_PROTOCOL.md) controls worker handoffs and preview discretion.
+
 ## What the owner can supply (privacy-safe)
 
 A useful starting set is (1) a **full desktop workspace** view at ~1440x900 with synthetic tasks and all six windows visible; (2) a narrow phone view at ~390x844 showing navigation and Space; (3) Journal editing and its toolbar; (4) one sticky note with drawing and image controls; (5) Night Garden or Graphite theme with dense task nodes; (6) optional 15–30-second screen recording of pan, window drag/resize, minimap travel and drawing. If accessible, also collect the sign-in shell with no account details.
