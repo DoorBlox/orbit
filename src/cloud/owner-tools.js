@@ -255,6 +255,10 @@ export function createOwnerTools({repository,app,sync,container,media,ownerId,ca
           lease.release();return;
         }
         galleryLeases.set(item.path,lease);
+        // A lazy thumbnail can remain undecoded while its card is outside
+        // the scrollport. A valid owner-scoped lease is sufficient to open
+        // the larger preview; never deadlock the View control on img.onload.
+        view.disabled=false;
         image.src=lease.url;image.hidden=false;
       }catch{
         if(ticket!==galleryEpoch||disposed)return;
