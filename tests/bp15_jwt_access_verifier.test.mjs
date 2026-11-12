@@ -76,6 +76,7 @@ test('identity, issuer, audience, token lifetime, user role and exact scope are 
     {nbf:seconds+1},{exp:seconds+1800},{iat:seconds-2000},
     {scope:'tasks:write'}, {scope:'tasks:read tasks:write'},
     {scope:'journals:read tasks:read'},{scope:['tasks:read']},
+    {cnf:{jkt:'synthetic-key-thumbprint'}},
     {role:'service_role'},{role:'anon'},{role:undefined},
     {token_use:'id'}, {token_use:undefined}, {jti:undefined}, {client_id:undefined},
     {client_id:'../../foo'},{jti:'../../foo'}];
