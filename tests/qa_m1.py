@@ -535,6 +535,8 @@ def main():
         results['pj02a_project_actions']=run_project_actions(browser,open_page,reload_page,OUT)
         from qa_projects_shelf import run_projects_shelf
         results['pj02b_projects_shelf']=run_projects_shelf(browser,open_page,reload_page,OUT)
+        from qa_jump import run_jump
+        results['br01_spatial_jump']=run_jump(browser,open_page,focus)
         browser.close()
     (OUT/'m1-results.json').write_text(json.dumps(results,indent=2)+'\n')
     print(json.dumps(results,indent=2))

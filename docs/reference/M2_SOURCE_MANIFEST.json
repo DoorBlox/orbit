@@ -12,8 +12,8 @@
       "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service."
     },
     "src/app.js": {
-      "sha256": "9cf55477085ff714368e333e8c47d8768c8d0a0caeb74cdc720b2a1da5649816",
-      "reason": "BP-10: owner-private image previews have explicit lease/teardown lifetimes; idle Blob URLs have count/byte caps; no hosted media deletion."
+      "sha256": "6cae0474771280d89c45b1ed5e52e709af3b2fe3dc8cffefd1cce5875c33ee1e",
+      "reason": "BR-01: integrate spatial Jump across private tasks, branches, notes, journals and windows without changing saved layout or cloud schema."
     },
     "src/auth/controller.js": {
       "sha256": "af8cde170ef58e61df8c464ee34249df4267812991392a95dae5c4d69f47ba20",
@@ -140,8 +140,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "1998cd6a00b1869b3a13fccf9290766dcea05c87d0fc56118236e6b0d32b88a0",
-      "reason": "BP-08: view-only reversible Focus camera without moving, resizing or modifying private saved artifacts."
+      "sha256": "5c0b53f2480238db6048ee987847008f9eeb5c1f298607ccaacd1d3d2081cf31",
+      "reason": "BR-01: integrate spatial Jump across private tasks, branches, notes, journals and windows without changing saved layout or cloud schema."
     },
     "src/widget-registry.js": {
       "sha256": "097767f8dd9c6c1e94504ec571c29ca2f1d0684955d2f8c87231d15db1a427f0",
@@ -150,6 +150,10 @@
     "src/widgets.js": {
       "sha256": "aee68a4ce8a37edbb2de2fa1b0a2fc4589fcaf28a00603db2b148c6875a8ec58",
       "reason": "Preserve task/timeline projection over canonical owner snapshots and read-only controls."
+    },
+    "src/quick-jump.js": {
+      "sha256": "52d9592e71edeb700b70bec3b79d792620d36a172af14f80ad79935c95f7a23e",
+      "reason": "BR-01: locally indexed, keyboard-accessible private spatial Jump controller; no network, DOM injection or persisted search cache."
     }
   }
 }

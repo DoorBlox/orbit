@@ -1884,3 +1884,124 @@ body.cloud-space-mounted #space-widget .cloud-sync-state{position:absolute!impor
 }
 :root .bp08-focus-exit:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
 @media(max-width:560px){:root .bp08-focus-exit{right:12px;bottom:max(14px,env(safe-area-inset-bottom,0px));}}
+
+/* BR-01 — Spatial Jump is a viewport-level wayfinding lens, never a dashboard.
+   Its layer stays outside the transformed world and inherits each theme. */
+:root .orbit-jump-trigger{
+  flex:none;display:inline-flex;align-items:center;gap:8px;
+  min-height:38px;padding:7px 10px 7px 14px;border-radius:999px;
+  border:1px solid var(--orbit-outline,#bdcada);
+  background:var(--orbit-hover-surface,rgba(128,156,192,.12));
+  color:var(--orbit-chrome-ink,#263954);
+  font:700 12px/1.15 var(--orbit-font-ui,system-ui);
+  white-space:nowrap;box-shadow:none;
+}
+:root .orbit-jump-trigger:hover{background:var(--orbit-control-faint,rgba(128,156,192,.18))}
+:root .orbit-jump-shortcut{
+  padding:4px 6px;border-radius:7px;border:1px solid var(--orbit-outline,#bdcada);
+  font:600 10px/1 var(--orbit-font-ui,system-ui);
+  letter-spacing:.02em;color:var(--orbit-chrome-muted,#586d88);
+}
+:root .world-header .header-right:has(.orbit-jump-trigger){
+  max-width:420px;min-width:0;
+}
+:root .world-header .header-right .header-status-stack{min-width:0}
+:root .orbit-jump-dialog{
+  position:fixed;top:min(12dvh,104px);left:50%;
+  transform:translateX(-50%);margin:0;padding:0;border:0;
+  width:min(660px,calc(100vw - 28px));max-width:none;
+  max-height:min(78dvh,730px);border-radius:24px;overflow:hidden;
+  color:var(--orbit-chrome-ink,#243651);
+  background:var(--orbit-solid-chrome,#f9fafc);
+  box-shadow:0 28px 100px rgba(18,31,57,.27),0 0 0 1px var(--orbit-outline,#bfcede);
+  font-family:var(--orbit-font-ui,system-ui);
+}
+:root .orbit-jump-dialog::backdrop{
+  background:rgba(15,27,47,.38);
+  backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+}
+:root .orbit-jump-shell{
+  display:flex;flex-direction:column;min-width:0;max-height:min(78dvh,730px);
+  padding:23px;gap:13px;
+}
+:root .orbit-jump-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+:root .orbit-jump-heading h2{
+  margin:0;color:var(--orbit-chrome-ink,#243651);
+  font-size:clamp(22px,3vw,30px);font-weight:730;line-height:1.1;letter-spacing:-.045em;
+}
+:root .orbit-jump-dismiss{
+  width:42px;height:42px;flex:none;border-radius:50%;
+  border:1px solid var(--orbit-outline,#bfcede);
+  background:var(--orbit-hover-surface,rgba(128,156,192,.12));
+  color:var(--orbit-chrome-ink,#243651);font-size:23px;line-height:1;
+}
+:root .orbit-jump-caption{
+  margin:-3px 0 3px;font-size:13px;line-height:1.45;
+  color:var(--orbit-chrome-muted,#526c8d);
+}
+:root .orbit-jump-input{
+  width:100%;min-height:55px;border-radius:14px;
+  border:1.5px solid var(--orbit-outline,#bfcede);
+  background:var(--orbit-field,#fff);
+  color:var(--orbit-chrome-ink,#243651);padding:13px 16px;
+  box-shadow:inset 0 1px 3px rgba(33,52,81,.04);
+  outline-offset:3px;font-size:16px;
+}
+:root .orbit-jump-input::placeholder{color:var(--orbit-chrome-muted,#62728a)}
+:root .orbit-jump-results{
+  display:flex;flex-direction:column;gap:3px;min-height:75px;
+  max-height:min(46dvh,424px);overflow-y:auto;overscroll-behavior:contain;
+  padding:3px;scrollbar-gutter:stable;
+}
+:root .orbit-jump-option{
+  display:grid;grid-template-columns:84px minmax(0,1fr);
+  grid-template-rows:auto auto;align-items:center;gap:3px 12px;
+  min-height:64px;padding:12px 14px;border-radius:15px;
+  border:1px solid transparent;cursor:pointer;
+}
+:root .orbit-jump-option.is-active,:root .orbit-jump-option:hover{
+  background:var(--orbit-hover-surface,rgba(119,157,200,.13));
+  border-color:var(--orbit-outline,#bfcede);
+}
+:root .orbit-jump-kind{
+  grid-row:1/3;grid-column:1;align-self:center;
+  display:inline-flex;justify-content:center;
+  padding:7px 6px;border-radius:8px;
+  background:var(--orbit-control-faint,rgba(116,154,201,.14));
+  color:var(--orbit-chrome-ink,#243651);text-transform:capitalize;
+  font-weight:750;font-size:11px;letter-spacing:.015em;
+}
+:root .orbit-jump-option-title{
+  grid-row:1;grid-column:2;font-size:14px;line-height:1.25;font-weight:710;
+  color:var(--orbit-chrome-ink,#243651);min-width:0;overflow-wrap:anywhere;
+}
+:root .orbit-jump-option-detail{
+  grid-row:2;grid-column:2;font-size:12px;line-height:1.3;
+  color:var(--orbit-chrome-muted,#526c8d);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;
+}
+:root .orbit-jump-hint{
+  margin:0;padding-top:8px;border-top:1px solid var(--orbit-outline,#bfcede);
+  font-size:11px;line-height:1.45;color:var(--orbit-chrome-muted,#526c8d);
+}
+:root .orbit-jump-status{margin:0;font-size:12px;color:var(--orbit-warning,#a75c50)}
+:root .orbit-jump-status:empty{display:none}
+:root .orbit-jump-empty{margin:0;padding:22px 12px;font-size:14px;
+  color:var(--orbit-chrome-muted,#526c8d);text-align:center}
+:root .orbit-jump-option:focus-visible,:root .orbit-jump-trigger:focus-visible,
+:root .orbit-jump-dismiss:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+@media(max-width:700px){
+  :root .orbit-jump-dialog{top:max(89px,calc(72px + env(safe-area-inset-top,0px)));
+    width:calc(100vw - 20px);max-height:calc(100dvh - 106px);border-radius:19px}
+  :root .orbit-jump-shell{padding:16px;gap:10px;max-height:calc(100dvh - 106px)}
+  :root .orbit-jump-results{max-height:calc(100dvh - 310px)}
+  :root .orbit-jump-kind{font-size:10px}
+  :root .orbit-jump-option{grid-template-columns:64px minmax(0,1fr);padding:11px 8px;gap:3px 9px}
+  :root .orbit-jump-caption{font-size:12px}
+  :root .orbit-jump-shortcut{display:none}
+  :root .world-header .header-right:has(.orbit-jump-trigger){max-width:calc(100vw - 100px)}
+}
+@media(prefers-reduced-transparency:reduce){
+  :root .orbit-jump-dialog{background:var(--orbit-solid-chrome,#f9fafc)}
+  :root .orbit-jump-dialog::backdrop{backdrop-filter:none;-webkit-backdrop-filter:none}
+}
