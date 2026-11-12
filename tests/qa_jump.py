@@ -58,7 +58,7 @@ def run_jump(browser,open_page,focus):
         page.locator('#capture-name').focus()
         page.keyboard.press('Control+k')
         expect(page.locator('#orbit-jump-dialog')).not_to_be_visible()
-        page.locator('#capture-name').blur()
+        page.evaluate("document.getElementById('capture-name').blur()")
         page.keyboard.press('Control+k')
         expect(page.locator('#orbit-jump-dialog')).to_be_visible()
         page.keyboard.press('Escape')
