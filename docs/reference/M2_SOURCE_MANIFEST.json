@@ -72,8 +72,8 @@
       "reason": "W1 BP-09: revision-aware clean refresh avoids redundant model/HTML normalization at identical CAS revision; initial or changed reads remain validated."
     },
     "src/cloud/sync.js": {
-      "sha256": "8cb182d84f248d114b7e1173ea540345fda27c7807ea89a577d74fd83d5dbae6",
-      "reason": "W1 BP-09: revision-aware clean refresh avoids redundant model/HTML normalization at identical CAS revision; initial or changed reads remain validated."
+      "sha256": "b69c874a5284da8080fe3de7c2922a2c52fe79d3e3311105f99d5cc7f0f1c713",
+      "reason": "W1 BP-09: bounded-age stale full-read cancellation prevents hung transport from pinning future refresh while preserving revision CAS and late-response isolation."
     },
     "src/constellation.js": {
       "sha256": "6d17fe195d35d9e0de6b712855e5f4634d284c7368457b9676cea8d55d8f3c1b",
