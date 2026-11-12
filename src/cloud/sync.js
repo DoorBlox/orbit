@@ -80,10 +80,18 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
   // Default callers may retain and mutate their input, so queue defensively
   // clones it. queueOwned adopts a fully detached mountOrbit.getSnapshot()
   // value, avoiding the second full-workspace clone on every UI edit.
-  function enqueue(snapshot,owned) {
+  function enqueue(snapshot,owned,deferred = false) {
     if (disposed) return false;
+    if (deferred && typeof snapshot !== 'function') {
+      throw Error('A synchronous detached snapshot producer function is required.');
+    }
     markInteraction();
-    pending = {snapshot:owned?snapshot:clone(snapshot),version:++changeVersion};
+    // A rapid UI edit can invalidate an earlier producer without ever building
+    // its expensive snapshot. The version is allocated immediately so dirty
+    // warnings, stale reads, and serialized CAS writes still work as before.
+    pending = deferred
+      ? {produce:snapshot,version:++changeVersion}
+      : {snapshot:owned?snapshot:clone(snapshot),version:++changeVersion};
     cancelRead();
     cancelDebounce();
     // A stale base version requires an explicit review, never automatic overwrite.
@@ -95,6 +103,29 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
   }
   function queue(snapshot){return enqueue(snapshot,false);}
   function queueOwned(detachedSnapshot){return enqueue(detachedSnapshot,true);}
+  // Opt-in for a caller (W3) whose producer returns a fully detached owner
+  // snapshot synchronously. Existing eager APIs preserve their exact contract.
+  function queueDeferredOwned(getDetachedSnapshot){
+    return enqueue(getDetachedSnapshot,true,true);
+  }
+  function materialize(entry) {
+    if (Object.hasOwn(entry,'snapshot')) return entry.snapshot;
+    if (disposed || pending !== entry) return null;
+    let snapshot;
+    try { snapshot = entry.produce(); }
+    catch { throw Object.assign(Error('Deferred snapshot capture failed'),{code:'INVALID_RESPONSE'}); }
+    // Reject thenables: no async capture may escape the synchronous save
+    // boundary or race against another owner/session and revision.
+    if (!snapshot || typeof snapshot !== 'object' || typeof snapshot.then === 'function') {
+      throw Object.assign(Error('Deferred snapshot must be a synchronous detached object'),{code:'INVALID_RESPONSE'});
+    }
+    if (disposed || pending !== entry) return null;
+    // A snapshot captured once is retained across NETWORK retries, explicit
+    // export, and CAS conflict recovery; only a NEW queue replaces it.
+    entry.snapshot = snapshot;
+    entry.produce = null;
+    return snapshot;
+  }
   async function drain() {
     while (!disposed && pending) {
       if (!isOnline()) { status('offline','NETWORK'); return {ok:false,...getState()}; }
@@ -102,7 +133,11 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
       const controller = request();
       status('saving');
       try {
-        const result = await repository.saveSnapshot(clone(saving.snapshot),revision,{signal:controller.signal});
+        const captured = materialize(saving);
+        // A defensive producer may synchronously enqueue a newer edit. Never
+        // send the obsolete version it replaced.
+        if (disposed || pending !== saving) continue;
+        const result = await repository.saveSnapshot(clone(captured),revision,{signal:controller.signal});
         if (disposed) return {ok:false,...getState()};
         if (!Number.isSafeInteger(result?.revision) || result.revision <= revision) throw Object.assign(Error(),{code:'INVALID_RESPONSE'});
         revision = result.revision;
@@ -275,6 +310,6 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
     for (const controller of requests) controller.abort();
     requests.clear(); pending = null; ++changeVersion; state = 'disposed'; errorCode = null;
   }
-  return {queue,queueOwned,flush,refresh,retry,discardPendingAndReload,getState,
-    getPendingSnapshot:() => pending ? clone(pending.snapshot) : null,dispose};
+  return {queue,queueOwned,queueDeferredOwned,flush,refresh,retry,discardPendingAndReload,getState,
+    getPendingSnapshot:() => pending ? clone(materialize(pending)) : null,dispose};
 }

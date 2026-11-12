@@ -72,8 +72,8 @@
       "reason": "W1 BP-03: default-off conditional owner revision probe with strict minimal unchanged envelope, auth recheck, canonical PGRST202/404 fallback and legacy full read; hosted RPC not activated."
     },
     "src/cloud/sync.js": {
-      "sha256": "13515feba88f6ecd9d2c4654eed42c9e90ed671847ec9aa40f61f34c2f816bfd",
-      "reason": "W1 BP-03: coalesce clean online/focus full-snapshot reads inside existing foreground gap, preserve real offline and hidden-to-visible revalidation, dirty retry backoff and CAS."
+      "sha256": "33fcd7526a00fcc8b697a661eeb8eed5479f2e3c77f3640840ec08b1fca60981",
+      "reason": "W1 BP-09: opt-in queueDeferredOwned synchronous owner snapshot factory, lazy save/export materialization with immutable captured retry/CAS draft, unchanged eager queue APIs, strict producer failure and cancellation safeguards."
     },
     "src/constellation.js": {
       "sha256": "6d17fe195d35d9e0de6b712855e5f4634d284c7368457b9676cea8d55d8f3c1b",
