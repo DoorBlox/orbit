@@ -43,6 +43,8 @@ test('real loopback HTTP client discovers the 2026-07-28 server and three read-o
   assert.deepEqual(discover.json.result.capabilities,{tools:{}});
   const listed=await rpc(f,'tools/list');
   assert.equal(listed.status,200);
+  assert.equal(listed.json.result.ttlMs,0,'tools/list must not cache private metadata');
+  assert.equal(listed.json.result.cacheScope,'private');
   const tools=listed.json.result.tools;
   assert.deepEqual(tools.map(t=>t.name),['list_branches','search_tasks','get_task']);
   for(const tool of tools){
