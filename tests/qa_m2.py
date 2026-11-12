@@ -431,6 +431,27 @@ def private_gallery_failure_case(browser,source):
     finally:close_context(ctx,page)
 
 
+
+def private_gallery_empty_case(browser,source):
+    # A new account may have no private images; an empty final Storage page is
+    # valid and must not be reported as an access or inventory failure.
+    ctx,page,errors=cloud_context(browser,(320,700),'owner',source=source)
+    try:
+        expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
+        page.evaluate("window.orbitDebug.board.focus('space',{initial:true})")
+        page.locator('.cloud-account-details').evaluate('details => { details.open = true; }')
+        page.locator('.cloud-owner-panel > summary').click()
+        page.get_by_text('Private image library',exact=True).click()
+        expect(page.locator('.private-gallery-count')).to_contain_text('0 private image(s) loaded')
+        expect(page.locator('.private-gallery-status')).to_contain_text('No private images found')
+        expect(page.locator('.private-gallery-error')).to_be_hidden()
+        expect(page.locator('.private-gallery-card')).to_have_count(0)
+        assert not any(call['type'] in ('media-download','media-upload','media-delete')
+                       for call in page.evaluate('window.__m2Fixture.calls'))
+        assert not errors,errors
+    finally:close_context(ctx,page)
+
+
 def owner_tools_case(browser,source):
     ctx,page,errors=cloud_context(browser,(1440,900),'owner',source=source)
     try:
@@ -657,7 +678,8 @@ def main():
         browser=p.chromium.launch(headless=True,executable_path=executable,args=['--no-sandbox'])
         cases=[('password-flow',lambda:password_case(browser,args.source)),('otp-flow',lambda:otp_flow_case(browser,args.source)),('otp-failures',lambda:otp_failure_case(browser,args.source)),('local-compatibility',lambda:local_compatibility(browser,args.source)),('journal-refresh-save-races',lambda:journal_races(browser,args.source)),('immediate-logout-draft',lambda:immediate_logout_draft(browser,args.source)),('failed-logout-recovery',lambda:failed_logout_recovery(browser,args.source)),('owner-opt-in-tools',lambda:owner_tools_case(browser,args.source)),
           ('private-gallery',lambda:private_gallery_case(browser,args.source,390)),
-          ('private-gallery-fail-closed',lambda:private_gallery_failure_case(browser,args.source)),('owner-empty-expiry',lambda:owner_lifecycle_case(browser,args.source))]
+          ('private-gallery-fail-closed',lambda:private_gallery_failure_case(browser,args.source)),
+        ('private-gallery-empty',lambda:private_gallery_empty_case(browser,args.source)),('owner-empty-expiry',lambda:owner_lifecycle_case(browser,args.source))]
         for label,size in [('desktop',(1440,900)),('tablet',(900,1100)),('phone',(390,844)),('small',(320,700))]:
             for mode in ['signed-out','nonowner']:
                 cases.append((f'{mode}-{label}',lambda s=size,m=mode:gate_case(browser,s,m,args.source)))
