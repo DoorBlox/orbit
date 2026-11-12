@@ -134,6 +134,55 @@ def bp08_viewport_rotation_recovery(browser):
 
 
 
+
+def bp11_paste_native_undo(browser):
+    """Synthetic clipboard paste must participate in native contenteditable undo/redo."""
+    context,page,errors=open_page(browser)
+    try:
+        focus(page,'journal')
+        ensure_journal_edit(page)
+        editor=page.locator('#journal-editor')
+        editor.fill('Draft')
+        def paste(html,plain):
+            editor.evaluate("""(el,clip) => {
+              el.focus();
+              const selection=window.getSelection(),range=document.createRange();
+              range.selectNodeContents(el);range.collapse(false);
+              selection.removeAllRanges();selection.addRange(range);
+              const data=new DataTransfer();
+              if(clip.html)data.setData('text/html',clip.html);
+              data.setData('text/plain',clip.plain);
+              const event=new ClipboardEvent('paste',{bubbles:true,cancelable:true,clipboardData:data});
+              el.dispatchEvent(event);
+              if(!event.defaultPrevented)throw Error('Journal did not own paste sanitization');
+            }""",{'html':html,'plain':plain})
+
+        page.evaluate("window.__bp11PasteXss=0")
+        paste('<strong>続き</strong><img src=x onerror="window.__bp11PasteXss=1">','続き')
+        expect(editor).to_have_text('Draft続き')
+        assert editor.locator('img').count()==0,'Pasted HTML must remain sanitized'
+        assert page.evaluate('window.__bp11PasteXss')==0
+        editor.press('Control+z')
+        expect(editor).to_have_text('Draft'), \
+            'Undo must remove ONLY the last sanitized paste, not prior typed text'
+        editor.press('Control+Shift+z')
+        expect(editor).to_have_text('Draft続き'), \
+            'Redo must restore the last sanitized paste'
+
+        paste('',' plain')
+        expect(editor).to_have_text('Draft続き plain')
+        editor.press('Control+z')
+        expect(editor).to_have_text('Draft続き'), \
+            'Plain-text paste must also be a native undo transaction'
+        editor.press('Control+Shift+z')
+        expect(editor).to_have_text('Draft続き plain'), \
+            'Plain-text redo must restore the inserted text'
+        assert not errors,errors
+    finally:
+        context.tracing.stop()
+        context.close()
+
+
 def bp11_ime_composition(browser):
     """Synthetic CJK composition events through the actual journal UI and cloud callback."""
     context,page,errors=open_page(browser)
@@ -671,6 +720,8 @@ def main():
         results['bp08_viewport_rotation_recovery']='PASS';print('PASS BP-08 viewport rotation recovery',flush=True)
         bp11_ime_composition(browser)
         results['bp11_ime_composition']='PASS';print('PASS BP-11 IME cloud publish recovery',flush=True)
+        bp11_paste_native_undo(browser)
+        results['bp11_paste_native_undo']='PASS';print('PASS BP-11 native paste undo/redo',flush=True)
         for name,fn in [('core flows',normal_flows),('failure and security',failure_security_flows),('preferences and dates',preferences_and_dates)]:
             fn(browser);results[name]='PASS';print('PASS',name,flush=True)
         results['density_load_ms']=density(browser)
