@@ -78,7 +78,7 @@ test('BP-12: listing backend failures and malformed responses never masquerade a
 test('BP-12: upload and signed-link issuance cannot return success after account changes mid-flight',async()=>{
   let active=OWNER,uploaded=0;
   const uploader=createPrivateMedia(storageClient({
-    upload:async()=>{uploaded++;active=OTHER;return {data:{path:PATH},error:null};},
+    upload:async(path)=>{uploaded++;active=OTHER;return {data:{path},error:null};},
   },async()=>active),{ownerId:OWNER});
   await assert.rejects(uploader.upload(PNG),/expired/i);
   assert.equal(uploaded,1,'orphaned upload is preserved for non-destructive recovery');
