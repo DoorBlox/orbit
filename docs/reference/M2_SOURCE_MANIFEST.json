@@ -56,8 +56,8 @@
       "reason": "BP-01/BP-12: recheck owner after asynchronous downloaded image signature inspection; prevent expired-session byte return and transient private preview URLs."
     },
     "src/cloud/owner-tools.js": {
-      "sha256": "b4353d01b6a6d545156c4cddd32e93f44960a664abc3e8bdbd7d22481cd10861",
-      "reason": "BP-12/EX-02 owner-private gallery: accessible leased previews even before lazy thumbnail decode, fail-closed owner inventory, explicit detached-image backup selection."
+      "sha256": "f994bcae3ddf3e7413f2cb5cd7569d08c4f4fe0c525a00a5d418f9b74270271e",
+      "reason": "BP-12/EX-02: authenticated owner gallery with bounded previews, valid empty and paginated inventory, reference-safe detached media selection, opt-in .orbit backup."
     },
     "src/cloud/portable-backup.js": {
       "sha256": "d89bda8ce1c41f13175d9226efd0ff59c7aef03e198b188aa9a5c86683ac2ca7",
