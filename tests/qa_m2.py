@@ -366,6 +366,11 @@ def private_gallery_case(browser,source,width=390):
         assert normal_archive['manifest']['assetCount']==1
         assert 'libraryOnlyPaths' not in normal_archive['manifest']
         assert normal_archive['assets'][0]['path']==MEDIA_REF
+        expect(cards.first.get_by_role('button',name='View image 1')).to_be_enabled()
+        cards.first.get_by_role('button',name='View image 1').click()
+        expect(page.locator('.private-gallery-dialog')).to_be_visible()
+        page.get_by_role('button',name='Close preview').click()
+        expect(page.locator('.private-gallery-dialog')).not_to_be_visible()
         detached.check()
         expect(page.get_by_role('button',name='Download backup with selected detached images')).to_be_enabled()
         with page.expect_download() as selected:
@@ -399,7 +404,11 @@ def private_gallery_failure_case(browser,source):
         page.evaluate('window.__m2Fixture.failMediaList=false')
         page.get_by_role('button',name='Refresh library').click()
         expect(page.locator('.private-gallery-card')).to_have_count(1)
-        page.evaluate('window.__m2Fixture.failMediaDownload=true')
+        page.evaluate("""() => {
+          window.__m2Fixture.failMediaDownload=true;
+          window.__m2Fixture.mediaFiles=[
+            {name:'44444444-4444-4444-8444-444444444444.png'}];
+        }""")
         # Failure cannot expose a stale private preview from a different account.
         page.get_by_role('button',name='Refresh library').click()
         expect(page.locator('.private-gallery-preview-status')).to_contain_text('Preview unavailable')
