@@ -203,7 +203,9 @@ openProjects.addEventListener('click',()=>board.focus('projects'),{signal:events
 document.querySelector('.space-primary-actions')?.append(openProjects);
 const stickies=new StickyNotes({world:$('spatial-world'),notes:state.extensions.notes,readOnly,
   getScale:()=>board.scale,media,notify:(...args)=>message(...args),
-  onChange:notes=>{state.extensions.notes=notes;board.setStickyNotes(notes);return extensionsChanged();}});
+  onChange:notes=>{const prior=state.extensions.notes;state.extensions.notes=notes;
+     const ok=extensionsChanged();if(ok===false){state.extensions.notes=prior;return false;}
+     board.setStickyNotes(notes);return true;}});
 board.setStickyNotes(stickies.getNotes());
 let activeJournalCanvas=null;
 const journal=new Journal({initialEntries:initialSnapshot?(initialSnapshot.journalEntries||[]):undefined,readOnly,persistLocally,notify:(s,...args)=>message(s,...args),onEntriesChange:entries=>{widgets.setJournalEntries(entries);emitChange();}});
@@ -265,8 +267,10 @@ function refreshJournalMode(){
       notify:(...args)=>message(...args),
       onSave:scene=>{
         if(!journal.entries.some(e=>e.id===pageId))return false;
-        state.extensions.journalScenes[pageId]=scene;
-        const ok=extensionsChanged();
+        const oldScene=state.extensions.journalScenes[pageId];
+         state.extensions.journalScenes[pageId]=scene;
+         const ok=extensionsChanged();
+         if(ok===false){if(oldScene===undefined)delete state.extensions.journalScenes[pageId];else state.extensions.journalScenes[pageId]=oldScene;}
         if(ok!==false)renderScene(scene,$('journal-drawing-preview'),{media});
         return ok;
       },
@@ -308,7 +312,7 @@ function refreshJournalImage(){
   });
 }
 function extensionsChanged(){
-  if(disposed||readOnly)return;
+   if(disposed||readOnly)return false;
   try{state.extensions=collectExtensions();}
   catch(error){message('Drawing or sticky note exceeded its limits: '+error.message,6500);return false;}
   if(persistLocally){
@@ -452,8 +456,9 @@ function quickCapture(e){
   state.tasks.push(task);input.value='';state.captureDraft='';sync();scene.focusTask(task);
   message(`Added to ${currentBranch()?.label||'Unsorted'}.`);
 }
-function backupJson(){
-  journal.commit();
+async function backupJson(){
+   try{await flushEditor();}catch(error){message('Backup not exported: '+error.message,6500);return false;}
+   journal.commit();
   const backup={format:'orbit-backup',version:6,exportedAt:new Date().toISOString(),branches:state.branches,tasks:state.tasks,preferences:state.preferences,profile:state.profile,collapsedBranchIds:state.collapsedBranchIds,milestones,spatialLayout:board.getLayout(),journalEntries:journal.getEntries(),extensions:collectExtensions()};
   if(persistLocally&&getStorageStatus().recoveryRequired){backup.recoveryData=getRecoveryData();try{backup.restoreRecovery=localStorage.getItem(RESTORE_RECOVERY_KEY);}catch{}}
   download(JSON.stringify(backup,null,2),`orbit-complete-backup-${new Date().toISOString().slice(0,10)}.json`,'application/json');
@@ -462,7 +467,8 @@ function backupJson(){
 function download(contents,filename,type){const blob=new Blob([contents],{type});const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1800);}
 function restoreBackup(contents){
-  if(readOnly||disposed)return;
+   if(readOnly||disposed)return;
+   if(hasPendingEditor())throw Error('Preview and save your canvas before replacing the workspace.');
   const snapshot=validateBackup(contents,{sanitizeHtml:sanitizeJournal});
   journal.commit();
   if(!persistLocally){applySnapshot(snapshot);emitChange();message('Import is pending cloud save. Existing local backup remains unchanged.');return;}
@@ -603,9 +609,11 @@ function initTools(){
         await leaveJournalCanvas();if(disposed)return;
         journal.commit();const page=journal.entries[journal.index];if(!page)return;
         state.extensions.journalModes??={};
-        if(button.dataset.journalMode==='canvas')state.extensions.journalModes[page.id]='canvas';
-        else delete state.extensions.journalModes[page.id];
-        if(extensionsChanged()===false)throw Error('Cannot save the page mode yet.');
+        const oldMode=state.extensions.journalModes[page.id];
+         if(button.dataset.journalMode==='canvas')state.extensions.journalModes[page.id]='canvas';
+         else delete state.extensions.journalModes[page.id];
+         if(extensionsChanged()===false){if(oldMode===undefined)delete state.extensions.journalModes[page.id];else state.extensions.journalModes[page.id]=oldMode;
+           throw Error('Cannot save the page mode yet.');}
         refreshJournalDrawing();
       }catch(error){message('Page mode was not saved: '+error.message,6500);}
       finally{button.disabled=false;journalBusy=false;}
@@ -616,9 +624,12 @@ function initTools(){
       if(readOnly||!journal.editing||disposed)return;
       const page=journal.entries[journal.index];if(!page)return;
       state.extensions.journalPaperStyles??={};
-      if(button.dataset.paperStyle==='lined')delete state.extensions.journalPaperStyles[page.id];
-      else state.extensions.journalPaperStyles[page.id]=button.dataset.paperStyle;
-      if(extensionsChanged()!==false)refreshJournalMode();
+      const oldStyle=state.extensions.journalPaperStyles[page.id];
+       if(button.dataset.paperStyle==='lined')delete state.extensions.journalPaperStyles[page.id];
+       else state.extensions.journalPaperStyles[page.id]=button.dataset.paperStyle;
+       if(extensionsChanged()!==false)refreshJournalMode();
+       else if(oldStyle===undefined)delete state.extensions.journalPaperStyles[page.id];
+       else state.extensions.journalPaperStyles[page.id]=oldStyle;
     });
   }
   $('journal-draw').addEventListener('click',()=>{if(!journal.editing)return;
@@ -770,7 +781,9 @@ function getSnapshot(){return {
 };}
 function emitChange(){if(disposed||hydrating||persistLocally||readOnly)return;onSnapshotChange(getSnapshot());}
 function applySnapshot(snapshot){
-  if(disposed)return;hydrating=true;
+   if(disposed)return;
+   if(hasPendingEditor())throw Error('Unsaved canvas changes must be saved before replacing the workspace.');
+   hydrating=true;
   state.branches=structuredClone(snapshot.branches);state.tasks=structuredClone(snapshot.tasks);
   state.extensions=normalizeExtensions(snapshot.extensions??state.extensions);
   applyAppearance();applyTaskLinks();stickies.setNotes(state.extensions.notes);board.setStickyNotes(stickies.getNotes());
@@ -794,7 +807,13 @@ function setCloudStatus(status){
   label.textContent=readOnly?'Published preview':states[status.state]||'Save status unavailable';
   label.dataset.state=status.state;
 }
-function dispose(){if(disposed)return;disposed=true;activeJournalCanvas?.dispose();activeJournalCanvas=null;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);projectsShelf.dispose();board.dispose();journal.dispose();stickies.dispose();scene.dispose();media?.dispose?.();document.documentElement.dataset.theme='parchment';document.documentElement.dataset.motion='system';document.documentElement.dataset.ambient='off';window.orbitDebug=null;}
+function hasPendingEditor(){return Boolean(activeJournalCanvas?.isDirty()||stickies.activeCanvas?.isDirty()||stickies.pendingCanvas);}
+ async function flushEditor(){
+   if(activeJournalCanvas)await activeJournalCanvas.save();
+   if(stickies.activeCanvas)await stickies.activeCanvas.save();
+   return journal.commit();
+ }
+ function dispose(){if(disposed)return;disposed=true;activeJournalCanvas?.dispose();activeJournalCanvas=null;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);projectsShelf.dispose();board.dispose();journal.dispose();stickies.dispose();scene.dispose();media?.dispose?.();document.documentElement.dataset.theme='parchment';document.documentElement.dataset.motion='system';document.documentElement.dataset.ambient='off';window.orbitDebug=null;}
 return {getSnapshot,applySnapshot,setCloudStatus,dispose,
-  flushEditor:async()=>{if(activeJournalCanvas)await activeJournalCanvas.save();if(stickies.activeCanvas)await stickies.activeCanvas.save();return journal.commit();},exportBackup:backupJson};
+  flushEditor,hasPendingEditor,journalCommit:()=>journal.commit(),exportBackup:backupJson};
 }
