@@ -1,3 +1,13 @@
+## 12 November 2026 — BP-09 owned-snapshot optimization merged; Production independently checked
+
+**Latest source:** BP-09 [PR #81](https://github.com/DoorBlox/orbit/pull/81) four exact-head required CI SUCCESS at `bce1594263b21a7a681d01fd3890ddf7c5c6e563`, squash merged `c55c5aa1c58495605b8b5c0c6c4c18b22442c3b9`. Existing `mountOrbit.getSnapshot()` builds a fully detached owner snapshot; new `createSyncController.queueOwned` adopts that snapshot instead of unnecessarily cloning the full workspace again. Generic `queue` still defensively clones, `drain` still clones before calling repository, and CAS/out-of-order/conflict/offline guarantees remain. New tests count one fewer copy per UI change and cover repository mutation isolation and conflicting in-flight edits. This is a **source performance improvement**, NOT an empirically measured latency, bandwidth reduction or Production release. Keep further BP-09 profiling/deferral optimization open.
+
+**Exact deployment verification (12 Nov):** independent Vercel domain lookup for `orbit.starscene.com` returns READY `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`, target Production, Git `4e57aca785259192b92010c5d0e1634a4c1efe14`. No BP code is published to Production. The latest integrated SSO-protected Preview remains READY `dpl_8eBFFLzLHa1Vz1edQG5wqXmL5Eb7` source `01c153d` at https://orbit-83nft6djg-doorbloxs-projects.vercel.app/; it includes BP-08 but not the newer BP-09 source merge. Do not conflate Preview/Production or claim owner signed-in acceptance.
+
+**New source high priority:** remaining BP-09 large-workspace profiling/optimization; BP-10 gesture/cache cost; BP-11 editor workflow; BP-12 media lifetime/source contracts; BP-15 scoped auth/MCP; BP-16 semantic/accessibility testing; BP-05 reviewed staging. Owner-assisted private image, portable backup, second-account isolation and real device QA still open. Maintain the one master roadmap and creative-but-critical engineering mandate.
+
+---
+
 ## 12 November 2026 — BP-08 Focus and live BP-04 parity audit (current sprint checkpoint)
 
 **Latest SOURCE main:** BP-08 [PR #79](https://github.com/DoorBlox/orbit/pull/79), exact tested head `66cbce3bd163f8b6bf42ba3db57a38a49c9d02f5`, four required workflows **success**, squash merge `01c153d6b2f4a13e105404e78fd2f520158db688`. Focus is optional, selectable in Space > Manage; peripheral widget controls temporarily become inert; Return and Escape restore saved camera scale/pan exactly without touching private layout coordinates. Five-viewport Chromium and Node regression checks passed. Real physical-device touch/ten-theme owner acceptance is still open.
