@@ -10,7 +10,7 @@ def run_projects_shelf(browser,open_page,reload_page,out):
         original=page.evaluate('() => window.orbitDebug.board.getLayout()')
         assert len(original)==6
         assert page.locator('[data-widget="projects"]').count()==1
-        assert page.evaluate('() => window.orbitDebug.board.widgets.size')==7
+        assert page.evaluate('() => window.orbitDebug.board.widgets.size')==8  # six V6 + Projects + FO-01
         page.evaluate("() => window.orbitDebug.board.focus('projects',{initial:true})")
         expect(page.get_by_role('heading',name='Projects.')).to_be_visible()
         expect(page.locator('#projects-empty')).to_be_visible()
