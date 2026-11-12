@@ -43,7 +43,10 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
   // produce another 'online' event. Poll-time retries are bounded and only
   // operate on retained dirty drafts; conflicts and Auth errors stay manual.
   let networkRetryFailures = 0, nextNetworkRetryAt = -Infinity;
-  const resetNetworkRetry = () => { networkRetryFailures = 0; nextNetworkRetryAt = -Infinity; };
+  // Permit one immediate retry on a genuine reconnect; repeated online events
+  // must not bypass subsequent bounded NETWORK backoff or repeat denied writes.
+  let eagerReconnectUsed = false;
+  const resetNetworkRetry = () => { networkRetryFailures = 0; nextNetworkRetryAt = -Infinity; eagerReconnectUsed = false; };
   function scheduleNetworkRetry() {
     networkRetryFailures = Math.min(networkRetryFailures + 1, 8);
     const base = Math.max(15000, pollMs);
@@ -221,8 +224,16 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
     void refresh();
   };
   const onOnline = () => {
-    if (pending) void retry();
-    else if (isVisible()) { markInteraction(); void refresh(); }
+    if (!isOnline()) return;
+    if (pending) {
+      // Auth, validation and conflicts require owner action, not an online event.
+      if (errorCode && errorCode !== 'NETWORK') return;
+      if (errorCode === 'NETWORK') {
+        if (eagerReconnectUsed && now() < nextNetworkRetryAt) return;
+        eagerReconnectUsed = true;
+      }
+      void retry();
+    } else if (isVisible()) { markInteraction(); void refresh(); }
   };
   const onOffline = () => { if (pending) status('offline','NETWORK'); };
   eventTarget?.addEventListener?.('pointerdown',onActivity);
