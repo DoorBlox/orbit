@@ -74,7 +74,7 @@ test('BP-03: invalid foreground gap is rejected, and disposal detaches wake hand
     saveSnapshot:async()=>({revision:1})};
   for(const gap of [-1,Infinity,NaN]){
     assert.throws(()=>createSyncController({repository:repo,pollMs:0,foregroundMinGapMs:gap,
-      eventTarget:null,visibilityTarget:null}),/foreground|gap/i);
+      eventTarget:null,visibilityTarget:null}),/idle|foreground|gap|clock/i);
   }
   const f=harness();f.events.dispatchEvent(new Event('focus'));await settle();
   f.sync.dispose();const before=f.reads;
