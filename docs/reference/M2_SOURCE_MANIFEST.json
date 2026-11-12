@@ -60,8 +60,8 @@
       "reason": "BP-07: reviewed inline Edit/Preview and responsive spatial UI changes; preserve private drawings and source provenance."
     },
     "src/cloud/portable-backup.js": {
-      "sha256": "ce6d4e784dce399d06e5b41940a6cf40b318ee3b3dd76b87d3192b0e3b71f5cc",
-      "reason": "BP-12: index owner-scoped image references and allow immutable, reference-safe detach without Storage deletion."
+      "sha256": "b48c5a06e608859aadef6c90b47cb0391d7fa58eea9b6a007fbbcb51e2555515",
+      "reason": "BP-02/12: opt-in checksummed portable export and owner-scoped import of selected detached library-only media, retaining exact version-1 legacy behavior by default."
     },
     "src/cloud/README.md": {
       "sha256": "2fa23ecebff7de9fa7e5463f3c77031e97850cf192398ea0da66c2f6cd19a4af",
@@ -116,12 +116,12 @@
       "reason": "Validate and parse bounded plain-text task checklist context without altering the hosted task table schema."
     },
     "src/project-shelf.js": {
-      "sha256": "2372dcb3bbaf376bcd24b55e939e09937ec8b66ffdde91b2eecb6266b7aa032f",
-      "reason": "PJ-03: validated private project milestones with add/edit/complete/remove, separate from task-based progress and global calendar milestones."
+      "sha256": "1115174e8a3612242d49bbbe9738a47ee2b3b4fe5ee4672251a18874ebcc6f14",
+      "reason": "PJ-03: edit owner-private project resource links in responsive UI, with existing http(s) validation and no public publishing."
     },
     "src/projects.js": {
-      "sha256": "c82c8a92c4d254fcca03de24905d7f9ece19f937d1ee257f23b82c0909065321",
-      "reason": "PJ-03: validated private project milestones with add/edit/complete/remove, separate from task-based progress and global calendar milestones."
+      "sha256": "833092589f86d09494cf3fd5948663e70a04b4d8f1fea426c9d0ca3b074e4ba1",
+      "reason": "PJ-03: bounded private optional goal, next action, blockers and ISO target date metadata with safe V6 project validation."
     },
     "src/runtime-config.js": {
       "sha256": "667beee515a5681ff91676cd5d7d5f4c53ed01aa6304163eb8919d2f4b20f2e8",
@@ -140,8 +140,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "059c8f82858bd064889ce849c80edfbf1fae0d21fea389cdb7e8ab9c4398d73e",
-      "reason": "PJ-03: validated private project milestones with add/edit/complete/remove, separate from task-based progress and global calendar milestones."
+      "sha256": "6c1082be9631f71c16c1734411f7c724317531dcfef954f1012d2c8c3962dd5f",
+      "reason": "PJ-03: edit owner-private project resource links in responsive UI, with existing http(s) validation and no public publishing."
     },
     "src/widget-registry.js": {
       "sha256": "097767f8dd9c6c1e94504ec571c29ca2f1d0684955d2f8c87231d15db1a427f0",

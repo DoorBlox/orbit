@@ -171,10 +171,21 @@ function prepareSnapshot(snapshot,sanitizeHtml){
 }
 
 /** Fetch every referenced asset, never silently producing an incomplete backup. */
-export async function createPortableArchive(snapshot,{ownerId:currentOwnerId,download,sanitizeHtml}={}){
+export async function createPortableArchive(snapshot,{ownerId:currentOwnerId,download,sanitizeHtml,libraryPaths=[]}={}){
   if(typeof download!=='function'||typeof currentOwnerId!=='string')throw Error('Signed-in private image access is required.');
+  if(!Array.isArray(libraryPaths))throw Error('Private media library paths must be an array.');
   const clean=prepareSnapshot(snapshot,sanitizeHtml);
-  const paths=collectReferencedPaths(clean);
+  const referenced=collectReferencedPaths(clean);
+  if(libraryPaths.length>PORTABLE_MAX_IMAGES)throw bytesLimit();
+  // Detached media is explicitly opted in. A path already used by a note or
+  // canvas is backed up once, not redundantly classified as library-only.
+  const refs=new Set(referenced),extras=new Set();
+  for(const path of libraryPaths){
+    if(!validMediaOwner(path,currentOwnerId))throw Error('Private library image belongs to another account or is invalid.');
+    if(!refs.has(path))extras.add(path);
+  }
+  const libraryOnlyPaths=[...extras].sort();
+  const paths=[...new Set([...referenced,...libraryOnlyPaths])].sort();
   if(paths.length>PORTABLE_MAX_IMAGES)throw bytesLimit();
   const assets=[];let totalBytes=0;
   for(const path of paths){
@@ -186,7 +197,8 @@ export async function createPortableArchive(snapshot,{ownerId:currentOwnerId,dow
     assets.push({path,mime:blob.type,size:blob.size,sha256:await sha256(bytes),data:encodeBase64(bytes)});
   }
   return {format:FORMAT,version:VERSION,exportedAt:new Date().toISOString(),
-    manifest:{assetCount:assets.length,totalBytes},
+    manifest:{assetCount:assets.length,totalBytes,
+      ...(libraryOnlyPaths.length?{libraryOnlyPaths}:{})},
     snapshot:clean,assets};
 }
 
@@ -201,8 +213,24 @@ export async function inspectPortableArchive(input,{sanitizeHtml}={}){
      value.assets.length>PORTABLE_MAX_IMAGES||value.manifest.assetCount!==value.assets.length)
     throw imageError();
   const snapshot=prepareSnapshot(value.snapshot,sanitizeHtml);
-  const expected=collectReferencedPaths(snapshot);
-  if(expected.length!==value.assets.length)throw imageError();
+  const referenced=collectReferencedPaths(snapshot),refs=new Set(referenced);
+  const extras=Object.hasOwn(value.manifest,'libraryOnlyPaths')
+    ?value.manifest.libraryOnlyPaths:[];
+  if(!Array.isArray(extras)||extras.length>PORTABLE_MAX_IMAGES||
+     (Object.hasOwn(value.manifest,'libraryOnlyPaths')&&extras.length===0))
+    throw imageError();
+  // Canonical sorted/unique library-only paths are part of the integrity
+  // contract. Never import foreign-owner media, even if its bytes are valid.
+  const owner=referenced[0]?.split('/')[0]??extras[0]?.split('/')[0];
+  for(let i=0;i<extras.length;i++){
+    const path=extras[i];
+    if(!validMediaPath(path)||refs.has(path)||
+       (i>0&&extras[i-1]>=path)||
+       (owner&&!validMediaOwner(path,owner)))throw imageError();
+  }
+  const expected=[...referenced,...extras].sort();
+  if(expected.length>PORTABLE_MAX_IMAGES||expected.length!==value.assets.length)
+    throw imageError();
   const files=[];let totalBytes=0;
   for(let i=0;i<expected.length;i++){
     const entry=value.assets[i],path=expected[i];
@@ -219,7 +247,8 @@ export async function inspectPortableArchive(input,{sanitizeHtml}={}){
     files.push({path,blob});
   }
   if(totalBytes!==value.manifest.totalBytes)throw imageError();
-  return {snapshot,files,manifest:{assetCount:files.length,totalBytes}};
+  return {snapshot,files,manifest:{assetCount:files.length,totalBytes,
+    ...(extras.length?{libraryOnlyPaths:[...extras]}:{})}};
 }
 
 /** Stage private uploads into NEW owner-scoped paths; no snapshot replacement occurs here.
