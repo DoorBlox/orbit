@@ -49,6 +49,33 @@ def run_projects_shelf(browser,open_page,reload_page,out):
         assert 'Prepare a validated model' in card.inner_text()
         assert 'Verify synthetic test fixtures' in card.inner_text()
         result['addAndEdit']=True
+        # PJ-03 resource links: add/edit/delete through the private Projects UI,
+        # reject unsafe schemes, then confirm reload and no public exposure.
+        card.get_by_role('button',name='Edit resource links for Research').click()
+        card.get_by_role('button',name='Add resource link').click()
+        card.get_by_label('Resource label 1 for Research').fill('Lab protocol')
+        card.get_by_label('Resource URL 1 for Research').fill('https://example.org/private/lab')
+        card.get_by_role('button',name='Save resource links').click()
+        expect(card.get_by_role('link',name='Lab protocol')).to_have_attribute(
+            'href','https://example.org/private/lab')
+        stored=page.evaluate("""() => JSON.parse(localStorage.getItem(
+          'orbit.v8.extensions')).projects.research.links""")
+        assert stored==[{'label':'Lab protocol','url':'https://example.org/private/lab'}],stored
+        card.get_by_role('button',name='Edit resource links for Research').click()
+        card.get_by_label('Resource URL 1 for Research').fill('javascript:alert(1)')
+        card.get_by_role('button',name='Save resource links').click()
+        expect(card.get_by_role('button',name='Save resource links')).to_be_visible()
+        assert page.evaluate("""() => JSON.parse(localStorage.getItem(
+          'orbit.v8.extensions')).projects.research.links[0].url""")=='https://example.org/private/lab'
+        card.get_by_label('Resource URL 1 for Research').fill('https://example.org/revised')
+        card.get_by_role('button',name='Save resource links').click()
+        expect(card.get_by_role('link',name='Lab protocol')).to_have_attribute(
+            'href','https://example.org/revised')
+        card.get_by_role('button',name='Edit resource links for Research').click()
+        card.get_by_role('button',name='Remove resource 1').click()
+        card.get_by_role('button',name='Save resource links').click()
+        assert page.evaluate("""() => JSON.parse(localStorage.getItem(
+          'orbit.v8.extensions')).projects.research.links""")==[]
         result['privateState']=True
 
         # A nested project references the same work, without copying tasks.
