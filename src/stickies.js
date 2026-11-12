@@ -1,4 +1,5 @@
-import { normalizeExtensions, renderScene, openSceneEditor } from './scene.js';
+import { normalizeExtensions, renderScene } from './scene.js';
+import { mountInlineCanvas } from './inline-canvas.js';
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
 const randomId=()=>('note_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8));
 /** Persist safe Markdown as plain text; never write raw HTML to private snapshots. */
@@ -63,21 +64,25 @@ export class StickyNotes {
   constructor({world,notes=[],readOnly=false,onChange=()=>{},getScale=()=>1,notify=()=>{},media=null}={}){
     this.world=world;this.readOnly=readOnly;this.onChange=onChange;this.getScale=getScale;this.media=media;
     this.notify=notify;this.disposed=false;this.notes=normalizeExtensions({notes}).notes;
+    this.editingNoteId=null;this.activeCanvas=null;this.pendingCanvas=false;
     this.layer=document.createElement('div');this.layer.id='sticky-layer';this.layer.className='sticky-layer';
     this.layer.setAttribute('aria-label','Floating sticky notes');world.append(this.layer);this.render();
   }
   getNotes(){return structuredClone(this.notes);}
-  setNotes(notes){if(this.disposed)return;this.notes=normalizeExtensions({notes}).notes;this.render();}
-  changed(){if(this.disposed||this.readOnly)return;this.onChange(this.getNotes());}
+  setNotes(notes){if(this.disposed)return;
+    if(this.activeCanvas?.isDirty()||this.pendingCanvas)throw Error('Save the sticky canvas before replacing remote notes.');
+    this.notes=normalizeExtensions({notes}).notes;this.render();}
+  changed(){if(this.disposed||this.readOnly)return false;return this.onChange(this.getNotes())!==false;}
+  canReplaceView(){if(this.pendingCanvas||this.activeCanvas?.isDirty()){this.notify('Preview your canvas first to save the latest changes.',6000);return false;}return true;}
   add(){
-    if(this.readOnly||this.disposed||this.notes.length>=80)return false;
+    if(this.readOnly||this.disposed||this.notes.length>=80||!this.canReplaceView())return false;
     const n=this.notes.length;
     const note={id:randomId(),title:'Untitled note',text:'',x:1510+(n%5)*42,y:1740+(n%5)*46,
       width:310,height:270,color:['sand','peach','lavender','mint'][n%4]};
     this.notes.push(note);this.render();this.changed();this.notify('Sticky note created. Drag its header to move it.');return true;
   }
   duplicate(id){
-    if(this.readOnly||this.disposed||this.notes.length>=80)return false;
+    if(this.readOnly||this.disposed||this.notes.length>=80||!this.canReplaceView())return false;
     const original=this.notes.find(note=>note.id===id);if(!original)return false;
     const copy=structuredClone(original);
     copy.id=randomId();
@@ -89,7 +94,7 @@ export class StickyNotes {
     this.notify('Sticky note duplicated.');return true;
   }
   remove(id){
-    if(this.readOnly||this.disposed)return;
+    if(this.readOnly||this.disposed||!this.canReplaceView())return;
     const index=this.notes.findIndex(n=>n.id===id);if(index<0)return;
     if(!window.confirm('Remove this sticky note? Export your space first if it contains something you need.'))return;
     const removed=this.notes.splice(index,1)[0];this.render();this.changed();
@@ -153,6 +158,7 @@ export class StickyNotes {
     try{target.setPointerCapture?.(pointer);}catch{}
   }
   render(){
+    this.activeCanvas?.dispose();this.activeCanvas=null;
     this.layer.replaceChildren();
     for(const n of this.notes){
       const article=document.createElement('article');article.className='sticky-note sticky-'+n.color;
@@ -170,30 +176,41 @@ export class StickyNotes {
         n.x=clamp(n.x+delta[0],-5000,7500);n.y=clamp(n.y+delta[1],-5000,7500);
         article.style.left=n.x+'px';article.style.top=n.y+'px';this.changed();
       });
+      const mode=n.mode==='canvas'?'canvas':'write';
+      const editing=this.editingNoteId===n.id&&!this.readOnly;
       const title=document.createElement('input');title.type='text';title.maxLength=100;title.value=n.title;
       title.className='sticky-title';title.setAttribute('aria-label','Sticky note title');
-      title.disabled=this.readOnly;title.addEventListener('change',()=>{n.title=title.value.slice(0,100);this.changed();});
+      title.disabled=this.readOnly;title.readOnly=!editing;
+      title.addEventListener('change',()=>{if(!editing)return;n.title=title.value.slice(0,100);this.changed();});
       const remove=document.createElement('button');remove.type='button';remove.className='sticky-delete';
       remove.textContent='×';remove.title='Remove sticky note';remove.setAttribute('aria-label','Remove sticky note');
-      remove.disabled=this.readOnly;remove.addEventListener('click',()=>this.remove(n.id));
+      remove.disabled=this.readOnly;remove.hidden=!editing;remove.addEventListener('click',()=>this.remove(n.id));
       grip.disabled=this.readOnly;head.append(grip,title,remove);
       // One surface at a time. Switching never erases the other private data:
       // legacy notes containing both text and scenes remain fully recoverable.
-      const mode=n.mode==='canvas'?'canvas':'write';
-      article.dataset.noteMode=mode;
+      article.dataset.noteMode=mode;article.dataset.view=editing?'edit':'preview';
       const modeTabs=document.createElement('div');modeTabs.className='sticky-mode-tabs';
       modeTabs.setAttribute('role','group');modeTabs.setAttribute('aria-label','Note content mode');
+      modeTabs.hidden=!editing;
       for(const [value,label] of [['write','Write'],['canvas','Canvas']]){
         const button=document.createElement('button');button.type='button';
         button.className='sticky-mode-tab';button.textContent=label;
         button.setAttribute('aria-pressed',String(mode===value));
-        button.addEventListener('click',()=>{
-          if(n.mode===value||(n.mode===undefined&&value==='write'))return;
-          if(value==='canvas')n.mode='canvas';else delete n.mode;
-          this.render();
-          this.layer.querySelector('[data-note-id="'+n.id+'"] .sticky-mode-tab[aria-pressed="true"]')
-            ?.focus({preventScroll:true});
-          if(!this.readOnly)this.changed();
+        button.addEventListener('click',async()=>{
+          if(!editing||(n.mode===value||(n.mode===undefined&&value==='write')))return;
+          button.disabled=true;
+          try{
+            if(mode==='canvas'){await this.activeCanvas?.save();if(this.disposed)return;}
+            else{clearTimeout(timer);n.text=editor.value.slice(0,6000);}
+            const oldMode=n.mode;
+             if(value==='canvas')n.mode='canvas';else delete n.mode;
+             if(this.changed()===false){if(oldMode===undefined)delete n.mode;else n.mode=oldMode;
+               this.notify('Could not store note mode. Keep editing and retry.',6500);return;}
+            this.render();
+            this.layer.querySelector('[data-note-id="'+n.id+'"] .sticky-mode-tab[aria-pressed="true"]')
+              ?.focus({preventScroll:true});
+          }catch(error){this.notify('Canvas not saved: '+error.message,6500);}
+          finally{button.disabled=false;}
         });
         modeTabs.append(button);
       }
@@ -204,7 +221,22 @@ export class StickyNotes {
       editor.addEventListener('input',()=>{
         n.text=editor.value.slice(0,6000);clearTimeout(timer);timer=setTimeout(()=>this.changed(),450);
       });
-      editor.addEventListener('blur',()=>{clearTimeout(timer);this.changed();});
+      editor.addEventListener('blur',()=>{if(!editing)return;clearTimeout(timer);n.text=editor.value.slice(0,6000);this.changed();});
+      editor.addEventListener('keydown',event=>{
+        if(!editing||!(event.metaKey||event.ctrlKey)||event.altKey)return;
+        const kind=event.key.toLowerCase()==='b'?'bold':event.key.toLowerCase()==='i'?'italic':
+          event.key.toLowerCase()==='k'?'link':event.shiftKey&&event.key==='8'?'bullet':
+          event.shiftKey&&event.key==='7'?'checklist':null;
+        if(!kind)return;
+        event.preventDefault();
+        const href=kind==='link'?window.prompt('Paste an HTTPS or HTTP link')||'':'';
+        if(kind==='link'&&!href)return;
+        try{const change=formatStickySelection(editor.value,editor.selectionStart,editor.selectionEnd,kind,href);
+          if(!change)return this.notify('This note reached its text limit.',4000);
+          editor.value=change.value;n.text=change.value;editor.setSelectionRange(change.start,change.end);
+          this.changed();
+        }catch(error){this.notify(error.message,5000);}
+      });
       const formatBar=document.createElement('div');formatBar.className='sticky-formatbar';
       formatBar.setAttribute('role','toolbar');formatBar.setAttribute('aria-label','Sticky note text formatting');
       const formatButtons=[['bold','B','Bold'],['italic','I','Italic'],['bullet','≡','Bullet list'],['checklist','☐','Checklist'],['link','↗','Insert link'],['code','</>','Inline code']];
@@ -244,7 +276,7 @@ export class StickyNotes {
         if(!editing){clearTimeout(timer);showFormatted();if(!this.readOnly)this.changed();}
         else editor.focus({preventScroll:true});
       };
-      done.addEventListener('click',()=>editText(false));
+      done.hidden=true;done.addEventListener('click',()=>editText(false));
       formatBar.append(done);
       const preview=document.createElement('div');preview.className='sticky-drawing';
       preview.setAttribute('aria-label','Freeform note canvas');
@@ -254,9 +286,12 @@ export class StickyNotes {
         empty.textContent='Your canvas is ready for text, arrows, shapes and sketches.';
         preview.append(empty);
       }
-      editor.hidden=true;formatBar.hidden=true;
-      formatted.hidden=mode==='canvas';preview.hidden=mode!=='canvas';
+      editor.hidden=!(editing&&mode==='write');
+      formatBar.hidden=!(editing&&mode==='write');
+      formatted.hidden=editing||mode==='canvas';preview.hidden=editing||mode!=='canvas';
       if(mode==='write')showFormatted();
+      const inlineHost=document.createElement('div');inlineHost.className='sticky-inline-canvas';
+      inlineHost.hidden=!(editing&&mode==='canvas');
       let image=null;
       if(n.imagePath&&this.media){
         image=document.createElement('img');image.className='sticky-image';image.alt='Private image attached to '+n.title;
@@ -275,12 +310,23 @@ export class StickyNotes {
       const actions=document.createElement('div');actions.className='sticky-actions';
       const primary=document.createElement('button');primary.type='button';
       primary.className='sticky-primary-action';
-      primary.textContent=mode==='canvas'?(n.scene?'Edit canvas':'Open canvas'):'Edit note';
+      primary.textContent=editing?'Preview':'Edit';
+      primary.setAttribute('aria-label',editing?'Preview sticky note':'Edit sticky note');
       primary.disabled=this.readOnly;
-      primary.addEventListener('click',()=>{
-        if(mode==='write'){editText(true);return;}
-        openSceneEditor(n.scene,{title:'Canvas — '+n.title,notify:this.notify,media:this.media,
-          onSave:scene=>{n.scene=scene;this.render();this.changed();}});
+      primary.addEventListener('click',async()=>{
+        if(this.disposed||this.readOnly||this.pendingCanvas)return;
+        if(!editing){
+          if(!this.canReplaceView())return;
+          this.editingNoteId=n.id;this.render();return;
+        }
+        this.pendingCanvas=true;primary.disabled=true;primary.textContent='Saving…';
+        try{
+          if(mode==='canvas')await this.activeCanvas?.save();
+          else{clearTimeout(timer);n.text=editor.value.slice(0,6000);if(this.changed()===false)throw Error('The note is not saved yet.');}
+          if(this.disposed)return;
+          this.editingNoteId=null;this.render();
+        }catch(error){this.notify('Still editing: '+error.message,6500);primary.disabled=false;primary.textContent='Preview';}
+        finally{this.pendingCanvas=false;}
       });
       const tint=document.createElement('details');tint.className='sticky-color-menu';
       const trigger=document.createElement('summary');trigger.className='sticky-color-trigger';
@@ -294,16 +340,21 @@ export class StickyNotes {
         choice.textContent=value;choice.setAttribute('aria-pressed',String(value===n.color));
         choice.setAttribute('aria-label',value+' paper');
         choice.disabled=this.readOnly;
-        choice.addEventListener('click',()=>{n.color=value;this.render();this.changed();});
+        choice.addEventListener('click',()=>{
+           if(!this.canReplaceView())return;
+           const old=n.color;n.color=value;
+           if(this.changed()===false){n.color=old;this.notify('Paper color not saved. Retry.',6500);return;}
+           this.render();
+         });
         palette.append(choice);
       }
-      tint.append(trigger,palette);
+      tint.append(trigger,palette);tint.hidden=!editing;
       if(this.readOnly)trigger.setAttribute('aria-disabled','true');
       const more=document.createElement('details');more.className='sticky-more-menu';
       const moreTrigger=document.createElement('summary');moreTrigger.textContent='More';
       moreTrigger.setAttribute('aria-label','More note actions');
       const moreActions=document.createElement('div');moreActions.className='sticky-more-actions';
-      more.append(moreTrigger,moreActions);
+      more.append(moreTrigger,moreActions);more.hidden=!editing;
       const duplicate=document.createElement('button');duplicate.className='glass-button sticky-duplicate';
       duplicate.type='button';duplicate.textContent='Duplicate note';duplicate.title='Duplicate this note';
       duplicate.setAttribute('aria-label','Duplicate sticky note');
@@ -319,9 +370,12 @@ export class StickyNotes {
         pick.addEventListener('click',()=>upload.click());
         upload.addEventListener('change',async()=>{
           const file=upload.files?.[0];if(!file)return;
-          pick.disabled=true;
+           if(!this.canReplaceView()){upload.value='';return;}
+           pick.disabled=true;
           try{const path=await this.media.upload(file);if(this.disposed)return;
-            n.imagePath=path;this.changed();this.render();this.notify('Private image attached.');
+            const previous=n.imagePath;n.imagePath=path;
+             if(this.changed()===false){n.imagePath=previous;throw Error('Image reference not saved; previous attachment retained.');}
+             this.render();this.notify('Private image attached.');
           }catch(error){this.notify(error.message,6500);}
           finally{pick.disabled=false;upload.value='';}
         });
@@ -348,8 +402,18 @@ export class StickyNotes {
         const attachment=document.createElement('div');attachment.className='sticky-attachment';
         attachment.append(image,image._orbitStatus);moreActions.append(attachment);
       }
-      article.append(head,modeTabs,formatBar,editor,formatted,preview,actions,resizer);this.layer.append(article);
+      article.append(head,modeTabs,formatBar,editor,formatted,preview,inlineHost,actions,resizer);this.layer.append(article);
+      if(editing&&mode==='write')editor.focus({preventScroll:true});
+      if(editing&&mode==='canvas'){
+        this.activeCanvas=mountInlineCanvas({host:inlineHost,scene:n.scene,media:this.media,
+          notify:(...args)=>this.notify(...args),
+          onSave:scene=>{n.scene=scene;return this.changed();},
+          onDirty:dirty=>{article.dataset.dirty=String(dirty);},
+        });
+        this.activeCanvas.ready.catch(()=>{});
+      }
     }
   }
-  dispose(){this.disposed=true;this.layer.remove();this.notes=[];}
+  dispose(){this.disposed=true;this.activeCanvas?.dispose();this.activeCanvas=null;
+    this.layer.remove();this.notes=[];}
 }

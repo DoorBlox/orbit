@@ -83,6 +83,11 @@ export async function createCloudClient(){
 }
 '''
 
+def ensure_journal_edit(page):
+    if page.locator('#journal-widget').get_attribute('data-journal-view') != 'edit':
+        page.locator('#journal-edit-toggle').click()
+    expect(page.locator('#journal-editor')).to_have_attribute('contenteditable','true')
+
 @contextmanager
 def server(source=False):
     with (OUT/'m2-server.log').open('w') as log:
@@ -360,10 +365,12 @@ def journal_races(browser,source):
         expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
         page.evaluate("window.orbitDebug.board.focus('journal',{initial:true});window.__m2Fixture.deferLoad=true;window.__m2Fixture.deferSave=true;window.dispatchEvent(new Event('focus'))")
         wait_until(page,'Boolean(window.__m2Fixture.resolveLoad)')
+        ensure_journal_edit(page)
         page.locator('#journal-editor').fill('Synthetic typing newer than remote refresh')
         page.evaluate('window.__m2Fixture.resolveLoad()')
         expect(page.locator('#journal-editor')).to_contain_text('Synthetic typing newer than remote refresh')
         wait_until(page,'window.__m2Fixture.saveResolvers?.length===1')
+        ensure_journal_edit(page)
         page.locator('#journal-editor').fill('Synthetic second typing newer than save ACK')
         page.evaluate('window.__m2Fixture.saveResolvers.shift()()')
         wait_until(page,'window.__m2Fixture.saveResolvers?.length===1')
@@ -407,6 +414,7 @@ def immediate_logout_draft(browser,source):
         dialogs=[]
         def cancel(dialog):dialogs.append(dialog.message);dialog.dismiss()
         page.on('dialog',cancel)
+        ensure_journal_edit(page)
         # One browser task: type and request logout before the old 500ms autosave.
         page.evaluate("""() => {
           const editor=document.getElementById('journal-editor');
@@ -442,6 +450,7 @@ def local_compatibility(browser,source):
         assert page.locator('.spatial-world > [data-widget="projects"]').count()==1
         assert page.locator('.spatial-world > .spatial-item').count()>=7
         page.evaluate("window.orbitDebug.board.focus('journal',{initial:true})")
+        ensure_journal_edit(page)
         page.locator('#journal-editor').fill('Synthetic M2 compatibility text')
         expect(page.locator('#journal-save-state')).to_have_text('saved on this device')
         page.reload();expect(page.locator('#journal-editor')).to_contain_text('Synthetic M2 compatibility text')

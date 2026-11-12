@@ -29,7 +29,8 @@ export function createAuthShell({ publicRelease, onGoogleSignIn, onPasswordSignI
   const toolbar=document.createElement('div');toolbar.className='cloud-toolbar glass-widget';toolbar.hidden=true;
   toolbar.setAttribute('role','group');toolbar.setAttribute('aria-label','Workspace status and controls');
   const mode=document.createElement('span');mode.className='cloud-mode';
-  const status=document.createElement('span');status.className='cloud-sync-state';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+  const status=document.createElement('span');status.className='cloud-sync-state visually-hidden';
+  status.setAttribute('aria-hidden','true');
   const controls=document.createElement('div');controls.className='cloud-controls';
   const quickActions=document.createElement('div');quickActions.className='cloud-quick-actions';
   const accountDetails=document.createElement('details');accountDetails.className='cloud-account-details';

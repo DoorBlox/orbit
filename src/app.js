@@ -9,7 +9,8 @@ import { validateBackup,persistBackup,recoverInterruptedRestore,RESTORE_RECOVERY
 import { validDateKey } from './dates.js';
 import { Journal,sanitizeJournal } from './journal.js';
 import { StickyNotes } from './stickies.js';
-import { normalizeExtensions,openSceneEditor,renderScene } from './scene.js';
+import { normalizeExtensions,renderScene } from './scene.js';
+import { mountInlineCanvas } from './inline-canvas.js';
 import { setBranchProject, normalizeProjects } from './projects.js';
 import { ProjectsShelf } from './project-shelf.js';
 
@@ -202,28 +203,82 @@ openProjects.addEventListener('click',()=>board.focus('projects'),{signal:events
 document.querySelector('.space-primary-actions')?.append(openProjects);
 const stickies=new StickyNotes({world:$('spatial-world'),notes:state.extensions.notes,readOnly,
   getScale:()=>board.scale,media,notify:(...args)=>message(...args),
-  onChange:notes=>{state.extensions.notes=notes;board.setStickyNotes(notes);extensionsChanged();}});
+  onChange:notes=>{const prior=state.extensions.notes;state.extensions.notes=notes;
+     const ok=extensionsChanged();if(ok===false){state.extensions.notes=prior;return false;}
+     board.setStickyNotes(notes);return true;}});
 board.setStickyNotes(stickies.getNotes());
+let activeJournalCanvas=null;
 const journal=new Journal({initialEntries:initialSnapshot?(initialSnapshot.journalEntries||[]):undefined,readOnly,persistLocally,notify:(s,...args)=>message(s,...args),onEntriesChange:entries=>{widgets.setJournalEntries(entries);emitChange();}});
 widgets.setJournalEntries(journal.entries);
+journal.beforePageChange=()=>{
+  if(activeJournalCanvas){message('Preview this canvas to save before changing journal pages.',5000);return false;}
+  return true;
+};
 journal.onPageChange=()=>{refreshJournalDrawing();refreshJournalImage();};
+journal.onEditChange=()=>refreshJournalMode();
+const journalMore=document.createElement('details');journalMore.className='journal-more';
+const moreSummary=document.createElement('summary');moreSummary.textContent='More';
+moreSummary.setAttribute('aria-label','More journal page actions');
+const moreActions=document.createElement('div');moreActions.className='journal-more-actions';
+for(const id of ['journal-export','journal-delete','journal-image','journal-image-remove','journal-image-retry'])
+  moreActions.append($(id));
+journalMore.append(moreSummary,moreActions);
+$('journal-edit-toggle').before(journalMore);
+$('journal-draw').hidden=true;
 refreshJournalDrawing();refreshJournalImage();
 function journalMode(){
   const id=journal.entries[journal.index]?.id;
   return id&&state.extensions.journalModes?.[id]==='canvas'?'canvas':'write';
 }
 function refreshJournalMode(){
-  const mode=journalMode();
-  const widget=$('journal-widget');widget.dataset.journalMode=mode;
-  for(const button of widget.querySelectorAll('[data-journal-mode]')){
+  const mode=journalMode(),editing=journal.editing&&!readOnly;
+  const widget=$('journal-widget');
+  widget.dataset.journalMode=mode;widget.dataset.journalView=editing?'edit':'preview';
+  widget.dataset.paperStyle=state.extensions.journalPaperStyles?.[journal.entries[journal.index]?.id]||'lined';
+  for(const button of widget.querySelectorAll('[data-journal-mode]'))
     button.setAttribute('aria-pressed',String(button.dataset.journalMode===mode));
-  }
+  for(const button of widget.querySelectorAll('[data-paper-style]'))
+    button.setAttribute('aria-pressed',String(button.dataset.paperStyle===widget.dataset.paperStyle));
+  widget.querySelector('.journal-mode-tabs').hidden=!editing;
+  $('journal-paper-choices').hidden=!editing;
+  widget.querySelector('.journal-formatbar').hidden=!(editing&&mode==='write');
+  journalMore.hidden=!editing;
+  $('journal-new').hidden=!editing;
+  $('journal-date-label').hidden=editing;
+  widget.querySelector('.journal-date-edit-label').hidden=!editing;
+  $('journal-entry-date').hidden=!editing;
   $('journal-editor').hidden=mode==='canvas';
-  widget.querySelector('.journal-formatbar').hidden=mode==='canvas';
   $('journal-canvas-view').hidden=mode!=='canvas';
-  // Legacy attachments remain recoverable in Write, never float below the Canvas.
+  $('journal-drawing-preview').hidden=editing;
+  $('journal-inline-canvas-host').hidden=!(editing&&mode==='canvas');
+  $('journal-canvas-edit').hidden=true;
+  const toggle=$('journal-edit-toggle');
+  toggle.textContent=editing?'Preview':'Edit';
+  toggle.setAttribute('aria-label',editing?'Preview journal page':'Edit journal page');
+  toggle.setAttribute('aria-pressed',String(editing));
+  toggle.disabled=readOnly;
   const legacyImage=$('journal-image-preview');
   if(legacyImage?.getAttribute('src'))legacyImage.hidden=mode==='canvas';
+  const page=journal.entries[journal.index];
+  if(editing&&mode==='canvas'&&page&&!activeJournalCanvas){
+    const pageId=page.id;
+    activeJournalCanvas=mountInlineCanvas({
+      host:$('journal-inline-canvas-host'),scene:state.extensions.journalScenes[pageId],media,
+      notify:(...args)=>message(...args),
+      onSave:scene=>{
+        if(!journal.entries.some(e=>e.id===pageId))return false;
+        const oldScene=state.extensions.journalScenes[pageId];
+         state.extensions.journalScenes[pageId]=scene;
+         const ok=extensionsChanged();
+         if(ok===false){if(oldScene===undefined)delete state.extensions.journalScenes[pageId];else state.extensions.journalScenes[pageId]=oldScene;}
+        if(ok!==false)renderScene(scene,$('journal-drawing-preview'),{media});
+        return ok;
+      },
+      onDirty:dirty=>{widget.dataset.canvasDirty=String(dirty);
+        if(dirty){const label=$('global-save-status');label.textContent='Canvas edits waiting to save';label.dataset.state='pending';}}
+    });
+    activeJournalCanvas.ready.catch(()=>{});
+  }
 }
 function refreshJournalDrawing(){
   const holder=$('journal-drawing-preview');if(!holder)return;
@@ -257,14 +312,15 @@ function refreshJournalImage(){
   });
 }
 function extensionsChanged(){
-  if(disposed||readOnly)return;
+   if(disposed||readOnly)return false;
   try{state.extensions=collectExtensions();}
-  catch(error){message('Drawing or sticky note exceeded its limits: '+error.message,6500);return;}
+  catch(error){message('Drawing or sticky note exceeded its limits: '+error.message,6500);return false;}
   if(persistLocally){
     const ok=saveExtensions(state.extensions);
     if(ok)pendingWrites.delete(STORAGE_KEYS.extensions);else pendingWrites.add(STORAGE_KEYS.extensions);
     if(!ok)message('Notes or drawings are not saved on this device. Export a backup.',6500);
-  }else emitChange();
+    return ok;
+  }else{emitChange();return true;}
 }
 
 // Previously saved task IDs are never discarded. An orphaned assignment is
@@ -400,8 +456,9 @@ function quickCapture(e){
   state.tasks.push(task);input.value='';state.captureDraft='';sync();scene.focusTask(task);
   message(`Added to ${currentBranch()?.label||'Unsorted'}.`);
 }
-function backupJson(){
-  journal.commit();
+async function backupJson(){
+   try{await flushEditor();}catch(error){message('Backup not exported: '+error.message,6500);return false;}
+   journal.commit();
   const backup={format:'orbit-backup',version:6,exportedAt:new Date().toISOString(),branches:state.branches,tasks:state.tasks,preferences:state.preferences,profile:state.profile,collapsedBranchIds:state.collapsedBranchIds,milestones,spatialLayout:board.getLayout(),journalEntries:journal.getEntries(),extensions:collectExtensions()};
   if(persistLocally&&getStorageStatus().recoveryRequired){backup.recoveryData=getRecoveryData();try{backup.restoreRecovery=localStorage.getItem(RESTORE_RECOVERY_KEY);}catch{}}
   download(JSON.stringify(backup,null,2),`orbit-complete-backup-${new Date().toISOString().slice(0,10)}.json`,'application/json');
@@ -410,7 +467,8 @@ function backupJson(){
 function download(contents,filename,type){const blob=new Blob([contents],{type});const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1800);}
 function restoreBackup(contents){
-  if(readOnly||disposed)return;
+   if(readOnly||disposed)return;
+   if(hasPendingEditor())throw Error('Preview and save your canvas before replacing the workspace.');
   const snapshot=validateBackup(contents,{sanitizeHtml:sanitizeJournal});
   journal.commit();
   if(!persistLocally){applySnapshot(snapshot);emitChange();message('Import is pending cloud save. Existing local backup remains unchanged.');return;}
@@ -522,38 +580,61 @@ function initTools(){
       refreshJournalImage();message('Private journal image attached.');
     }catch(error){message(error.message,6500);}finally{imagePicker.value='';}
   });
-  const openJournalCanvas=()=>{
-    if(readOnly||disposed)return;
-    journal.commit();const page=journal.entries[journal.index];if(!page)return;
-    openSceneEditor(state.extensions.journalScenes[page.id],{title:'Journal canvas — '+(page.title||page.date),media,
-      notify:(...args)=>message(...args),onSave:drawing=>{
-        state.extensions.journalScenes[page.id]=drawing;
-        state.extensions.journalModes??={};state.extensions.journalModes[page.id]='canvas';
-        refreshJournalDrawing();extensionsChanged();
-      }});
-  };
-  $('journal-draw').addEventListener('click',openJournalCanvas);
-  $('journal-canvas-edit').disabled=readOnly;
-  $('journal-canvas-edit').addEventListener('click',openJournalCanvas);
+  let journalBusy=false;
+  async function leaveJournalCanvas(){
+    if(!activeJournalCanvas)return;
+    const handle=activeJournalCanvas;
+    await handle.save();
+    if(disposed)return;
+    handle.dispose();
+    if(activeJournalCanvas===handle)activeJournalCanvas=null;
+  }
+  $('journal-edit-toggle').addEventListener('click',async()=>{
+    if(readOnly||disposed||journalBusy)return;
+    journalBusy=true;
+    const toggle=$('journal-edit-toggle');toggle.disabled=true;
+    try{
+      if(journal.editing){await leaveJournalCanvas();if(disposed)return;journal.commit();journal.setEditing(false);}
+      else journal.setEditing(true);
+      refreshJournalMode();
+      if(journal.editing&&journalMode()==='write')$('journal-editor').focus({preventScroll:true});
+    }catch(error){message('Keep editing: '+error.message,6500);}
+    finally{journalBusy=false;toggle.disabled=readOnly;}
+  });
   for(const button of document.querySelectorAll('.journal-mode-tab')){
-    button.addEventListener('click',()=>{
-      if(disposed||$('journal-widget').dataset.journalMode===button.dataset.journalMode)return;
-      journal.commit();const page=journal.entries[journal.index];if(!page)return;
-      if(readOnly){
-        $('journal-widget').dataset.journalMode=button.dataset.journalMode;
-        for(const item of document.querySelectorAll('.journal-mode-tab'))
-          item.setAttribute('aria-pressed',String(item===button));
-        $('journal-editor').hidden=button.dataset.journalMode==='canvas';
-        $('journal-widget').querySelector('.journal-formatbar').hidden=button.dataset.journalMode==='canvas';
-        $('journal-canvas-view').hidden=button.dataset.journalMode!=='canvas';
-        return;
-      }
-      state.extensions.journalModes??={};
-      if(button.dataset.journalMode==='canvas')state.extensions.journalModes[page.id]='canvas';
-      else delete state.extensions.journalModes[page.id];
-      refreshJournalMode();extensionsChanged();
+    button.addEventListener('click',async()=>{
+      if(disposed||!journal.editing||journalBusy||journalMode()===button.dataset.journalMode)return;
+      journalBusy=true;button.disabled=true;
+      try{
+        await leaveJournalCanvas();if(disposed)return;
+        journal.commit();const page=journal.entries[journal.index];if(!page)return;
+        state.extensions.journalModes??={};
+        const oldMode=state.extensions.journalModes[page.id];
+         if(button.dataset.journalMode==='canvas')state.extensions.journalModes[page.id]='canvas';
+         else delete state.extensions.journalModes[page.id];
+         if(extensionsChanged()===false){if(oldMode===undefined)delete state.extensions.journalModes[page.id];else state.extensions.journalModes[page.id]=oldMode;
+           throw Error('Cannot save the page mode yet.');}
+        refreshJournalDrawing();
+      }catch(error){message('Page mode was not saved: '+error.message,6500);}
+      finally{button.disabled=false;journalBusy=false;}
     });
   }
+  for(const button of document.querySelectorAll('#journal-paper-choices [data-paper-style]')){
+    button.addEventListener('click',()=>{
+      if(readOnly||!journal.editing||disposed)return;
+      const page=journal.entries[journal.index];if(!page)return;
+      state.extensions.journalPaperStyles??={};
+      const oldStyle=state.extensions.journalPaperStyles[page.id];
+       if(button.dataset.paperStyle==='lined')delete state.extensions.journalPaperStyles[page.id];
+       else state.extensions.journalPaperStyles[page.id]=button.dataset.paperStyle;
+       if(extensionsChanged()!==false)refreshJournalMode();
+       else if(oldStyle===undefined)delete state.extensions.journalPaperStyles[page.id];
+       else state.extensions.journalPaperStyles[page.id]=oldStyle;
+    });
+  }
+  $('journal-draw').addEventListener('click',()=>{if(!journal.editing)return;
+    document.querySelector('.journal-mode-tab[data-journal-mode="canvas"]')?.click();});
+  $('journal-canvas-edit').disabled=true;
   $('expand-all-branches').addEventListener('click',()=>{setCollapsedBranches([]);scene.fitAll();message('All branches expanded.');});
   $('collapse-all-branches').addEventListener('click',()=>{
     const parents=state.branches.filter(branch=>state.branches.some(child=>child.parentId===branch.id)).map(branch=>branch.id);
@@ -684,6 +765,8 @@ function showClock(){
 initTools();initKeyboard();sync({persist:false});
 if(persistLocally&&getStorageStatus().recoveryRequired)message('Saved data needs recovery. Use Backup to export the original data before restoring a valid backup.',15000);
 showClock();const clockTimer=setInterval(showClock,30000);
+if(persistLocally){const status=$('global-save-status');status.textContent='Stored on this device';status.dataset.state='saved';}
+else setCloudStatus(cloudStatus);
 hydrating=false;
 $('app').dataset.readOnly=String(readOnly);
 if(readOnly){for(const id of ['capture-name','capture-mode','capture-submit','import-csv','clear-demo','csv-file','rename-space','expand-all-branches','collapse-all-branches','new-sticky','journal-draw','journal-image'])$(id).disabled=true;}
@@ -698,7 +781,9 @@ function getSnapshot(){return {
 };}
 function emitChange(){if(disposed||hydrating||persistLocally||readOnly)return;onSnapshotChange(getSnapshot());}
 function applySnapshot(snapshot){
-  if(disposed)return;hydrating=true;
+   if(disposed)return;
+   if(hasPendingEditor())throw Error('Unsaved canvas changes must be saved before replacing the workspace.');
+   hydrating=true;
   state.branches=structuredClone(snapshot.branches);state.tasks=structuredClone(snapshot.tasks);
   state.extensions=normalizeExtensions(snapshot.extensions??state.extensions);
   applyAppearance();applyTaskLinks();stickies.setNotes(state.extensions.notes);board.setStickyNotes(stickies.getNotes());
@@ -713,7 +798,22 @@ function applySnapshot(snapshot){
   if(!state.branches.some(b=>b.id==='just-because'))state.branches.push({id:'just-because',parentId:'root',label:'Just Because'});
   sync({persist:false});hydrating=false;
 }
-function setCloudStatus(status){cloudStatus=status;journal.setCloudStatus(status);}
-function dispose(){if(disposed)return;disposed=true;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);projectsShelf.dispose();board.dispose();journal.dispose();stickies.dispose();scene.dispose();media?.dispose?.();document.documentElement.dataset.theme='parchment';document.documentElement.dataset.motion='system';document.documentElement.dataset.ambient='off';window.orbitDebug=null;}
-return {getSnapshot,applySnapshot,setCloudStatus,dispose,flushEditor:()=>journal.commit(),exportBackup:backupJson};
+function setCloudStatus(status){
+  cloudStatus=status;journal.setCloudStatus(status);
+  const label=$('global-save-status');if(!label)return;
+  const states={saved:'Saved to your cloud',saving:'Saving…',pending:'Changes waiting to save',
+    offline:'Offline — changes not saved',conflict:'Save conflict — export a backup',
+    error:'Not saved — retry or export a backup'};
+  label.textContent=readOnly?'Published preview':states[status.state]||'Save status unavailable';
+  label.dataset.state=status.state;
+}
+function hasPendingEditor(){return Boolean(activeJournalCanvas?.isDirty()||stickies.activeCanvas?.isDirty()||stickies.pendingCanvas);}
+ async function flushEditor(){
+   if(activeJournalCanvas)await activeJournalCanvas.save();
+   if(stickies.activeCanvas)await stickies.activeCanvas.save();
+   return journal.commit();
+ }
+ function dispose(){if(disposed)return;disposed=true;activeJournalCanvas?.dispose();activeJournalCanvas=null;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);projectsShelf.dispose();board.dispose();journal.dispose();stickies.dispose();scene.dispose();media?.dispose?.();document.documentElement.dataset.theme='parchment';document.documentElement.dataset.motion='system';document.documentElement.dataset.ambient='off';window.orbitDebug=null;}
+return {getSnapshot,applySnapshot,setCloudStatus,dispose,
+  flushEditor,hasPendingEditor,journalCommit:()=>journal.commit(),exportBackup:backupJson};
 }

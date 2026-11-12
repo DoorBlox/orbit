@@ -4,7 +4,7 @@
 
 ## Execution ownership — agent-operated ORBIT (9 Nov 2026)
 
-The owner delegates routine **code implementation, architectural/design/security review, test authoring, CI workflow improvements, GitHub PR creation/merge after required green checks, and documentation/handoff upkeep** to the assistant for approved BP/EX work units. The assistant should execute the next safe READY task rather than stop at another plan or ask the owner to write continuity prompts, manage a sprint, or monitor GitHub Actions.
+The owner delegates routine **code implementation, architectural/design/security review, test authoring, CI workflow improvements, GitHub PR creation/merge after required green checks, and documentation/handoff upkeep** to the assistant for approved BP/EX work units. The assistant should execute the most valuable READY task, not merely the least disruptive one. Product criticism, radical interaction concepts, reversible architecture experiments and ambitious visual redesigns are explicitly encouraged when they strengthen ORBIT's identity; challenge owner/legacy assumptions with evidence, show trade-offs and test the result. Preserve backups, privacy and explicit approval gates for irreversible/hosted/Production actions. Do not stop at a plan or transfer ordinary implementation to the owner.
 
 The assistant cannot work asynchronously between conversations without an explicit automation. Preserve continuity in GitHub: exact last PR/SHA, next executable file-level action, acceptance criteria and rollback. Real-account tests may require owner participation. Hosted SQL/Auth/Storage changes, Production aliases, privileged credentials, personal-data deletion and paid services require separately scoped approval; ordinary code/docs/PR work does not.
 

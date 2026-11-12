@@ -11,7 +11,7 @@ const createNote=()=>({
 const fake=(notes=[createNote()])=>{
   const trace={renders:0,changes:0,messages:[]};
   const state={notes,readOnly:false,disposed:false,
-    render(){trace.renders++;},changed(){trace.changes++;},
+    render(){trace.renders++;},canReplaceView(){return true;},changed(){trace.changes++;},
     notify(text){trace.messages.push(text);}};
   return {state,trace};
 };

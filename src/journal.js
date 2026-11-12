@@ -84,6 +84,7 @@ function toMarkdown(html){
 export class Journal {
   constructor({notify,onEntriesChange,initialEntries,readOnly=false,persistLocally=true}={}){
     this.readOnly=readOnly;this.persistLocally=persistLocally;this.disposed=false;this.events=new AbortController();
+    this.editing=false;this.beforePageChange=null;
     this.notify=notify||(()=>{});this.onEntriesChange=onEntriesChange||(()=>{});const loaded=initialEntries!==undefined?{entries:normalizeEntries(initialEntries),saved:true}:load();this.entries=loaded.entries;this.saved=loaded.saved;this.index=this.entries.length-1;
     this.title=document.getElementById('journal-entry-title');this.editor=document.getElementById('journal-editor');
     this.dateInput=document.getElementById('journal-entry-date');
@@ -93,7 +94,15 @@ export class Journal {
     this.editor.addEventListener('paste',e=>this.handlePaste(e));
     document.addEventListener('visibilitychange',()=>{if(document.hidden)this.commit();},{signal:this.events.signal});
     window.addEventListener('pagehide',()=>this.commit(),{signal:this.events.signal});
-    this.editor.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='s'){e.preventDefault();this.commit();}});
+    this.editor.addEventListener('keydown',e=>{
+      if(!this.editing||!(e.metaKey||e.ctrlKey)||e.altKey)return;
+      const key=e.key.toLowerCase();
+      const format=key==='b'?'bold':key==='i'?'italic':key==='u'?'underline':
+        key==='k'?'link':e.shiftKey&&key==='7'?'ordered':e.shiftKey&&key==='8'?'list':
+        e.shiftKey&&key==='9'?'quote':null;
+      if(key==='s'){e.preventDefault();this.commit();return;}
+      if(!format)return;e.preventDefault();this.format(format);
+    });
     document.getElementById('journal-new').addEventListener('click',()=>this.newPage());
     document.getElementById('journal-prev').addEventListener('click',()=>this.go(-1));
     document.getElementById('journal-next').addEventListener('click',()=>this.go(1));
@@ -104,7 +113,15 @@ export class Journal {
       tool.addEventListener('click',()=>this.format(tool.dataset.format));
     }
     this.render();
-    if(readOnly){this.title.readOnly=true;this.dateInput.disabled=true;this.editor.contentEditable='false';for(const tool of document.querySelectorAll('[data-format],#journal-new,#journal-delete'))tool.disabled=true;}
+    this.setEditing(false);
+    if(readOnly){for(const tool of document.querySelectorAll('[data-format],#journal-new,#journal-delete'))tool.disabled=true;}
+  }
+  setEditing(editing){
+    this.editing=!this.readOnly&&Boolean(editing);
+    this.title.readOnly=!this.editing;
+    this.dateInput.disabled=!this.editing;
+    this.editor.contentEditable=String(this.editing);
+    this.onEditChange?.(this.editing);
   }
   getEntries(){this.commit();return structuredClone(this.entries);}
   replaceEntries(input,{persist=true}={}){clearTimeout(this.timer);this.entries=normalizeEntries(input);this.index=this.entries.length-1;this.saved=persist&&this.persistLocally?save(this.entries):true;this.render();this.onEntriesChange(this.entries);return this.saved;}
@@ -135,13 +152,13 @@ export class Journal {
     this.saveIndicator.textContent=this.readOnly?'published content':this.persistLocally?(this.saved?'saved on this device':'not saved — export a backup'):(this.saved?'saved to cloud':'waiting to sync');this.updateCount();
     this.onPageChange?.(entry);
   }
-  newPage(date=todayKey()){if(this.readOnly||this.disposed)return;this.commit();if(this.entries.length>=MAX_ENTRIES){this.notify('Journal page limit reached. Export a backup before adding more.');return;}
+  newPage(date=todayKey()){if(this.readOnly||this.disposed||this.beforePageChange?.()===false)return;this.commit();if(this.entries.length>=MAX_ENTRIES){this.notify('Journal page limit reached. Export a backup before adding more.');return;}
     const page=empty(date);this.entries=orderJournalEntries([...this.entries,page]);this.index=this.entries.findIndex(item=>item.id===page.id);this.saved=this.persistLocally?save(this.entries):false;this.render();this.onEntriesChange(this.entries);this.title.focus();}
-  openEntry(entryId){this.commit();const index=this.entries.findIndex(e=>e.id===entryId);if(index<0)return false;
+  openEntry(entryId){if(this.beforePageChange?.()===false)return false;this.commit();const index=this.entries.findIndex(e=>e.id===entryId);if(index<0)return false;
     this.index=index;this.render();return true;}
-  go(step){this.commit();const next=this.index+step;if(next<0||next>=this.entries.length)return;
+  go(step){if(this.beforePageChange?.()===false)return;this.commit();const next=this.index+step;if(next<0||next>=this.entries.length)return;
     this.index=next;this.render();}
-  format(kind){if(this.readOnly||this.disposed)return;this.editor.focus();
+  format(kind){if(this.readOnly||this.disposed||!this.editing)return;this.editor.focus();
     // For the offline prototype, legacy editing commands supply clean native selection behavior.
     // The saved result is sanitized. Migrate to a structured editor (Tiptap) for production.
     if(kind==='bold')document.execCommand('bold',false);
@@ -178,7 +195,7 @@ export class Journal {
     this.queueSave();
   }
   deletePage(){
-    if(this.readOnly||this.disposed)return;this.commit();const removed=this.entries[this.index],oldIndex=this.index,wasLast=this.entries.length===1;
+    if(this.readOnly||this.disposed||this.beforePageChange?.()===false)return;this.commit();const removed=this.entries[this.index],oldIndex=this.index,wasLast=this.entries.length===1;
     this.entries.splice(oldIndex,1);
     if(!this.entries.length)this.entries.push(empty());
     const replacementId=wasLast?this.entries[0].id:null;
