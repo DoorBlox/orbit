@@ -60,8 +60,8 @@
       "reason": "BP-07: reviewed inline Edit/Preview and responsive spatial UI changes; preserve private drawings and source provenance."
     },
     "src/cloud/portable-backup.js": {
-      "sha256": "60e19c8e62dce710c4310850d4d48a1899490e8f163b2f7d90be05d522729139",
-      "reason": "BP-02/12: seal reviewed in-memory archives; preflight all image bytes, paths, and snapshot before any private restore upload; reject mixed source-owner references."
+      "sha256": "d89bda8ce1c41f13175d9226efd0ff59c7aef03e198b188aa9a5c86683ac2ca7",
+      "reason": "BP-02/12: enforce 96 unique media files after explicit library selection deduplication; retain bounded raw-selection work."
     },
     "src/cloud/README.md": {
       "sha256": "2fa23ecebff7de9fa7e5463f3c77031e97850cf192398ea0da66c2f6cd19a4af",
