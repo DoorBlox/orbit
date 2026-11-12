@@ -1,5 +1,10 @@
 # Changelog
 
+**W5 reconciliation (12 November 2026):** Live Production remains **ORBIT 2.4**, independently verified canonical Vercel alias `orbit.starscene.com` → READY deployment `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`, source `4e57aca785259192b92010c5d0e1634a4c1efe14`. Latest W5 observed GitHub main `a3b5203ef755e10a3976cb8e722c89ab7d5a0d00` is later **SOURCE ONLY**. Source merges, CI and localhost MCP **are not Production**, and owner/device acceptance remains pending. Requery all state before release.
+
+**Release semantics:** this file records historically shipped versions and separately labels unreleased main-only source. [Release notes](RELEASE_NOTES.md) summarize the live app; [GitHub Releases](https://github.com/DoorBlox/orbit/releases) are optional tagged publication records, currently empty.
+
+
 **Which changes are live?** This file separates merged source from real releases. See [BP progress](docs/PROGRESS.md), [GitHub Releases](https://github.com/DoorBlox/orbit/releases), and the [single master roadmap](plans/ORBIT_POST_2_4_EXECUTION.md). A source PR merge is **not** a Production deployment. W5 will reconcile all merged BP work and independently confirm any live release; do not retroactively claim current main is deployed.
 
 ## Unreleased — source merged on main, NOT independently Production-verified (12 November 2026)
@@ -8,13 +13,15 @@ These are **selected milestones**, not a complete generated change history. Newe
 
 - **W1 synchronization:** bounded retry storms and clean online/focus coalescing in [#136](https://github.com/DoorBlox/orbit/pull/136) and [#143](https://github.com/DoorBlox/orbit/pull/143); read-only hosted SQL/RPC proposal remains separately gated.
 - **W2 private media:** reference-safe library APIs [#90](https://github.com/DoorBlox/orbit/pull/90), portable detached media recovery [#95](https://github.com/DoorBlox/orbit/pull/95) and preflight restore safety [#111](https://github.com/DoorBlox/orbit/pull/111). Signed-in owner and two-account acceptance remain open.
-- **W3 product:** spatial mobile camera and Focus [#133](https://github.com/DoorBlox/orbit/pull/133), and continuing Journal editing fixes; see [current PRs](https://github.com/DoorBlox/orbit/pulls).
-- **W4 security/platform:** cryptographic private MCP read boundary, grant revocation and Streamable HTTP admission through [#147](https://github.com/DoorBlox/orbit/pull/147); no live OAuth connector or released MCP endpoint.
+- **W3 product:** spatial mobile camera and Focus [#133](https://github.com/DoorBlox/orbit/pull/133), Journal paste/date/undo fixes [#151](https://github.com/DoorBlox/orbit/pull/151)/[#157](https://github.com/DoorBlox/orbit/pull/157), and continuing Journal editing fixes; see [current PRs](https://github.com/DoorBlox/orbit/pulls).
+- **W4 security/platform:** cryptographic private MCP read boundary, grant revocation and Streamable HTTP admission [#147](https://github.com/DoorBlox/orbit/pull/147), runnable localhost MCP [#156](https://github.com/DoorBlox/orbit/pull/156) with official SDK v2 conformance [#159](https://github.com/DoorBlox/orbit/pull/159); **no live OAuth connector or released MCP endpoint**.
 - **Release/QA:** source-based release gate and accessibility checks advanced. None of these bullet points changes the documented Production 2.4 source without a separately verified deployment.
 
 
 
 ## ORBIT 2.4 — LIVE Production, 9 Nov 2026
+
+[Verified release evidence](docs/releases/2.4.md).
 
 - PR #33 merged to `4e57aca`, all four required exact-head CI checks passed. Vercel staged artifact `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4` READY; canonical `orbit.starscene.com` explicitly switched after restricted header/runtime-config checks, HTTP 200 and no private anonymous HTML.
 - Ten curated full-system themes, background animation opt-in, clearer clock and differentiated glass/navigation vs solid paper content.
@@ -24,7 +31,7 @@ These are **selected milestones**, not a complete generated change history. Newe
 - Previous READY Production `dpl_AxaB85krmkJfDUj1T6ipqw8rodH4` retained for rollback. No Auth, RLS, Storage, billing or service-role changes.
 
 
-## 2.4 — In review (9 November 2026)
+## Archived 2.4 pre-release review checkpoint (9 November 2026; superseded by shipped 2.4)
 
 - Ten coherent account-scoped theme palettes; optional ambient animation; readable clock and calmer paper/glass hierarchy.
 - Mini-map supports drag navigation, keyboard pan and sticky-note markers. Space settings keep backup/import/export under “More tools” while small-window content scrolls.
@@ -34,14 +41,14 @@ These are **selected milestones**, not a complete generated change history. Newe
 - No claim of Production readiness until exact-head CI and gated Vercel deployment checks succeed.
 
 
-## 2.2.1 — Unreleased (source patch)
+## Historical 2.2.1 source-only checkpoint
 
 - Fix #26: allow only the exact ORBIT Supabase origin for signed private images under CSP `img-src`; enforce this in the strict Production configuration verifier and tests. Private image Storage RLS, bucket visibility and keys remain unchanged.
 - Add **Duplicate sticky note** action. The copy has a distinct ID and world position, and independently editable text/drawings while retaining the same private image reference without storing duplicate image bytes. Respect the 80-note limit and read-only mode.
 - Add browser persistence and safety regressions; no Supabase migration or API change. Verify images on a protected Preview and then in Production before closing #26.
 
 
-## 9 Nov 2026 — ORBIT 2.2 beta LIVE on Production (latest source of truth)
+## Historical 2.2 beta Production checkpoint (superseded by 2.4)
 
 - **Serving Production:** canonical `https://orbit.starscene.com/` now maps to Vercel READY Production deployment `dpl_AxaB85krmkJfDUj1T6ipqw8rodH4`, exact reviewed source `de2523dcea497c7ee41547ca94c14f48c72688f1` (merged [PR #25](https://github.com/DoorBlox/orbit/pull/25), all four exact-head checks passed). Server-side production build completed with Supabase cloud config; unauthenticated GET returns HTTP 200 and no private journal text. The name `2.2 beta` describes the app feature release; package.json's legacy version value has not yet been revised.
 - **Protection and domains:** Vercel Authentication changed from `deploymentType=all` to `prod_deployment_urls_and_all_previews`; **custom Production domain is public only for the Supabase Auth sign-in shell**, Preview and raw deployment URLs remain Vercel-protected. Secondary `orbit.allintime.space` remains a redirect to `orbit.starscene.com`. Vercel automatic custom-domain assignment was disabled during staging; custom canonical alias was reassigned explicitly, not automatically.
@@ -51,7 +58,7 @@ These are **selected milestones**, not a complete generated change history. Newe
 - **Operational follow-up:** source of truth for release is this current checkpoint; older sections below are historical even where they say "not deployed". Track remaining beta gates and issue #26; verify live user sign-in and media display after its patch. Respect budget: batch future changes, avoid repeated Actions/workflow dispatch.
 
 
-## 2.2.0 beta — Production deployment (9 November 2026)
+## Historical 2.2.0 beta — Production deployment (superseded by 2.4)
 
 - Added Google-first sign-in button with existing legacy password login preserved; Google Cloud OAuth client and Supabase Google provider are not configured by repository code and remain owner setup.
 - Tasks can carry several validated labeled supporting URLs; sticky notes are freeform editable draggable/resizable paper cards with four colors, shared drawing and optional images.

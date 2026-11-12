@@ -1,5 +1,8 @@
 # ORBIT — The Spatial Scrapbook
 
+**W5 reconciliation (12 November 2026):** Live Production remains **ORBIT 2.4**, independently verified canonical Vercel alias `orbit.starscene.com` → READY deployment `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`, source `4e57aca785259192b92010c5d0e1634a4c1efe14`. Latest W5 observed GitHub main `a3b5203ef755e10a3976cb8e722c89ab7d5a0d00` is later **SOURCE ONLY**. Source merges, CI and localhost MCP **are not Production**, and owner/device acceptance remains pending. Requery all state before release.
+
+
 **Start here — [Live BP/feature progress](docs/PROGRESS.md) · [GitHub PR activity](https://github.com/DoorBlox/orbit/pulls) · [GitHub Releases](https://github.com/DoorBlox/orbit/releases) · [One master roadmap](plans/ORBIT_POST_2_4_EXECUTION.md).** ORBIT now has **six workers (W1–W6) coordinated by Command HQ**. W5 keeps release notes, branch hygiene and progress readable; W6 owns cross-feature acceptance evidence. [Six-worker protocol](docs/ORBIT_PARALLEL_COMMAND_PROTOCOL.md). Source merges are **not** automatically Preview/Production or verified signed-in acceptance.
 
 
@@ -17,24 +20,6 @@
 
 **Historical 2.2-era patch proposal (not current deployment status):** [#26](https://github.com/DoorBlox/orbit/issues/26) targets private image previews blocked by the Production image Content Security Policy. The source branch also adds independent **Copy** for paper sticky notes (text, drawing, tint and private image reference). Live beta still has the image-display limitation until tested and released.
 
-## Archive: ORBIT 2.2 beta Production checkpoint (superseded by 2.4)
-
-- **Serving Production:** canonical `https://orbit.starscene.com/` now maps to Vercel READY Production deployment `dpl_AxaB85krmkJfDUj1T6ipqw8rodH4`, exact reviewed source `de2523dcea497c7ee41547ca94c14f48c72688f1` (merged [PR #25](https://github.com/DoorBlox/orbit/pull/25), all four exact-head checks passed). Server-side production build completed with Supabase cloud config; unauthenticated GET returns HTTP 200 and no private journal text. The name `2.2 beta` describes the app feature release; package.json's legacy version value has not yet been revised.
-- **Protection and domains:** Vercel Authentication changed from `deploymentType=all` to `prod_deployment_urls_and_all_previews`; **custom Production domain is public only for the Supabase Auth sign-in shell**, Preview and raw deployment URLs remain Vercel-protected. Secondary `orbit.allintime.space` remains a redirect to `orbit.starscene.com`. Vercel automatic custom-domain assignment was disabled during staging; custom canonical alias was reassigned explicitly, not automatically.
-- **Rollback checkpoint:** prior READY owner-only 1.0.0 deployment `dpl_9rgHVEreGqspHtNY27WnPyMduFik`, source `fc5af5a8cd2c99d1e104615e72c3cd2b460f60d6`. If an Auth or privacy failure is detected, first restore Vercel SSO `deploymentType=all`, then reassign canonical `orbit.starscene.com` to that old deployment; verify secondary redirect and owner content. Do not overwrite/restore database without a separate instruction.
-- **Supabase:** owner-approved hosted migrations `orbit_private_extensions` and `orbit_private_media` were applied; Google Auth verified on two distinct controlled accounts; first account retains 23 branches, 29 tasks and one journal. Second account started empty. Authenticated-role hosted DB tests validated private extensions and per-user Storage SELECT/INSERT isolation; temporary test fixtures were rolled back. One live second-account beta workspace now has test notes/images (three Storage objects observed).
-- **Known beta defect:** [#26](https://github.com/DoorBlox/orbit/issues/26) — attached note and journal image references persist but images **do not render**. Production's exact CSP has `img-src 'self' data:`, blocking signed image URLs from `https://ixfgavgtwuzdgucjriec.supabase.co`. Keep the Storage bucket private; fix via a narrowly reviewed CSP allowlist patch and matching production-guard/tests. The owner explicitly accepted launch with this known bug. Drawings in both journals and notes persist and display; scene editor is a lightweight pen and `.excalidraw` file interchange, **not** full embedded Excalidraw.
-- **Operational follow-up:** source of truth for release is this current checkpoint; older sections below are historical even where they say "not deployed". Track remaining beta gates and issue #26; verify live user sign-in and media display after its patch. Respect budget: batch future changes, avoid repeated Actions/workflow dispatch.
-
-
-A personal, infinite-feeling 2D scrapbook. Move through one zoomable world of tasks, memories, milestones and dated journal pages—without turning it into a conventional dashboard.
-
-**Historical 2.2 Google-first beta first went live at [orbit.starscene.com](https://orbit.starscene.com/).** Signup is open through Google; every workspace stays private by Supabase Auth + row-level security. The source is public and [MIT licensed](LICENSE); personal data is not public.
-
-**Now in Production:** 1.1 organization improvements, 2.0 private multi-user workspaces, 2.1 branch collapse and Space controls, and 2.2 notes/journal drawings plus backup/import features. Signed private image attachments currently fail to display ([issue #26](https://github.com/DoorBlox/orbit/issues/26)); image references and files are preserved. PR #24 merged branch collapse/expand (browser-local preference, included in backups); an unreleased 2.2 feature branch adds Google-first login, multiple task references, floating stickies, a shared journal/sticky drawing scene bridge and private images. The hosted database has its 2.0 private tenant schema; Production still serves the original 1.0.0 owner-only app behind Vercel Authentication. New-user signup is **not yet publicly released**. See [Changelog](CHANGELOG.md), [Operations](docs/OPERATIONS.md) and [open development PRs](https://github.com/DoorBlox/orbit/pulls).
-
-**[Open ORBIT](https://orbit.starscene.com/)** · [2.2 Google sign-in & rollout](docs/OAUTH_2_2_ROLLOUT.md) · [Release notes](docs/releases/1.0.0.md) · [Project history](docs/PROJECT_HISTORY.md) · [Operations & recovery](docs/OPERATIONS.md) · [Continue in a new chat](CHATGPT_HANDOFF.md)
-
 ## What ORBIT does
 
 One pannable/zoomable spatial world contains six independently draggable and resizable translucent widgets:
@@ -45,23 +30,22 @@ One pannable/zoomable spatial world contains six independently draggable and res
 - **Your space:** personal workspace controls, layout and recovery features.
 - **Journal:** paper-like dated rich-text pages, autosave, undo and Markdown export.
 
-**In 2.2 source-only development:** paper sticky notes in the spatial world and dated journal pages both support a native pen editor with portable `.excalidraw` exchange. The full upstream React Excalidraw editor is not embedded. Private images use short-lived signed URLs and an unapplied per-user Supabase Storage policy; JSON backups include media references, not binary files.
+**Source-only since 2.4:** official lazy Excalidraw, private image-inclusive portable recovery, private Projects, gallery, ICS and local MCP prototype exist in newer merged source, not on Production. No hosted OAuth/MCP connector has been released.
 
 The app also supports keyboard controls, touch/pinch navigation, responsive phone layouts, reduced motion, CSV task/branch imports and selective exports, and full JSON backup/restore (with V5/V6 compatibility). The V6 visual identity and single-world navigation are intentionally preserved.
 
-## Current deployment
+## Current deployment (verified 12 November 2026)
 
-| | |
+| Property | Actual serving release |
 | --- | --- |
-| Canonical address | **[orbit.starscene.com](https://orbit.starscene.com/)** — owner-confirmed working Production sign-in and private workspace |
-| Alternate address | [orbit.allintime.space](https://orbit.allintime.space/) — owner-confirmed redirect to the canonical address |
-| Serving code | Reviewed app source `fc5af5a8cd2c99d1e104615e72c3cd2b460f60d6` |
-| Serving Vercel deployment | `dpl_9rgHVEreGqspHtNY27WnPyMduFik`, Production READY |
-| Backend | Supabase Auth and private PostgreSQL owner-only RLS |
-| Access protection | Vercel Authentication covers all deployments; app additionally verifies owner authority |
-| Release date | **7 November 2026** (owner-confirmed Production launch and secondary-domain redirect) |
+| Canonical domain | [orbit.starscene.com](https://orbit.starscene.com/) |
+| App release | **2.4**, 9 November 2026 |
+| Git source SHA | `4e57aca785259192b92010c5d0e1634a4c1efe14` |
+| Vercel deployment | `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4` — READY, production |
+| Later source | GitHub `main`, **NOT DEPLOYED** |
+| Owner image QA | [#26](https://github.com/DoorBlox/orbit/issues/26) remains unverified |
 
-**Important:** The repository `main` branch contains later CI and documentation commits than the serving application. **A newer `main` SHA does not mean newer code has been deployed.** Verify the deployed SHA and aliases before any release action. See [operations](docs/OPERATIONS.md).
+See [progress](docs/PROGRESS.md), [release record](docs/releases/2.4.md) and [operations](docs/OPERATIONS.md). Package version 1.0.0 and backup schema 6 are different version identities.
 
 ## Architecture
 
@@ -81,7 +65,7 @@ The original V6 source and later reviewed changes have distinct manifests under 
 
 ## Security and privacy
 
-**Open-source does not mean open data.** The project remains a **single-owner private app**. Vercel Authentication restricts access at the hosting layer; Supabase Auth verifies the signed-in user; a server-managed owner check and restrictive row-level policies protect private records. The public Supabase *publishable* key is safe for browser use **only with those server controls**. Never ship service-role keys, user passwords, session tokens, exports or diary content.
+**Open-source does not mean open data.** The Production sign-in shell is public on the canonical domain. Supabase authentication and tenant-scoped RLS protect each private workspace; raw deployment and Preview URLs remain Vercel-Auth protected. The public Supabase *publishable* key is safe for browser use **only with those server controls**. Never ship service-role keys, user passwords, session tokens, exports or diary content.
 
 Production sign-in is bound to the exact canonical hostname. The alternate domain **redirects**, rather than creating a second Auth origin. Full JSON exports are **not encrypted by the app**; keep them in encrypted owner-controlled storage and do not commit them.
 

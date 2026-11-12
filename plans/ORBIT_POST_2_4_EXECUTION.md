@@ -16,6 +16,12 @@
 
 # ORBIT — unified post-2.4 execution roadmap (BP-00–BP-16 and integrated features)
 
+**W5 reconciliation (12 November 2026):** Live Production remains **ORBIT 2.4**, independently verified canonical Vercel alias `orbit.starscene.com` → READY deployment `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`, source `4e57aca785259192b92010c5d0e1634a4c1efe14`. Latest W5 observed GitHub main `a3b5203ef755e10a3976cb8e722c89ab7d5a0d00` is later **SOURCE ONLY**. Source merges, CI and localhost MCP **are not Production**, and owner/device acceptance remains pending. Requery all state before release.
+
+**Current authoritative status mirror:** [PROGRESS.md](../docs/PROGRESS.md). The dated 10 November ledger and priority queue below are historical baselines; their outdated PROPOSED cells do not override later merges. Current source: BP-08 [#79/#133], BP-14 [#76], BP-15 localhost [#156/#159], BP-11 [#144/#151/#157], PJ-03 [#88/#93/#97] and BR-01 [#86] are already implemented in source at least partially. Immediate active PRs at this snapshot: W1 [#160], W2 [#154], W3 [#161] (draft); W5 current doc/release/branch audit. None confirms a new Production build.
+
+
+
 **Established:** 9 November 2026. **Source audit baseline:** main b8f76a6ee4660c135ec0e2604915a6b96097f664; live app 4e57aca785259192b92010c5d0e1634a4c1efe14. **User decision:** proceed with documentation and BP-00–BP-06 reliability foundation. Full official Excalidraw is a top product priority, not a low-priority indefinite option. This blueprint plans work; individual production, hosted-data, provider and paid actions retain separate approval gates.
 
 See [active ChatGPT handoff](../CHATGPT_HANDOFF.md), [tool/skills playbook](../docs/CHATGPT_TOOL_PLAYBOOK.md), [current state](../docs/CURRENT_STATE.md), [documentation protocol](../docs/DOCUMENTATION_PROTOCOL.md), [operations](../docs/OPERATIONS.md), [visual evidence](../docs/DESIGN_EVIDENCE_PLAN.md) and [Issue #31](https://github.com/DoorBlox/orbit/issues/31). Historical [2.0–2.3 blueprint](ORBIT_2_0_BLUEPRINT.md) is preserved as a record, not as current orders.
