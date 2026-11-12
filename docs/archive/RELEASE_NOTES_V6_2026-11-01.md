@@ -1,10 +1,10 @@
 # Historical V6 notes — archival copy (12 November 2026)
 
-**Historical source, not a current release.** The following was previously the root RELEASE_NOTES.md before W5 reconciliation and is copied verbatim from the reviewed pre-W5 source so dated claims do not masquerade as the live release. See [current release notes](../../RELEASE_NOTES.md).
+**Historical source, not a current release.** The following was previously the root RELEASE_NOTES.md before W5 reconciliation and is preserved with only relative links adjusted for this archive location so dated claims do not masquerade as the live release. See [current release notes](../../RELEASE_NOTES.md).
 
 ---
 
-> **Historical V6 visual-feature notes (1 November 2026).** These notes document how the original interface was built. ORBIT **1.0.0 is now in protected Production**; see [current release notes](docs/releases/1.0.0.md), [README](README.md), [operations](docs/OPERATIONS.md) and [handoff](CODEX_HANDOFF.md). The original V6 limits below ("no authentication/cloud") no longer describe the live product.
+> **Historical V6 visual-feature notes (1 November 2026).** These notes document how the original interface was built. ORBIT **1.0.0 is now in protected Production**; see [current release notes](../releases/1.0.0.md), [README](../../README.md), [operations](../OPERATIONS.md) and [handoff](../../CODEX_HANDOFF.md). The original V6 limits below ("no authentication/cloud") no longer describe the live product.
 
 # ORBIT V6 — Window interactions + journal on the timeline
 
