@@ -200,7 +200,91 @@ export class ProjectsShelf {
       const anchor=node('a','project-link',link.label);anchor.href=link.url;
       anchor.target='_blank';anchor.rel='noopener noreferrer';bottom.append(anchor);
     }
-    card.append(bottom);return card;
+    card.append(bottom);
+
+    // PJ-03: links live in existing owner-private project metadata. The editor
+    // submits the entire bounded list atomically, never writes to an external
+    // provider, and leaves the prior persisted list intact on validation error.
+    if(!this.readOnly){
+      const resources=node('section','project-resources');
+      resources.setAttribute('aria-label','Resource links for '+project.label);
+      const editLinks=node('button','project-edit-links','Edit resource links');
+      editLinks.type='button';
+      editLinks.setAttribute('aria-label','Edit resource links for '+project.label);
+      const summary=node('p','project-resources-summary',
+        project.links.length?plural(project.links.length,'saved resource'):'No resource links yet.');
+      const showSummary=()=>resources.replaceChildren(summary,editLinks);
+      editLinks.addEventListener('click',()=>{
+        const form=node('form','project-links-form');
+        form.setAttribute('aria-label','Edit resource links for '+project.label);
+        const rows=node('div','project-links-rows');
+        const error=node('p','project-links-error');
+        error.setAttribute('role','alert');
+        const add=node('button','project-add-link','Add resource link');add.type='button';
+        const save=node('button','project-save-links','Save resource links');save.type='submit';
+        const cancel=node('button','project-cancel-links','Cancel');cancel.type='button';
+        const updateLimit=()=>{
+          add.disabled=rows.children.length>=12;
+          add.setAttribute('aria-disabled',String(add.disabled));
+        };
+        const appendRow=(link={label:'',url:''})=>{
+          if(rows.children.length>=12)return;
+          const row=node('div','project-link-editor-row');
+          const labelField=node('label','project-description-label','Label');
+          const labelInput=node('input','project-description-input');
+          labelInput.type='text';labelInput.required=true;labelInput.maxLength=120;
+          labelInput.value=link.label;
+          const urlField=node('label','project-description-label','URL (http or https)');
+          const urlInput=node('input','project-description-input');
+          urlInput.type='text';urlInput.required=true;urlInput.maxLength=1000;
+          urlInput.value=link.url;urlInput.autocomplete='off';
+          const remove=node('button','project-remove-link','Remove');
+          remove.type='button';
+          const renumber=()=>{
+            [...rows.children].forEach((item,index)=>{
+              const number=index+1;
+              item.querySelector('label:first-child input')
+                .setAttribute('aria-label','Resource label '+number+' for '+project.label);
+              item.querySelector('label:nth-child(2) input')
+                .setAttribute('aria-label','Resource URL '+number+' for '+project.label);
+              item.querySelector('.project-remove-link')
+                .setAttribute('aria-label','Remove resource '+number);
+            });
+          };
+          labelField.append(labelInput);urlField.append(urlInput);
+          remove.addEventListener('click',()=>{row.remove();renumber();updateLimit();});
+          row.append(labelField,urlField,remove);rows.append(row);
+          renumber();updateLimit();
+          return labelInput;
+        };
+        for(const link of project.links)appendRow(link);
+        add.addEventListener('click',()=>appendRow()?.focus({preventScroll:true}));
+        cancel.addEventListener('click',()=>{showSummary();editLinks.focus({preventScroll:true});});
+        form.addEventListener('submit',event=>{
+          event.preventDefault();
+          const links=[...rows.children].map(row=>({
+            label:row.querySelector('label:first-child input').value,
+            url:row.querySelector('label:nth-child(2) input').value.trim()
+          }));
+          if(this.onUpdate(project.id,{links})===false){
+            error.textContent='Could not save. Use an http(s) URL without embedded credentials.';
+            return;
+          }
+          requestAnimationFrame(()=>{
+            [...this.list.querySelectorAll('.project-card')]
+              .find(element=>element.dataset.projectId===project.id)
+              ?.querySelector('.project-edit-links')?.focus({preventScroll:true});
+          });
+        });
+        const controls=node('div','project-edit-actions');
+        controls.append(save,cancel);form.append(rows,add,error,controls);
+        resources.replaceChildren(form);
+        (rows.querySelector('input')||add).focus({preventScroll:true});
+        updateLimit();
+      });
+      showSummary();card.append(resources);
+    }
+    return card;
   }
   dispose(){this.element.remove();}
 }
