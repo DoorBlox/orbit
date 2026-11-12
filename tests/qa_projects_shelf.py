@@ -150,6 +150,14 @@ def run_projects_shelf(browser,open_page,reload_page,out):
         expect(page.locator('.project-card')).to_have_count(2)
         page.evaluate("() => window.orbitDebug.board.focus('projects',{initial:true})")
         page.screenshot(path=str(out/'pj02b-desktop-projects.png'),animations='disabled')
+        # Removing a project milestone is scoped to the project metadata only.
+        restored=page.locator('.project-card[data-project-id="research"]')
+        restored.get_by_role('button',name='Edit milestones for Research').click()
+        restored.get_by_role('button',name='Remove milestone 1').click()
+        restored.get_by_role('button',name='Save milestones').click()
+        expect(restored.locator('.project-milestone-item')).to_have_count(0)
+        assert page.evaluate("""() => JSON.parse(localStorage.getItem(
+          'orbit.v8.extensions')).projects.research.milestones""")==[]
         result['hideReopenReload']=True
         assert not errors,errors
     except Exception:
