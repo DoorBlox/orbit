@@ -10,7 +10,7 @@
 
 **Unified development roadmap:** the original [BP-00–BP-16 execution plan](plans/ORBIT_POST_2_4_EXECUTION.md) now also contains SP/PJ (private Projects), BR/TOUCH (tree and minimap UX), FO (Pomodoro), PUB (curated portfolio/blog) and AUTH-MASCOT units with dependencies and priorities. There is **no separate feature roadmap**. Six original windows are a compatibility baseline, not a cap. Private Journal/Projects never publish automatically.
 
-**Start here for current status and next work:** [Verified state](docs/CURRENT_STATE.md) · [Execution blueprint](plans/ORBIT_POST_2_4_EXECUTION.md) · [Documentation rules](docs/DOCUMENTATION_PROTOCOL.md) · [Design evidence brief](docs/DESIGN_EVIDENCE_PLAN.md). The currently documented live app is **ORBIT 2.4**; newer Projects and image-free official Excalidraw are source merged and not yet live. [PR #57](https://github.com/DoorBlox/orbit/pull/57) retired the old manual 1.0 stage workflow. Release/publishing approval remains separately gated. Historic pre-2.4 snapshots below are not active release instructions.
+**Start here for current status and next work:** [Verified state](docs/CURRENT_STATE.md) · [Execution blueprint](plans/ORBIT_POST_2_4_EXECUTION.md) · [Documentation rules](docs/DOCUMENTATION_PROTOCOL.md) · [Design evidence brief](docs/DESIGN_EVIDENCE_PLAN.md). The currently documented live app is **ORBIT 2.4**; newer Projects, official Excalidraw and embedded private canvas image support are source merged and not yet live. [PR #57](https://github.com/DoorBlox/orbit/pull/57) retired the old manual 1.0 stage workflow. Release/publishing approval remains separately gated. Historic pre-2.4 snapshots below are not active release instructions.
 
 **Current live release (9 Nov 2026):** ORBIT 2.4 at [orbit.starscene.com](https://orbit.starscene.com/), Git `4e57aca`, Vercel `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`. Ten themes, ambient animation option, sticky-aware draggable mini-map, richer private journal/sticky writing and task checklists. The six movable spatial windows remain; private media is Supabase Storage. The full upstream Excalidraw editor (#31), private media library (#29), and ChatGPT MCP connector (#32) are not yet shipped. #26 image rendering still requires authenticated Production verification.
 
@@ -56,7 +56,7 @@ ORBIT deliberately uses **native HTML/CSS/JavaScript ES modules**—no React or 
 | `index.html`, `src/styles.css`, `assets/orbit.svg` | Original visual UI and graphics |
 | `src/board.js`, `src/constellation.js`, `src/layout.js`, `src/widgets.js` | Spatial world, branch graph, timeline and widgets |
 | `src/journal.js`, `src/backup.js`, `src/data.js`, `src/model.js` | Journal, import/export, task/state models |
-| `src/bootstrap.js`, `src/auth/` | Local/cloud bootstrap and owner-only sign-in lifecycle |
+| `src/bootstrap.js`, `src/auth/` | Local/cloud bootstrap and signed-in multi-user session lifecycle |
 | `src/cloud/` | Supabase client, repository, revision/conflict sync, owner tools |
 | `supabase/migrations/`, `supabase/tests/` | Database structure, least-privilege RLS and pgTAP |
 | `scripts/`, `.github/workflows/` | Guarded build, source-integrity verification, automated checks and manual staging |

@@ -5,7 +5,7 @@
 
 **Owner-facing status index; not a second roadmap.** Baseline audited 12 November 2026 after source main `a42a6deffe93f567d689d012407cd72a0b6338e1`. GitHub may advance while this document is read. **W5 must recheck live main, open PRs, deployments and worker handoffs before updating the table.** The [single canonical task/dependency roadmap](../plans/ORBIT_POST_2_4_EXECUTION.md) is the implementation queue; this page is a short, timestamped digest.
 
-**First check:** [GitHub open PRs](https://github.com/DoorBlox/orbit/pulls) · [open issues](https://github.com/DoorBlox/orbit/issues) · [GitHub Actions](https://github.com/DoorBlox/orbit/actions) · [Releases](https://github.com/DoorBlox/orbit/releases) · [Command HQ handoff](handoffs/ORBIT_COMMAND_HQ.md). The Releases page was empty at audit time; do **not** infer no Production deployment from that. The independently last documented Production release is ORBIT **2.4**, source `4e57aca`, Vercel `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4` at orbit.starscene.com. This Production link **was not reverified** in this audit. Numerous subsequent changes are merged source-only and NOT necessarily deployed.
+**First check:** [GitHub open PRs](https://github.com/DoorBlox/orbit/pulls) · [open issues](https://github.com/DoorBlox/orbit/issues) · [GitHub Actions](https://github.com/DoorBlox/orbit/actions) · [Releases](https://github.com/DoorBlox/orbit/releases) · [Command HQ handoff](handoffs/ORBIT_COMMAND_HQ.md). The Releases page was empty at audit time; do **not** infer no Production deployment from that. The independently last documented Production release is ORBIT **2.4**, source `4e57aca`, Vercel `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4` at orbit.starscene.com. This Production alias **was independently reverified on 12 November 2026**. Numerous subsequent changes are merged source-only and NOT necessarily deployed.
 
 ## How to read statuses
 
@@ -34,10 +34,23 @@
 | **BP-12** Private library/gallery | PARTIAL SOURCE MERGED, [#90](https://github.com/DoorBlox/orbit/pull/90), [#95](https://github.com/DoorBlox/orbit/pull/95) | Gallery/reuse selection real-user check; physical file deletion is separately **GATED** | W2 API + W3 UI + W6 |
 | **BP-13** Embedded Excalidraw | PARTIAL SOURCE MERGED, official lazy editor and private image transport | Signed-in and real-device Excalidraw image import/export and backup integrity | W3 + W2 + W6 |
 | **BP-14** Client-side calendar | SOURCE MERGED [#76](https://github.com/DoorBlox/orbit/pull/76) | Actual client calendar import/timezone acceptance | W6 |
-| **BP-15** Scoped OAuth/MCP | PARTIAL SOURCE MERGED, security layers through [#159](https://github.com/DoorBlox/orbit/pull/159), **localhost SDK-only** | Real OAuth PKCE/consent, delegated DB RLS, runnable MCP, two-account tests; **no live connector** | W4 / W1 data / W3 UX |
+| **BP-15** Scoped OAuth/MCP | PARTIAL SOURCE MERGED, security layers through [#159](https://github.com/DoorBlox/orbit/pull/159), **localhost SDK-only** | Real OAuth PKCE/consent and delegated DB RLS, two-account hosted tests; local runnable MCP demonstrated, **no live connector** | W4 / W1 data / W3 UX |
 | **BP-16** Quality/accessibility | PARTIAL SOURCE MERGED static semantic + runtime synthetic checks, [#102](https://github.com/DoorBlox/orbit/pull/102) | Real assistive-tech/screen-reader/mobile and release quality evidence | W4 + W6 |
 
-**Integrated items:** EX-00/EX-01 implemented source and EX-02 partial owner acceptance; SP-00/01 and PJ-01/02/03 source progress; BR-01/02, TOUCH-01 source improvements; PJ-03 links/milestones/finder [#88](https://github.com/DoorBlox/orbit/pull/88)/[#93](https://github.com/DoorBlox/orbit/pull/93)/[#97](https://github.com/DoorBlox/orbit/pull/97) and BR-01 Universal Jump [#86](https://github.com/DoorBlox/orbit/pull/86) are SOURCE MERGED but acceptance remains; FO-01 Pomodoro, AUTH-MASCOT and PUB-00/01/02 remain requirements tracked in the [master roadmap](../plans/ORBIT_POST_2_4_EXECUTION.md). W5 should expand these only when useful to the owner, with exact PRs and status audit; this first digest is **not** a claim all work is complete.
+**Integrated workstream detail:**
+
+| ID | GitHub source status | Remaining acceptance/authorization | Worker |
+| --- | --- | --- | --- |
+| EX-00 / EX-01 | SOURCE MERGED [#40](https://github.com/DoorBlox/orbit/pull/40), [#41](https://github.com/DoorBlox/orbit/pull/41) | Integrated editor preview, owner save/reload | W3/W6 |
+| EX-02 | PARTIAL SOURCE MERGED [#71](https://github.com/DoorBlox/orbit/pull/71) | Real private image bytes, restore, interchange | W2/W3/W6 |
+| SP-00/01A/01B | SOURCE MERGED [#44](https://github.com/DoorBlox/orbit/pull/44), [#48](https://github.com/DoorBlox/orbit/pull/48), [#50](https://github.com/DoorBlox/orbit/pull/50) | Seventh widget and legacy layout on physical devices | W3/W6 |
+| PJ-01/02A/02B | SOURCE MERGED [#51](https://github.com/DoorBlox/orbit/pull/51), [#53](https://github.com/DoorBlox/orbit/pull/53), [#55](https://github.com/DoorBlox/orbit/pull/55) | Protected Preview and owner-private reload/backup | W3/W6 |
+| PJ-03 | PARTIAL SOURCE MERGED [#64](https://github.com/DoorBlox/orbit/pull/64), [#88](https://github.com/DoorBlox/orbit/pull/88), [#93](https://github.com/DoorBlox/orbit/pull/93), [#97](https://github.com/DoorBlox/orbit/pull/97) | Real milestone/link/finder/health save and nested consistency | W3/W6 |
+| BR-01 / BR-02 | SOURCE MERGED [#86](https://github.com/DoorBlox/orbit/pull/86), [#60](https://github.com/DoorBlox/orbit/pull/60) | Deep nested branch keyboard/mobile checks | W3/W6 |
+| TOUCH-01 | SOURCE MERGED [#63](https://github.com/DoorBlox/orbit/pull/63) | Owner-reported physical finger drag regression still open | W3/W6 |
+| FO-01 | PROPOSED | Optional Pomodoro; distinct from BP-08 Focus view | W3 |
+| AUTH-MASCOT | PROPOSED | Original accessible brand concept; no Auth mutation | W3 |
+| PUB-00/01/02 | PROPOSED / HOSTED-GATED | Threat model, approved public copies, signed-off hosting/publishing | W4/W3 |
 
 ## Who is doing what
 
