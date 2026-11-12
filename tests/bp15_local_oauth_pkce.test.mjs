@@ -56,7 +56,7 @@ test('invalid PKCE, client/redirect mismatch, missing consent and scope escalati
   const oauth=createDisposableOAuthPkce({fixture});
   assert.deepEqual(oauth.authorize(params('ownerA',{consent:false})),{approved:false});
   for(const bad of [{scope:'journals:read'},{redirectUri:'https://evil.example/'},
-    {codeChallenge:'X'.repeat(43)},{clientId:'different-client'}]){
+    {codeChallenge:'X'.repeat(42)},{clientId:'different-client'}]){
     assert.throws(()=>oauth.authorize(params('ownerA',bad)),/OAUTH_FIXTURE_DENIED/);
   }
   const good=oauth.authorize(params());
