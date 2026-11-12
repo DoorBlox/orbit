@@ -104,8 +104,8 @@
       "reason": "BP-07: lazy owner-private Excalidraw island, true-content signature, guards and explicit save/flush with unit regression."
     },
     "src/journal.js": {
-      "sha256": "5898568c937ec431d49301be9b709fca911c12c1fabdbcc834784f07da4f403f",
-      "reason": "BP-07: reviewed inline Edit/Preview and responsive spatial UI changes; preserve private drawings and source provenance."
+      "sha256": "10b086e07116d06f32a278acc619343fa1982149cef672beb5828757e69ff3e0",
+      "reason": "W3 BP-11: defer interim title/contenteditable IME cloud publication and local debounce until compositionend while preserving interrupted-draft flush, selection and historical HTML."
     },
     "src/layout.js": {
       "sha256": "1895015e94741e987e696be8ab1d77ab348560dc847a70a41bd7c6ca74626ee3",
