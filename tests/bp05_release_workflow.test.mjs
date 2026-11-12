@@ -57,3 +57,23 @@ test('BP-05: manual stage is exact-main, approval-scoped, unaliased and non-prom
   assert.match(stage,/secrets\.VERCEL_TOKEN/);
   assert.match(stage,/ORBIT_STAGE_APPROVED_SHA/);
 });
+
+
+test('BP-05 cannot pull credentials or stage unless independent approval and predeploy SSO pass',async()=>{
+  const source=await readFile(new URL(STAGE,workflows),'utf8');
+  assert.match(source,/node scripts\/bp05-stage-gate\.mjs review/);
+  assert.match(source,/GITHUB_TOKEN: \$\{\{ github\.token \}\}/);
+  assert.match(source,/node scripts\/bp05-stage-gate\.mjs vercel-protection/g);
+  const review=source.indexOf('node scripts/bp05-stage-gate.mjs review');
+  const install=source.indexOf('npm ci --ignore-scripts',review);
+  const preprotect=source.indexOf('node scripts/bp05-stage-gate.mjs vercel-protection',review);
+  const pull=source.indexOf('vercel pull --yes --environment=production',preprotect);
+  const lastProtect=source.lastIndexOf('node scripts/bp05-stage-gate.mjs vercel-protection');
+  const deploy=source.indexOf('vercel deploy --prebuilt --prod --skip-domain');
+  const postProtect=source.indexOf('node scripts/bp05-stage-gate.mjs protect',deploy);
+  assert.ok(review>0&&install>review&&preprotect>install&&pull>preprotect,
+    'Reviewer evidence must precede install/credential pull, and SSO precede pull.');
+  assert.ok(lastProtect>pull&&deploy>lastProtect&&postProtect>deploy,
+    'Re-check Vercel protection immediately before unaliased deployment and afterwards.');
+  assert.equal((source.match(/node scripts\/bp05-stage-gate\.mjs vercel-protection/g)||[]).length,2);
+});
