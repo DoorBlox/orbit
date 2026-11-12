@@ -140,8 +140,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "779cd455ee01cde519a416d01af4fa809d3e982fad08567dd2c5118fa226f4c8",
-      "reason": "BP-07: in-place canvas editing, mobile editor affordances; place Journal resize grip in frame header rather than over Edit/Preview."
+      "sha256": "8d1d561013a0b7646fd29d665e995f9b6318af72b54737ba52ba779cb003f179",
+      "reason": "BP-07: repaired missing root-token closing brace which invalidated nested styling; responsive paper controls and safe resize grip."
     },
     "src/widget-registry.js": {
       "sha256": "097767f8dd9c6c1e94504ec571c29ca2f1d0684955d2f8c87231d15db1a427f0",
