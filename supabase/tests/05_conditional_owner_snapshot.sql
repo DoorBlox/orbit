@@ -14,7 +14,7 @@ select ok(not (select p.prosecdef from pg_proc p where p.oid='public.load_owner_
 select is((select p.provolatile from pg_proc p where p.oid='public.load_owner_snapshot_if_changed(bigint)'::regprocedure),
   's','read-only RPC is STABLE for one calling-query MVCC snapshot');
 select is((select p.proconfig from pg_proc p where p.oid='public.load_owner_snapshot_if_changed(bigint)'::regprocedure),
-  array['search_path=']::text[],'conditional RPC uses empty search_path');
+  array['search_path=""']::text[],'conditional RPC uses empty search_path');
 
 insert into auth.users(id,email) values
  ('cccccccc-1111-4111-8111-111111111111','conditional-owner-a@example.invalid'),
