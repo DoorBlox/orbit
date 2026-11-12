@@ -128,8 +128,8 @@
       "reason": "Null local default; only build-generated allowlisted public configuration activates cloud."
     },
     "src/scene.js": {
-      "sha256": "77b95efa29e33980ac6e5a80c1bb1fa7f6864cb0a9cc019a6d0e0b0e03bf1a1c",
-      "reason": "BP-07: reviewed inline Edit/Preview and responsive spatial UI changes; preserve private drawings and source provenance."
+      "sha256": "bbe1dbfc0b121273d97242cdddb62bbde2ee545a302f565b92b25047a9adc23a",
+      "reason": "BP-10: fallback pen records coalesced stylus samples and paints once per display frame, flushes on stroke release, cancels before embedded Excalidraw handoff."
     },
     "src/stickies.js": {
       "sha256": "0e43e4a93518f40e6e0b9e4253835e4a8aad5d1307b90f177065ba439a000e53",

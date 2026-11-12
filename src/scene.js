@@ -228,6 +228,29 @@ function downloadScene(scene){
   anchor.href=url;anchor.download='orbit-drawing.excalidraw';document.body.append(anchor);anchor.click();anchor.remove();
   setTimeout(()=>URL.revokeObjectURL(url),1200);
 }
+/** Run at most one paint per display frame while keeping pointer samples in memory.
+ * flush() renders the final stroke before Save or pointer capture release.
+ * No animation is needed in reduced-motion mode; input correctness is unchanged. */
+export function createFrameCoalescer(paint,{requestFrame=callback=>requestAnimationFrame(callback),
+  cancelFrame=handle=>cancelAnimationFrame(handle)}={}){
+  if(typeof paint!=='function')throw Error('A paint callback is required.');
+  let handle=null,disposed=false;
+  const cancel=()=>{if(handle!==null){cancelFrame(handle);handle=null;}};
+  return {
+    request(){
+      if(disposed||handle!==null)return;
+      handle=requestFrame(()=>{handle=null;if(!disposed)paint();});
+    },
+    flush(){if(disposed)return;cancel();paint();},
+    cancel,
+    dispose(){disposed=true;cancel();}
+  };
+}
+/** PointerEvent.getCoalescedEvents retains fine pen strokes on fast tablets. */
+export function pointerSamples(event){
+  const samples=event?.getCoalescedEvents?.();
+  return Array.isArray(samples)&&samples.length?samples:[event];
+}
 export function openSceneEditor(initial,{title='Drawing',onSave,notify=()=>{},media=null}={}){
   let scene=normalizeScene(initial)||emptyScene(),active=null,embedded=null,disposed=false;
   const dialog=document.createElement('dialog');dialog.className='orbit-scene-dialog';
@@ -238,6 +261,7 @@ export function openSceneEditor(initial,{title='Drawing',onSave,notify=()=>{},me
   const surface=document.createElement('div');surface.className='orbit-scene-surface';
   const preview=document.createElement('div');preview.className='orbit-scene-preview';surface.append(preview);
   const repaint=()=>renderScene({...scene,elements:active?[...scene.elements,active]:scene.elements},preview,{media});
+  const strokePaint=createFrameCoalescer(()=>{if(!disposed&&!embedded)repaint();});
   const button=(label,handler,parent=bar)=>{const b=document.createElement('button');b.type='button';
     b.className='glass-button';b.textContent=label;b.addEventListener('click',handler);parent.append(b);return b;};
   button('Undo',()=>{scene={...scene,elements:scene.elements.slice(0,-1)};repaint();});
@@ -291,7 +315,7 @@ export function openSceneEditor(initial,{title='Drawing',onSave,notify=()=>{},me
       const {mountEmbeddedEditor}=await import('./excalidraw-island.js');
       if(disposed||!dialog.open)return;
       host=document.createElement('div');host.className='orbit-excalidraw-host';
-      surface.replaceChildren(host);
+      strokePaint.cancel();surface.replaceChildren(host);
       surface.classList.add('orbit-scene-surface--embedded');
       let latest={elements:initialData.elements,appState:initialData.appState,files:initialData.files};
       mounted=mountEmbeddedEditor(host,{
@@ -336,9 +360,9 @@ export function openSceneEditor(initial,{title='Drawing',onSave,notify=()=>{},me
     finally{saving=false;if(!disposed){saveDrawing.disabled=false;saveDrawing.textContent='Save drawing';}}
   },footer);
   panel.append(heading,help,bar,surface,file,footer);dialog.append(panel);document.body.append(dialog);
-  const point=e=>{const r=preview.getBoundingClientRect();return [
+  const point=(e,r=preview.getBoundingClientRect())=>[
     Math.max(0,Math.min(800,Math.round((e.clientX-r.left)*800/r.width))),
-    Math.max(0,Math.min(460,Math.round((e.clientY-r.top)*460/r.height)))];};
+    Math.max(0,Math.min(460,Math.round((e.clientY-r.top)*460/r.height)))];
   preview.addEventListener('pointerdown',e=>{
     if(e.button!==0)return;e.preventDefault();e.stopPropagation();preview.setPointerCapture(e.pointerId);
     const [x,y]=point(e);
@@ -346,17 +370,33 @@ export function openSceneEditor(initial,{title='Drawing',onSave,notify=()=>{},me
       x,y,width:0,height:0,angle:0,strokeColor:'#745943',backgroundColor:'transparent',
       fillStyle:'solid',strokeWidth:2,strokeStyle:'solid',roughness:0,opacity:100,seed:1,
       version:1,versionNonce:1,isDeleted:false,groupIds:[],points:[[0,0]],pressures:[],simulatePressure:false};
-    repaint();
+    strokePaint.flush();
   });
   preview.addEventListener('pointermove',e=>{
     if(!active||active.points.length>=2000)return;
-    const [x,y]=point(e);active.points.push([x-active.x,y-active.y]);
-    active.width=x-active.x;active.height=y-active.y;repaint();
+    const bounds=preview.getBoundingClientRect();
+    for(const sample of pointerSamples(e)){
+      if(active.points.length>=2000)break;
+      const [x,y]=point(sample,bounds);
+      active.points.push([x-active.x,y-active.y]);
+      active.width=x-active.x;active.height=y-active.y;
+    }
+    strokePaint.request();
   });
-  preview.addEventListener('pointerup',()=>{if(!active)return;
-    scene={...scene,elements:[...scene.elements,active]};active=null;repaint();});
-  preview.addEventListener('pointercancel',()=>{active=null;repaint();});
-  dialog.addEventListener('close',()=>{disposed=true;embedded?.dispose?.();embedded=null;dialog.remove();});
+  const finishStroke=event=>{if(!active)return;
+    // A release can arrive after the last pointermove; retain that final sample.
+    if(event?.type==='pointerup'&&active.points.length<2000){
+      const [x,y]=point(event),last=active.points.at(-1);
+      if(x-active.x!==last[0]||y-active.y!==last[1]){
+        active.points.push([x-active.x,y-active.y]);
+        active.width=x-active.x;active.height=y-active.y;
+      }
+    }
+    scene={...scene,elements:[...scene.elements,active]};active=null;strokePaint.flush();};
+  preview.addEventListener('pointerup',finishStroke);
+  preview.addEventListener('lostpointercapture',finishStroke);
+  preview.addEventListener('pointercancel',()=>{if(!active)return;active=null;strokePaint.flush();});
+  dialog.addEventListener('close',()=>{disposed=true;strokePaint.dispose();embedded?.dispose?.();embedded=null;dialog.remove();});
   dialog.showModal();repaint();
   // Lazy load on the user's explicit Draw/Edit canvas action, no second click.
   // If the official island cannot mount, preserve the original scene and leave
