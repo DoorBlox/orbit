@@ -855,7 +855,8 @@ function initKeyboard(){
   document.addEventListener('keydown',e=>{
     if(disposed||e.defaultPrevented)return;
     const isField=e.target instanceof HTMLElement&&(e.target.matches('input,textarea,select')||e.target.isContentEditable);
-    if((e.metaKey||e.ctrlKey)&&!e.shiftKey&&!e.altKey&&e.key.toLowerCase()==='k'&&!isField){
+    const hiddenJumpField=e.target?.classList?.contains('orbit-jump-input')&&!jump.isOpen;
+    if((e.metaKey||e.ctrlKey)&&!e.shiftKey&&!e.altKey&&e.key.toLowerCase()==='k'&&(!isField||hiddenJumpField)){
       e.preventDefault();jump.open();return;
     }
     if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='f'){e.preventDefault();switchCaptureMode('find');input.focus();return;}
