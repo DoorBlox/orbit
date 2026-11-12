@@ -17,6 +17,24 @@ const mimeFor=path=>MIME[path.split('.').at(-1).toLowerCase()];
 const imageError=()=>Error('Private image archive is incomplete or invalid.');
 const bytesLimit=()=>Error('Private images exceed the 64 MB / 96-image portable backup limit. Keep the legacy JSON as an additional recovery copy.');
 const textLimit=()=>Error('Portable backup exceeds the 96 MB import-file limit. Export was stopped to avoid an unusable recovery copy.');
+// Match File.size (UTF-8 bytes), not JavaScript UTF-16 code units. Encode in
+// bounded chunks rather than making a second full archive-sized byte buffer.
+function utf8ByteLength(value){
+  const encoder=new TextEncoder();
+  let bytes=0;
+  for(let start=0;start<value.length;){
+    let end=Math.min(start+32768,value.length);
+    // Keep a surrogate pair in the same chunk to match Blob's UTF-8 encoding.
+    if(end<value.length){
+      const high=value.charCodeAt(end-1),low=value.charCodeAt(end);
+      if(high>=0xd800&&high<=0xdbff&&low>=0xdc00&&low<=0xdfff)end--;
+    }
+    bytes+=encoder.encode(value.slice(start,end)).byteLength;
+    if(bytes>PORTABLE_MAX_TEXT_BYTES)return bytes;
+    start=end;
+  }
+  return bytes;
+}
 const toHex=bytes=>Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
 // Proof of review stays private to this module; callers cannot forge an
 // inspected archive or silently replace its bytes/snapshot between UI steps.
@@ -188,8 +206,8 @@ export async function createPortableArchive(snapshot,{ownerId:currentOwnerId,dow
   const clean=prepareSnapshot(snapshot,sanitizeHtml);
   // Check workspace text before fetching private images: the v1 importer has
   // a combined 96 MiB JSON text limit, not just an image count/byte budget.
-  const snapshotChars=JSON.stringify(clean).length;
-  if(snapshotChars>PORTABLE_MAX_TEXT_BYTES)throw textLimit();
+  const snapshotBytes=utf8ByteLength(JSON.stringify(clean));
+  if(snapshotBytes>PORTABLE_MAX_TEXT_BYTES)throw textLimit();
   const referenced=collectReferencedPaths(clean);
   // Bound raw selection work, but enforce the 96-image archive budget on
   // unique files after deduplication (including already referenced images).
@@ -218,18 +236,20 @@ export async function createPortableArchive(snapshot,{ownerId:currentOwnerId,dow
       ...(libraryOnlyPaths.length?{libraryOnlyPaths}:{})},
     snapshot:clean,assets};
   // Base64 uses only JSON-safe ASCII. Substitute empty data payloads and a
-  // null snapshot, then add their exact serialized lengths without allocating
+  // null snapshot, then add their exact UTF-8 byte lengths without allocating
   // another full Base64 archive string just to measure it.
   const skeleton={...archive,snapshot:null,assets:assets.map(asset=>({...asset,data:''}))};
-  const serializedChars=JSON.stringify(skeleton).length-4+snapshotChars+
+  const serializedBytes=utf8ByteLength(JSON.stringify(skeleton))-4+snapshotBytes+
     assets.reduce((size,asset)=>size+asset.data.length,0);
-  if(serializedChars>PORTABLE_MAX_TEXT_BYTES)throw textLimit();
+  if(serializedBytes>PORTABLE_MAX_TEXT_BYTES)throw textLimit();
   return archive;
 }
 
 /** Fully validate the archive before the first Storage upload or workspace change. */
 export async function inspectPortableArchive(input,{sanitizeHtml}={}){
-  if(typeof input==='string'&&input.length>PORTABLE_MAX_TEXT_BYTES)throw Error('Portable backup file is too large.');
+  if(typeof input==='string'&&
+     (input.length>PORTABLE_MAX_TEXT_BYTES||utf8ByteLength(input)>PORTABLE_MAX_TEXT_BYTES))
+    throw Error('Portable backup file is too large.');
   let value;
   try{value=typeof input==='string'?JSON.parse(input):input;}catch{throw Error('Invalid portable backup JSON.');}
   if(!object(value)||value.format!==FORMAT||value.version!==VERSION)throw Error('Unsupported ORBIT portable backup.');
