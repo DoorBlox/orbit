@@ -1,4 +1,4 @@
-import { normalizeExtensions, renderScene } from './scene.js';
+import { normalizeExtensions, renderScene, releaseScenePreview } from './scene.js';
 import { mountInlineCanvas } from './inline-canvas.js';
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
 const randomId=()=>('note_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8));
@@ -65,6 +65,7 @@ export class StickyNotes {
     this.world=world;this.readOnly=readOnly;this.onChange=onChange;this.getScale=getScale;this.media=media;
     this.notify=notify;this.disposed=false;this.notes=normalizeExtensions({notes}).notes;
     this.editingNoteId=null;this.activeCanvas=null;this.pendingCanvas=false;
+    this.imagePreviewLeases=new Set();this.drawingPreviews=new Set();
     this.layer=document.createElement('div');this.layer.id='sticky-layer';this.layer.className='sticky-layer';
     this.layer.setAttribute('aria-label','Floating sticky notes');world.append(this.layer);this.render();
   }
@@ -157,8 +158,15 @@ export class StickyNotes {
     target.addEventListener('lostpointercapture',endLost);
     try{target.setPointerCapture?.(pointer);}catch{}
   }
+  releasePreviews(){
+    for(const target of this.drawingPreviews)releaseScenePreview(target);
+    this.drawingPreviews.clear();
+    for(const lease of this.imagePreviewLeases)lease.release();
+    this.imagePreviewLeases.clear();
+  }
   render(){
     this.activeCanvas?.dispose();this.activeCanvas=null;
+    this.releasePreviews();
     this.layer.replaceChildren();
     for(const n of this.notes){
       const article=document.createElement('article');article.className='sticky-note sticky-'+n.color;
@@ -280,7 +288,7 @@ export class StickyNotes {
       formatBar.append(done);
       const preview=document.createElement('div');preview.className='sticky-drawing';
       preview.setAttribute('aria-label','Freeform note canvas');
-      renderScene(n.scene,preview,{media:this.media});
+      renderScene(n.scene,preview,{media:this.media});this.drawingPreviews.add(preview);
       if(mode==='canvas'&&(!n.scene||!n.scene.elements?.some(e=>!e.isDeleted))){
         const empty=document.createElement('p');empty.className='sticky-canvas-empty';
         empty.textContent='Your canvas is ready for text, arrows, shapes and sketches.';
@@ -299,9 +307,14 @@ export class StickyNotes {
         const requested=n.imagePath;
         const status=document.createElement('span');status.className='sticky-image-status';
         status.textContent='Loading private image…';
-        const load=this.media.previewUrl?this.media.previewUrl.bind(this.media):this.media.signedUrl.bind(this.media);
-        load(requested).then(url=>{
-          if(!this.disposed&&image.isConnected&&n.imagePath===requested)image.src=url;
+        const load=this.media.acquirePreview?
+          this.media.acquirePreview.bind(this.media):
+          path=>(this.media.previewUrl?this.media.previewUrl(path):this.media.signedUrl(path))
+            .then(url=>({url,release(){}}));
+        load(requested).then(lease=>{
+          if(!this.disposed&&image.isConnected&&n.imagePath===requested){
+            this.imagePreviewLeases.add(lease);image.src=lease.url;
+          }else lease.release();
         }).catch(()=>{if(status.isConnected)status.textContent='Private image unavailable. Try reconnecting.';});
         image.addEventListener('load',()=>{status.hidden=true;});
         image.addEventListener('error',()=>{image.hidden=true;status.textContent='Private image could not be displayed.';});
@@ -415,5 +428,5 @@ export class StickyNotes {
     }
   }
   dispose(){this.disposed=true;this.activeCanvas?.dispose();this.activeCanvas=null;
-    this.layer.remove();this.notes=[];}
+    this.releasePreviews();this.layer.remove();this.notes=[];}
 }
