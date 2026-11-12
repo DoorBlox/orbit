@@ -25,7 +25,8 @@ test('BP-14 escapes injection and folds by UTF-8 octets',()=>{
   const {content}=exportTasksIcs([payload]);
   assert.equal((content.match(/^BEGIN:VEVENT\r?$/gm)||[]).length,1);
   for(const line of content.split('\r\n'))assert.ok(Buffer.byteLength(line,'utf8')<=75);
-  assert.ok(content.includes('\\nBEGIN:VEVENT'));
+  // Unfold first: RFC 5545 may wrap the escaped newline sequence physically.
+  assert.ok(content.replace(/\r\n /g,'').includes('\\nBEGIN:VEVENT'));
 });
 test('BP-14 supports leap day and year rollover, rejects an invalid timestamp',()=>{
   const a=exportTasksIcs([{...base,dueDate:'2024-02-29'}]).content;
