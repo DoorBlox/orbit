@@ -152,7 +152,7 @@
       "reason": "Preserve task/timeline projection over canonical owner snapshots and read-only controls."
     },
     "src/quick-jump.js": {
-      "sha256": "9714613620ae850c64f7d10c0a7ef574cf44cf57d229e5338850574244a32d69",
+      "sha256": "52d9592e71edeb700b70bec3b79d792620d36a172af14f80ad79935c95f7a23e",
       "reason": "BR-01: locally indexed, keyboard-accessible private spatial Jump controller; no network, DOM injection or persisted search cache."
     }
   }
