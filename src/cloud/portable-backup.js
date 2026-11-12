@@ -17,10 +17,20 @@ const mimeFor=path=>MIME[path.split('.').at(-1).toLowerCase()];
 const imageError=()=>Error('Private image archive is incomplete or invalid.');
 const bytesLimit=()=>Error('Private images exceed the 64 MB / 96-image portable backup limit. Keep the legacy JSON as an additional recovery copy.');
 const toHex=bytes=>Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
+// Proof of review stays private to this module; callers cannot forge an
+// inspected archive or silently replace its bytes/snapshot between UI steps.
+const reviewedArchives=new WeakMap();
 
 async function sha256(bytes){
   if(!globalThis.crypto?.subtle)throw Error('Secure browser crypto is needed to verify image backups.');
   return toHex(new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256',bytes)));
+}
+
+async function snapshotFingerprint(snapshot){
+  let serialized;
+  try{serialized=JSON.stringify(snapshot);}catch{throw imageError();}
+  if(typeof serialized!=='string')throw imageError();
+  return sha256(new TextEncoder().encode(serialized));
 }
 
 function encodeBase64(bytes){
@@ -229,6 +239,9 @@ export async function inspectPortableArchive(input,{sanitizeHtml}={}){
        (owner&&!validMediaOwner(path,owner)))throw imageError();
   }
   const expected=[...referenced,...extras].sort();
+  // A portable private archive describes exactly ONE source account, even
+  // when image bytes/checksums and the object-path manifest agree.
+  if(expected.some(path=>!validMediaOwner(path,owner)))throw imageError();
   if(expected.length>PORTABLE_MAX_IMAGES||expected.length!==value.assets.length)
     throw imageError();
   const files=[];let totalBytes=0;
@@ -247,8 +260,16 @@ export async function inspectPortableArchive(input,{sanitizeHtml}={}){
     files.push({path,blob});
   }
   if(totalBytes!==value.manifest.totalBytes)throw imageError();
-  return {snapshot,files,manifest:{assetCount:files.length,totalBytes,
+  const inspection={snapshot,files,manifest:{assetCount:files.length,totalBytes,
     ...(extras.length?{libraryOnlyPaths:[...extras]}:{})}};
+  // The seal is in memory only; it is NOT a signature of the user's .orbit
+  // file and does not alter the version-1 archive or serialized backup.
+  reviewedArchives.set(inspection,{
+    fingerprint:await snapshotFingerprint(snapshot),
+    assets:value.assets.map(({path,mime,size,sha256})=>({path,mime,size,sha256})),
+    libraryOnlyPaths:[...extras],totalBytes
+  });
+  return inspection;
 }
 
 /** Stage private uploads into NEW owner-scoped paths; no snapshot replacement occurs here.
@@ -256,17 +277,47 @@ export async function inspectPortableArchive(input,{sanitizeHtml}={}){
  */
 export async function rehydratePortableArchive(inspection,{ownerId:targetOwnerId,upload}={}){
   if(!object(inspection)||!object(inspection.snapshot)||!Array.isArray(inspection.files)||
-     typeof upload!=='function'||typeof targetOwnerId!=='string')
+     typeof upload!=='function'||typeof targetOwnerId!=='string'||!targetOwnerId)
     throw Error('Reviewed backup and authenticated target are required.');
+  const reviewed=reviewedArchives.get(inspection);
+  if(!reviewed)throw Error('Review the complete private backup before restoring.');
+  if(!object(inspection.manifest)||inspection.files.length!==reviewed.assets.length||
+     inspection.manifest.assetCount!==reviewed.assets.length||
+     inspection.manifest.totalBytes!==reviewed.totalBytes||
+     JSON.stringify(inspection.manifest.libraryOnlyPaths??[])!==JSON.stringify(reviewed.libraryOnlyPaths))
+    throw imageError();
+  // Make a stable private copy before the first asynchronous upload. A user
+  // editing a reviewed draft during upload cannot mutate the restored result.
+  let restored;
+  try{restored=structuredClone(inspection.snapshot);}catch{throw imageError();}
+  if(await snapshotFingerprint(restored)!==reviewed.fingerprint)
+    throw Error('Reviewed private backup changed. Review the file again.');
+  const expected=[...new Set([...collectReferencedPaths(restored),...reviewed.libraryOnlyPaths])].sort();
+  if(expected.length!==reviewed.assets.length||
+     expected.some((path,i)=>path!==reviewed.assets[i].path))throw imageError();
+
+  // All media bytes and graph references are verified before any Storage
+  // mutation, not lazily after partially uploading a malformed archive.
+  const staged=[];
+  for(let i=0;i<reviewed.assets.length;i++){
+    const file=inspection.files[i],expectedFile=reviewed.assets[i];
+    if(!object(file)||file.path!==expectedFile.path||!(file.blob instanceof Blob)||
+       file.blob.type!==expectedFile.mime||file.blob.size!==expectedFile.size)
+      throw imageError();
+    const blob=await validatedBlob(file.blob,file.path);
+    const bytes=new Uint8Array(await blob.arrayBuffer());
+    if(await sha256(bytes)!==expectedFile.sha256)
+      throw Error('Private image checksum mismatch. Review the backup again.');
+    staged.push({path:expectedFile.path,blob});
+  }
+
   const remap=new Map(),created=new Set();
-  for(const {path,blob} of inspection.files){
-    if(!validMediaPath(path)||!(blob instanceof Blob))throw imageError();
+  for(const {path,blob} of staged){
     const newPath=await upload(blob);
     if(!validMediaOwner(newPath,targetOwnerId)||mimeFor(newPath)!==mimeFor(path)||
        created.has(newPath))throw Error('Uploaded image does not belong to the current account.');
     created.add(newPath);remap.set(path,newPath);
   }
-  const restored=structuredClone(inspection.snapshot);
   if(restored.extensions){
     for(const note of restored.extensions.notes??[]){
       if(note.imagePath){
