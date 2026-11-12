@@ -12,8 +12,8 @@
       "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service."
     },
     "src/app.js": {
-      "sha256": "6cae0474771280d89c45b1ed5e52e709af3b2fe3dc8cffefd1cce5875c33ee1e",
-      "reason": "BR-01: integrate spatial Jump across private tasks, branches, notes, journals and windows without changing saved layout or cloud schema."
+      "sha256": "1522d407e2426ee644debb4d1c8d7e1b5f22452b4fa6c10f33e376764f15edfe",
+      "reason": "W3 FO-01: mount an eighth optional Focus spatial window with Space navigation, scoped recovery and safe teardown, preserving the six original widget geometry entries."
     },
     "src/auth/controller.js": {
       "sha256": "af8cde170ef58e61df8c464ee34249df4267812991392a95dae5c4d69f47ba20",
@@ -140,8 +140,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "8160b9b63d2a9b020035e502d2b2d688b9a36cfd8499a73bfea025e0eabfed31",
-      "reason": "W3 BP-12/EX-02: auth-scoped owner-private gallery with release-safe leased previews, opt-in detached media export, keyboard/mobile and fail-closed behavior."
+      "sha256": "383a1d9ab56ec550d5b71e7d3c055e96e13293366ecc4ea3bf2203cd21bfabf0",
+      "reason": "W3 FO-01: theme-compatible Focus window typography, contrast, touch targets, progress and reduced-motion styling."
     },
     "src/widget-registry.js": {
       "sha256": "097767f8dd9c6c1e94504ec571c29ca2f1d0684955d2f8c87231d15db1a427f0",
@@ -154,6 +154,10 @@
     "src/quick-jump.js": {
       "sha256": "52d9592e71edeb700b70bec3b79d792620d36a172af14f80ad79935c95f7a23e",
       "reason": "BR-01: locally indexed, keyboard-accessible private spatial Jump controller; no network, DOM injection or persisted search cache."
+    },
+    "src/focus.js": {
+      "sha256": "b529d6b462490d23e3fc1df34556626900376b604de26c1c7f3a1b8a5d7178b0",
+      "reason": "W3 FO-01: private session-scoped monotonic Focus clock and accessible first-party timer, no tick-driven cloud writes, bounded wall-clock resume and account cleanup."
     }
   }
 }
