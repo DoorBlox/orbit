@@ -95,10 +95,17 @@ export function createCloudRepository(client, { sanitizeHtml, ownerId } = {}) {
     return {p_kind:kind,p_source_id:sourceId,p_excerpt:excerpt,p_publication_date:publicationDate};
   }
   return {
-    async loadOwnerSnapshot({ signal } = {}) {
+    async loadOwnerSnapshot({ signal, knownRevision } = {}) {
+      if (knownRevision !== undefined && !validRevision(knownRevision)) throw new CloudError('VALIDATION');
       await verifyOwner(signal);
       const data = await execute(() => client.rpc('load_owner_snapshot'),signal);
-      if (!object(data) || !validRevision(data.revision)) throw new CloudError('INVALID_RESPONSE');
+      if (!object(data) || !validRevision(data.revision) || !object(data.snapshot)) throw new CloudError('INVALID_RESPONSE');
+      // Existing hosted RPC always transfers the full JSON. When an already
+      // validated owner session has this exact revision, its bytes will not be
+      // displayed. Avoid a second full HTML sanitization/model reconstruction.
+      // A changed revision, initial mount, and explicit discard-reload still
+      // take the complete fail-closed validator path below.
+      if (knownRevision === data.revision) return {revision:data.revision,unchanged:true};
       try { return {revision:data.revision,snapshot:normalizeSnapshot(data.snapshot)}; }
       catch { throw new CloudError('INVALID_RESPONSE'); }
     },
