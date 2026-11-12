@@ -52,8 +52,8 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "src/cloud/media.js": {
-      "sha256": "cda3cf728e6682ca29e9ce4ab00d83de94039c2c49efce2acd5d4505e176f24a",
-      "reason": "BP-12: normalize null/undefined resolved private Storage download and signed URL responses, retaining independently retryable authenticated sessions."
+      "sha256": "afa9118dce897407ee01208e04d8ffedc3ca167c019044db0ebeaf4a69de26bb",
+      "reason": "BP-12: bounded owner-private read-only usage summary deduplicates paginated files; reports exact bytes only on complete consistent size data, fails closed on auth/errors."
     },
     "src/cloud/owner-tools.js": {
       "sha256": "f994bcae3ddf3e7413f2cb5cd7569d08c4f4fe0c525a00a5d418f9b74270271e",
