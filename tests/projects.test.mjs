@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {normalizeProjects,setBranchProject,validateProjectBranches,summarizeProjectPortfolio} from '../src/projects.js';
+import {normalizeProjects,setBranchProject,validateProjectBranches,summarizeProjectPortfolio,filterProjectPortfolio} from '../src/projects.js';
 import {removeBranchPreservingContents} from '../src/data.js';
 
 const branches=()=>[
@@ -196,4 +196,52 @@ test('PJ-03 project milestone IDs, dates and fields are bounded and validated',(
     [{id:'same',title:'First',targetDate:'',done:false},{id:'same',title:'Second',targetDate:'',done:false}]
   ];
   for(const item of wrong)assert.throws(()=>normalizeProjects({research:{milestones:item}}));
+});
+
+
+test('PJ-03 qualitative project health is owner-selected, never task-derived',()=>{
+  const active={research:{description:'Private plan',status:'active',links:[],
+    health:'needs-attention'}};
+  const normalized=normalizeProjects(active);
+  assert.deepEqual(normalized,active);
+  const [project]=summarizeProjectPortfolio(normalized,branches(),tasks()).projects;
+  assert.equal(project.health,'needs-attention');
+  assert.equal(project.progress,0,'Health must not change task completion');
+  assert.deepEqual(normalizeProjects({research:{health:''}}),
+    {research:{description:'',status:'active',links:[]}});
+  assert.equal(summarizeProjectPortfolio({research:{}},branches(),tasks()).projects[0].health,'');
+  for(const health of ['green','published',null,1,{},['blocked']]){
+    assert.throws(()=>normalizeProjects({research:{health}}));
+  }
+});
+
+test('PJ-03 local project finder filters by status and diacritic-insensitive text',()=>{
+  const rows=[
+    {id:'research',label:'Éducation lab',path:'Root / Research',status:'active',
+      health:'needs-attention',description:'Private study',goal:'Validate samples',
+      nextAction:'Review protocol',blockers:'',links:[{label:'Lab dossier',url:'https://example.org/'}],
+      milestones:[{id:'ms1',title:'First assay',targetDate:'',done:false}]},
+    {id:'writing',label:'Essay',path:'Root / Writing',status:'paused',
+      health:'',description:'Draft work',goal:'Publish a new text',nextAction:'',blockers:'',
+      links:[],milestones:[]},
+    {id:'finished',label:'Archive',path:'Root / Archive',status:'completed',
+      health:'on-track',description:'Historic work',goal:'',nextAction:'',blockers:'',
+      links:[],milestones:[]},
+  ];
+  const original=structuredClone(rows);
+  const ids=(query,status='all')=>filterProjectPortfolio(rows,{query,status}).map(item=>item.id);
+  assert.deepEqual(ids(''),['research','writing','finished']);
+  assert.deepEqual(ids('education'),['research']);
+  assert.deepEqual(ids('protocol validate'),['research']);
+  assert.deepEqual(ids('lab dossier'),['research']);
+  assert.deepEqual(ids('first assay'),['research']);
+  assert.deepEqual(ids('blocked'),[],'Unassessed or needs-attention health is not guessed as blocked');
+  assert.deepEqual(ids('needs-attention'),['research']);
+  assert.deepEqual(ids('', 'paused'),['writing']);
+  assert.deepEqual(ids('essay','active'),[]);
+  assert.deepEqual(ids('ARCHIVE','completed'),['finished']);
+  assert.deepEqual(rows,original,'Filtering must not mutate private records');
+  assert.throws(()=>filterProjectPortfolio(rows,{status:'published'}));
+  assert.throws(()=>filterProjectPortfolio(null,{query:'a'}));
+  assert.throws(()=>filterProjectPortfolio(rows,{query:{text:'a'}}));
 });

@@ -123,6 +123,44 @@ def run_projects_shelf(browser,open_page,reload_page,out):
         assert len(totals['branchIds'])>2 and len(totals['taskIds'])>2
         result['nestedCounts']=True
 
+        # PJ-03: owner-selected health is not inferred from task progress.
+        research=page.locator('.project-card[data-project-id="research"]')
+        researcher=page.locator('.project-card[data-project-id="researcher"]')
+        research.get_by_role('combobox',name='Health for Research').select_option('needs-attention')
+        assert page.evaluate("""() => JSON.parse(localStorage.getItem(
+          'orbit.v8.extensions')).projects.research.health""")=='needs-attention'
+        assert research.locator('.project-progress').inner_text()==progress_before
+
+        status_filter=page.get_by_role('combobox',name='Filter projects by status')
+        finder=page.get_by_role('searchbox',name='Search private projects')
+        status_filter.select_option('paused')
+        expect(research).to_be_visible()
+        expect(researcher).to_be_hidden()
+        assert 'Showing 1 of 2' in page.locator('.projects-filter-count').inner_text()
+        finder.fill('no such project')
+        expect(page.locator('.projects-no-matches')).to_be_visible()
+        finder.fill('')
+        status_filter.select_option('all')
+        expect(researcher).to_be_visible()
+        finder.fill('prepare a validated model')
+        expect(research).to_be_visible()
+        expect(researcher).to_be_hidden()
+        finder.fill('')
+        expect(researcher).to_be_visible()
+        # Transient filter switches hide DOM cards instead of rebuilding them;
+        # unfinished project edits must still be there when the filter clears.
+        research.get_by_role('button',name='Edit milestones for Research').click()
+        research.get_by_label('Milestone 1 title for Research').fill('Not yet saved')
+        finder.fill('no match here')
+        expect(research).to_be_hidden()
+        finder.fill('')
+        expect(research).to_be_visible()
+        expect(research.get_by_label('Milestone 1 title for Research')).to_have_value('Not yet saved')
+        research.get_by_role('button',name='Cancel milestone edits').click()
+        assert 'Prototype verified' in research.locator('.project-milestone-item').inner_text()
+        assert page.evaluate('() => window.orbitDebug.board.getLayout()')==original
+        result['finderHealth']=True
+
         page.locator('.project-card[data-project-id="researcher"]').get_by_role(
             'button',name='Open Research practice branch').click()
         assert page.evaluate("() => window.orbitDebug.scene.focusedNode")=='researcher'
@@ -143,6 +181,8 @@ def run_projects_shelf(browser,open_page,reload_page,out):
         restored_milestones=page.evaluate("""() => JSON.parse(localStorage.getItem(
           'orbit.v8.extensions')).projects.research.milestones""")
         assert restored_milestones==stored_milestones
+        assert page.evaluate("""() => JSON.parse(localStorage.getItem(
+          'orbit.v8.extensions')).projects.research.health""")=='needs-attention'
         assert 'Await lab approval' in page.locator(
             '.project-card[data-project-id="research"]').inner_text()
         assert page.evaluate('() => window.orbitDebug.board.getLayout()')==original
