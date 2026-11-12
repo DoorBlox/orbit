@@ -53,7 +53,7 @@ function validateRow(row,id){
 }
 function secureStat(stat,kind){
   if((kind==='directory'?!stat.isDirectory():!stat.isFile())||
-    (stat.mode&0o077)!==0||stat.nlink!==1||
+    (stat.mode&0o077)!==0||(kind!=='directory'&&stat.nlink!==1)||
     (typeof process.getuid==='function'&&stat.uid!==process.getuid()))denied();
 }
 function plus(epoch){
