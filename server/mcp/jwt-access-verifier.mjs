@@ -86,7 +86,7 @@ export function createMcpJwtAccessVerifier({issuer,resource,loadJwks,isRevoked,h
         !['at+jwt','application/at+jwt'].includes(header.typ)||
         !kidPattern.test(header.kid||''))denied();
       const signature=fromB64(parts[2],1024);
-      const jwks=await loadJwks({issuer});
+      const jwks=await loadJwks({issuer,kid:header.kid});
       const publicKey=resolveIssuerPublicKey(jwks,header.kid);
       if(!verifySignature('RSA-SHA256',Buffer.from(parts[0]+'.'+parts[1],'ascii'),
         {key:publicKey,padding:constants.RSA_PKCS1_PADDING},signature))denied();
