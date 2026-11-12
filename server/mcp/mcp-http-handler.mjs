@@ -80,13 +80,13 @@ export function createMcpHttpResponseHandler({
         let result;
         if(accepted.method==='server/discover'){
           result={resultType:'complete',supportedVersions:[VERSION],
-            capabilities:{tools:{}},
+            capabilities:{tools:{}},ttlMs:0,cacheScope:'private',
             _meta:{'io.modelcontextprotocol/serverInfo':
               {name:'orbit-readonly',version:'0.1.0'}},
             instructions:'Owner-private ORBIT tasks and spatial branches. Read-only.',
           };
         }else if(accepted.method==='tools/list'){
-          result={resultType:'complete',tools};
+          result={resultType:'complete',tools,ttlMs:0,cacheScope:'private'};
         }else if(accepted.method==='tools/call'){
           const value=await admission.invoke(raw);
           result={resultType:'complete',
