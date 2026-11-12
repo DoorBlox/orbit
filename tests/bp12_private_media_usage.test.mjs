@@ -28,7 +28,7 @@ function fakeMedia(list,getUser=async()=>OWNER){
 test('BP-12: read-only usage reports known bytes, unknown sizes and deduplicates owner files across pages',async()=>{
   const pages=new Map([
     [0,[item(FILE_A,100),item('../../foreign.png',500),item(FILE_B)]],
-    [3,[item(FILE_A,99999),item(FILE_C,200)]]
+    [3,[item(FILE_A,100),item(FILE_C,200)]]
   ]);
   const {service,calls}=fakeMedia(async(_,opts)=>({data:pages.get(opts.offset)??[],error:null}));
   try{
@@ -110,4 +110,14 @@ test('BP-12: invalid scan budgets and foreign-owner inventory rows are rejected'
   }],nextOffset:1,hasMore:false})};
   await assert.rejects(mediaModule.summarizePrivateMediaUsage(fake,{pageSize:1}),
     /owner|private|account|invalid/i);
+});
+
+test('BP-12: conflicting metadata for a repeated path cannot produce an exact total',async()=>{
+  const {service}=fakeMedia(async(_,opts)=>({data:opts.offset===0
+    ?[item(FILE_A,12)]:[item(FILE_A,99)],error:null}));
+  try{
+    const usage=await mediaModule.summarizePrivateMediaUsage(service,{pageSize:1,maxPages:2});
+    assert.deepEqual(usage,{files:1,knownBytes:12,unknownSizeFiles:0,
+      complete:false,totalBytes:null});
+  }finally{service.dispose();}
 });
