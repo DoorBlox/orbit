@@ -39,10 +39,21 @@ def assert_tab_stays_modal(page, dialog):
     # Real keyboard Tab/Shift+Tab must not reach the spatial canvas behind modal.
     for key in ['Tab'] * 8 + ['Shift+Tab'] * 8:
         page.keyboard.press(key)
-        assert page.evaluate('''() => {
+        evidence = page.evaluate('''() => {
           const dialog = document.querySelector('#orbit-jump-dialog');
-          return dialog.open && dialog.contains(document.activeElement);
-        }'''), f'Modal focus escaped into background after {key}'
+          const active = document.activeElement;
+          return {
+            inside: Boolean(dialog?.open && dialog.matches(':modal') &&
+              (active === dialog || dialog.contains(active))),
+            activeTag: active?.tagName || null,
+            activeId: active?.id || null,
+            dialogOpen: Boolean(dialog?.open),
+            nativeModal: Boolean(dialog?.matches(':modal')),
+          };
+        }''')
+        assert evidence['inside'], (
+            f'Modal focus escaped after {key}: {evidence}'
+        )
     # Restore input without invoking a non-keyboard activation.
     page.get_by_role('combobox', name='Search your private space').focus()
     expect(dialog).to_be_visible()
