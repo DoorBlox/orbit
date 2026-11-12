@@ -209,7 +209,8 @@ export function createDisposableGrantLedger({directory,macKey,clock=Date.now}={}
       if(Object.hasOwn(row.revokedTokens,id.tokenId))
         return {changed:false,value:true};
       if(Object.keys(row.revokedTokens).length>=MAX_SPENT)denied();
-      row.revokedTokens[id.tokenId]=sec;
+      Object.defineProperty(row.revokedTokens,id.tokenId,
+        {value:sec,enumerable:true,configurable:true,writable:true});
       return {changed:true,value:true};
     });
   }
@@ -225,15 +226,16 @@ export function createDisposableGrantLedger({directory,macKey,clock=Date.now}={}
         scopes:['tasks:read'],status:row.status,
         grantedAt:row.grantedAt,consentExpiresAt:row.expiresAt,
         consentRevokedAt:row.revokedAt,
-        tokenRevokedAt:row.revokedTokens[id.tokenId]??null,
+        tokenRevokedAt:Object.hasOwn(row.revokedTokens,id.tokenId)
+          ?row.revokedTokens[id.tokenId]:null,
       })};
     });
   }
   async function issueRefresh(id){
     identity(id);
-    const ms=now();
     const token=randomBytes(32).toString('base64url');
     return transact(state=>{
+      const ms=now();
       const {row}=get(state,id);
       if(!row||row.status!=='active'||row.expiresAt<=Math.floor(ms/1000)||
         (row.currentRefresh&&row.currentRefresh.expiresAt>ms))denied();
@@ -244,9 +246,10 @@ export function createDisposableGrantLedger({directory,macKey,clock=Date.now}={}
   async function rotateRefresh(id){
     identity(id);
     if(!refreshToken.test(id.refreshToken||''))denied();
-    const ms=now(),digest=hash(id.refreshToken);
+    const digest=hash(id.refreshToken);
     const next=randomBytes(32).toString('base64url');
     const result=await transact(state=>{
+      const ms=now();
       const {row}=get(state,id);
       if(!row)return {changed:false,value:null};
       if(Object.hasOwn(row.spent,digest)){
