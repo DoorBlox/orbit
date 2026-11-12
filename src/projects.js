@@ -37,7 +37,7 @@ export function normalizeProjects(raw={}){
     });
     // PJ-03: project milestones are private, finite metadata rather than
     // timeline/global milestones or task records. Preserve IDs across edits.
-    const rawMilestones=entry.milestones??[];
+    const rawMilestones=entry.milestones===undefined?[]:entry.milestones;
     if(!Array.isArray(rawMilestones)||rawMilestones.length>12)
       throw Error('Invalid private project milestones.');
     const milestoneIds=new Set();
