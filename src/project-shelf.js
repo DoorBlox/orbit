@@ -127,6 +127,42 @@ export class ProjectsShelf {
     }else progress.append(node('span','project-progress-label','No tasks to measure yet'));
     card.append(progress);
 
+    if(project.milestones.length){
+      const checklist=node('section','project-milestones');
+      checklist.setAttribute('aria-label','Milestones for '+project.label);
+      const heading=node('div','project-milestones-heading');
+      heading.append(node('h4','','Milestones'),
+        node('span','',project.milestoneStats.done+' of '+project.milestoneStats.total+' done'));
+      checklist.append(heading);
+      for(const milestone of project.milestones){
+        const row=node('label','project-milestone');
+        if(milestone.done)row.classList.add('is-done');
+        row.dataset.milestoneId=milestone.id;
+        const checkbox=node('input','project-milestone-toggle');
+        checkbox.type='checkbox';checkbox.checked=milestone.done;checkbox.disabled=this.readOnly;
+        checkbox.setAttribute('aria-label','Completed: '+milestone.title);
+        checkbox.addEventListener('change',()=>{
+          const before=milestone.done;
+          const updated=project.milestones.map(entry=>
+            entry.id===milestone.id?{...entry,done:checkbox.checked}:entry);
+          if(this.onUpdate(project.id,{milestones:updated})===false){
+            checkbox.checked=before;return;
+          }
+          requestAnimationFrame(()=>{
+            const card=[...this.list.querySelectorAll('.project-card')].find(el=>el.dataset.projectId===project.id);
+            const target=[...card?.querySelectorAll('.project-milestone')||[]]
+              .find(el=>el.dataset.milestoneId===milestone.id)?.querySelector('input');
+            target?.focus({preventScroll:true});
+          });
+        });
+        const title=node('span','project-milestone-name',milestone.title);
+        row.append(checkbox,title);
+        if(milestone.dueDate)row.append(node('time','project-milestone-date',milestone.dueDate));
+        checklist.append(row);
+      }
+      card.append(checklist);
+    }
+
     const details=node('div','project-detail-row');
     const description=node('p','project-description',project.description||'No description yet.');
     const brief=node('dl','project-brief');
@@ -200,7 +236,111 @@ export class ProjectsShelf {
       const anchor=node('a','project-link',link.label);anchor.href=link.url;
       anchor.target='_blank';anchor.rel='noopener noreferrer';bottom.append(anchor);
     }
-    card.append(bottom);return card;
+    card.append(bottom);
+    if(!this.readOnly)card.append(this.buildPlanEditor(project));
+    return card;
+  }
+  /** Edit private milestones and resource links without mutating live data until Save. */
+  buildPlanEditor(project){
+    const surface=node('div','project-plan-tools');
+    const edit=node('button','project-plan-edit','Plan milestones & links');
+    edit.type='button';edit.setAttribute('aria-label','Edit milestones and resource links for '+project.label);
+    surface.append(edit);
+    edit.addEventListener('click',()=>{
+      const form=node('form','project-plan-form');
+      const intro=node('p','project-plan-intro',
+        'Private project plan. Milestones are tracked separately from completed tasks.');
+      const heading=node('h4','','Milestones');
+      const milestoneList=node('div','project-plan-list');
+      const linksTitle=node('h4','','Resource links');
+      const linkList=node('div','project-plan-list');
+      const error=node('p','project-plan-error');error.setAttribute('role','alert');
+      const controls=node('div','project-edit-actions');
+      const addMilestone=node('button','project-plan-add','+ milestone');addMilestone.type='button';
+      const addLink=node('button','project-plan-add','+ link');addLink.type='button';
+      const save=node('button','project-save','Save project plan');save.type='submit';
+      const cancel=node('button','project-cancel','Cancel');cancel.type='button';
+      const field=(label,value,{type='text',maxLength,required=false}={})=>{
+        const wrapper=node('label','project-plan-field',label);
+        const input=node('input','project-plan-input');
+        input.type=type;input.value=value||'';input.required=required;
+        if(maxLength)input.maxLength=maxLength;
+        input.setAttribute('aria-label',label+' for '+project.label);
+        wrapper.append(input);return {wrapper,input};
+      };
+      const milestoneRow=milestone=>{
+        const row=node('div','project-plan-row');row.dataset.milestoneId=milestone.id;
+        const title=field('Milestone name',milestone.title,{maxLength:120,required:true});
+        title.input.dataset.field='title';
+        const due=field('Due date',milestone.dueDate,{type:'date'});
+        due.input.dataset.field='dueDate';
+        const done=field('Finished','',{type:'checkbox'});
+        done.input.dataset.field='done';done.input.checked=!!milestone.done;
+        const remove=node('button','project-plan-remove','Remove');remove.type='button';
+        remove.setAttribute('aria-label','Remove milestone '+(milestone.title||'new draft'));
+        remove.addEventListener('click',()=>{row.remove();error.textContent='';});
+        row.append(title.wrapper,due.wrapper,done.wrapper,remove);
+        return row;
+      };
+      const linkRow=link=>{
+        const row=node('div','project-plan-row project-plan-link-row');
+        const label=field('Link label',link.label,{maxLength:120,required:true});
+        label.input.dataset.field='label';
+        const url=field('Link URL',link.url,{type:'url',maxLength:1000,required:true});
+        url.input.dataset.field='url';
+        const remove=node('button','project-plan-remove','Remove');remove.type='button';
+        remove.setAttribute('aria-label','Remove link '+(link.label||'new draft'));
+        remove.addEventListener('click',()=>{row.remove();error.textContent='';});
+        row.append(label.wrapper,url.wrapper,remove);
+        return row;
+      };
+      for(const milestone of project.milestones)milestoneList.append(milestoneRow(milestone));
+      for(const link of project.links)linkList.append(linkRow(link));
+      addMilestone.addEventListener('click',()=>{
+        if(milestoneList.children.length>=20){
+          error.textContent='A project can have at most 20 milestones.';return;
+        }
+        const id='milestone_'+globalThis.crypto.randomUUID().replace(/-/g,'');
+        const row=milestoneRow({id,title:'',dueDate:'',done:false});
+        milestoneList.append(row);row.querySelector('[data-field=title]').focus();
+      });
+      addLink.addEventListener('click',()=>{
+        if(linkList.children.length>=12){
+          error.textContent='A project can have at most 12 resource links.';return;
+        }
+        const row=linkRow({label:'',url:''});
+        linkList.append(row);row.querySelector('[data-field=label]').focus();
+      });
+      form.addEventListener('submit',event=>{
+        event.preventDefault();error.textContent='';
+        const milestones=[...milestoneList.children].map(row=>({
+          id:row.dataset.milestoneId,
+          title:row.querySelector('[data-field=title]').value.trim(),
+          dueDate:row.querySelector('[data-field=dueDate]').value,
+          done:row.querySelector('[data-field=done]').checked,
+        }));
+        const links=[...linkList.children].map(row=>({
+          label:row.querySelector('[data-field=label]').value.trim(),
+          url:row.querySelector('[data-field=url]').value.trim()
+        }));
+        if(this.onUpdate(project.id,{milestones,links})===false){
+          error.textContent='Plan not saved. Check the date, title and link URL.';
+          return;
+        }
+        requestAnimationFrame(()=>{
+          [...this.list.querySelectorAll('.project-card')].find(el=>el.dataset.projectId===project.id)
+            ?.querySelector('.project-plan-edit')?.focus({preventScroll:true});
+        });
+      });
+      cancel.addEventListener('click',()=>{
+        surface.replaceChildren(edit);edit.focus({preventScroll:true});
+      });
+      controls.append(save,cancel);
+      form.append(intro,heading,milestoneList,addMilestone,linksTitle,linkList,addLink,error,controls);
+      surface.replaceChildren(form);
+      const first=form.querySelector('input');first?.focus({preventScroll:true});
+    });
+    return surface;
   }
   dispose(){this.element.remove();}
 }
