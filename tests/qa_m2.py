@@ -30,6 +30,8 @@ LOCAL_SECRET='SYNTHETIC LOCAL PRIVATE NEVER UPLOAD'
 OWNER_SECRET='SYNTHETIC OWNER PRIVATE CLOUD'
 PUBLIC_TEXT='Explicitly published synthetic task'
 OWNER_ID='11111111-1111-4111-8111-111111111111'
+MEDIA_REF=OWNER_ID+'/22222222-2222-4222-8222-222222222222.png'
+MEDIA_DETACHED=OWNER_ID+'/33333333-3333-4333-8333-333333333333.png'
 STAMP='2026-11-01T12:00:00Z'
 OWNER_SNAPSHOT={
     'branches':[{'id':'inbox','parentId':'root','label':'Unsorted'},{'id':'just-because','parentId':'root','label':'Just Because'}],
@@ -75,6 +77,33 @@ export async function createCloudClient(){
       if(name==='publish_content')return request(fixture.publicRows[0]);
       if(name==='unpublish_content')return request(null);
       return Promise.resolve({data:null,error:{code:'42501'}});
+    },
+    storage:{
+      from(bucket){
+        fixture.calls.push({type:'storage-bucket',bucket});
+        return {
+          async list(prefix,{limit,offset}){
+            fixture.calls.push({type:'media-list',prefix,limit,offset});
+            if(fixture.failMediaList)return {data:null,error:{message:'simulated list outage'}};
+            const rows=(fixture.mediaFiles??[]).slice(offset,offset+limit);
+            return {data:rows.map(file=>({
+              id:file.name,name:file.name,created_at:'2026-11-11T12:00:00Z',
+              metadata:{size:77}
+            })),error:null};
+          },
+          async download(path){
+            fixture.calls.push({type:'media-download',path});
+            if(fixture.failMediaDownload)return {data:null,error:{message:'simulated image outage'}};
+            const owner=path.split('/')[0],name=path.split('/')[1];
+            if(owner!==fixture.user?.id||!(fixture.mediaFiles??[]).some(file=>file.name===name))
+              return {data:null,error:{message:'no owner image'}};
+            const encoded='iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFElEQVR4nGPckhf6n4GBgYGJAQoAJfcCekGmhhoAAAAASUVORK5CYII=';
+            return {data:new Blob([Uint8Array.from(atob(encoded),letter=>letter.charCodeAt(0))],
+              {type:'image/png'}),error:null};
+          },
+          async upload(){fixture.calls.push({type:'media-upload'});return {error:{message:'no fixture uploads'}};}
+        };
+      }
     },
     from(table){fixture.calls.push({type:'from',table});return request(fixture.publicRows);}
   };
@@ -308,13 +337,128 @@ def owner_lifecycle_case(browser,source):
     finally:close_context(ctx,page)
 
 
+def private_gallery_case(browser,source,width=390):
+    snapshot={**OWNER_SNAPSHOT,'extensions':{'journalImages':{'cloud-journal':MEDIA_REF}}}
+    ctx,page,errors=cloud_context(browser,(width,844 if width<500 else 900),'owner',
+        source=source,snapshot=snapshot)
+    try:
+        # The real-origin server must permit private owner-scoped Blob previews.
+        # Production already lists blob: in img-src; keep local QA policy in parity.
+        csp=page.request.get(BASE).headers.get('content-security-policy','')
+        assert "img-src 'self' data: blob:" in csp, 'Local CSP blocks real private image previews'
+        expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
+        page.evaluate("""() => {window.__m2Fixture.mediaFiles=[
+          {name:'22222222-2222-4222-8222-222222222222.png'},
+          {name:'33333333-3333-4333-8333-333333333333.png'}
+        ];}""")
+        # In a pannable world the Space widget can begin offscreen on mobile.
+        # Use the app's spatial focus path (not force=True) to test reachability.
+        page.evaluate("window.orbitDebug.board.focus('space',{initial:true})")
+        page.locator('.cloud-account-details').evaluate('details => { details.open = true; }')
+        page.locator('.cloud-owner-panel > summary').click()
+        page.get_by_text('Private image library',exact=True).click()
+        cards=page.locator('.private-gallery-card')
+        expect(cards).to_have_count(2)
+        expect(cards.first.locator('.private-gallery-reference-count')).to_contain_text('1 saved reference')
+        expect(cards.last.locator('.private-gallery-reference-count')).to_contain_text('Detached')
+        expect(cards.first.get_by_role('checkbox')).to_have_count(0)
+        detached=cards.last.get_by_role('checkbox',name='Include detached image 2 in backup')
+        expect(detached).not_to_be_checked()
+        assert page.get_by_role('button',name='Delete physical file').count()==0
+        assert not page.evaluate('window.__m2Fixture.calls.some(c => c.type==="media-upload")')
+        with page.expect_download() as normal:
+            page.get_by_role('button',name='Download full backup (with images)',exact=True).click()
+        normal_path=normal.value.path()
+        normal_archive=json.loads(Path(normal_path).read_text())
+        assert normal_archive['manifest']['assetCount']==1
+        assert 'libraryOnlyPaths' not in normal_archive['manifest']
+        assert normal_archive['assets'][0]['path']==MEDIA_REF
+        expect(cards.first.get_by_role('button',name='View image 1')).to_be_enabled()
+        cards.first.get_by_role('button',name='View image 1').click()
+        expect(page.locator('.private-gallery-dialog')).to_be_visible()
+        page.get_by_role('button',name='Close preview').click()
+        expect(page.locator('.private-gallery-dialog')).not_to_be_visible()
+        detached.check()
+        expect(page.get_by_role('button',name='Download backup with selected detached images')).to_be_enabled()
+        with page.expect_download() as selected:
+            page.get_by_role('button',name='Download backup with selected detached images').click()
+        selected_archive=json.loads(Path(selected.value.path()).read_text())
+        assert selected_archive['manifest']['assetCount']==2
+        assert selected_archive['manifest']['libraryOnlyPaths']==[MEDIA_DETACHED]
+        assert {asset['path'] for asset in selected_archive['assets']}=={MEDIA_REF,MEDIA_DETACHED}
+        # The browser never uploads, publishes or deletes while listing/exporting.
+        calls=page.evaluate('window.__m2Fixture.calls')
+        assert all(call['prefix']==OWNER_ID for call in calls if call['type']=='media-list')
+        assert not any(call['type'] in ('media-upload','media-delete') for call in calls)
+        page.get_by_text('Private image library',exact=True).click()
+        expect(page.locator('.private-gallery-card')).to_have_count(0)
+        assert not errors,errors
+    finally:close_context(ctx,page)
+
+
+def private_gallery_failure_case(browser,source):
+    ctx,page,errors=cloud_context(browser,(320,700),'owner',source=source)
+    try:
+        expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
+        page.evaluate("""() => {window.__m2Fixture.mediaFiles=[
+          {name:'33333333-3333-4333-8333-333333333333.png'}
+        ];window.__m2Fixture.failMediaList=true;}""")
+        # In a pannable world the Space widget can begin offscreen on mobile.
+        # Use the app's spatial focus path (not force=True) to test reachability.
+        page.evaluate("window.orbitDebug.board.focus('space',{initial:true})")
+        page.locator('.cloud-account-details').evaluate('details => { details.open = true; }')
+        page.locator('.cloud-owner-panel > summary').click()
+        page.get_by_text('Private image library',exact=True).click()
+        expect(page.locator('.private-gallery-error')).to_contain_text('Could not load')
+        expect(page.locator('.private-gallery-card')).to_have_count(0)
+        page.evaluate('window.__m2Fixture.failMediaList=false')
+        page.get_by_role('button',name='Refresh library').click()
+        expect(page.locator('.private-gallery-card')).to_have_count(1)
+        page.evaluate("""() => {
+          window.__m2Fixture.failMediaDownload=true;
+          window.__m2Fixture.mediaFiles=[
+            {name:'44444444-4444-4444-8444-444444444444.png'}];
+        }""")
+        # Failure cannot expose a stale private preview from a different account.
+        page.get_by_role('button',name='Refresh library').click()
+        expect(page.locator('.private-gallery-preview-status')).to_contain_text('Preview unavailable')
+        page.evaluate("""() => {window.__m2Fixture.user={
+          id:'22222222-2222-4222-8222-222222222222'};}""")
+        page.get_by_role('button',name='Refresh library').click()
+        expect(page.locator('.private-gallery-error')).to_contain_text('Could not load')
+        expect(page.locator('.private-gallery-card')).to_have_count(0)
+        assert not errors,errors
+    finally:close_context(ctx,page)
+
+
+
+def private_gallery_empty_case(browser,source):
+    # A new account may have no private images; an empty final Storage page is
+    # valid and must not be reported as an access or inventory failure.
+    ctx,page,errors=cloud_context(browser,(320,700),'owner',source=source)
+    try:
+        expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
+        page.evaluate("window.orbitDebug.board.focus('space',{initial:true})")
+        page.locator('.cloud-account-details').evaluate('details => { details.open = true; }')
+        page.locator('.cloud-owner-panel > summary').click()
+        page.get_by_text('Private image library',exact=True).click()
+        expect(page.locator('.private-gallery-count')).to_contain_text('0 private image(s) loaded')
+        expect(page.locator('.private-gallery-status')).to_contain_text('No private images found')
+        expect(page.locator('.private-gallery-error')).to_be_hidden()
+        expect(page.locator('.private-gallery-card')).to_have_count(0)
+        assert not any(call['type'] in ('media-download','media-upload','media-delete')
+                       for call in page.evaluate('window.__m2Fixture.calls'))
+        assert not errors,errors
+    finally:close_context(ctx,page)
+
+
 def owner_tools_case(browser,source):
     ctx,page,errors=cloud_context(browser,(1440,900),'owner',source=source)
     try:
         expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
         assert_no_local_leak(page)
         page.locator('.cloud-account-details').evaluate('details => { details.open = true; }')
-        page.locator('.cloud-owner-panel summary').click()
+        page.locator('.cloud-owner-panel > summary').click()
         page.get_by_role('button',name='Review local import',exact=True).click()
         expect(page.locator('.cloud-tool-status')).to_contain_text('Nothing has been uploaded')
         assert not any(call.get('name')=='save_owner_snapshot' for call in page.evaluate('window.__m2Fixture.calls'))
@@ -532,7 +676,10 @@ def main():
     with server(args.source),sync_playwright() as p:
         executable=None if os.environ.get('ORBIT_BROWSER_BUNDLED') else os.environ.get('CHROMIUM_PATH') or shutil.which('chromium')
         browser=p.chromium.launch(headless=True,executable_path=executable,args=['--no-sandbox'])
-        cases=[('password-flow',lambda:password_case(browser,args.source)),('otp-flow',lambda:otp_flow_case(browser,args.source)),('otp-failures',lambda:otp_failure_case(browser,args.source)),('local-compatibility',lambda:local_compatibility(browser,args.source)),('journal-refresh-save-races',lambda:journal_races(browser,args.source)),('immediate-logout-draft',lambda:immediate_logout_draft(browser,args.source)),('failed-logout-recovery',lambda:failed_logout_recovery(browser,args.source)),('owner-opt-in-tools',lambda:owner_tools_case(browser,args.source)),('owner-empty-expiry',lambda:owner_lifecycle_case(browser,args.source))]
+        cases=[('password-flow',lambda:password_case(browser,args.source)),('otp-flow',lambda:otp_flow_case(browser,args.source)),('otp-failures',lambda:otp_failure_case(browser,args.source)),('local-compatibility',lambda:local_compatibility(browser,args.source)),('journal-refresh-save-races',lambda:journal_races(browser,args.source)),('immediate-logout-draft',lambda:immediate_logout_draft(browser,args.source)),('failed-logout-recovery',lambda:failed_logout_recovery(browser,args.source)),('owner-opt-in-tools',lambda:owner_tools_case(browser,args.source)),
+          ('private-gallery',lambda:private_gallery_case(browser,args.source,390)),
+          ('private-gallery-fail-closed',lambda:private_gallery_failure_case(browser,args.source)),
+        ('private-gallery-empty',lambda:private_gallery_empty_case(browser,args.source)),('owner-empty-expiry',lambda:owner_lifecycle_case(browser,args.source))]
         for label,size in [('desktop',(1440,900)),('tablet',(900,1100)),('phone',(390,844)),('small',(320,700))]:
             for mode in ['signed-out','nonowner']:
                 cases.append((f'{mode}-{label}',lambda s=size,m=mode:gate_case(browser,s,m,args.source)))
