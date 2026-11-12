@@ -69,9 +69,11 @@ export class StickyNotes {
     this.layer.setAttribute('aria-label','Floating sticky notes');world.append(this.layer);this.render();
   }
   getNotes(){return structuredClone(this.notes);}
-  setNotes(notes){if(this.disposed)return;this.notes=normalizeExtensions({notes}).notes;this.render();}
+  setNotes(notes){if(this.disposed)return;
+    if(this.activeCanvas?.isDirty()||this.pendingCanvas)throw Error('Save the sticky canvas before replacing remote notes.');
+    this.notes=normalizeExtensions({notes}).notes;this.render();}
   changed(){if(this.disposed||this.readOnly)return false;return this.onChange(this.getNotes())!==false;}
-  canReplaceView(){if(this.activeCanvas?.isDirty()){this.notify('Preview your canvas first to save the latest changes.',6000);return false;}return true;}
+  canReplaceView(){if(this.pendingCanvas||this.activeCanvas?.isDirty()){this.notify('Preview your canvas first to save the latest changes.',6000);return false;}return true;}
   add(){
     if(this.readOnly||this.disposed||this.notes.length>=80||!this.canReplaceView())return false;
     const n=this.notes.length;
@@ -174,6 +176,8 @@ export class StickyNotes {
         n.x=clamp(n.x+delta[0],-5000,7500);n.y=clamp(n.y+delta[1],-5000,7500);
         article.style.left=n.x+'px';article.style.top=n.y+'px';this.changed();
       });
+      const mode=n.mode==='canvas'?'canvas':'write';
+      const editing=this.editingNoteId===n.id&&!this.readOnly;
       const title=document.createElement('input');title.type='text';title.maxLength=100;title.value=n.title;
       title.className='sticky-title';title.setAttribute('aria-label','Sticky note title');
       title.disabled=this.readOnly;title.readOnly=!editing;
@@ -184,8 +188,6 @@ export class StickyNotes {
       grip.disabled=this.readOnly;head.append(grip,title,remove);
       // One surface at a time. Switching never erases the other private data:
       // legacy notes containing both text and scenes remain fully recoverable.
-      const mode=n.mode==='canvas'?'canvas':'write';
-      const editing=this.editingNoteId===n.id&&!this.readOnly;
       article.dataset.noteMode=mode;article.dataset.view=editing?'edit':'preview';
       const modeTabs=document.createElement('div');modeTabs.className='sticky-mode-tabs';
       modeTabs.setAttribute('role','group');modeTabs.setAttribute('aria-label','Note content mode');
@@ -200,8 +202,10 @@ export class StickyNotes {
           try{
             if(mode==='canvas'){await this.activeCanvas?.save();if(this.disposed)return;}
             else{clearTimeout(timer);n.text=editor.value.slice(0,6000);}
-            if(value==='canvas')n.mode='canvas';else delete n.mode;
-            if(this.changed()===false){this.notify('Could not store note mode. Keep editing and retry.',6500);return;}
+            const oldMode=n.mode;
+             if(value==='canvas')n.mode='canvas';else delete n.mode;
+             if(this.changed()===false){if(oldMode===undefined)delete n.mode;else n.mode=oldMode;
+               this.notify('Could not store note mode. Keep editing and retry.',6500);return;}
             this.render();
             this.layer.querySelector('[data-note-id="'+n.id+'"] .sticky-mode-tab[aria-pressed="true"]')
               ?.focus({preventScroll:true});
@@ -336,7 +340,12 @@ export class StickyNotes {
         choice.textContent=value;choice.setAttribute('aria-pressed',String(value===n.color));
         choice.setAttribute('aria-label',value+' paper');
         choice.disabled=this.readOnly;
-        choice.addEventListener('click',()=>{n.color=value;this.render();this.changed();});
+        choice.addEventListener('click',()=>{
+           if(!this.canReplaceView())return;
+           const old=n.color;n.color=value;
+           if(this.changed()===false){n.color=old;this.notify('Paper color not saved. Retry.',6500);return;}
+           this.render();
+         });
         palette.append(choice);
       }
       tint.append(trigger,palette);tint.hidden=!editing;
@@ -361,9 +370,12 @@ export class StickyNotes {
         pick.addEventListener('click',()=>upload.click());
         upload.addEventListener('change',async()=>{
           const file=upload.files?.[0];if(!file)return;
-          pick.disabled=true;
+           if(!this.canReplaceView()){upload.value='';return;}
+           pick.disabled=true;
           try{const path=await this.media.upload(file);if(this.disposed)return;
-            n.imagePath=path;this.changed();this.render();this.notify('Private image attached.');
+            const previous=n.imagePath;n.imagePath=path;
+             if(this.changed()===false){n.imagePath=previous;throw Error('Image reference not saved; previous attachment retained.');}
+             this.render();this.notify('Private image attached.');
           }catch(error){this.notify(error.message,6500);}
           finally{pick.disabled=false;upload.value='';}
         });
