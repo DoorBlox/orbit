@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {connect as tcpConnect} from 'node:net';
 import {startLocalMcpFixture} from '../server/mcp/local-fixture.mjs';
 
 const VERSION='2026-07-28';
@@ -142,9 +143,23 @@ test('per-owner local rate limiter is independent and rejects burst after a fixe
 }, {maxRequestsPerMinute:2}));
 
 test('spoofed Host is denied on loopback without exposing internal details',()=>withFixture(async f=>{
-  const bad=await rpc(f,'tools/list',{},f.tokens.ownerA,{headers:{host:'evil.example.test'}});
-  assert.equal(bad.status,403);
-  assert.equal(bad.json.error.message,'Request denied');
+  // Undici/fetch sets Host from URL and does not reliably send a supplied
+  // override. Exercise the actual wire protocol using a raw TCP request.
+  const port=Number(new URL(f.url).port);
+  const raw=await new Promise((resolve,reject)=>{
+    const socket=tcpConnect({host:'127.0.0.1',port},()=>{
+      socket.write('POST /mcp HTTP/1.1\r\nHost: evil.example.test\r\n'+
+        'Content-Length: 0\r\nConnection: close\r\n\r\n');
+    });
+    let received='';
+    socket.on('data',chunk=>{received+=chunk.toString('latin1');});
+    socket.once('end',()=>resolve(received));
+    socket.once('error',reject);
+  });
+  assert.match(raw,/^HTTP\/1\.1 403 /);
+  const body=JSON.parse(raw.slice(raw.indexOf('\r\n\r\n')+4));
+  assert.equal(body.error.message,'Request denied');
+  assert.doesNotMatch(raw,/Alpha secret plan|PRIVATE_ROW|eyJhbGci/);
 }));
 
 test('response metadata contains no access token, private grant row, or session cookies',()=>withFixture(async f=>{
