@@ -1,7 +1,7 @@
 {
   "baselineCommit": "846ad7df3fa3fdf4c63fd22f2830fed56f83a06e",
   "milestone": "M2",
-  "review": "ORBIT 2.4 retained V6/M1 immutable provenance; BP-02 portable private media backup, EX-00 safe scene adapter, and EX-01 official Excalidraw lazy React island from exact pinned npm lockfile. No hosted database migration or Production alias change. BP-03 focused hidden-tab read reduction on a separate source branch, with existing CAS and owner isolation unchanged. BP-03 follow-up adds deterministic synthetic request/JSON-byte measurement with no hosted API change. SP-01A extracts the six legacy widget descriptors into a safe extensible registry; no seventh UI or storage migration. SP-01B adds a real mounted seventh test widget and owner-private extension layout without changing the six-ID V6 root layout. SP-01B Chromium diagnosed lost initial optional widget dimensions; preserved default inline size before applying saved size. PJ-01 adds reversible private project metadata keyed to existing branches; hosted security and public projection unchanged. PJ-02A exposes reversible private branch-project actions via accessible unscaled menu; original V6 spatial coordinates and public projection remain untouched. PJ-02B adds the functional private Projects window and synthetic eighth test fixture; no public project projection or hosted migration. PJ-02B visual audit of synthetic desktop/phone screenshots moved the new shelf away from the active rail and increased phone text legibility by reducing default first-party width. BP-07 WIP recovered on top of main; fixes mount/render crash, deferred editor writes, private media and navigation transitions, and in-place Excalidraw. No production or hosted schema changes. BP-14 client-only iCalendar export; no OAuth, provider integration, schema or media changes.",
+  "review": "ORBIT 2.4 retained V6/M1 immutable provenance; BP-02 portable private media backup, EX-00 safe scene adapter, and EX-01 official Excalidraw lazy React island from exact pinned npm lockfile. No hosted database migration or Production alias change. BP-03 focused hidden-tab read reduction on a separate source branch, with existing CAS and owner isolation unchanged. BP-03 follow-up adds deterministic synthetic request/JSON-byte measurement with no hosted API change. SP-01A extracts the six legacy widget descriptors into a safe extensible registry; no seventh UI or storage migration. SP-01B adds a real mounted seventh test widget and owner-private extension layout without changing the six-ID V6 root layout. SP-01B Chromium diagnosed lost initial optional widget dimensions; preserved default inline size before applying saved size. PJ-01 adds reversible private project metadata keyed to existing branches; hosted security and public projection unchanged. PJ-02A exposes reversible private branch-project actions via accessible unscaled menu; original V6 spatial coordinates and public projection remain untouched. PJ-02B adds the functional private Projects window and synthetic eighth test fixture; no public project projection or hosted migration. PJ-02B visual audit of synthetic desktop/phone screenshots moved the new shelf away from the active rail and increased phone text legibility by reducing default first-party width. BP-07 WIP recovered on top of main; fixes mount/render crash, deferred editor writes, private media and navigation transitions, and in-place Excalidraw. No production or hosted schema changes. BP-14 client-only iCalendar export; no OAuth, provider integration, schema or media changes. BP-08 optional Focus mode stores the camera in memory only, with inert peripheral widgets and exact reversible camera; no spatial coordinate/schema migrations.",
   "files": {
     "assets/orbit.svg": {
       "sha256": "97eb19dd4e0773d0b6489b1f49d794ffd272fb3bc2d42af4faffd6a1adca78c3",
@@ -12,8 +12,8 @@
       "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service."
     },
     "src/app.js": {
-      "sha256": "cdadfdef747ffb6a8dd9a5f313aa201c65929739eaa684446143f36240127c79",
-      "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service."
+      "sha256": "bc3adcefcaed545be427c8bf7909f32498761b9504ac7800f848188abe2d4208",
+      "reason": "BP-08: view-only reversible Focus camera without moving, resizing or modifying private saved artifacts."
     },
     "src/auth/controller.js": {
       "sha256": "af8cde170ef58e61df8c464ee34249df4267812991392a95dae5c4d69f47ba20",
@@ -32,8 +32,8 @@
       "reason": "Normalize imported core widget dimensions into supported database-safe integers."
     },
     "src/board.js": {
-      "sha256": "9ce8c7165fe884003aa08de8478147582975f284fe032284a41fcbb3bef24a22",
-      "reason": "BP-07: reviewed inline Edit/Preview and responsive spatial UI changes; preserve private drawings and source provenance."
+      "sha256": "297974a7639fa034e614335b8790b6938f15caa8230ac86c01d55885e216da63",
+      "reason": "BP-08: view-only reversible Focus camera without moving, resizing or modifying private saved artifacts."
     },
     "src/bootstrap.js": {
       "sha256": "b23098d9d6d6ff912ac3856ebbc89dda19f88fed1f75ac346d70c87e2ddb9223",
@@ -140,8 +140,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "8d1d561013a0b7646fd29d665e995f9b6318af72b54737ba52ba779cb003f179",
-      "reason": "BP-07: repaired missing root-token closing brace which invalidated nested styling; responsive paper controls and safe resize grip."
+      "sha256": "1998cd6a00b1869b3a13fccf9290766dcea05c87d0fc56118236e6b0d32b88a0",
+      "reason": "BP-08: view-only reversible Focus camera without moving, resizing or modifying private saved artifacts."
     },
     "src/widget-registry.js": {
       "sha256": "097767f8dd9c6c1e94504ec571c29ca2f1d0684955d2f8c87231d15db1a427f0",

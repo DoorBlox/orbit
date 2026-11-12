@@ -1862,3 +1862,25 @@ body.cloud-space-mounted #space-widget .cloud-sync-state{position:absolute!impor
 @media(prefers-reduced-motion:reduce){
   :root .projects-list .project-card{transition:none}
 }
+
+
+/* BP-08: focus never moves, resizes or removes spatial artifacts. It only
+   reduces peripheral competition until Return restores the exact camera. */
+:root #spatial-world.bp08-focus-mode .spatial-item:not(.bp08-focus-target),
+:root #spatial-world.bp08-focus-mode .sticky-note {
+  opacity:.13;pointer-events:none;
+}
+:root #spatial-world.bp08-focus-mode .bp08-focus-target {
+  position:absolute;z-index:30;opacity:1;
+}
+:root .bp08-focus-picker{max-width:230px;min-height:40px}
+:root .bp08-focus-exit{
+  position:fixed;right:max(16px,env(safe-area-inset-right,0px));
+  bottom:max(18px,env(safe-area-inset-bottom,0px));z-index:130;
+  min-height:48px;max-width:calc(100% - 32px);border-radius:999px;
+  padding:10px 20px;font-size:14px;font-weight:700;
+  background:var(--orbit-accent,var(--accent));color:white;
+  box-shadow:0 10px 32px rgba(0,0,0,.18);
+}
+:root .bp08-focus-exit:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+@media(max-width:560px){:root .bp08-focus-exit{right:12px;bottom:max(14px,env(safe-area-inset-bottom,0px));}}
