@@ -16,14 +16,15 @@ export function normalizeProjects(raw={}){
   if(entries.length>128)throw Error('Too many private projects.');
   const result={};
   for(const [id,entry] of entries){
-    if(!validId(id)||!object(entry)||Object.keys(entry).some(key=>!['description','status','links','goal','nextAction','blockers','targetDate'].includes(key))||
+    if(!validId(id)||!object(entry)||Object.keys(entry).some(key=>!['description','status','links','goal','nextAction','blockers','targetDate','milestones'].includes(key))||
        (entry.description!==undefined&&(typeof entry.description!=='string'||entry.description.length>4000))||
        (entry.status!==undefined&&!['active','paused','completed'].includes(entry.status))||
        (entry.links!==undefined&&(!Array.isArray(entry.links)||entry.links.length>12))||
        (entry.goal!==undefined&&(typeof entry.goal!=='string'||entry.goal.length>500))||
        (entry.nextAction!==undefined&&(typeof entry.nextAction!=='string'||entry.nextAction.length>240))||
        (entry.blockers!==undefined&&(typeof entry.blockers!=='string'||entry.blockers.length>1000))||
-       (entry.targetDate!==undefined&&!validTargetDate(entry.targetDate)))
+       (entry.targetDate!==undefined&&!validTargetDate(entry.targetDate))||
+        (entry.milestones!==undefined&&(!Array.isArray(entry.milestones)||entry.milestones.length>20)))
       throw Error('Invalid private project metadata.');
     const links=(entry.links??[]).map(link=>{
       if(!object(link)||Object.keys(link).some(key=>!['label','url'].includes(key))||
@@ -36,6 +37,20 @@ export function normalizeProjects(raw={}){
       return {label:link.label.trim(),url:url.href};
     });
     result[id]={description:entry.description??'',status:entry.status??'active',links};
+    if(entry.milestones?.length){
+      const seen=new Set();
+      result[id].milestones=entry.milestones.map(milestone=>{
+        if(!object(milestone)||Object.keys(milestone).some(key=>!['id','title','dueDate','done'].includes(key))||
+          !validId(milestone.id)||seen.has(milestone.id)||
+          typeof milestone.title!=='string'||!milestone.title.trim()||milestone.title.length>120||
+          (milestone.dueDate!==undefined&&!validTargetDate(milestone.dueDate))||
+          (milestone.done!==undefined&&typeof milestone.done!=='boolean'))
+          throw Error('Invalid private project milestone.');
+        seen.add(milestone.id);
+        return {id:milestone.id,title:milestone.title.trim(),dueDate:milestone.dueDate??'',
+          done:milestone.done??false};
+      });
+    }
     for(const key of ['goal','nextAction','blockers','targetDate'])
       if(entry[key])result[id][key]=entry[key];
   }
@@ -110,6 +125,8 @@ export function summarizeProjectPortfolio(projects,branches,tasks){
       description:metadata.description,status:metadata.status,links:metadata.links,
       goal:metadata.goal??'',nextAction:metadata.nextAction??'',
       blockers:metadata.blockers??'',targetDate:metadata.targetDate??'',
+      milestones:metadata.milestones??[],
+      milestoneStats:{total:metadata.milestones?.length??0,done:metadata.milestones?.filter(m=>m.done).length??0},
       direct:numbers(directTasks),including:included,
       progress:included.total?Math.round(included.completed/included.total*100):null});
   }
