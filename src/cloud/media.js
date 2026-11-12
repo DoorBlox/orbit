@@ -58,6 +58,11 @@ export function createPrivateMedia(client,{ownerId,maxIdlePreviews=8,maxIdleByte
       bytes-=entry.bytes;
     }
   }
+  // A Storage SDK may reject rather than return {error}. Never expose provider
+  // diagnostic details to gallery or restore consumers; keep auth failures separate.
+  async function storageResult(run,message){
+    try{return await run();}catch{throw Error(message);}
+  }
   async function checkUser(){
     if(disposed)throw Error('Your media session expired. Sign in again.');
     let response;
@@ -79,7 +84,7 @@ export function createPrivateMedia(client,{ownerId,maxIdlePreviews=8,maxIdleByte
   async function download(path){
     if(!validMediaOwner(path,ownerId))throw Error('Image belongs to another space or is invalid.');
     await checkUser();
-    const result=await bucket.download(path);
+    const result=await storageResult(()=>bucket.download(path),'Private image could not be downloaded.');
     if(result.error||!(result.data instanceof Blob)||result.data.size<12||result.data.size>MAX)
       throw Error('Private image could not be downloaded.');
     // A long-running Storage request must not survive a sign-out/account switch.
@@ -152,9 +157,9 @@ export function createPrivateMedia(client,{ownerId,maxIdlePreviews=8,maxIdleByte
          !Number.isSafeInteger(offset)||offset<0||offset>1000000)
         throw Error('Invalid private media page limit or offset.');
       await checkUser();
-      const result=await bucket.list(ownerId,{
+      const result=await storageResult(()=>bucket.list(ownerId,{
         limit,offset,sortBy:{column:'name',order:'asc'}
-      });
+      }),'Private media list is unavailable.');
       if(result?.error||!Array.isArray(result?.data))
         throw Error('Private media list is unavailable.');
       await checkUser();
@@ -179,7 +184,7 @@ export function createPrivateMedia(client,{ownerId,maxIdlePreviews=8,maxIdleByte
       await checkUser();
       const filename=globalThis.crypto.randomUUID();
       const path=ownerId+'/'+filename+'.'+extension;
-      const result=await bucket.upload(path,file,{contentType:file.type,upsert:false,cacheControl:'3600'});
+      const result=await storageResult(()=>bucket.upload(path,file,{contentType:file.type,upsert:false,cacheControl:'3600'}),'Private upload failed. Try again.');
       if(result.error)throw Error('Private upload failed. Try again.');
       // Never hand a path back to a different account after in-flight upload.
       // Storage deletion is intentionally NOT attempted on session expiry.
@@ -189,7 +194,7 @@ export function createPrivateMedia(client,{ownerId,maxIdlePreviews=8,maxIdleByte
     async signedUrl(path){
       if(!validMediaOwner(path,ownerId))throw Error('Image belongs to another space or is invalid.');
       await checkUser();
-      const result=await bucket.createSignedUrl(path,600);
+      const result=await storageResult(()=>bucket.createSignedUrl(path,600),'Cannot load the private image.');
       if(result.error||!result.data?.signedUrl)throw Error('Cannot load the private image.');
       await checkUser();
       return result.data.signedUrl;
