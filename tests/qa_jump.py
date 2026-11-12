@@ -31,10 +31,15 @@ def run_jump(browser,open_page,focus):
         assert page.evaluate('window.orbitDebug.scene.expandedTaskId')==task['id']
         results['task']='PASS'
 
+        # Reopen immediately: a queued 'close' event from the prior selection
+        # must not clear or steal focus from the new combobox.
         page.keyboard.press('Control+k')
+        expect(page.locator('#orbit-jump-dialog')).to_be_visible()
         page.locator('.orbit-jump-input').fill('Unsorted')
+        expect(page.locator('.orbit-jump-option').first.locator('.orbit-jump-kind')).to_have_text('branch')
+        expect(page.locator('.orbit-jump-option-title').first).to_have_text('Unsorted')
         page.keyboard.press('Enter')
-        assert page.evaluate('window.orbitDebug.scene.focusedNode')=='captured'
+        page.wait_for_function("window.orbitDebug.scene.focusedNode==='captured'",timeout=5000)
         results['branch']='PASS'
 
         page.keyboard.press('Control+k')
