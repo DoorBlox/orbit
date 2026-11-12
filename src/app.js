@@ -201,6 +201,38 @@ openProjects.type='button';openProjects.className='glass-button';
 openProjects.id='open-projects';openProjects.textContent='◆ My projects';
 openProjects.addEventListener('click',()=>board.focus('projects'),{signal:events.signal});
 document.querySelector('.space-primary-actions')?.append(openProjects);
+// BP-08: a camera bookmark, not a different layout or another dashboard.
+// The picker lives in Space; the Return control is viewport-fixed and reachable
+// even when Space and every other widget are dimmed/inert.
+const focusPicker=document.createElement('select');
+focusPicker.id='bp08-focus-picker';focusPicker.className='space-export-picker bp08-focus-picker';
+focusPicker.setAttribute('aria-label','Focus on a window without moving your layout');
+const pickPrompt=document.createElement('option');pickPrompt.value='';pickPrompt.textContent='Focus on a window…';
+focusPicker.append(pickPrompt);
+for(const [id] of board.widgets){
+  const choice=document.createElement('option');choice.value=id;
+  choice.textContent=id==='constellation'?'The constellation':id==='journal'?'The journal':
+    id==='timeline'?'The continuum':id==='active'?'Things to do':
+    id==='completed'?'Already done':id==='space'?'My space':'Projects';
+  focusPicker.append(choice);
+}
+document.querySelector('.space-manage-actions')?.append(focusPicker);
+const focusExit=document.createElement('button');
+focusExit.type='button';focusExit.id='bp08-focus-exit';focusExit.className='glass-button bp08-focus-exit';
+focusExit.textContent='Return to your world';focusExit.hidden=true;
+$('app').append(focusExit);
+function leaveWidgetFocus(){
+  if(!board.exitWidgetFocus())return false;
+  focusExit.hidden=true;focusPicker.value='';
+  return true;
+}
+focusExit.addEventListener('click',leaveWidgetFocus,{signal:events.signal});
+focusPicker.addEventListener('change',()=>{
+  if(!focusPicker.value)return;
+  if(hasPendingEditor()){message('Preview and save your canvas before changing focus.',6000);focusPicker.value='';return;}
+  if(!board.enterWidgetFocus(focusPicker.value)){message('That window is unavailable.',3500);focusPicker.value='';return;}
+  focusExit.hidden=false;focusExit.focus({preventScroll:true});
+},{signal:events.signal});
 const stickies=new StickyNotes({world:$('spatial-world'),notes:state.extensions.notes,readOnly,
   getScale:()=>board.scale,media,notify:(...args)=>message(...args),
   onChange:notes=>{const prior=state.extensions.notes;state.extensions.notes=notes;
@@ -757,7 +789,7 @@ function initKeyboard(){
       case '0':e.preventDefault();scene.fitAll();break;
       case '+':case '=':e.preventDefault();scene.zoomBy(1.26);break;
       case '-':e.preventDefault();scene.zoomBy(1/1.26);break;
-      case 'Escape':if(document.body.classList.contains('map-immersive')){$('map-fullscreen').click();break;}scene.expandedTaskId='';scene.selectedTaskId='';for(const r of scene.nodesEl.querySelectorAll('.task-row')){r.classList.remove('is-expanded');r.setAttribute('aria-expanded','false');}break;
+      case 'Escape':if(leaveWidgetFocus())break;if(document.body.classList.contains('map-immersive')){$('map-fullscreen').click();break;}scene.expandedTaskId='';scene.selectedTaskId='';for(const r of scene.nodesEl.querySelectorAll('.task-row')){r.classList.remove('is-expanded');r.setAttribute('aria-expanded','false');}break;
       case 'ArrowLeft':scene.atOverview=false;scene.camera.x+=48;scene.applyCamera();break;
       case 'ArrowRight':scene.atOverview=false;scene.camera.x-=48;scene.applyCamera();break;
       case 'ArrowUp':scene.atOverview=false;scene.camera.y+=48;scene.applyCamera();break;
@@ -819,7 +851,7 @@ function hasPendingEditor(){return Boolean(activeJournalCanvas?.isDirty()||stick
    if(stickies.activeCanvas)await stickies.activeCanvas.save();
    return journal.commit();
  }
- function dispose(){if(disposed)return;disposed=true;activeJournalCanvas?.dispose();activeJournalCanvas=null;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);projectsShelf.dispose();board.dispose();journal.dispose();stickies.dispose();scene.dispose();media?.dispose?.();document.documentElement.dataset.theme='parchment';document.documentElement.dataset.motion='system';document.documentElement.dataset.ambient='off';window.orbitDebug=null;}
+ function dispose(){if(disposed)return;leaveWidgetFocus();disposed=true;activeJournalCanvas?.dispose();activeJournalCanvas=null;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);projectsShelf.dispose();board.dispose();journal.dispose();stickies.dispose();scene.dispose();media?.dispose?.();document.documentElement.dataset.theme='parchment';document.documentElement.dataset.motion='system';document.documentElement.dataset.ambient='off';window.orbitDebug=null;}
 return {getSnapshot,applySnapshot,setCloudStatus,dispose,
   flushEditor,hasPendingEditor,journalCommit:()=>journal.commit(),exportBackup:backupJson};
 }
