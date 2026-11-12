@@ -164,12 +164,12 @@ function validateJsonRpc(body){
     (typeof body.id==='number'&&(!Number.isSafeInteger(body.id)||body.id<0))||
     (typeof body.id==='string'&&(body.id.length<1||body.id.length>128||
       /[\u0000-\u001f\u007f]/.test(body.id)))||
-    typeof body.method!=='string'||!plain(body.params)||
-    !plain(body.params._meta))denied();
+    typeof body.method!=='string'||!plain(body.params))denied();
 }
 function validateHeadersAndBody(headers,body){
   const version=headers.get('mcp-protocol-version');
-  const bodyVersion=body.params._meta['io.modelcontextprotocol/protocolVersion'];
+  const bodyVersion=plain(body.params._meta)?
+    body.params._meta['io.modelcontextprotocol/protocolVersion']:undefined;
   const method=headers.get('mcp-method');
   if(typeof version!=='string'||!version||typeof bodyVersion!=='string'||
     version!==bodyVersion||typeof method!=='string'||method!==body.method)
