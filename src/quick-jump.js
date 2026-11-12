@@ -101,6 +101,10 @@ export function createQuickJump({getItems,onNavigate,triggerParent}={}){
     if(destination===false){status.textContent='Save or preview your current canvas before jumping.';return;}
     focusAfter=destination instanceof HTMLElement?destination:null;
     dialog.close();
+    // The native close event may be queued until the next task. Restore focus
+    // synchronously so a rapid second Ctrl/⌘ K cannot land on a hidden input.
+    const target=focusAfter?.isConnected?focusAfter:previousFocus?.isConnected?previousFocus:trigger;
+    target?.focus?.({preventScroll:true});
   };
   const render=()=>{
     visible=searchJumpTargets(entries,input.value);
