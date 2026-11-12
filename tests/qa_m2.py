@@ -342,6 +342,10 @@ def private_gallery_case(browser,source,width=390):
     ctx,page,errors=cloud_context(browser,(width,844 if width<500 else 900),'owner',
         source=source,snapshot=snapshot)
     try:
+        # The real-origin server must permit private owner-scoped Blob previews.
+        # Production already lists blob: in img-src; keep local QA policy in parity.
+        csp=page.request.get(BASE).headers.get('content-security-policy','')
+        assert "img-src 'self' data: blob:" in csp, 'Local CSP blocks real private image previews'
         expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
         page.evaluate("""() => {window.__m2Fixture.mediaFiles=[
           {name:'22222222-2222-4222-8222-222222222222.png'},
