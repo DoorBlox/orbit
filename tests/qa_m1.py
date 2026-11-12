@@ -379,7 +379,13 @@ def normal_flows(browser):
     path.unlink()
     focus(page,'journal')
     pages=page.evaluate('window.orbitDebug.state.journalPages')
-    ensure_journal_edit(page);page.locator('.journal-more > summary').click();page.locator('#journal-delete').click();page.locator('#toast button').click()
+    ensure_journal_edit(page)
+    page.locator('.journal-mode-tab[data-journal-mode="write"]').click()
+    expect(page.locator('#journal-editor')).to_be_visible()
+    page.locator('.journal-more > summary').click()
+    page.locator('#journal-delete').click()
+    expect(page.locator('#toast button')).to_be_visible()
+    page.locator('#toast button').click()
     assert page.evaluate('window.orbitDebug.state.journalPages')==pages
     assert not errors,errors
     context.close()
