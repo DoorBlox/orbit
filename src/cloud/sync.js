@@ -39,6 +39,16 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
   let pending = null, changeVersion = 0, debounceTimer = null, pollTimer = null;
   let writePromise = null, readPromise = null, readController = null, readStartedAt = null;
   let reloadInFlight = false, disposed = false;
+  // Transient network failures with navigator.onLine still true may never
+  // produce another 'online' event. Poll-time retries are bounded and only
+  // operate on retained dirty drafts; conflicts and Auth errors stay manual.
+  let networkRetryFailures = 0, nextNetworkRetryAt = -Infinity;
+  const resetNetworkRetry = () => { networkRetryFailures = 0; nextNetworkRetryAt = -Infinity; };
+  function scheduleNetworkRetry() {
+    networkRetryFailures = Math.min(networkRetryFailures + 1, 8);
+    const base = Math.max(15000, pollMs);
+    nextNetworkRetryAt = now() + Math.min(120000, base * (2 ** (networkRetryFailures - 1)));
+  }
   const requests = new Set();
   const getState = () => ({state, revision, hasPending:pending !== null, errorCode});
   function status(next, code = null) {
@@ -72,6 +82,7 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
     cancelDebounce();
     // A stale base version requires an explicit review, never automatic overwrite.
     if (errorCode === 'CONFLICT') { status('conflict','CONFLICT'); return true; }
+    resetNetworkRetry();
     status(isOnline() ? 'pending' : 'offline', isOnline() ? null : 'NETWORK');
     debounceTimer = setTimeout(() => { void flush(); },Math.max(0,debounceMs));
     return true;
@@ -89,9 +100,14 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
         if (disposed) return {ok:false,...getState()};
         if (!Number.isSafeInteger(result?.revision) || result.revision <= revision) throw Object.assign(Error(),{code:'INVALID_RESPONSE'});
         revision = result.revision;
+        resetNetworkRetry();
         if (pending?.version === saving.version) pending = null;
       } catch (error) {
-        if (!disposed) failed(error);
+        if (!disposed) {
+          failed(error);
+          if (errorCode === 'NETWORK') scheduleNetworkRetry();
+          else resetNetworkRetry();
+        }
         return {ok:false,...getState()};
       } finally { requests.delete(controller); }
     }
@@ -191,6 +207,12 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
   const onVisibility = onWake;
   const onPoll = () => {
     if (!isVisible() || !isOnline()) return;
+    // A failed authenticated write stays local until CAS save succeeds or the
+    // owner resolves a conflict. Reconnect can happen without an online event.
+    if (pending) {
+      if (errorCode === 'NETWORK' && !writePromise && now() >= nextNetworkRetryAt) void flush();
+      return;
+    }
     // Never delay error recovery, pending writes, or interactive revalidation.
     // Idle backoff skips only clean, unchanged full-snapshot reads.
     const quiet = state === 'saved' && !pending && !writePromise && !errorCode &&
