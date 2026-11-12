@@ -8,7 +8,7 @@
     "dev": "node scripts/dev-server.mjs",
     "start": "node scripts/dev-server.mjs",
     "dev:dist": "node scripts/dev-server.mjs --dist",
-    "lint": "node scripts/check-syntax.mjs && node scripts/check-css-structure.mjs",
+    "lint": "node scripts/check-syntax.mjs && node scripts/check-css-structure.mjs && node scripts/check-html-semantics.mjs",
     "test": "node --test tests/*.mjs",
     "build": "node scripts/build.mjs",
     "verify:structure": "node scripts/verify-structure.mjs",
