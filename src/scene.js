@@ -162,9 +162,21 @@ function ensureCanvasPreviewFonts(){
   style.onerror=()=>{style.remove();previewFontSheet=null;};
   document.head.append(style);previewFontSheet=style;
 }
+// A preview may be re-rendered many times while editing; leases follow DOM hosts.
+const scenePreviewLeases=new WeakMap();
+export function releaseScenePreview(target){
+  const record=target&&scenePreviewLeases.get(target);
+  if(!record)return;
+  scenePreviewLeases.delete(target);
+  for(const lease of record.leases)lease.release();
+  record.leases.clear();
+}
 export function renderScene(scene,target,{media=null}={}){
+  releaseScenePreview(target);
   target.replaceChildren();
   scene=normalizeScene(scene);if(!scene||!scene.elements.length)return;
+  const record={leases:new Set()};
+  scenePreviewLeases.set(target,record);
   const b=scenePreviewBounds(scene);
   const canvas=svgNode('svg',{viewBox:[b.x,b.y,b.width,b.height].join(' '),
     preserveAspectRatio:'xMidYMid meet',role:'img','aria-label':'Full drawing preview'});
@@ -191,10 +203,21 @@ export function renderScene(scene,target,{media=null}={}){
         image.setAttribute('transform',`translate(${cx} ${cy}) rotate(${degrees}) scale(${flip[0]} ${flip[1]}) translate(${-cx} ${-cy})`);
       }
       canvas.append(outline,image);
-      if(file&&media?.previewUrl){
+      if(file&&media?.acquirePreview){
+        Promise.resolve().then(()=>media.acquirePreview(file.path)).then(lease=>{
+          if(scenePreviewLeases.get(target)===record&&image.isConnected&&target.firstChild===canvas){
+            record.leases.add(lease);
+            image.setAttribute('href',lease.url);
+          }else lease.release();
+        }).catch(()=>{
+          if(scenePreviewLeases.get(target)===record&&image.isConnected)
+            image.setAttribute('aria-label','Private image unavailable');
+        });
+      }else if(file&&media?.previewUrl){
+        // Compatibility for a legacy read-only media adapter without leases.
         Promise.resolve().then(()=>media.previewUrl(file.path)).then(url=>{
           if(image.isConnected&&target.firstChild===canvas)image.setAttribute('href',url);
-        }).catch(()=>{image.setAttribute('aria-label','Private image unavailable');});
+        }).catch(()=>{if(image.isConnected)image.setAttribute('aria-label','Private image unavailable');});
       }
     }else if(item.type==='text'&&typeof item.text==='string'){
       ensureCanvasPreviewFonts();
@@ -315,7 +338,7 @@ export function openSceneEditor(initial,{title='Drawing',onSave,notify=()=>{},me
       const {mountEmbeddedEditor}=await import('./excalidraw-island.js');
       if(disposed||!dialog.open)return;
       host=document.createElement('div');host.className='orbit-excalidraw-host';
-      strokePaint.cancel();surface.replaceChildren(host);
+      strokePaint.cancel();releaseScenePreview(preview);surface.replaceChildren(host);
       surface.classList.add('orbit-scene-surface--embedded');
       let latest={elements:initialData.elements,appState:initialData.appState,files:initialData.files};
       mounted=mountEmbeddedEditor(host,{
@@ -396,7 +419,7 @@ export function openSceneEditor(initial,{title='Drawing',onSave,notify=()=>{},me
   preview.addEventListener('pointerup',finishStroke);
   preview.addEventListener('lostpointercapture',finishStroke);
   preview.addEventListener('pointercancel',()=>{if(!active)return;active=null;strokePaint.flush();});
-  dialog.addEventListener('close',()=>{disposed=true;strokePaint.dispose();embedded?.dispose?.();embedded=null;dialog.remove();});
+  dialog.addEventListener('close',()=>{disposed=true;strokePaint.dispose();releaseScenePreview(preview);embedded?.dispose?.();embedded=null;dialog.remove();});
   dialog.showModal();repaint();
   // Lazy load on the user's explicit Draw/Edit canvas action, no second click.
   // If the official island cannot mount, preserve the original scene and leave
