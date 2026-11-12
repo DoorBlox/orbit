@@ -8,11 +8,11 @@ A status is **PASS** only after an actual test has returned success; source insp
 | --- | --- | --- |
 | Offline drafts across tasks, Journal, Sticky and Projects; reconnect -> CAS ACK -> reload | PASS (synthetic CI) | `static-quality` [run 43253931799](https://github.com/DoorBlox/orbit/actions/runs/43253931799), PR #165 exact head; not signed-in acceptance |
 | Portable archive with shared Sticky/Journal/Excalidraw image plus opted-in detached image; B-owner restore and byte parity | PASS (synthetic CI) | Same W6 first case, synthetic in-memory private Storage; signed-in live Storage still unverified |
-| Project brief and milestone identity, journal and sticky retained after portable restore/local write | NOT RUN | Same W6 first case; reload across actual hosted devices still unverified |
-| Account B cannot fetch A path; A bytes unaffected; visitor gets no private tasks | NOT RUN | Same W6 first case; real hosted RLS/two-account and anonymous HTTP acceptance separately required |
+| Project brief/milestone identity, Journal and Sticky retained after synthetic portable restore/local write | PASS (synthetic CI) | Same W6 first case; real hosted device reload remains NOT RUN |
+| Account B cannot fetch A path; A bytes unaffected; visitor gets no private tasks in isolated mocks | PASS (synthetic CI) | Same W6 first case; real hosted RLS/two-account and anonymous HTTP acceptance remain NOT RUN |
 | Two-device offline CAS conflict retains B draft and produces recovery archive without overwriting A | PASS (synthetic CI) | Same W6 second case; real simultaneous signed-in devices remain unverified |
 | Browser viewport, mobile focus/pan and a11y | PASS (existing Chromium CI); W6 real-origin extension NOT RUN | Existing `tests/qa_m1.py`, `tests/qa_bp16_accessibility.py` run in CI; physical device + assistive tech required |
-| Protected Preview and signed-in image pixels after refresh | OWNER TESTING REQUIRED | Request only after verifying a protected exact-source URL and finishing synthetic checks; issue #26 |
+| Protected Preview and signed-in image pixels after refresh | OWNER TESTING REQUIRED (not yet requested) | Request only after verifying a protected exact-source URL and finishing synthetic checks; issue #26 |
 | Hosted production privacy / deployment parity | NOT RUN | W4 owns release gate; no new Production release or Auth/Storage modifications authorized |
 
 ## Execution boundaries
@@ -41,3 +41,16 @@ Command after building: `ORBIT_BROWSER_BUNDLED=1 python tests/qa_acceptance_cros
 W6 inspected connected Vercel project `orbit` rather than assuming a GitHub merge was deployed. Project-wide `ssoProtection` is enabled for all preview and raw Production URLs. Latest READY Preview is `dpl_8eBFFLzLHa1Vz1edQG5wqXmL5Eb7` from `01c153d6b2f4a13e105404e78fd2f520158db688` — older than current W6 code. Last listed Production target is `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`, source `4e57aca`, not current main; alias itself was not independently rechecked. Thus **no exact-source protected Preview exists in the inspected deployment list** for PR #165 or #168. Owner testing is **NOT REQUESTED**, not a blocker to independent QA. See [owner/device protocol](OWNER_DEVICE_PROTOCOL.md); do not ask the owner to test newer source at an old URL.
 
 Coordination [issue #169](https://github.com/DoorBlox/orbit/issues/169) assigns the new Playwright runner wiring to W4; [draft PR #168](https://github.com/DoorBlox/orbit/pull/168) remains unverified until the new script itself executes in Chromium. Four generic green jobs on #168 without the new runner do **not** prove this new acceptance case.
+
+
+## 13 November 2026 — crash/reload acceptance proposal (issue #171)
+
+W6 reviewed current `src/bootstrap.js` owner mount (`persistLocally:false`) and `src/cloud/sync.js` volatile `pending` lifecycle after [W1 #170](https://github.com/DoorBlox/orbit/pull/170). The manual beforeunload warning and same-tab offline retry protect voluntary navigation but do not establish unexpected crash recovery. [Issue #171](https://github.com/DoorBlox/orbit/issues/171) remains a **source-inferred risk** until controlled execution.
+
+New W6-owned `tests/qa_orbit_acceptance_crash_recovery_red.test.mjs`, draft RED contract on branch `test/orbit-w6-unacknowledged-crash-recovery-red-20261113`, started from main `a1410bcd31c0d99590c928b9b725b09c4a03f870`:
+
+- **Control:** a still-running offline owner session retries after reconnect and reloads its four dummy edits from acknowledged CAS storage; expected PASS.
+- **Proposed acceptance contract:** after an abrupt synthetic controller teardown **before ACK**, same-owner remount should recover all four dummy edits. Current implementation's only pending copy is in memory; expected RED. This is an intentionally failing regression proposal, not a production-observed crash and not an approved account-scoped storage design. Do not change expected data-loss behavior to make CI green.
+- **Execution:** Node `npm test` automatically picks up the new W6 file. Until exact-head CI actually runs, the status is `NOT RUN`; on reproduced failure, record `FAIL (synthetic controller lifecycle)` with job/head evidence. Keep the PR **draft/unmerged** and involve W1/W3/Command HQ to decide whether crash-durable drafts are a required contract and how to implement them without cross-account leaks. No hosted Auth/Storage, Production or private data changed.
+
+**Separate outstanding gate:** `tests/qa_acceptance_cross_widget.py` is source-merged by [PR #168](https://github.com/DoorBlox/orbit/pull/168) as `19f5bba75d1fe52216168564e12688016152f390`, but remains **NOT RUN** because W4-owned quality.yml still lacks the new runner. [Issue #169](https://github.com/DoorBlox/orbit/issues/169) is open; four generic green checks do not validate an uninvoked test.
