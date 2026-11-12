@@ -116,8 +116,8 @@
       "reason": "Validate and parse bounded plain-text task checklist context without altering the hosted task table schema."
     },
     "src/project-shelf.js": {
-      "sha256": "001677a133af388a44aa9574537878a8ca896fbd52fa07fa4fb516bbebd5cd2e",
-      "reason": "BP-07: reviewed inline Edit/Preview and responsive spatial UI changes; preserve private drawings and source provenance."
+      "sha256": "1115174e8a3612242d49bbbe9738a47ee2b3b4fe5ee4672251a18874ebcc6f14",
+      "reason": "PJ-03: edit owner-private project resource links in responsive UI, with existing http(s) validation and no public publishing."
     },
     "src/projects.js": {
       "sha256": "833092589f86d09494cf3fd5948663e70a04b4d8f1fea426c9d0ca3b074e4ba1",
@@ -140,8 +140,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "5c0b53f2480238db6048ee987847008f9eeb5c1f298607ccaacd1d3d2081cf31",
-      "reason": "BR-01: integrate spatial Jump across private tasks, branches, notes, journals and windows without changing saved layout or cloud schema."
+      "sha256": "6c1082be9631f71c16c1734411f7c724317531dcfef954f1012d2c8c3962dd5f",
+      "reason": "PJ-03: edit owner-private project resource links in responsive UI, with existing http(s) validation and no public publishing."
     },
     "src/widget-registry.js": {
       "sha256": "097767f8dd9c6c1e94504ec571c29ca2f1d0684955d2f8c87231d15db1a427f0",
