@@ -2091,3 +2091,29 @@ body.cloud-space-mounted #space-widget .cloud-sync-state{position:absolute!impor
   .project-milestone-edit-row input[type="text"],
   .project-milestone-edit-row input[type="date"]{font-size:16px}
 }
+
+
+/* PJ-03: the finder is local view-state, not another toolbar on the world. */
+.projects-filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(120px,180px);
+  gap:7px 12px;align-items:end;padding:8px 24px 12px;min-width:0}
+.projects-filters[hidden],.projects-list .project-card[hidden]{display:none!important}
+.projects-filter-search,.projects-filter-label{display:grid;gap:5px;min-width:0;
+  font-size:10px;font-weight:700;color:var(--orbit-chrome-muted,#637589)}
+.projects-search,.projects-filter-select{box-sizing:border-box;width:100%;min-width:0;
+  min-height:40px;padding:8px 11px;border:1px solid var(--orbit-outline,#b8c9d9);
+  border-radius:11px;background:var(--orbit-field,#f8fafb);color:var(--orbit-chrome-ink,#314663);
+  font:500 12px/1.4 var(--orbit-font-ui,system-ui)}
+.projects-filter-count{grid-column:1/-1;font-size:10px;line-height:1.35;
+  color:var(--orbit-chrome-muted,#64758c)}
+.projects-no-matches{margin:12px 0;padding:20px 16px;text-align:center;line-height:1.5;
+  font-size:12px;color:var(--orbit-chrome-muted,#687d94)}
+.project-health{min-width:0;min-height:39px;padding:8px 10px;
+  border:1px solid var(--orbit-outline,#b8c9d9);border-radius:9px;
+  background:var(--orbit-field,#f8fafb);color:var(--orbit-chrome-ink,#314663);
+  font:600 12px var(--orbit-font-ui,system-ui)}
+.projects-widget :is(.projects-search,.projects-filter-select,.project-health):focus-visible{
+  outline:3px solid var(--orbit-accent,#5279b4);outline-offset:2px}
+@media(max-width:560px){
+  .projects-filters{grid-template-columns:minmax(0,1fr);padding-inline:16px}
+  .projects-search,.projects-filter-select,.project-health{font-size:16px}
+}
