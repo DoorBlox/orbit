@@ -32,8 +32,8 @@
       "reason": "Normalize imported core widget dimensions into supported database-safe integers."
     },
     "src/board.js": {
-      "sha256": "297974a7639fa034e614335b8790b6938f15caa8230ac86c01d55885e216da63",
-      "reason": "BP-08: view-only reversible Focus camera without moving, resizing or modifying private saved artifacts."
+      "sha256": "a823ad767cfd5d1112bb4898ad00e52a230d2b7047b6b13db5ab1f7ce848a705",
+      "reason": "W3 BP-08: preserve centered world coordinate and reversible Focus camera bookmark through portrait, short-landscape, browser chrome and keyboard viewport changes without editing saved widget geometry."
     },
     "src/bootstrap.js": {
       "sha256": "74f929543fddbf828f3b7560a0eba0d6901b9f0c8c8939ffa01501144e5cd387",
