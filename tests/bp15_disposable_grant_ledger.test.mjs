@@ -155,3 +155,19 @@ test('strict owner UUID/client/HTTPS validation and no cross-tenant refresh issu
   await assert.rejects(()=>ledger.rotateRefresh({...b,refreshToken:'a'.repeat(43)}),/MCP_LEDGER_DENIED/);
   assert.equal((await ledger.readAuthorizationSnapshot(envelope(a))).status,'active');
 }));
+
+test('JTI names overlapping object prototypes cannot forge or evade revocation',()=>sandbox(async({ledger,open})=>{
+  const g=await ledger.consent(a);
+  const auth=createMcpGrantAuthorizer({
+    readAuthorizationSnapshot:ledger.readAuthorizationSnapshot,
+  });
+  assert.equal(await auth(ctx(a,g.grantEpoch,'constructor')),true);
+  assert.equal(await auth(ctx(a,g.grantEpoch,'__proto__')),true);
+  const fresh=open();await fresh.initialize();
+  await fresh.revokeToken({...a,tokenId:'__proto__'});
+  assert.equal(await auth(ctx(a,g.grantEpoch,'__proto__')),false);
+  assert.equal(await auth(ctx(a,g.grantEpoch,'constructor')),true);
+  await ledger.revokeToken({...a,tokenId:'constructor'});
+  assert.equal(await auth(ctx(a,g.grantEpoch,'constructor')),false);
+  assert.equal(await auth(ctx(a,g.grantEpoch,'normal-token-001')),true);
+}));
