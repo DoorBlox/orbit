@@ -104,8 +104,8 @@
       "reason": "BP-07: lazy owner-private Excalidraw island, true-content signature, guards and explicit save/flush with unit regression."
     },
     "src/journal.js": {
-      "sha256": "f1d83a56821cd60f6f501e898c633c1be52c5efcd3d151b1ad63bd5becc6981d",
-      "reason": "W3 BP-11: journal date re-sort updates pager metadata without re-rendering current contenteditable editor, retaining native undo/redo and unfinished draft."
+      "sha256": "bb7840002fa59934bc470d734287112d72fa5fedabb8b351f2ae9bcdc6f6a1bb",
+      "reason": "W3 BP-11: safely use clipboard plain text when untrusted rich HTML is fully rejected; preserve selection on empty payload and native undo/redo."
     },
     "src/layout.js": {
       "sha256": "1895015e94741e987e696be8ab1d77ab348560dc847a70a41bd7c6ca74626ee3",

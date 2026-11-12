@@ -220,13 +220,17 @@ export class Journal {
     // history. Only sanitized markup or plain text reaches the command.
     const safeHtml=html?sanitizeJournal(html):'';
     const safeText=text.slice(0,80000);
+    // Sanitization can reject every HTML node (e.g. an image-only paste).
+    // Use the available plain text instead of deleting the selected draft.
+    const useHtml=Boolean(safeHtml);
+    if(!useHtml&&!safeText)return;
     if(!selection.rangeCount||selection.getRangeAt(0)!==range){
       selection.removeAllRanges();selection.addRange(range);
     }
-    const inserted=document.execCommand?.(html?'insertHTML':'insertText',false,html?safeHtml:safeText);
+    const inserted=document.execCommand?.(useHtml?'insertHTML':'insertText',false,useHtml?safeHtml:safeText);
     if(!inserted){
       // Keep the original sanitized fallback for engines without edit commands.
-      const fragment=html?range.createContextualFragment(safeHtml):document.createTextNode(safeText);
+      const fragment=useHtml?range.createContextualFragment(safeHtml):document.createTextNode(safeText);
       const last=fragment.lastChild||fragment;range.deleteContents();range.insertNode(fragment);
       if(last.parentNode){range.setStartAfter(last);range.collapse(true);selection.removeAllRanges();selection.addRange(range);}
     }
