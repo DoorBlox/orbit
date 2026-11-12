@@ -1,4 +1,4 @@
-import {summarizeProjectPortfolio} from './projects.js';
+import {summarizeProjectPortfolio,filterProjectPortfolio} from './projects.js';
 
 /** A vetted, first-party seventh spatial window; saved snapshots contain data only. */
 const node=(tag,className='',text=null)=>{
@@ -13,7 +13,7 @@ const statusLabels={active:'Active',paused:'Paused',completed:'Completed'};
 export class ProjectsShelf {
   constructor({readOnly=false,onCreate=()=>false,onOpen=()=>{},onUpdate=()=>false}={}){
     this.readOnly=readOnly;this.onCreate=onCreate;this.onOpen=onOpen;this.onUpdate=onUpdate;
-    this.branches=[];this.tasks=[];this.projectMetadata={};
+    this.branches=[];this.tasks=[];this.projectMetadata={};this.portfolioRows=[];
     this.element=node('section','glass-widget spatial-item projects-widget');
     this.element.id='projects-widget';this.element.dataset.widget='projects';
     this.element.setAttribute('aria-labelledby','projects-title');
@@ -35,6 +35,31 @@ export class ProjectsShelf {
     this.summary=node('p','projects-summary');this.summary.id='projects-summary';
     this.summary.setAttribute('aria-live','polite');this.element.append(this.summary);
 
+    // Finder state is intentionally ephemeral, never part of a workspace
+    // snapshot, URL, sync request or analytics payload.
+    this.filters=node('div','projects-filters');
+    const searchLabel=node('label','projects-filter-search','Find projects');
+    this.search=node('input','projects-search');
+    this.search.type='search';this.search.maxLength=120;this.search.autocomplete='off';
+    this.search.placeholder='Project, goal, resource…';
+    this.search.setAttribute('aria-label','Search private projects');
+    searchLabel.append(this.search);
+    const statusFilterLabel=node('label','projects-filter-label','Show');
+    this.statusFilter=node('select','projects-filter-select');
+    this.statusFilter.setAttribute('aria-label','Filter projects by status');
+    for(const [value,label] of [
+      ['all','All statuses'],['active','Active'],['paused','Paused'],['completed','Completed']
+    ]){
+      const option=node('option','',label);option.value=value;this.statusFilter.append(option);
+    }
+    statusFilterLabel.append(this.statusFilter);
+    this.filterCount=node('span','projects-filter-count');
+    this.filterCount.setAttribute('aria-live','polite');
+    this.filters.append(searchLabel,statusFilterLabel,this.filterCount);
+    this.element.append(this.filters);
+    this.search.addEventListener('input',()=>this.applyFilters());
+    this.statusFilter.addEventListener('change',()=>this.applyFilters());
+
     this.list=node('div','projects-list');this.list.id='projects-list';
     this.list.setAttribute('aria-label','Your private project overview');
     this.element.append(this.list);
@@ -55,6 +80,9 @@ export class ProjectsShelf {
       if(this.readOnly||!this.selector.value)return;
       const id=this.selector.value;
       if(this.onCreate(id)!==false){
+        // The newly created project should never be hidden by the previous
+        // filter, especially when its initial status differs from the filter.
+        this.search.value='';this.statusFilter.value='all';this.applyFilters();
         requestAnimationFrame(()=>{
           const card=[...this.list.querySelectorAll('.project-card')]
             .find(element=>element.dataset.projectId===id);
@@ -72,6 +100,7 @@ export class ProjectsShelf {
     this.branches=branches;this.tasks=tasks;this.projectMetadata=projectMetadata;
     const summary=summarizeProjectPortfolio(projectMetadata,branches,tasks);
     const count=summary.projects.length,totals=summary.totals;
+    this.portfolioRows=summary.projects;this.filters.hidden=!count;
     this.count.textContent=String(count);
     this.summary.textContent=plural(count,'project')+' · '+plural(totals.total,'unique task')+' · '+totals.completed+' finished';
     const existing=new Set(summary.projects.map(project=>project.id));
@@ -94,9 +123,30 @@ export class ProjectsShelf {
         node('h3','','A home for your projects'),
         node('p','',this.readOnly?'No projects have been marked yet.':
           'Pick a branch below, or right-click one in the constellation to turn it into a project.'));
-      this.list.append(empty);return;
+      this.list.append(empty);this.filterCount.textContent='';return;
     }
     for(const project of summary.projects)this.list.append(this.buildCard(project));
+    this.applyFilters();
+  }
+
+  /** Hide cards without rebuilding them: filtering never destroys unsaved
+   * editor drafts, resets focus or changes canonical project metadata.
+   */
+  applyFilters(){
+    if(!this.list||!this.portfolioRows.length)return;
+    const shown=new Set(filterProjectPortfolio(this.portfolioRows,{
+      query:this.search.value,status:this.statusFilter.value
+    }).map(project=>project.id));
+    for(const card of this.list.querySelectorAll('.project-card')){
+      card.hidden=!shown.has(card.dataset.projectId);
+    }
+    this.list.querySelector('.projects-no-matches')?.remove();
+    if(!shown.size){
+      const empty=node('p','projects-no-matches',
+        'No matching projects. Try another search or status.');
+      this.list.append(empty);
+    }
+    this.filterCount.textContent='Showing '+shown.size+' of '+this.portfolioRows.length+' private projects';
   }
 
   buildCard(project){
@@ -192,11 +242,37 @@ export class ProjectsShelf {
       const updated=this.onUpdate(project.id,{status:status.value});
       if(updated===false)status.value=project.status;
       else requestAnimationFrame(()=>{
-        [...this.list.querySelectorAll('.project-card')].find(element=>element.dataset.projectId===project.id)
-          ?.querySelector('.project-status')?.focus({preventScroll:true});
+        const card=[...this.list.querySelectorAll('.project-card')]
+          .find(element=>element.dataset.projectId===project.id);
+        if(card?.hidden)this.statusFilter.focus({preventScroll:true});
+        else card?.querySelector('.project-status')?.focus({preventScroll:true});
       });
     });
     statusLabel.append(status);bottom.append(statusLabel);
+
+    // Health is a deliberate, qualitative owner assessment. It is never
+    // inferred from task progress, deadline, blockers or cloud sync state.
+    const healthLabel=node('label','project-status-label','Health');
+    const health=node('select','project-health');
+    health.setAttribute('aria-label','Health for '+project.label);
+    health.disabled=this.readOnly;
+    for(const [value,label] of [
+      ['','Not assessed'],['on-track','On track'],
+      ['needs-attention','Needs attention'],['blocked','Blocked']
+    ]){
+      const option=node('option','',label);option.value=value;health.append(option);
+    }
+    health.value=project.health||'';
+    health.addEventListener('change',()=>{
+      const updated=this.onUpdate(project.id,{health:health.value});
+      if(updated===false)health.value=project.health||'';
+      else requestAnimationFrame(()=>{
+        [...this.list.querySelectorAll('.project-card')]
+          .find(element=>element.dataset.projectId===project.id)
+          ?.querySelector('.project-health')?.focus({preventScroll:true});
+      });
+    });
+    healthLabel.append(health);bottom.append(healthLabel);
     for(const link of project.links){
       const anchor=node('a','project-link',link.label);anchor.href=link.url;
       anchor.target='_blank';anchor.rel='noopener noreferrer';bottom.append(anchor);
