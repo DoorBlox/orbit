@@ -16,14 +16,15 @@ export function normalizeProjects(raw={}){
   if(entries.length>128)throw Error('Too many private projects.');
   const result={};
   for(const [id,entry] of entries){
-    if(!validId(id)||!object(entry)||Object.keys(entry).some(key=>!['description','status','links','goal','nextAction','blockers','targetDate','milestones'].includes(key))||
+    if(!validId(id)||!object(entry)||Object.keys(entry).some(key=>!['description','status','links','goal','nextAction','blockers','targetDate','milestones','health'].includes(key))||
        (entry.description!==undefined&&(typeof entry.description!=='string'||entry.description.length>4000))||
        (entry.status!==undefined&&!['active','paused','completed'].includes(entry.status))||
        (entry.links!==undefined&&(!Array.isArray(entry.links)||entry.links.length>12))||
        (entry.goal!==undefined&&(typeof entry.goal!=='string'||entry.goal.length>500))||
        (entry.nextAction!==undefined&&(typeof entry.nextAction!=='string'||entry.nextAction.length>240))||
        (entry.blockers!==undefined&&(typeof entry.blockers!=='string'||entry.blockers.length>1000))||
-       (entry.targetDate!==undefined&&!validTargetDate(entry.targetDate)))
+       (entry.targetDate!==undefined&&!validTargetDate(entry.targetDate))||
+       (entry.health!==undefined&&!['','on-track','needs-attention','blocked'].includes(entry.health)))
       throw Error('Invalid private project metadata.');
     const links=(entry.links??[]).map(link=>{
       if(!object(link)||Object.keys(link).some(key=>!['label','url'].includes(key))||
@@ -55,6 +56,7 @@ export function normalizeProjects(raw={}){
     for(const key of ['goal','nextAction','blockers','targetDate'])
       if(entry[key])result[id][key]=entry[key];
     if(entry.milestones!==undefined)result[id].milestones=milestones;
+    if(entry.health)result[id].health=entry.health;
   }
   return result;
 }
@@ -127,7 +129,7 @@ export function summarizeProjectPortfolio(projects,branches,tasks){
       description:metadata.description,status:metadata.status,links:metadata.links,
       goal:metadata.goal??'',nextAction:metadata.nextAction??'',
       blockers:metadata.blockers??'',targetDate:metadata.targetDate??'',
-      milestones:metadata.milestones??[],
+      milestones:metadata.milestones??[],health:metadata.health??'',
       direct:numbers(directTasks),including:included,
       progress:included.total?Math.round(included.completed/included.total*100):null});
   }
@@ -136,4 +138,30 @@ export function summarizeProjectPortfolio(projects,branches,tasks){
     if(task&&allTaskIds.has(task.id)&&!portfolioTasks.has(task.id))
       portfolioTasks.set(task.id,task);
   return {projects:rows,totals:numbers(portfolioTasks)};
+}
+
+
+/** PJ-03: a local, transient finder for owner-private project summaries.
+ * Never persists a query, alters records, or sends content to a provider.
+ */
+export function filterProjectPortfolio(rows,{query='',status='all'}={}){
+  if(!Array.isArray(rows)||typeof query!=='string'||
+     !['all','active','paused','completed'].includes(status))
+    throw Error('Invalid private project finder query.');
+  const fold=value=>String(value??'').normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase().replace(/\s+/g,' ').trim();
+  const words=fold(query.slice(0,120)).split(' ').filter(Boolean);
+  return rows.filter(project=>{
+    if(!project||typeof project!=='object'||(status!=='all'&&project.status!==status))
+      return false;
+    if(!words.length)return true;
+    const terms=[
+      project.label,project.path,project.description,project.goal,
+      project.nextAction,project.blockers,project.health,
+      ...(Array.isArray(project.links)?project.links.map(link=>link?.label??''):[]),
+      ...(Array.isArray(project.milestones)?project.milestones.map(item=>item?.title??''):[])
+    ];
+    const haystack=fold(terms.join(' '));
+    return words.every(word=>haystack.includes(word));
+  });
 }
