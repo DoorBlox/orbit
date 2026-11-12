@@ -1,0 +1,113 @@
+name: ORBIT BP-05 gated exact-SHA stage only (NO PROMOTION)
+
+# A separately authorized *manual* build to an unaliased, protected raw Vercel URL.
+# This workflow must never run on PR/push, promote, rollback or assign a domain.
+on:
+  workflow_dispatch:
+    inputs:
+      reviewed_sha:
+        description: 'Current main full SHA with a successful manual NO-DEPLOY preflight in the last 24h.'
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: orbit-bp05-staging
+  cancel-in-progress: false
+
+jobs:
+  prove-exact-main:
+    if: github.repository == 'DoorBlox/orbit' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - name: Checkout requested SHA without persisted credentials
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          ref: ${{ inputs.reviewed_sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Use Node 22
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: '22'
+      - name: Reject stale, dirty or non-main requested ref
+        env:
+          ORBIT_REVIEWED_SHA: ${{ inputs.reviewed_sha }}
+        run: node scripts/bp05-release-preflight.mjs
+      - name: Require recent successful NO-DEPLOY preflight for exact main SHA
+        env:
+          ORBIT_REVIEWED_SHA: ${{ inputs.reviewed_sha }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/bp05-stage-gate.mjs preflight
+
+  stage-with-approval:
+    needs: prove-exact-main
+    if: github.repository == 'DoorBlox/orbit' && github.ref == 'refs/heads/main'
+    # The environment MUST be configured separately: required human reviewers,
+    # prevent self-review, main-only branch policy, environment-scoped secret.
+    # Until configured, the exact-SHA environment attestation below stays absent
+    # and this job fails closed before installing CLI or touching Vercel.
+    environment:
+      name: orbit-release-staging
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      ORBIT_REVIEWED_SHA: ${{ inputs.reviewed_sha }}
+      ORBIT_STAGE_APPROVED_SHA: ${{ vars.ORBIT_STAGE_APPROVED_SHA }}
+      ORBIT_VERCEL_CLI_VERSION: ${{ vars.ORBIT_VERCEL_CLI_VERSION }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+    steps:
+      - name: Checkout exact SHA with no retained token
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          ref: ${{ inputs.reviewed_sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Use Node 22
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Recheck exact main and separate release-environment attestation
+        run: |
+          set -euo pipefail
+          node scripts/bp05-release-preflight.mjs
+          node scripts/bp05-stage-gate.mjs approval
+      - name: Install reviewed app dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
+      - name: Reverify source integrity before accessing stage credentials
+        run: npm run verify:source
+      - name: Install pinned stable Vercel CLI
+        run: npm install --global --ignore-scripts --no-audit --no-fund "vercel@${ORBIT_VERCEL_CLI_VERSION}"
+      - name: Pull reviewed project's Production-format build configuration
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=production
+      - name: Build exact source using Vercel's pulled Production settings
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel build --prod
+      - name: Independently validate private artifact and SHA-256 inventory
+        run: |
+          set -euo pipefail
+          node scripts/verify-release.mjs > "$RUNNER_TEMP/orbit-reviewed-stage-report.json"
+          node scripts/bp05-stage-gate.mjs artifact
+      - name: STAGE ONLY, NEVER ALIAS - reject unprotected raw URL
+        id: stage
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          url="$(vercel deploy --prebuilt --prod --skip-domain)"
+          ORBIT_STAGE_URL="$url" node scripts/bp05-stage-gate.mjs protect
+          printf 'protected_raw_url=%s\n' "$url" >> "$GITHUB_OUTPUT"
+          echo 'STAGE ONLY: raw deployment authentication verified. No custom domain was assigned.'
+
+# No vercel promote / rollback / alias / GitHub write permission / auto-dispatch.
+# This file does NOT configure an environment's required reviewers, branch rules,
+# approval SHA, Vercel token, or consent to invoke the workflow.
