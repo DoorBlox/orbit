@@ -80,7 +80,7 @@ export function createQuickJump({getItems,onNavigate,triggerParent}={}){
   const status=make('p','orbit-jump-status');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
   shell.append(header,caption,input,results,footer,status);dialog.append(shell);
   document.body.append(dialog);
-  let disposed=false,entries=[],visible=[],selection=0,previousFocus=null,focusAfter=null;
+  let disposed=false,entries=[],visible=[],selection=0,previousFocus=null,focusAfter=null,focusRestored=false;
   const highlight=()=>{
     for(let i=0;i<results.children.length;i++){
       const node=results.children[i];
@@ -105,6 +105,7 @@ export function createQuickJump({getItems,onNavigate,triggerParent}={}){
     // synchronously so a rapid second Ctrl/⌘ K cannot land on a hidden input.
     const target=focusAfter?.isConnected?focusAfter:previousFocus?.isConnected?previousFocus:trigger;
     target?.focus?.({preventScroll:true});
+    focusRestored=true;
   };
   const render=()=>{
     visible=searchJumpTargets(entries,input.value);
@@ -134,7 +135,7 @@ export function createQuickJump({getItems,onNavigate,triggerParent}={}){
     if(dialog.open){input.focus();return;}
     previousFocus=document.activeElement instanceof HTMLElement?document.activeElement:trigger;
     const indexed=getItems();entries=Array.isArray(indexed)?indexed:[];
-    focusAfter=null;input.value='';
+    focusAfter=null;focusRestored=false;input.value='';
     dialog.showModal();render();input.focus({preventScroll:true});
   };
   const close=()=>{if(dialog.open)dialog.close();};
@@ -157,7 +158,10 @@ export function createQuickJump({getItems,onNavigate,triggerParent}={}){
     entries=[];visible=[];results.replaceChildren();input.removeAttribute('aria-activedescendant');
     const target=focusAfter?.isConnected?focusAfter:previousFocus?.isConnected?previousFocus:trigger;
     focusAfter=null;
-    if(!disposed)queueMicrotask(()=>{if(target?.isConnected)target.focus?.({preventScroll:true});});
+    const alreadyRestored=focusRestored;focusRestored=false;
+    // Navigation already focused its destination synchronously. A queued
+    // native close event must not steal focus from subsequent user input.
+    if(!disposed&&!alreadyRestored&&target?.isConnected)target.focus?.({preventScroll:true});
   });
   return {open,close,get isOpen(){return dialog.open;},dispose(){
     if(disposed)return;disposed=true;close();trigger.remove();dialog.remove();entries=[];visible=[];
