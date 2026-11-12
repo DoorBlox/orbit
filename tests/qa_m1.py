@@ -64,6 +64,12 @@ def reload_page(page):
     page.locator('#node-layer .graph-node').first.wait_for(state='attached')
 
 
+def ensure_journal_edit(page):
+    if page.locator('#journal-widget').get_attribute('data-journal-view') != 'edit':
+        page.locator('#journal-edit-toggle').click()
+    expect(page.locator('#journal-editor')).to_have_attribute('contenteditable','true')
+
+
 def saved(page):
     expect(page.locator('#journal-save-state')).to_have_text('saved on this device')
 
@@ -77,9 +83,9 @@ def viewport_flow(browser, label, size):
         assert all(page.locator(f'[data-widget="{wid}"] .widget-grip').count()==1 for wid in core)
         page.screenshot(path=str(OUT/f'm1-{label}-initial.png'))
         focus(page,'journal')
-        page.locator('#journal-entry-title').fill('M1 synthetic entry')
-        page.locator('#journal-editor').fill('Synthetic M0 diagnostic entry.')
-        page.locator('#journal-entry-date').fill('2026-11-18')
+        ensure_journal_edit(page);page.locator('#journal-entry-title').fill('M1 synthetic entry')
+        ensure_journal_edit(page);page.locator('#journal-editor').fill('Synthetic M0 diagnostic entry.')
+        ensure_journal_edit(page);page.locator('#journal-entry-date').fill('2026-11-18')
         page.locator('#journal-entry-date').dispatch_event('change')
         saved(page)
         assert page.locator('.timeline-journal').count()==1
@@ -88,16 +94,16 @@ def viewport_flow(browser, label, size):
         expect(page.locator('#journal-entry-title')).to_have_value('M1 synthetic entry')
         expect(page.locator('#journal-editor')).to_contain_text('Synthetic M0 diagnostic entry.')
         focus(page,'journal')
-        if label=='desktop':page.locator('#journal-new').click()
-        else:page.locator('#journal-new').tap()
+        if label=='desktop':ensure_journal_edit(page);page.locator('#journal-new').click()
+        else:ensure_journal_edit(page);page.locator('#journal-new').tap()
         # Date-ordered journal: choose a later date for the second synthetic page.
-        page.locator('#journal-entry-date').fill('2026-11-19')
+        ensure_journal_edit(page);page.locator('#journal-entry-date').fill('2026-11-19')
         page.locator('#journal-entry-date').dispatch_event('change')
-        page.locator('#journal-editor').fill('Second page')
+        ensure_journal_edit(page);page.locator('#journal-editor').fill('Second page')
         page.locator('#journal-prev').click()
         expect(page.locator('#journal-entry-title')).to_have_value('M1 synthetic entry')
         page.locator('#journal-next').click()
-        page.locator('#journal-delete').click()
+        ensure_journal_edit(page);page.locator('.journal-more > summary').click();page.locator('#journal-delete').click()
         expect(page.locator('#journal-page-label')).to_have_text('Page 1 of 1')
         page.locator('#toast button').click()
         expect(page.locator('#journal-page-label')).to_have_text('Page 2 of 2')
@@ -276,27 +282,22 @@ def normal_flows(browser):
       element.dispatchEvent(new PointerEvent('pointerup',{...base,clientX:r.left+r.width*.70,clientY:r.top+r.height*.5}));
     }""")
     assert page.evaluate('window.orbitDebug.board.pan.x') != pan_before
+    # Reading is uncluttered. Edit toggles are at the bottom of each note.
+    assert page.locator('.sticky-note').first.get_attribute('data-view') == 'preview'
+    page.locator('.sticky-note').first.get_by_role('button',name='Edit sticky note').click()
     page.locator('.sticky-title').fill('M1 visual note')
     page.locator('.sticky-title').dispatch_event('change')
-    page.locator('.sticky-note').get_by_role('button',name='Edit note').click()
     page.locator('.sticky-body').fill('Private note in the same world')
-    page.locator('.sticky-formatbar').get_by_role('button',name='Done').click()
-    # Text formatting controls are hidden while reading; only one surface is shown.
+    page.locator('.sticky-note').first.get_by_role('button',name='Preview sticky note').click()
     expect(page.locator('.sticky-formatbar')).to_be_hidden()
-    page.locator('.sticky-note').get_by_role('button',name='Canvas',exact=True).click()
-    expect(page.locator('.sticky-body')).to_be_hidden()
-    # BP-06 canvas-first: choosing the canvas opens the real editor on its first action.
-    # No extra full-editor button or hidden native pen prerequisite.
-    assert page.evaluate("performance.getEntriesByType('resource').every(r=>!r.name.includes('/excalidraw-island.js'))")
-    page.locator('.sticky-note').get_by_role('button',name='Open canvas',exact=True).evaluate('e=>e.click()')
-    expect(page.locator('.orbit-scene-dialog .excalidraw')).to_be_visible(timeout=25000)
+    page.locator('.sticky-note').first.get_by_role('button',name='Edit sticky note').click()
+    page.locator('.sticky-note').first.get_by_role('button',name='Canvas',exact=True).click()
+    expect(page.locator('.sticky-inline-canvas .excalidraw')).to_be_visible(timeout=25000)
+    assert page.locator('.orbit-scene-dialog').count()==0
     assert page.evaluate("window.EXCALIDRAW_ASSET_PATH.startsWith(location.origin)")
-    page.get_by_role('button',name='Save drawing').click()
+    page.locator('.sticky-note').first.get_by_role('button',name='Preview sticky note').click()
     assert page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].scene.type") == 'excalidraw'
-    # The previous native pen is only a failure fallback; editor Save always
-    # preserves a complete scene object, including an intentionally empty one.
-    # Duplicate a drawn sticky; the copy must have a new ID, independent text,
-    # matching paper tint and drawing, and remain after a full page reload.
+    page.locator('.sticky-note').first.get_by_role('button',name='Edit sticky note').click()
     page.locator('.sticky-note').first.locator('.sticky-more-menu > summary').click()
     page.locator('.sticky-note').first.get_by_role('button',name='Duplicate sticky note').click()
     expect(page.locator('.sticky-note')).to_have_count(2)
@@ -305,19 +306,18 @@ def normal_flows(browser):
     assert notes[0]['scene'] == notes[1]['scene']
     assert notes[0]['color'] == notes[1]['color']
     assert notes[1]['title'] == 'Copy of M1 visual note'
+    page.locator('.sticky-note').first.get_by_role('button',name='Preview sticky note').click()
+    page.locator('.sticky-note').last.get_by_role('button',name='Edit sticky note').click()
     page.locator('.sticky-note').last.get_by_role('button',name='Write',exact=True).click()
-    page.locator('.sticky-note').last.get_by_role('button',name='Edit note').click()
     page.locator('.sticky-note').last.locator('.sticky-body').fill('Independent copy')
-    page.locator('.sticky-note').last.get_by_role('button',name='Done').click()
+    page.locator('.sticky-note').last.get_by_role('button',name='Preview sticky note').click()
     assert page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].text") == 'Private note in the same world'
     reload_page(page)
     expect(page.locator('.sticky-note')).to_have_count(2)
-    expect(page.locator('.sticky-note').last.locator('.sticky-body')).to_have_value('Independent copy')
+    expect(page.locator('.sticky-note').last.locator('.sticky-title')).to_have_value('Copy of M1 visual note')
     assert page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].mode") == 'canvas'
     assert page.evaluate("""() => !Object.hasOwn(
       JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[1],'mode')""")
-    # BP-06: a resized Canvas note must retain the full surface and persist
-    # pointer movement even after leaving the original resize-handle bounds.
     width_before=page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].width")
     page.locator('.sticky-note').first.locator('.sticky-resizer').evaluate("""handle=>{
       const r=handle.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;
@@ -330,30 +330,23 @@ def normal_flows(browser):
     assert page.locator('.sticky-note').first.locator('.sticky-drawing').evaluate(
       'e => e.getBoundingClientRect().height >= 100')
     focus(page,'journal')
+    ensure_journal_edit(page)
     page.locator('#journal-editor').fill('Journal writing remains separate from canvas art.')
-    page.locator('#journal-draw').click()
-    expect(page.locator('.orbit-scene-dialog .excalidraw')).to_be_visible(timeout=25000)
-    page.get_by_role('button',name='Save drawing').click()
+    page.locator('.journal-mode-tab[data-journal-mode="canvas"]').click()
+    expect(page.locator('#journal-inline-canvas-host .excalidraw')).to_be_visible(timeout=25000)
+    assert page.locator('.orbit-scene-dialog').count()==0
+    page.locator('#journal-edit-toggle').click()
     assert page.evaluate("Object.keys(JSON.parse(localStorage.getItem('orbit.v8.extensions')).journalScenes).length") == 1
     assert page.evaluate("Object.values(JSON.parse(localStorage.getItem('orbit.v8.extensions')).journalModes).includes('canvas')")
     expect(page.locator('#journal-editor')).to_be_hidden()
     expect(page.locator('#journal-canvas-view')).to_be_visible()
+    page.locator('#journal-edit-toggle').click()
     page.locator('.journal-mode-tab[data-journal-mode="write"]').click()
     expect(page.locator('#journal-editor')).to_be_visible()
     assert 'Journal writing remains separate' in page.locator('#journal-editor').inner_text()
     page.locator('.journal-mode-tab[data-journal-mode="canvas"]').click()
-    expect(page.locator('#journal-canvas-view')).to_be_visible()
-    # Both editing hosts launch the same lazy upstream editor and preserve the
-    # saved note/entry objects through repeated opens without scribble steps.
-    page.locator('.sticky-note').first.get_by_role('button',name='Edit canvas').evaluate('e=>e.click()')
-    expect(page.locator('.orbit-scene-dialog .excalidraw')).to_be_visible(timeout=25000)
-    assert page.evaluate("document.querySelector('link[data-orbit-excalidraw-styles]') !== null")
-    page.get_by_role('button',name='Save drawing').click()
-    assert page.evaluate("JSON.parse(localStorage.getItem('orbit.v8.extensions')).notes[0].scene.type") == 'excalidraw'
-    focus(page,'journal')
-    page.locator('#journal-canvas-edit').click()
-    expect(page.locator('.orbit-scene-dialog .excalidraw')).to_be_visible(timeout=25000)
-    page.get_by_role('button',name='Save drawing').click()
+    expect(page.locator('#journal-inline-canvas-host .excalidraw')).to_be_visible(timeout=25000)
+    page.locator('#journal-edit-toggle').click()
     assert page.evaluate("Object.keys(JSON.parse(localStorage.getItem('orbit.v8.extensions')).journalScenes).length") == 1
     # Export/restore UI path, including V6 dimensions and dated journal.
     with page.expect_download() as download: page.locator('#backup-json').evaluate('e=>e.click()')
@@ -386,7 +379,7 @@ def normal_flows(browser):
     path.unlink()
     focus(page,'journal')
     pages=page.evaluate('window.orbitDebug.state.journalPages')
-    page.locator('#journal-delete').click();page.locator('#toast button').click()
+    ensure_journal_edit(page);page.locator('.journal-more > summary').click();page.locator('#journal-delete').click();page.locator('#toast button').click()
     assert page.evaluate('window.orbitDebug.state.journalPages')==pages
     assert not errors,errors
     context.close()
@@ -398,15 +391,15 @@ def failure_security_flows(browser):
     context,page,errors=open_page(browser,seed={TASKS:orphan,JOURNAL:invalid_page})
     focus(page,'constellation');page.locator('#capture-name').fill('Session only');page.locator('#capture-name').press('Enter')
     assert page.evaluate('(k)=>localStorage.getItem(k)',TASKS)==orphan
-    focus(page,'journal');page.locator('#journal-new').click()
+    focus(page,'journal');ensure_journal_edit(page);page.locator('#journal-new').click()
     assert page.evaluate('(k)=>localStorage.getItem(k)',JOURNAL)==invalid_page
     assert not errors,errors;context.close()
     raw=json.dumps([{'id':'keep','title':'Keep valid task','projectId':'inbox'},{'id':'bad','title':''}])
     context,page,errors=open_page(browser,seed={TASKS:raw,JOURNAL:'{broken'})
     assert page.evaluate('(k)=>localStorage.getItem(k)',TASKS)==raw
     assert page.locator('.task-row').count()==1
-    focus(page,'journal');page.locator('#journal-editor').fill('Recovery draft')
-    page.locator('#journal-new').click()
+    focus(page,'journal');ensure_journal_edit(page);page.locator('#journal-editor').fill('Recovery draft')
+    ensure_journal_edit(page);page.locator('#journal-new').click()
     expect(page.locator('#journal-save-state')).to_contain_text('not saved')
     assert page.evaluate('(k)=>localStorage.getItem(k)',JOURNAL)=='{broken'
     with page.expect_download() as download: page.locator('#backup-json').evaluate('e=>e.click()')
@@ -415,8 +408,8 @@ def failure_security_flows(browser):
     path.unlink();assert not errors,errors;context.close()
     context,page,errors=open_page(browser)
     page.evaluate("() => {Storage.prototype.setItem=function(){throw new DOMException('Synthetic quota','QuotaExceededError')};}")
-    focus(page,'journal');page.locator('#journal-editor').fill('Unsaved synthetic draft')
-    page.locator('#journal-new').click()
+    focus(page,'journal');ensure_journal_edit(page);page.locator('#journal-editor').fill('Unsaved synthetic draft')
+    ensure_journal_edit(page);page.locator('#journal-new').click()
     expect(page.locator('#journal-save-state')).to_contain_text('not saved')
     page.locator('#journal-prev').click()
     expect(page.locator('#journal-editor')).to_contain_text('Unsaved synthetic draft')

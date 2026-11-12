@@ -17,7 +17,7 @@ export class ProjectsShelf {
     this.element=node('section','glass-widget spatial-item projects-widget');
     this.element.id='projects-widget';this.element.dataset.widget='projects';
     this.element.setAttribute('aria-labelledby','projects-title');
-    this.element.style.width=innerWidth<650?'430px':'530px';this.element.style.height='615px';
+    this.element.style.width=innerWidth<650?'430px':'960px';this.element.style.height='710px';
 
     const header=node('header','widget-heading projects-heading');
     const grip=node('button','widget-grip','⠿');grip.type='button';
@@ -27,7 +27,7 @@ export class ProjectsShelf {
     titleGroup.append(node('span','eyebrow','PRIVATE PROJECTS'));
     const title=node('h2','');title.id='projects-title';
     title.append(node('span','','Projects'),node('span','heading-period','.'));
-    titleGroup.append(title,node('p','widget-subtitle','Big ideas, with somewhere to land.'));
+    titleGroup.append(title,node('p','widget-subtitle','Your work, organized by project.'));
     const count=node('span','projects-count','0');count.setAttribute('aria-label','Private project count');
     this.count=count;header.append(grip,titleGroup,count);
     this.element.append(header);
