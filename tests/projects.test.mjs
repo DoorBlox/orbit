@@ -154,3 +154,46 @@ test('PJ-03 rejects unsafe brief types, overlong fields, malformed dates and unk
   assert.deepEqual(normalizeProjects({research:{goal:'',nextAction:'',blockers:'',targetDate:''}}),
     {research:{description:'',status:'active',links:[]}});
 });
+
+
+test('PJ-03 project milestone metadata roundtrips with independent task progress',()=>{
+  const original={research:{description:'Private research',status:'active',links:[],
+    milestones:[
+      {id:'ms_1',title:'Validate first prototype',targetDate:'2027-02-15',done:true},
+      {id:'ms_2',title:'Review findings',targetDate:'',done:false}
+    ]}};
+  const input=structuredClone(original);
+  const saved=normalizeProjects(input);
+  assert.deepEqual(saved,input);
+  assert.notStrictEqual(saved.research.milestones,input.research.milestones);
+  const [project]=summarizeProjectPortfolio(saved,branches(),tasks()).projects;
+  assert.deepEqual(project.milestones,saved.research.milestones);
+  assert.equal(project.including.total,2);
+  assert.equal(project.progress,0,'Milestone completion must never change task-derived progress');
+  saved.research.milestones[0].title='Edited privately';
+  assert.equal(input.research.milestones[0].title,'Validate first prototype');
+  assert.deepEqual(normalizeProjects({research:{}}),
+    {research:{description:'',status:'active',links:[]}});
+});
+
+test('PJ-03 project milestone IDs, dates and fields are bounded and validated',()=>{
+  const valid={id:'ms_one',title:' Evaluate samples ',targetDate:'2028-02-29',done:false};
+  const normalized=normalizeProjects({research:{milestones:[valid]}});
+  assert.deepEqual(normalized.research.milestones,
+    [{id:'ms_one',title:'Evaluate samples',targetDate:'2028-02-29',done:false}]);
+  const wrong=[
+    'milestone',{},null,[null],Array.from({length:13},(_,i)=>({
+      id:'m'+i,title:'item',targetDate:'',done:false})),
+    [{id:'unsafe/id',title:'Task',targetDate:'',done:false}],
+    [{id:'__proto__',title:'Task',targetDate:'',done:false}],
+    [{id:'ms',title:' ',targetDate:'',done:false}],
+    [{id:'ms',title:'a'.repeat(141),targetDate:'',done:false}],
+    [{id:'ms',title:'T',targetDate:'2027-02-29',done:false}],
+    [{id:'ms',title:'T',targetDate:'2027-13-01',done:false}],
+    [{id:'ms',title:'T',targetDate:'tomorrow',done:false}],
+    [{id:'ms',title:'T',targetDate:'',done:'true'}],
+    [{id:'ms',title:'T',targetDate:'',done:false,href:'javascript:alert(1)'}],
+    [{id:'same',title:'First',targetDate:'',done:false},{id:'same',title:'Second',targetDate:'',done:false}]
+  ];
+  for(const item of wrong)assert.throws(()=>normalizeProjects({research:{milestones:item}}));
+});
