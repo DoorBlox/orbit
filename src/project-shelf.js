@@ -177,6 +177,7 @@ export class ProjectsShelf {
     }
     view();
     card.append(details);
+    card.append(this.buildMilestones(project));
 
     const bottom=node('div','project-card-bottom');
     const statusLabel=node('label','project-status-label','Status');
@@ -286,5 +287,134 @@ export class ProjectsShelf {
     }
     return card;
   }
+  /** PJ-03: milestone outcomes are distinct from task-based progress and
+   * the app's global calendar milestones. No automatic task writes.
+   */
+  buildMilestones(project){
+    const milestones=project.milestones||[];
+    const section=node('section','project-milestones');
+    section.setAttribute('aria-label','Project milestones for '+project.label);
+    const header=node('div','project-milestones-heading');
+    const title=node('h4','project-milestones-title','Milestones');
+    const done=milestones.filter(item=>item.done).length;
+    const count=node('span','project-milestones-count',
+      milestones.length?done+' of '+milestones.length+' done':'None yet');
+    header.append(title,count);
+
+    const showView=()=>{
+      const list=node('ul','project-milestone-list');
+      if(!milestones.length){
+        list.append(node('li','project-milestone-empty','Mark a meaningful step towards your goal.'));
+      }
+      for(const milestone of milestones){
+        const row=node('li','project-milestone-item');
+        row.dataset.milestoneId=milestone.id;
+        const main=node('div','project-milestone-main');
+        main.append(node('span','project-milestone-name',milestone.title));
+        if(milestone.targetDate){
+          const date=node('time','project-milestone-date','Target '+milestone.targetDate);
+          date.dateTime=milestone.targetDate;main.append(date);
+        }
+        const status=node('span','project-milestone-status',milestone.done?'Done':'Planned');
+        status.dataset.done=String(milestone.done);
+        row.append(main,status);list.append(row);
+      }
+      section.replaceChildren(header,list);
+    };
+
+    if(!this.readOnly){
+      const edit=node('button','project-edit-milestones','Edit milestones');
+      edit.type='button';
+      edit.setAttribute('aria-label','Edit milestones for '+project.label);
+      edit.addEventListener('click',()=>{
+        const form=node('form','project-milestone-form');
+        form.setAttribute('aria-label','Edit milestones for '+project.label);
+        const rows=node('div','project-milestone-editor-rows');
+        const error=node('p','project-milestone-error');
+        error.setAttribute('role','alert');
+        const add=node('button','project-add-milestone','Add milestone');add.type='button';
+        const save=node('button','project-save-milestones','Save milestones');save.type='submit';
+        const cancel=node('button','project-cancel-milestones','Cancel milestone edits');cancel.type='button';
+        const used=new Set(milestones.map(item=>item.id));let sequence=1;
+        const newId=()=>{
+          while(used.has('ms_'+sequence))sequence++;
+          const id='ms_'+sequence++;used.add(id);return id;
+        };
+        const updateLimit=()=>{add.disabled=rows.children.length>=12;};
+        const renumber=()=>{
+          [...rows.children].forEach((row,index)=>{
+            const num=index+1;
+            row.querySelector('[data-field="title"]').setAttribute(
+              'aria-label','Milestone '+num+' title for '+project.label);
+            row.querySelector('[data-field="targetDate"]').setAttribute(
+              'aria-label','Milestone '+num+' target date for '+project.label);
+            row.querySelector('[data-field="done"]').setAttribute(
+              'aria-label','Milestone '+num+' completed for '+project.label);
+            row.querySelector('.project-remove-milestone')
+              .setAttribute('aria-label','Remove milestone '+num);
+          });
+        };
+        const appendRow=(value={id:newId(),title:'',targetDate:'',done:false})=>{
+          if(rows.children.length>=12)return null;
+          const row=node('div','project-milestone-edit-row');
+          row.dataset.milestoneId=value.id;
+          const titleInput=node('input','project-description-input');
+          titleInput.type='text';titleInput.required=true;titleInput.maxLength=140;
+          titleInput.dataset.field='title';titleInput.value=value.title;
+          const titleLabel=node('label','project-description-label','Milestone title');
+          titleLabel.append(titleInput);
+          const dateInput=node('input','project-description-input');
+          dateInput.type='date';dateInput.dataset.field='targetDate';
+          dateInput.value=value.targetDate;
+          const dateLabel=node('label','project-description-label','Target date');
+          dateLabel.append(dateInput);
+          const completed=node('input','');
+          completed.type='checkbox';completed.dataset.field='done';completed.checked=value.done;
+          const completedLabel=node('label','project-milestone-check','Done');
+          completedLabel.prepend(completed);
+          const remove=node('button','project-remove-milestone','Remove');
+          remove.type='button';
+          remove.addEventListener('click',()=>{
+            const next=row.nextElementSibling?.querySelector('input')||
+              row.previousElementSibling?.querySelector('input')||add;
+            row.remove();renumber();updateLimit();next.focus({preventScroll:true});
+          });
+          row.append(titleLabel,dateLabel,completedLabel,remove);
+          rows.append(row);renumber();updateLimit();
+          return titleInput;
+        };
+        for(const milestone of milestones)appendRow(milestone);
+        add.addEventListener('click',()=>appendRow()?.focus({preventScroll:true}));
+        cancel.addEventListener('click',()=>{
+          showView();edit.focus({preventScroll:true});
+        });
+        form.addEventListener('submit',event=>{
+          event.preventDefault();
+          const next=[...rows.children].map(row=>({
+            id:row.dataset.milestoneId,
+            title:row.querySelector('[data-field="title"]').value,
+            targetDate:row.querySelector('[data-field="targetDate"]').value,
+            done:row.querySelector('[data-field="done"]').checked
+          }));
+          if(this.onUpdate(project.id,{milestones:next})===false){
+            error.textContent='Could not save milestones. Check titles, dates and the 12-step limit.';
+            return;
+          }
+          requestAnimationFrame(()=>{
+            [...this.list.querySelectorAll('.project-card')]
+              .find(element=>element.dataset.projectId===project.id)
+              ?.querySelector('.project-edit-milestones')?.focus({preventScroll:true});
+          });
+        });
+        const controls=node('div','project-edit-actions');controls.append(save,cancel);
+        form.append(rows,add,error,controls);section.replaceChildren(header,form);
+        (rows.querySelector('input')||add).focus({preventScroll:true});
+        updateLimit();
+      });
+      header.append(edit);
+    }
+    showView();return section;
+  }
+
   dispose(){this.element.remove();}
 }
