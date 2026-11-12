@@ -186,7 +186,9 @@ export async function createPortableArchive(snapshot,{ownerId:currentOwnerId,dow
   if(!Array.isArray(libraryPaths))throw Error('Private media library paths must be an array.');
   const clean=prepareSnapshot(snapshot,sanitizeHtml);
   const referenced=collectReferencedPaths(clean);
-  if(libraryPaths.length>PORTABLE_MAX_IMAGES)throw bytesLimit();
+  // Bound raw selection work, but enforce the 96-image archive budget on
+  // unique files after deduplication (including already referenced images).
+  if(libraryPaths.length>PORTABLE_MAX_IMAGES*32)throw bytesLimit();
   // Detached media is explicitly opted in. A path already used by a note or
   // canvas is backed up once, not redundantly classified as library-only.
   const refs=new Set(referenced),extras=new Set();
