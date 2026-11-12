@@ -61,6 +61,7 @@ def run_jump(browser,open_page,focus):
 
         # Live task capture and journal formatting retain existing shortcuts.
         page.locator('#capture-name').focus()
+        expect(page.locator('#capture-name')).to_be_focused()
         page.keyboard.press('Control+k')
         expect(page.locator('#orbit-jump-dialog')).not_to_be_visible()
         page.evaluate("document.getElementById('capture-name').blur()")
