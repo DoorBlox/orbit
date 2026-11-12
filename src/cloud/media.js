@@ -23,16 +23,50 @@ export async function validateImage(file){
     (file.type==='image/webp'&&!webp))throw Error('The image file signature does not match its type.');
   return TYPES[file.type];
 }
-export function createPrivateMedia(client,{ownerId}={}){
+/**
+ * Auth-scoped private media. Every visible Blob URL is held by an explicit lease.
+ * Idle previews have a small LRU byte/count budget; active previews are never
+ * evicted while an image or canvas uses them. An owner switch revokes all URLs.
+ */
+export function createPrivateMedia(client,{ownerId,maxIdlePreviews=8,maxIdleBytes=12*1024*1024}={}){
   if(!client?.storage||!client?.auth?.getUser||typeof ownerId!=='string'||!ownerId)
     throw Error('Authenticated media access is required.');
+  if(!Number.isSafeInteger(maxIdlePreviews)||maxIdlePreviews<0||
+    !Number.isSafeInteger(maxIdleBytes)||maxIdleBytes<0)
+    throw Error('Invalid private preview cache limits.');
   const bucket=client.storage.from(BUCKET);
   const previews=new Map();
-  let disposed=false;
+  let disposed=false,sequence=0;
+
+  function expire(){
+    if(disposed)return;
+    disposed=true;
+    for(const entry of previews.values())if(entry.url)URL.revokeObjectURL(entry.url);
+    previews.clear();
+    // Pending downloads verify disposed before creating or retaining Blob URLs.
+  }
+  function trim(){
+    if(disposed)return;
+    const idle=[...previews.values()].filter(entry=>entry.refs===0&&entry.url)
+      .sort((a,b)=>a.lastUsed-b.lastUsed);
+    let bytes=idle.reduce((sum,entry)=>sum+entry.bytes,0);
+    while(idle.length>maxIdlePreviews||bytes>maxIdleBytes){
+      const entry=idle.shift();
+      if(previews.get(entry.path)!==entry||entry.refs!==0)continue;
+      previews.delete(entry.path);
+      URL.revokeObjectURL(entry.url);
+      bytes-=entry.bytes;
+    }
+  }
   async function checkUser(){
     if(disposed)throw Error('Your media session expired. Sign in again.');
     const response=await client.auth.getUser();
-    if(response.error||response.data?.user?.id!==ownerId)throw Error('Your media session expired. Sign in again.');
+    if(disposed)throw Error('Your media session expired. Sign in again.');
+    if(response.error)throw Error('Your media session expired. Sign in again.');
+    if(response.data?.user?.id!==ownerId){
+      expire();
+      throw Error('Your media session expired. Sign in again.');
+    }
   }
   async function download(path){
     if(!validMediaOwner(path,ownerId))throw Error('Image belongs to another space or is invalid.');
@@ -48,9 +82,53 @@ export function createPrivateMedia(client,{ownerId}={}){
     await validateImage(blob);
     return blob;
   }
+  async function acquirePreview(path){
+    if(!validMediaOwner(path,ownerId))throw Error('Image belongs to another space or is invalid.');
+    await checkUser();
+    let entry=previews.get(path);
+    if(!entry){
+      entry={path,refs:0,url:null,bytes:0,lastUsed:++sequence,promise:null};
+      previews.set(path,entry);
+      entry.promise=(async()=>{
+        const blob=await download(path);
+        const url=URL.createObjectURL(blob);
+        if(disposed){URL.revokeObjectURL(url);throw Error('Your media session expired. Sign in again.');}
+        entry.url=url;entry.bytes=blob.size;
+        return url;
+      })().catch(error=>{
+        if(previews.get(path)===entry){
+          previews.delete(path);
+          if(entry.url)URL.revokeObjectURL(entry.url);
+        }
+        throw error;
+      });
+    }
+    ++entry.refs;
+    try{
+      const url=await entry.promise;
+      // Each coalesced caller must still belong to the original account.
+      await checkUser();
+      entry.lastUsed=++sequence;
+      let released=false;
+      return Object.freeze({
+        url,
+        release(){
+          if(released)return;
+          released=true;
+          entry.refs=Math.max(0,entry.refs-1);
+          entry.lastUsed=++sequence;
+          trim();
+        }
+      });
+    }catch(error){
+      entry.refs=Math.max(0,entry.refs-1);
+      trim();
+      throw error;
+    }
+  }
   return {
-    ownerId, // public account identifier for owner-bound canvas path verification; never an auth credential
-    download,
+    ownerId, // public owner identifier for private path validation, never a credential
+    download,acquirePreview,
     async upload(file){
       const extension=await validateImage(file);
       await checkUser();
@@ -67,24 +145,6 @@ export function createPrivateMedia(client,{ownerId}={}){
       if(result.error||!result.data?.signedUrl)throw Error('Cannot load the private image.');
       return result.data.signedUrl;
     },
-    async previewUrl(path){
-      if(!validMediaOwner(path,ownerId))throw Error('Image belongs to another space or is invalid.');
-      await checkUser();
-      if(previews.has(path))return previews.get(path);
-      const pending=(async()=>{
-        // Download validates owner, session both before AND after Storage resolves,
-        // as well as file signature. Never cache a foreign or stale-session Blob.
-        const blob=await download(path);
-        const url=URL.createObjectURL(blob);
-        if(disposed){URL.revokeObjectURL(url);throw Error('Your media session expired. Sign in again.');}
-        return url;
-      })().catch(error=>{previews.delete(path);throw error;});
-      previews.set(path,pending);return pending;
-    },
-    dispose(){
-      disposed=true;
-      for(const pending of previews.values())pending.then(url=>URL.revokeObjectURL(url),()=>{});
-      previews.clear();
-    }
+    dispose:expire
   };
 }

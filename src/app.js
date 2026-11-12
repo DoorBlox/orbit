@@ -9,7 +9,7 @@ import { validateBackup,persistBackup,recoverInterruptedRestore,RESTORE_RECOVERY
 import { validDateKey,exportTasksIcs } from './dates.js';
 import { Journal,sanitizeJournal } from './journal.js';
 import { StickyNotes } from './stickies.js';
-import { normalizeExtensions,renderScene } from './scene.js';
+import { normalizeExtensions,renderScene,releaseScenePreview } from './scene.js';
 import { mountInlineCanvas } from './inline-canvas.js';
 import { setBranchProject, normalizeProjects } from './projects.js';
 import { ProjectsShelf } from './project-shelf.js';
@@ -239,7 +239,7 @@ const stickies=new StickyNotes({world:$('spatial-world'),notes:state.extensions.
      const ok=extensionsChanged();if(ok===false){state.extensions.notes=prior;return false;}
      board.setStickyNotes(notes);return true;}});
 board.setStickyNotes(stickies.getNotes());
-let activeJournalCanvas=null;
+let activeJournalCanvas=null,journalImageLease=null,journalImageRequest=0;
 const journal=new Journal({initialEntries:initialSnapshot?(initialSnapshot.journalEntries||[]):undefined,readOnly,persistLocally,notify:(s,...args)=>message(s,...args),onEntriesChange:entries=>{widgets.setJournalEntries(entries);emitChange();}});
 widgets.setJournalEntries(journal.entries);
 journal.beforePageChange=()=>{
@@ -327,18 +327,22 @@ function refreshJournalDrawing(){
 }
 function refreshJournalImage(){
   const element=$('journal-image-preview');if(!element)return;
+  const request=++journalImageRequest;
   const entry=journal.entries[journal.index],path=entry?state.extensions.journalImages[entry.id]:null;
   element.hidden=true;element.removeAttribute('src');
+  journalImageLease?.release();journalImageLease=null;
   const remove=$('journal-image-remove'),retry=$('journal-image-retry');
   remove.hidden=!path||readOnly;retry.hidden=true;
   if(!path||!media)return;
-  const load=media.previewUrl?media.previewUrl.bind(media):media.signedUrl.bind(media);
-  load(path).then(url=>{
-    if(!disposed&&journal.entries[journal.index]?.id===entry.id&&state.extensions.journalImages[entry.id]===path){
-      element.src=url;element.hidden=journalMode()==='canvas';
-    }
+  const load=media.acquirePreview?media.acquirePreview.bind(media):
+    value=>(media.previewUrl?media.previewUrl(value):media.signedUrl(value))
+      .then(url=>({url,release(){}}));
+  load(path).then(lease=>{
+    if(!disposed&&request===journalImageRequest&&journal.entries[journal.index]?.id===entry.id&&state.extensions.journalImages[entry.id]===path){
+      journalImageLease=lease;element.src=lease.url;element.hidden=journalMode()==='canvas';
+    }else lease.release();
   }).catch(()=>{
-    if(!disposed&&journal.entries[journal.index]?.id===entry.id){
+    if(!disposed&&request===journalImageRequest&&journal.entries[journal.index]?.id===entry.id){
       retry.hidden=false;message('The private journal image could not be loaded. Retry after reconnecting.',6500);
     }
   });
@@ -851,7 +855,7 @@ function hasPendingEditor(){return Boolean(activeJournalCanvas?.isDirty()||stick
    if(stickies.activeCanvas)await stickies.activeCanvas.save();
    return journal.commit();
  }
- function dispose(){if(disposed)return;leaveWidgetFocus();disposed=true;activeJournalCanvas?.dispose();activeJournalCanvas=null;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);projectsShelf.dispose();board.dispose();journal.dispose();stickies.dispose();scene.dispose();media?.dispose?.();document.documentElement.dataset.theme='parchment';document.documentElement.dataset.motion='system';document.documentElement.dataset.ambient='off';window.orbitDebug=null;}
+ function dispose(){if(disposed)return;leaveWidgetFocus();disposed=true;activeJournalCanvas?.dispose();activeJournalCanvas=null;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);++journalImageRequest;const journalImage=$('journal-image-preview');journalImage?.removeAttribute('src');journalImageLease?.release();journalImageLease=null;releaseScenePreview($('journal-drawing-preview'));projectsShelf.dispose();board.dispose();journal.dispose();stickies.dispose();scene.dispose();media?.dispose?.();document.documentElement.dataset.theme='parchment';document.documentElement.dataset.motion='system';document.documentElement.dataset.ambient='off';window.orbitDebug=null;}
 return {getSnapshot,applySnapshot,setCloudStatus,dispose,
   flushEditor,hasPendingEditor,journalCommit:()=>journal.commit(),exportBackup:backupJson};
 }
