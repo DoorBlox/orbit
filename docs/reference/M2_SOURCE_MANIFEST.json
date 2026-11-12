@@ -12,7 +12,7 @@
       "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service."
     },
     "src/app.js": {
-      "sha256": "73d6527ea6dfe08be38379df14da9ac4a6202fba8a358e5feda0ac8f873d3824",
+      "sha256": "6cae0474771280d89c45b1ed5e52e709af3b2fe3dc8cffefd1cce5875c33ee1e",
       "reason": "BR-01: integrate spatial Jump across private tasks, branches, notes, journals and windows without changing saved layout or cloud schema."
     },
     "src/auth/controller.js": {
@@ -152,7 +152,7 @@
       "reason": "Preserve task/timeline projection over canonical owner snapshots and read-only controls."
     },
     "src/quick-jump.js": {
-      "sha256": "bdec57b4cc58bf15b895f5e24e6a50efdfd9dcf676f7a0d36c20f1a869b135b6",
+      "sha256": "747ad16a3f817863f33fdf54372c01da77c809d0bebf1332cd5ecc95875695d9",
       "reason": "BR-01: locally indexed, keyboard-accessible private spatial Jump controller; no network, DOM injection or persisted search cache."
     }
   }
