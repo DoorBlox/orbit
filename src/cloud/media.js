@@ -185,7 +185,9 @@ export function createPrivateMedia(client,{ownerId,maxIdlePreviews=8,maxIdleByte
       const filename=globalThis.crypto.randomUUID();
       const path=ownerId+'/'+filename+'.'+extension;
       const result=await storageResult(()=>bucket.upload(path,file,{contentType:file.type,upsert:false,cacheControl:'3600'}),'Private upload failed. Try again.');
-      if(result.error)throw Error('Private upload failed. Try again.');
+      // Publish a reference only after Storage confirms the generated path.
+      // Ambiguous results may leave an orphan, so retries use new object names.
+      if(result?.error||result?.data?.path!==path)throw Error('Private upload failed. Try again.');
       // Never hand a path back to a different account after in-flight upload.
       // Storage deletion is intentionally NOT attempted on session expiry.
       await checkUser();

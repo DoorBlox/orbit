@@ -52,8 +52,8 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "src/cloud/media.js": {
-      "sha256": "4114a7d82aaf53b9b8e206ce182543818528a931e74cfc4e495952bdea2d15c6",
-      "reason": "BP-01/BP-12: normalize returned and rejected owner-private Storage operation errors; avoid provider-detail exposure while preserving independent authenticated retries."
+      "sha256": "01412a039cc2c88fb9d9d8cb6fa5fb0313f111e52e1a135c34695ae2b512911d",
+      "reason": "BP-01/BP-12: require exact owner-private Storage path acknowledgment before returning a new image reference; ambiguous writes remain non-destructive and retryable."
     },
     "src/cloud/owner-tools.js": {
       "sha256": "f994bcae3ddf3e7413f2cb5cd7569d08c4f4fe0c525a00a5d418f9b74270271e",

@@ -22,7 +22,7 @@ test('upload and signed read paths verify the active Supabase account',async()=>
   const client={
     auth:{getUser:async()=>({data:{user:{id:OWNER}},error:null})},
     storage:{from:name=>{assert.equal(name,'orbit-private-media');return {
-      upload:async(path)=>{seen.push(path);return {error:null};},
+      upload:async(path)=>{seen.push(path);return {data:{path},error:null};},
       createSignedUrl:async(path)=>({data:{signedUrl:'https://synthetic.example/signed'},error:null}),
     };}}
   };
