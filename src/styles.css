@@ -2005,3 +2005,93 @@ body.cloud-space-mounted #space-widget .cloud-sync-state{position:absolute!impor
   :root .orbit-jump-dialog{background:var(--orbit-solid-chrome,#f9fafc)}
   :root .orbit-jump-dialog::backdrop{backdrop-filter:none;-webkit-backdrop-filter:none}
 }
+
+/* PJ-03 — Milestones and source links remain editable in private Projects,
+   not a disguised dashboard or a public publishing control. */
+:root .project-milestones{
+  margin:10px 0;padding:9px 0;
+  border-top:1px solid var(--orbit-outline,#c7d4e0);
+  border-bottom:1px solid var(--orbit-outline,#c7d4e0);
+}
+:root .project-milestones-heading{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:8px;margin:0 0 7px;
+  color:var(--orbit-chrome-muted,#566e87);font-size:10px;
+}
+:root .project-milestones-heading h4{margin:0;font:750 12px/1.3 var(--orbit-font-ui,system-ui);color:var(--orbit-widget-ink,#314760)}
+:root .project-milestone{
+  display:flex;align-items:center;gap:8px;min-height:35px;
+  padding:4px 6px;border-radius:8px;
+  font:600 11px/1.4 var(--orbit-font-ui,system-ui);
+  color:var(--orbit-widget-ink,#314760);
+}
+:root .project-milestone:hover{background:var(--orbit-hover-surface,rgba(123,150,189,.1))}
+:root .project-milestone-toggle{
+  flex:none;width:17px;height:17px;margin:0;accent-color:var(--orbit-accent,#5a84a8);
+}
+:root .project-milestone-name{min-width:0;overflow-wrap:anywhere;flex:1}
+:root .project-milestone.is-done .project-milestone-name{
+  text-decoration:line-through;text-decoration-thickness:1px;opacity:.72;
+}
+:root .project-milestone-date{
+  flex:none;font-size:10px;font-weight:550;
+  color:var(--orbit-chrome-muted,#64768b);font-variant-numeric:tabular-nums;
+}
+:root .project-plan-tools{margin-top:9px}
+:root .project-plan-edit{
+  font-size:11px;font-weight:700;padding:5px 0;
+  border:0;background:transparent;color:var(--orbit-chrome-ink,#355274);
+  text-decoration:underline;text-underline-offset:3px;
+}
+:root .project-plan-form{
+  display:flex;flex-direction:column;gap:9px;
+  padding:12px;margin-top:6px;
+  border-radius:12px;border:1px solid var(--orbit-outline,#c1d0df);
+  background:var(--orbit-paper-glass,#f7f9fc);
+}
+:root .project-plan-form h4{margin:4px 0 0;font-size:12px;color:var(--orbit-widget-ink,#314760)}
+:root .project-plan-intro{margin:0;font-size:11px;line-height:1.5;color:var(--orbit-chrome-muted,#5b728a)}
+:root .project-plan-list{display:flex;flex-direction:column;gap:8px}
+:root .project-plan-row{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(110px,140px) auto auto;
+  align-items:end;gap:7px;padding:8px;
+  border-radius:10px;border:1px solid var(--orbit-outline,#c1d0df);
+  background:var(--orbit-field,#fff);
+}
+:root .project-plan-link-row{grid-template-columns:minmax(100px,1fr) minmax(0,2fr) auto}
+:root .project-plan-field{
+  display:flex;min-width:0;flex-direction:column;gap:4px;
+  font-size:10px;font-weight:650;color:var(--orbit-chrome-muted,#5b728a);
+}
+:root .project-plan-field:has([type=checkbox]){align-items:center}
+:root .project-plan-input{
+  width:100%;min-width:0;min-height:35px;padding:6px 7px;
+  border-radius:7px;border:1px solid var(--orbit-outline,#c1d0df);
+  background:var(--orbit-solid-chrome,#fff);color:var(--orbit-widget-ink,#314760);
+  font:500 12px/1.3 var(--orbit-font-ui,system-ui);
+}
+:root .project-plan-input[type=checkbox]{
+  width:19px;min-height:19px;height:19px;padding:0;accent-color:var(--orbit-accent,#5a84a8);
+}
+:root .project-plan-add,:root .project-plan-remove{
+  min-height:35px;border-radius:8px;padding:6px 9px;
+  border:1px solid var(--orbit-outline,#c1d0df);
+  background:var(--orbit-chrome,#f2f5f9);color:var(--orbit-chrome-ink,#314960);
+  font:700 11px/1.2 var(--orbit-font-ui,system-ui);
+}
+:root .project-plan-add{align-self:flex-start}
+:root .project-plan-error{color:var(--orbit-danger,#ab493d);font-size:11px;margin:0}
+:root .project-plan-error:empty{display:none}
+:root .projects-widget .project-plan-input:focus-visible,
+:root .projects-widget .project-milestone-toggle:focus-visible{
+  outline:3px solid var(--orbit-accent,#5a84a8);outline-offset:2px;
+}
+@media(max-width:700px){
+  :root .project-plan-row{grid-template-columns:minmax(0,1fr) minmax(110px,1fr)}
+  :root .project-plan-row .project-plan-field:first-child{grid-column:1/-1}
+  :root .project-plan-link-row{grid-template-columns:minmax(0,1fr) auto}
+  :root .project-plan-link-row .project-plan-field:nth-child(2){grid-column:1;grid-row:2}
+  :root .project-plan-link-row .project-plan-remove{grid-column:2;grid-row:2}
+  :root .project-plan-row .project-plan-field{min-width:0}
+  :root .project-milestone{flex-wrap:wrap}
+}
