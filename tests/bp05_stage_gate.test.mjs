@@ -6,6 +6,8 @@ import {
   assertStageArtifact,
   assertStageUrl,
   assertProtectedStageResponse,
+  assertReviewedStageRun,
+  assertStageProjectProtection,
 } from '../scripts/bp05-stage-gate.mjs';
 
 const sha = 'a'.repeat(40), other = 'b'.repeat(40);
@@ -99,4 +101,90 @@ test('unauthenticated raw staging must be SSO-protected, never an anonymous 200'
     {status:302, location:'http://vercel.com/login'},
     {status:302, location:'https://evil-vercel.com/login'},
   ]) assert.throws(() => assertProtectedStageResponse({...response, url}), /NO-GO/);
+});
+
+
+const reviewedEnvironment = {
+  id: 23,name: 'orbit-release-staging',
+  protection_rules: [{
+    type:'required_reviewers',prevent_self_review:true,
+    reviewers:[{type:'User',reviewer:{id:77,login:'independent-reviewer'}}],
+  },{type:'branch_policy'}],
+  deployment_branch_policy:{protected_branches:true,custom_branch_policies:false},
+};
+const reviewedRun = {
+  id:123,run_attempt:1,path:'.github/workflows/bp05-stage-reviewed.yml@main',
+  event:'workflow_dispatch',head_branch:'main',head_sha:sha,
+};
+const independentReview = {
+  state:'approved',
+  user:{login:'independent-reviewer',type:'User'},
+  environments:[{id:23,name:'orbit-release-staging'}],
+};
+const reviewArgs = {
+  environment:reviewedEnvironment,reviews:[independentReview],run:reviewedRun,
+  reviewedSha:sha,actor:'requester',triggeringActor:'requester',runId:123,runAttempt:'1',
+};
+
+test('BP-05 requires a real independent GitHub approval on this exact run',()=>{
+  assert.deepEqual(assertReviewedStageRun(reviewArgs),
+    {ok:true,reviewedSha:sha,environment:'orbit-release-staging'});
+  assert.throws(()=>assertReviewedStageRun({...reviewArgs,reviews:[]}),/NO-GO/);
+  assert.throws(()=>assertReviewedStageRun({...reviewArgs,reviews:[{
+    ...independentReview,user:{login:'requester',type:'User'},
+  }]}),/NO-GO/);
+  assert.throws(()=>assertReviewedStageRun({...reviewArgs,reviews:[{
+    ...independentReview,user:{login:'rerun-actor',type:'User'},
+  }],triggeringActor:'rerun-actor'}),/NO-GO/);
+  assert.throws(()=>assertReviewedStageRun({...reviewArgs,reviews:[
+    independentReview,{...independentReview,state:'rejected'},
+  ]}),/NO-GO/);
+  assert.throws(()=>assertReviewedStageRun({...reviewArgs,reviews:[{
+    ...independentReview,environments:[{id:24,name:'orbit-release-staging'}],
+  }]}),/NO-GO/);
+  assert.throws(()=>assertReviewedStageRun({...reviewArgs,runId:124}),/NO-GO/);
+  assert.throws(()=>assertReviewedStageRun({...reviewArgs,reviewedSha:other}),/NO-GO/);
+  assert.throws(()=>assertReviewedStageRun({...reviewArgs,runAttempt:'2'}),/NO-GO/);
+  assert.throws(()=>assertReviewedStageRun({...reviewArgs,run:{...reviewedRun,run_attempt:2}}),/NO-GO/);
+  assert.throws(()=>assertReviewedStageRun({...reviewArgs,run:{...reviewedRun,path:'.github/workflows/quality.yml@main'}}),/NO-GO/);
+});
+
+test('BP-05 fails closed on unprotected or self-reviewable environments',()=>{
+  const invalid = [
+    {...reviewedEnvironment,name:'preview'},
+    {...reviewedEnvironment,protection_rules:[]},
+    {...reviewedEnvironment,protection_rules:[{type:'wait_timer',wait_timer:10}]},
+    {...reviewedEnvironment,protection_rules:[{
+      ...reviewedEnvironment.protection_rules[0],prevent_self_review:false,
+    }]},
+    {...reviewedEnvironment,protection_rules:[{
+      ...reviewedEnvironment.protection_rules[0],reviewers:[],
+    }]},
+    {...reviewedEnvironment,deployment_branch_policy:null},
+    {...reviewedEnvironment,deployment_branch_policy:{
+      protected_branches:false,custom_branch_policies:true,
+    }},
+  ];
+  for(const environment of invalid)
+    assert.throws(()=>assertReviewedStageRun({...reviewArgs,environment}),/NO-GO/);
+});
+
+test('BP-05 confirms actual Vercel SSO protection before any deployment',()=>{
+  const project = {
+    id:'prj_FZH5dyyZvUXfVmTz04HBCMbIrQk5',
+    accountId:'team_xHRnXQbjaIEx2rNZ94p5QBao',name:'orbit',
+    ssoProtection:{enabled:true,deploymentType:'prod_deployment_urls_and_all_previews'},
+  };
+  assert.deepEqual(assertStageProjectProtection(project),{ok:true,projectId:project.id});
+  assert.deepEqual(assertStageProjectProtection({
+    ...project,ssoProtection:{enabled:true,deploymentType:'all'},
+  }),{ok:true,projectId:project.id});
+  for(const mutation of [
+    {accountId:'team-other'},
+    {id:'prj-other'},
+    {name:'other'},
+    {ssoProtection:{enabled:false,deploymentType:'prod_deployment_urls_and_all_previews'}},
+    {ssoProtection:{enabled:true,deploymentType:'all_previews'}},
+    {ssoProtection:null},
+  ])assert.throws(()=>assertStageProjectProtection({...project,...mutation}),/NO-GO/);
 });
