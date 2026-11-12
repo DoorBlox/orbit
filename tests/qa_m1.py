@@ -133,6 +133,90 @@ def bp08_viewport_rotation_recovery(browser):
         context.close()
 
 
+
+def bp11_ime_composition(browser):
+    """Synthetic CJK composition events through the actual journal UI and cloud callback."""
+    context,page,errors=open_page(browser)
+    try:
+        focus(page,'journal')
+        ensure_journal_edit(page)
+        # Replace only the synthetic page's callback; no cloud account or hosted data.
+        page.evaluate("""() => {
+          const j=window.orbitDebug.journal;
+          window.__bp11Publications=[];
+          j.persistLocally=false;
+          j.onEntriesChange=entries=>window.__bp11Publications.push({
+            title:entries[j.index].title,html:entries[j.index].html
+          });
+        }""")
+        page.locator('#journal-editor').evaluate("""el => {
+          el.focus();
+          el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true,data:'日'}));
+          el.innerHTML='<p>日</p>';
+          el.dispatchEvent(new InputEvent('input',{bubbles:true,isComposing:true,
+            inputType:'insertCompositionText',data:'日'}));
+        }""")
+        expect(page.locator('#journal-save-state')).to_have_text('writing…')
+        assert page.evaluate('window.__bp11Publications.length')==0, \
+            'Partial CJK input was published before compositionend'
+        page.locator('#journal-editor').evaluate("""el => {
+          el.innerHTML='<p>日本語の文章</p>';
+          const node=el.querySelector('p').firstChild,range=document.createRange();
+          range.setStart(node,node.length);range.collapse(true);
+          const selection=window.getSelection();
+          selection.removeAllRanges();selection.addRange(range);
+          el.dispatchEvent(new InputEvent('input',{bubbles:true,isComposing:true,
+            inputType:'insertCompositionText',data:'日本語の文章'}));
+          el.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,data:'日本語の文章'}));
+          el.dispatchEvent(new InputEvent('input',{bubbles:true,isComposing:false,
+            inputType:'insertText',data:'日本語の文章'}));
+        }""")
+        assert page.evaluate('window.__bp11Publications.length')==1, \
+            'Final composition caused a missing or duplicate cloud publication'
+        assert page.evaluate("window.__bp11Publications[0].html.includes('日本語の文章')")
+        assert page.evaluate("""() => {
+          const s=window.getSelection(),el=document.querySelector('#journal-editor');
+          return s.rangeCount===1 && el.contains(s.anchorNode) &&
+            s.anchorOffset===s.anchorNode.textContent.length;
+        }"""), 'Composition completion disturbed the caret'
+
+        page.locator('#journal-entry-title').evaluate("""el => {
+          el.focus();
+          el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true,data:'途'}));
+          el.value='途';
+          el.dispatchEvent(new InputEvent('input',{bubbles:true,isComposing:true,
+            inputType:'insertCompositionText',data:'途'}));
+        }""")
+        assert page.evaluate('window.__bp11Publications.length')==1, \
+            'Partial IME title was published before compositionend'
+        page.locator('#journal-entry-title').evaluate("""el => {
+          el.value='途中の文';
+          el.dispatchEvent(new InputEvent('input',{bubbles:true,isComposing:true,
+            inputType:'insertCompositionText',data:'途中の文'}));
+          el.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,data:'途中の文'}));
+        }""")
+        assert page.evaluate('window.__bp11Publications.length')==2
+        assert page.evaluate("window.__bp11Publications.at(-1).title==='途中の文'")
+
+        # An interrupted composition must still be captured on explicit pagehide.
+        page.locator('#journal-entry-title').evaluate("""el => {
+          el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true,data:'帰'}));
+          el.value='帰宅前の下書き';
+          el.dispatchEvent(new InputEvent('input',{bubbles:true,isComposing:true,
+            inputType:'insertCompositionText',data:'帰'}));
+        }""")
+        assert page.evaluate('window.__bp11Publications.length')==2
+        page.evaluate("window.dispatchEvent(new Event('pagehide'))")
+        assert page.evaluate('window.__bp11Publications.length')==3
+        assert page.evaluate("window.__bp11Publications.at(-1).title==='帰宅前の下書き'")
+        page.locator('#journal-entry-title').dispatch_event('compositionend')
+        assert page.evaluate('window.__bp11Publications.length')==3, \
+            'Compositionend after a forced lifecycle flush double-published an unchanged draft'
+        assert not errors,errors
+    finally:
+        context.tracing.stop()
+        context.close()
+
 def viewport_flow(browser, label, size):
     context,page,errors=open_page(browser,size,is_mobile=label!='desktop',has_touch=label!='desktop')
     try:
@@ -585,6 +669,8 @@ def main():
             viewport_flow(browser,label,size);results[label]='PASS';print('PASS',label,flush=True)
         bp08_viewport_rotation_recovery(browser)
         results['bp08_viewport_rotation_recovery']='PASS';print('PASS BP-08 viewport rotation recovery',flush=True)
+        bp11_ime_composition(browser)
+        results['bp11_ime_composition']='PASS';print('PASS BP-11 IME cloud publish recovery',flush=True)
         for name,fn in [('core flows',normal_flows),('failure and security',failure_security_flows),('preferences and dates',preferences_and_dates)]:
             fn(browser);results[name]='PASS';print('PASS',name,flush=True)
         results['density_load_ms']=density(browser)

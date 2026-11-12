@@ -84,12 +84,16 @@ function toMarkdown(html){
 export class Journal {
   constructor({notify,onEntriesChange,initialEntries,readOnly=false,persistLocally=true}={}){
     this.readOnly=readOnly;this.persistLocally=persistLocally;this.disposed=false;this.events=new AbortController();
-    this.editing=false;this.beforePageChange=null;
+    this.editing=false;this.beforePageChange=null;this.compositionTarget=null;
     this.notify=notify||(()=>{});this.onEntriesChange=onEntriesChange||(()=>{});const loaded=initialEntries!==undefined?{entries:normalizeEntries(initialEntries),saved:true}:load();this.entries=loaded.entries;this.saved=loaded.saved;this.index=this.entries.length-1;
     this.title=document.getElementById('journal-entry-title');this.editor=document.getElementById('journal-editor');
     this.dateInput=document.getElementById('journal-entry-date');
     this.saveIndicator=document.getElementById('journal-save-state');this.timer=0;
     this.title.addEventListener('input',()=>this.queueSave());this.editor.addEventListener('input',()=>this.queueSave());
+    for(const field of [this.title,this.editor]){
+      field.addEventListener('compositionstart',()=>this.beginComposition(field),{signal:this.events.signal});
+      field.addEventListener('compositionend',()=>this.endComposition(field),{signal:this.events.signal});
+    }
     this.dateInput.addEventListener('change',()=>{this.commit();});
     this.editor.addEventListener('paste',e=>this.handlePaste(e));
     document.addEventListener('visibilitychange',()=>{if(document.hidden)this.commit();},{signal:this.events.signal});
@@ -116,8 +120,21 @@ export class Journal {
     this.setEditing(false);
     if(readOnly){for(const tool of document.querySelectorAll('[data-format],#journal-new,#journal-delete'))tool.disabled=true;}
   }
+  beginComposition(field){
+    if(this.readOnly||this.disposed||!this.editing)return;
+    // Do not publish intermediate CJK IME text or fire an old local debounce.
+    this.compositionTarget=field;
+    clearTimeout(this.timer);this.timer=0;
+  }
+  endComposition(field){
+    if(this.readOnly||this.disposed||this.compositionTarget!==field)return;
+    this.compositionTarget=null;
+    // Commit the finished text without rewriting the live DOM, caret or undo stack.
+    this.queueSave();
+  }
   setEditing(editing){
     this.editing=!this.readOnly&&Boolean(editing);
+    if(!this.editing)this.compositionTarget=null;
     this.title.readOnly=!this.editing;
     this.dateInput.disabled=!this.editing;
     this.editor.contentEditable=String(this.editing);
@@ -126,7 +143,14 @@ export class Journal {
   getEntries(){this.commit();return structuredClone(this.entries);}
   replaceEntries(input,{persist=true}={}){clearTimeout(this.timer);this.entries=normalizeEntries(input);this.index=this.entries.length-1;this.saved=persist&&this.persistLocally?save(this.entries):true;this.render();this.onEntriesChange(this.entries);return this.saved;}
   updateCount(){const text=this.editor.textContent?.trim()||'';document.getElementById('journal-wordcount').textContent=`${text?text.split(/\s+/).length:0} words`;}
-  queueSave(){if(this.readOnly||this.disposed)return;this.saved=false;this.saveIndicator.textContent='writing…';this.updateCount();clearTimeout(this.timer);if(!this.persistLocally){this.commit();return;}this.timer=setTimeout(()=>this.commit(),500);}
+  queueSave(){
+    if(this.readOnly||this.disposed)return;
+    this.saved=false;this.saveIndicator.textContent='writing…';this.updateCount();
+    clearTimeout(this.timer);this.timer=0;
+    if(this.compositionTarget)return;
+    if(!this.persistLocally){this.commit();return;}
+    this.timer=setTimeout(()=>this.commit(),500);
+  }
   commit(){if(this.disposed||this.readOnly)return true;clearTimeout(this.timer);const entry=this.entries[this.index];if(!entry)return;
     const beforeDate=entry.date,beforeTitle=entry.title,beforeHtml=entry.html;
     entry.title=this.title.value.trim().slice(0,120);
@@ -141,7 +165,7 @@ export class Journal {
     if(beforeDate!==entry.date||beforeTitle!==entry.title||beforeHtml!==entry.html)this.onEntriesChange(this.entries);
     return this.saved;
   }
-  render(){const entry=this.entries[this.index];if(!entry)return;
+  render(){this.compositionTarget=null;const entry=this.entries[this.index];if(!entry)return;
     this.title.value=entry.title;this.editor.innerHTML=sanitizeJournal(entry.html);
     this.dateInput.value=dateKey(entry.date);
     document.getElementById('journal-date-label').textContent=fmtDate(entry.date).toUpperCase();
