@@ -62,12 +62,12 @@ export function assertStageArtifact(report, reviewedSha) {
 export function assertStageUrl(value) {
   let url;
   try { url = new URL(value); } catch { noGo('stage must return a valid raw HTTPS Vercel URL.'); }
-  if (typeof value !== 'string' || value !== url.href || url.protocol !== 'https:' ||
+  if (typeof value !== 'string' || ![url.origin, url.href].includes(value) || url.protocol !== 'https:' ||
       url.username || url.password || url.port || url.pathname !== '/' ||
       url.search || url.hash || !url.hostname.endsWith('.vercel.app') ||
       !/^orbit-[a-z0-9-]+-doorbloxs-projects\.vercel\.app$/.test(url.hostname))
     noGo('stage target must be an exact raw protected *.vercel.app origin, never the public alias.');
-  return value;
+  return url.href;
 }
 
 export function assertProtectedStageResponse({status, location, url}) {
