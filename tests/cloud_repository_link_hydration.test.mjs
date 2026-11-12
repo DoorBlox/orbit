@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createCloudRepository, hydrateTaskLinks} from '../src/cloud/repository.js';
 import {makeSyntheticWorkspace} from '../scripts/measure-sync-workloads.mjs';
+import {measureTaskLinkHydration} from '../scripts/measure-task-link-hydration.mjs';
 
 const link={label:'Synthetic source',url:'https://example.test/source'};
 function tasks(n){return makeSyntheticWorkspace(n).tasks.map(task=>({...task,links:[]}));}
@@ -47,5 +48,27 @@ test('BP-09: sparse hydration rejects no validated link data silently and matche
   for(const overrides of [{},{'fixture-1':[link]},{'missing':[link]}]){
     const legacy=list.map(task=>({...task,links:overrides[task.id]||task.links}));
     assert.equal(JSON.stringify(hydrateTaskLinks(list,overrides)),JSON.stringify(legacy));
+  }
+});
+
+test('BP-09: synthetic 30/300/3000 task measurement tracks copies and bytes without timing thresholds',()=>{
+  for(const count of [30,300,3000]){
+    const result=measureTaskLinkHydration(count,{passes:16});
+    assert.equal(result.taskCount,count);
+    assert.ok(result.snapshotJsonBytes>1000);
+    assert.equal(result.none.legacyObjectCopies,count*16);
+    assert.equal(result.none.optimizedObjectCopies,0);
+    assert.equal(result.one.legacyObjectCopies,count*16);
+    assert.equal(result.one.optimizedObjectCopies,16);
+    for(const mode of [result.none.legacy,result.none.optimized,result.one.legacy,result.one.optimized]){
+      assert.ok(Number.isFinite(mode.medianMs));
+      assert.ok(mode.maxMs>=mode.medianMs);
+    }
+    console.log('W1 BP-09 synthetic link benchmark:',JSON.stringify({taskCount:count,
+      responseBytes:result.snapshotJsonBytes,cloneMs:result.cloneMs,
+      noneLegacyMs:result.none.legacy.medianMs,noneOptimizedMs:result.none.optimized.medianMs,
+      oneLegacyMs:result.one.legacy.medianMs,oneOptimizedMs:result.one.optimized.medianMs,
+      noneCopyReduction:result.none.legacyObjectCopies-result.none.optimizedObjectCopies,
+      sparseCopyReduction:result.one.legacyObjectCopies-result.one.optimizedObjectCopies}));
   }
 });
