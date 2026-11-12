@@ -86,13 +86,13 @@ const repeatRpc=async(session,name,args,n=3)=>{
  return {bytes:runs[0].bytes,medianMs:round(median(runs.map(x=>x.ms))),
   contentEncoding:runs[0].contentEncoding};
 };
-const waitForPgSleep=(name)=>{
+const waitForPgSleep=async(name)=>{
  const start=performance.now();
  while(performance.now()-start<7000){
   const active=sql('select count(*) from pg_stat_activity where application_name='+quote(name)+
    " and wait_event='PgSleep';");
   if(active==='1')return;
-  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,70);
+  await new Promise(done=>setTimeout(done,70));
  }
  throw Error('Concurrent writer never entered observed pg_sleep');
 };
@@ -254,7 +254,7 @@ try{
  const writer=launchWriter(userA,
   "update public.tasks set title='Synthetic transaction committed' where id='bench-00001';",
   'orbit_w1_conditional_writer');
- waitForPgSleep('orbit_w1_conditional_writer');
+ await waitForPgSleep('orbit_w1_conditional_writer');
  const duringUnchanged=await load(a,'load_owner_snapshot_if_changed',{
   p_known_revision:before.revision});
  assert.deepEqual(duringUnchanged,{revision:before.revision,unchanged:true},
