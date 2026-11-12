@@ -75,7 +75,8 @@ def touch_continuity(page):
       b.focus('constellation',{initial:true});s.fitAll();
       const r=s.viewport.getBoundingClientRect();
       const x=(Math.max(25,r.left+25)+Math.min(innerWidth-25,r.right-25))/2;
-      const y=Math.max(110,r.top+35);
+      // Keep the two-finger synthetic gesture on the world, not the overlay header.
+      const y=Math.min(r.bottom-40,innerHeight-75,Math.max(190,r.top+110));
       return {x,y,hostScale:s.hostScale(),initialScale:s.camera.scale};
     }''')
     cdp = page.context.new_cdp_session(page)
