@@ -348,7 +348,7 @@ def private_gallery_case(browser,source,width=390):
           {name:'33333333-3333-4333-8333-333333333333.png'}
         ];}""")
         page.locator('.cloud-account-details').evaluate('details => { details.open = true; }')
-        page.locator('.cloud-owner-panel summary').click()
+        page.locator('.cloud-owner-panel > summary').click()
         page.get_by_text('Private image library',exact=True).click()
         cards=page.locator('.private-gallery-card')
         expect(cards).to_have_count(2)
@@ -397,7 +397,7 @@ def private_gallery_failure_case(browser,source):
           {name:'33333333-3333-4333-8333-333333333333.png'}
         ];window.__m2Fixture.failMediaList=true;}""")
         page.locator('.cloud-account-details').evaluate('details => { details.open = true; }')
-        page.locator('.cloud-owner-panel summary').click()
+        page.locator('.cloud-owner-panel > summary').click()
         page.get_by_text('Private image library',exact=True).click()
         expect(page.locator('.private-gallery-error')).to_contain_text('Could not load')
         expect(page.locator('.private-gallery-card')).to_have_count(0)
@@ -427,7 +427,7 @@ def owner_tools_case(browser,source):
         expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
         assert_no_local_leak(page)
         page.locator('.cloud-account-details').evaluate('details => { details.open = true; }')
-        page.locator('.cloud-owner-panel summary').click()
+        page.locator('.cloud-owner-panel > summary').click()
         page.get_by_role('button',name='Review local import',exact=True).click()
         expect(page.locator('.cloud-tool-status')).to_contain_text('Nothing has been uploaded')
         assert not any(call.get('name')=='save_owner_snapshot' for call in page.evaluate('window.__m2Fixture.calls'))
