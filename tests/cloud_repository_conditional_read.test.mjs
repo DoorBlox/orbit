@@ -69,8 +69,8 @@ test('BP-03 changed revision preserves private extensions and sanitizes complete
   assert.equal(response.revision,8);
   assert.equal(response.snapshot.tasks[0].title,'New synthetic remote task');
   assert.equal(response.snapshot.journalEntries[0].html,'<p>Safe note</p>');
-  assert.deepEqual(response.snapshot.extensions.taskLinks.one,[{label:'Synthetic evidence',url:'https://example.test'}]);
-  assert.deepEqual(response.snapshot.tasks[0].links,[{label:'Synthetic evidence',url:'https://example.test'}]);
+  assert.deepEqual(response.snapshot.extensions.taskLinks.one,[{label:'Synthetic evidence',url:'https://example.test/'}]);
+  assert.deepEqual(response.snapshot.tasks[0].links,[{label:'Synthetic evidence',url:'https://example.test/'}]);
   assert.equal(f.calls.sanitizer,1);
 });
 
