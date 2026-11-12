@@ -1,5 +1,16 @@
 # ORBIT Worker W4 — Platform, Security & Release
 
+## 12 Nov 2026 — W4 durable grant/refresh source implementation checkpoint
+
+- **Recovered live GitHub before branch:** `main` `edeb32c113b21e42d102fa0dda0205a227e21671` after W2 #154 merge. Peer open PRs #163 (W2 handoff), #161 (W3 journal), #160 (W1 conditional RPC); no open W4 competing PR or new branch touching W4 ledger files. Issue #32 still open. Read source from #131/#135/#140/#147/#156/#159/#162 before changing.
+- **Previously merged and verified:** official MCP SDK v2 interoperability PR #159 merge `457022c3442c64fa4f3d8b0d98446861189d4945` (5/5 checks), disposable S256 PKCE/refresh PR #162 merge `a3b5203ef755e10a3976cb8e722c89ab7d5a0d00` (5/5 checks). No hosted deployment.
+- **New test-first W4 branch:** `security/orbit-w4-bp15-disposable-durable-grants-20261112` based on `edeb32c113b21e42d102fa0dda0205a227e21671`. Tests `tests/bp15_disposable_grant_ledger.test.mjs` added at `502516295068c17814db0060c508efcf28eaf243`. New `server/mcp/disposable-grant-ledger.mjs` provides test-only private file state with external 32-byte HMAC key, serialized `mkdir` lock, fsync/atomic rename, signed initialized marker, coherent tenant/client/resource grant+JTI snapshot, monotonic `grant_epoch`, per-token revoke, persisted hash-only refresh family, rotation and replay-revoke. Strict fail-closed missing/truncated/corrupted storage, wrong key, world-readable permissions, abandoned lock. New documentation `docs/BP15_DISPOSABLE_GRANT_LEDGER.md`.
+- **Current verification state at this checkpoint:** New branch has not yet completed CI; do not claim tests or PR are green. Immediate next: open focused PR, inspect exact changed files and `static-quality` Node test failures, correct source/test, require original four required checks AND official `mcp-sdk-v2` if triggered. Merge only clean with expected-head guard; leave pending check pending.
+- **Limitations:** Local POSIX-only disposable adapter, NOT production distributed database; no actual browser authenticated OAuth session/HTTP token endpoint or durable hosting, possible signed-file rollback by privileged actor. W1 owns real SQL/RLS, W3 consent/revoke UI. No Production, staging, paid service, real credentials, private user data or hosted Supabase operations authorized.
+- **Next source milestone after CI:** integrate adapter into trusted synthetic PKCE + actual loopback MCP and official v2 SDK harness; build local token/revoke HTTP route with authenticated mock session and strict CSRF/state/redirect, without directly exporting arbitrary owner labels. Coordinate consent and RLS contracts on issue #32.
+
+---
+
 ## 12 November 2026 — W4 BP-15 official SDK and disposable OAuth PKCE checkpoint
 
 - **Source merged:** PR #159 (official maintained `@modelcontextprotocol/client@2.4.0` 2026-07-28 interoperability). Reviewed exact head `c7dc57b4030b1ac2d95409f5959038d3a2f4bc07`, all **five** checks SUCCESS (four required plus `mcp-sdk-v2`), clean squash merge `457022c3442c64fa4f3d8b0d98446861189d4945`. Official client revealed that the prior hand-built test missed required `ttlMs`/`cacheScope` fields in `tools/list`: now both discover/list return `ttlMs:0,cacheScope:'private'`. New path-scoped conformance workflow installs pinned official SDK only in CI, not Production dependencies. No hosted release.
