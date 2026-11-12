@@ -72,8 +72,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/cloud/sync.js": {
-      "sha256": "80cb0d9985ef6d953c30a1f21a70c6044da133fffe713b279f81ba76e90659eb",
-      "reason": "BP-09: detached owner snapshot fast path removes redundant queue clone while preserving CAS and save-boundary isolation."
+      "sha256": "4252bf0f5333b23e6b182a35939a90124ecea99284831aed501bac03d6d9dd67",
+      "reason": "W1 BP-09: abort and detach obsolete full owner reads after local edits or explicit reload; reject late stale responses without losing CAS drafts."
     },
     "src/constellation.js": {
       "sha256": "6d17fe195d35d9e0de6b712855e5f4634d284c7368457b9676cea8d55d8f3c1b",
