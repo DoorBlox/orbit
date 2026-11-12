@@ -1,3 +1,15 @@
+## 12 November 2026 — BP-08 Focus and live BP-04 parity audit (current sprint checkpoint)
+
+**Latest SOURCE main:** BP-08 [PR #79](https://github.com/DoorBlox/orbit/pull/79), exact tested head `66cbce3bd163f8b6bf42ba3db57a38a49c9d02f5`, four required workflows **success**, squash merge `01c153d6b2f4a13e105404e78fd2f520158db688`. Focus is optional, selectable in Space > Manage; peripheral widget controls temporarily become inert; Return and Escape restore saved camera scale/pan exactly without touching private layout coordinates. Five-viewport Chromium and Node regression checks passed. Real physical-device touch/ten-theme owner acceptance is still open.
+
+**Integrated SSO-protected Vercel Preview READY:** https://orbit-83nft6djg-doorbloxs-projects.vercel.app/ — deployment `dpl_8eBFFLzLHa1Vz1edQG5wqXmL5Eb7`, exact source `01c153d`, target `null` (**Preview**, not Production). Includes merged BP-07, BP-14, BP-16, BP-08 source. No production alias or hosted data mutation.
+
+**BP-04 latest read-only hosted evidence:** Supabase project `ixfgavgtwuzdgucjriec` returns the same seven migration versions recorded in `docs/SUPABASE_MIGRATION_PARITY_2026-11-09.md`: 20261101153811, 20261101154355, 20261102054113, 20261106142540, 20261108161935, 20261108185344, 20261108185405. Read-only catalog query found all eight public base tables with RLS enabled (most with five policies; published_content with two). This does NOT prove every function/grant/storage policy equals a clean replay and does not prove account isolation on real owner sessions. Supabase security advisor WARN says leaked password protection is disabled; review as an explicitly authorized Auth policy decision, not something to toggle silently. An INFO advisor notes private.orbit_configuration has RLS with no policies (may be intentional, investigate before changing). No user records, secrets, hosted writes or migrations accessed/changed.
+
+**Outstanding work:** BP-09 full-snapshot clone profiling and CAS-safe optimization; BP-10 animation and media cache limits; BP-11 text editor pilot; BP-12 reusable private media with reference-safe delete; BP-15 scoped MCP/OAuth; BP-16 semantic a11y/style lint; real BP-01/BP-02 owner private image and backup acceptance; reviewer-gated BP-05 staged release and recovery plan; physical device BP-06/BP-08. Keep one master roadmap. No automatic Production release. Owner wants rapid engineering completion, not endless design polish.
+
+---
+
 ## 12 November 2026 — BP sprint source closeout (verified, NOT Production)
 
 **Latest merged main source (in order):** BP-07 editor recovery [PR #75](https://github.com/DoorBlox/orbit/pull/75) squash `41a7fde0dfa06986ff8adf3b23f5a1debf9c90ee`; BP-16 CSS delimiter guard [PR #77](https://github.com/DoorBlox/orbit/pull/77) squash `1e336712833d3300c7b86a1239ff96593818dc0a`; BP-14 local iCalendar export [PR #76](https://github.com/DoorBlox/orbit/pull/76) squash `988094fa3f1ece3e7ae930c695897c92c2a90b4b`. Each was reviewed with all four exact-head required CI workflows successful before merge. These are source merges, NOT a Production release or owner-device acceptance.
