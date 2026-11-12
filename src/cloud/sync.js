@@ -34,6 +34,9 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
   if (!Number.isFinite(startedAt)) throw Error('Invalid idle poll clock.');
   let lastInteractionAt = startedAt, lastReadAt = startedAt;
   let lastForegroundWakeAt = -Infinity, wasForegroundVisible = isVisible();
+  // Track a genuine offline edge separately from browser online-event noise.
+  // It must force a new owner read even inside the short wake coalescing gap.
+  let offlineSinceWake = false;
   const markInteraction = () => { lastInteractionAt = now(); };
   let revision = initialRevision, state = 'saved', errorCode = null;
   let pending = null, changeVersion = 0, debounceTimer = null, pollTimer = null;
@@ -225,17 +228,34 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
   };
   const onOnline = () => {
     if (!isOnline()) return;
+    const current = now();
     if (pending) {
+      // A successful dirty reconnect should not be followed by a storm of
+      // clean reads from duplicate browser online notifications.
+      offlineSinceWake = false;
+      lastForegroundWakeAt = current;
       // Auth, validation and conflicts require owner action, not an online event.
       if (errorCode && errorCode !== 'NETWORK') return;
       if (errorCode === 'NETWORK') {
-        if (eagerReconnectUsed && now() < nextNetworkRetryAt) return;
+        if (eagerReconnectUsed && current < nextNetworkRetryAt) return;
         eagerReconnectUsed = true;
       }
       void retry();
-    } else if (isVisible()) { markInteraction(); void refresh(); }
+    } else if (isVisible()) {
+      // Share the existing foreground gap with focus/visibility events.
+      // A confirmed offline edge overrides it, as does a real visible return
+      // through onWake's newly-visible branch.
+      if (!offlineSinceWake && current - lastForegroundWakeAt < foregroundMinGapMs) return;
+      offlineSinceWake = false;
+      lastForegroundWakeAt = current;
+      markInteraction();
+      void refresh();
+    }
   };
-  const onOffline = () => { if (pending) status('offline','NETWORK'); };
+  const onOffline = () => {
+    offlineSinceWake = true;
+    if (pending) status('offline','NETWORK');
+  };
   eventTarget?.addEventListener?.('pointerdown',onActivity);
   eventTarget?.addEventListener?.('keydown',onActivity);
   eventTarget?.addEventListener?.('focus',onFocus);
