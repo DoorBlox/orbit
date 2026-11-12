@@ -85,7 +85,7 @@ export function createPrivateMedia(client,{ownerId,maxIdlePreviews=8,maxIdleByte
     if(!validMediaOwner(path,ownerId))throw Error('Image belongs to another space or is invalid.');
     await checkUser();
     const result=await storageResult(()=>bucket.download(path),'Private image could not be downloaded.');
-    if(result.error||!(result.data instanceof Blob)||result.data.size<12||result.data.size>MAX)
+    if(result?.error||!(result?.data instanceof Blob)||result.data.size<12||result.data.size>MAX)
       throw Error('Private image could not be downloaded.');
     // A long-running Storage request must not survive a sign-out/account switch.
     await checkUser();
@@ -197,7 +197,7 @@ export function createPrivateMedia(client,{ownerId,maxIdlePreviews=8,maxIdleByte
       if(!validMediaOwner(path,ownerId))throw Error('Image belongs to another space or is invalid.');
       await checkUser();
       const result=await storageResult(()=>bucket.createSignedUrl(path,600),'Cannot load the private image.');
-      if(result.error||!result.data?.signedUrl)throw Error('Cannot load the private image.');
+      if(result?.error||!result?.data?.signedUrl)throw Error('Cannot load the private image.');
       await checkUser();
       return result.data.signedUrl;
     },

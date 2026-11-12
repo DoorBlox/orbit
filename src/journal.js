@@ -161,18 +161,21 @@ export class Journal {
     if(beforeDate!==entry.date){this.entries=orderJournalEntries(this.entries);this.index=this.entries.findIndex(item=>item.id===entry.id);}
     this.saved=this.persistLocally?save(this.entries):false;this.saveIndicator.textContent=this.readOnly?'published content':this.persistLocally?(this.saved?'saved on this device':'not saved — export a backup'):(this.saved?'saved to cloud':'waiting to sync');
     document.getElementById('journal-date-label').textContent=fmtDate(entry.date).toUpperCase();
-    if(beforeDate!==entry.date)this.render();
+    if(beforeDate!==entry.date)this.updatePageNavigation();
     if(beforeDate!==entry.date||beforeTitle!==entry.title||beforeHtml!==entry.html)this.onEntriesChange(this.entries);
     return this.saved;
+  }
+  updatePageNavigation(){
+    document.getElementById('journal-page-number').textContent=String(this.index+1).padStart(2,'0');
+    document.getElementById('journal-page-label').textContent=`Page ${this.index+1} of ${this.entries.length}`;
+    document.getElementById('journal-prev').disabled=this.index===0;
+    document.getElementById('journal-next').disabled=this.index===this.entries.length-1;
   }
   render(){this.compositionTarget=null;const entry=this.entries[this.index];if(!entry)return;
     this.title.value=entry.title;this.editor.innerHTML=sanitizeJournal(entry.html);
     this.dateInput.value=dateKey(entry.date);
     document.getElementById('journal-date-label').textContent=fmtDate(entry.date).toUpperCase();
-    document.getElementById('journal-page-number').textContent=String(this.index+1).padStart(2,'0');
-    document.getElementById('journal-page-label').textContent=`Page ${this.index+1} of ${this.entries.length}`;
-    document.getElementById('journal-prev').disabled=this.index===0;
-    document.getElementById('journal-next').disabled=this.index===this.entries.length-1;
+    this.updatePageNavigation();
     this.saveIndicator.textContent=this.readOnly?'published content':this.persistLocally?(this.saved?'saved on this device':'not saved — export a backup'):(this.saved?'saved to cloud':'waiting to sync');this.updateCount();
     this.onPageChange?.(entry);
   }
@@ -213,9 +216,20 @@ export class Journal {
     if(!range||!this.editor.contains(range.commonAncestorContainer)){
       range=document.createRange();range.selectNodeContents(this.editor);range.collapse(false);
     }
-    const fragment=html?range.createContextualFragment(sanitizeJournal(html)):document.createTextNode(text.slice(0,80000));
-    const last=fragment.lastChild||fragment;range.deleteContents();range.insertNode(fragment);
-    if(last.parentNode){range.setStartAfter(last);range.collapse(true);selection.removeAllRanges();selection.addRange(range);}
+    // Prefer the browser's native editing transaction so paste joins undo/redo
+    // history. Only sanitized markup or plain text reaches the command.
+    const safeHtml=html?sanitizeJournal(html):'';
+    const safeText=text.slice(0,80000);
+    if(!selection.rangeCount||selection.getRangeAt(0)!==range){
+      selection.removeAllRanges();selection.addRange(range);
+    }
+    const inserted=document.execCommand?.(html?'insertHTML':'insertText',false,html?safeHtml:safeText);
+    if(!inserted){
+      // Keep the original sanitized fallback for engines without edit commands.
+      const fragment=html?range.createContextualFragment(safeHtml):document.createTextNode(safeText);
+      const last=fragment.lastChild||fragment;range.deleteContents();range.insertNode(fragment);
+      if(last.parentNode){range.setStartAfter(last);range.collapse(true);selection.removeAllRanges();selection.addRange(range);}
+    }
     this.queueSave();
   }
   deletePage(){

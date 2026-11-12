@@ -1,5 +1,8 @@
 # ORBIT — The Spatial Scrapbook
 
+**Start here — [Live BP/feature progress](docs/PROGRESS.md) · [GitHub PR activity](https://github.com/DoorBlox/orbit/pulls) · [GitHub Releases](https://github.com/DoorBlox/orbit/releases) · [One master roadmap](plans/ORBIT_POST_2_4_EXECUTION.md).** ORBIT now has **six workers (W1–W6) coordinated by Command HQ**. W5 keeps release notes, branch hygiene and progress readable; W6 owns cross-feature acceptance evidence. [Six-worker protocol](docs/ORBIT_PARALLEL_COMMAND_PROTOCOL.md). Source merges are **not** automatically Preview/Production or verified signed-in acceptance.
+
+
 **Engineering: ChatGPT + connected GitHub/Vercel/Supabase.** Continue development via [CHATGPT_HANDOFF.md](CHATGPT_HANDOFF.md) and [tool/skill playbook](docs/CHATGPT_TOOL_PLAYBOOK.md). You do not need a Codex app or CLI. Older CODEX-named documents are retained only for project history and compatibility.
 
 **Unified development roadmap:** the original [BP-00–BP-16 execution plan](plans/ORBIT_POST_2_4_EXECUTION.md) now also contains SP/PJ (private Projects), BR/TOUCH (tree and minimap UX), FO (Pomodoro), PUB (curated portfolio/blog) and AUTH-MASCOT units with dependencies and priorities. There is **no separate feature roadmap**. Six original windows are a compatibility baseline, not a cap. Private Journal/Projects never publish automatically.

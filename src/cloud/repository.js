@@ -40,9 +40,13 @@ export function hydrateTaskLinks(tasks, overrides = {}) {
 }
 
 /** The UI receives only V6 models; provider-specific response details remain here. */
-export function createCloudRepository(client, { sanitizeHtml, ownerId } = {}) {
+export function createCloudRepository(client, { sanitizeHtml, ownerId, conditionalOwnerReads = false } = {}) {
   if (typeof sanitizeHtml !== 'function') throw Error('A journal sanitizer is required.');
   if (!client?.rpc || !client?.auth?.getUser) throw Error('A configured Supabase client is required.');
+  if (typeof conditionalOwnerReads !== 'boolean') throw Error('Conditional owner reads must be explicitly enabled with a boolean.');
+  // A canonical PostgREST missing-function response permanently selects the safe
+  // legacy RPC for this repository instance; never retry a missing probe on polls.
+  let conditionalEndpointMissing = false;
   const normalizeSnapshot = input => {
     try {
       if (!object(input) || !Array.isArray(input.branches) || !Array.isArray(input.tasks) ||
@@ -78,6 +82,7 @@ export function createCloudRepository(client, { sanitizeHtml, ownerId } = {}) {
     if (response.error) { const mapped = cloudError(response.error); throw mapped.code === 'NETWORK' ? mapped : new CloudError('AUTH_REQUIRED'); }
     if (!response.data?.user?.id) throw new CloudError('AUTH_REQUIRED');
     if (ownerId && response.data.user.id !== ownerId) throw new CloudError('FORBIDDEN');
+    return response.data.user.id;
   }
   async function execute(buildRequest, signal) {
     assertActive(signal);
@@ -88,6 +93,26 @@ export function createCloudRepository(client, { sanitizeHtml, ownerId } = {}) {
       assertActive(signal);
       if (response.error) throw cloudError(response.error);
       return response.data;
+    } catch (error) { throw cloudError(error); }
+  }
+  // This experimental path is never invoked unless an explicit caller enables
+  // conditionalOwnerReads AND supplies a validated known revision. Default
+  // Production traffic continues to use load_owner_snapshot verbatim.
+  async function probeOwnerRevision(knownRevision, signal) {
+    assertActive(signal);
+    try {
+      let request = client.rpc('load_owner_snapshot_if_changed',{p_known_revision:knownRevision});
+      if (signal && typeof request.abortSignal === 'function') request = request.abortSignal(signal);
+      const response = await request;
+      assertActive(signal);
+      // PGRST202 with HTTP 404 means the RPC is missing from PostgREST's schema
+      // cache. Other 404s, 401s, 403s and network errors MUST fail closed.
+      if (response?.error?.code === 'PGRST202' && response.status === 404) {
+        conditionalEndpointMissing = true;
+        return {missing:true};
+      }
+      if (response?.error) throw cloudError(response.error);
+      return {missing:false,data:response?.data};
     } catch (error) { throw cloudError(error); }
   }
   function publicProjection(row) {
@@ -106,15 +131,35 @@ export function createCloudRepository(client, { sanitizeHtml, ownerId } = {}) {
   return {
     async loadOwnerSnapshot({ signal, knownRevision } = {}) {
       if (knownRevision !== undefined && !validRevision(knownRevision)) throw new CloudError('VALIDATION');
-      await verifyOwner(signal);
-      const data = await execute(() => client.rpc('load_owner_snapshot'),signal);
-      if (!object(data) || !validRevision(data.revision) || !object(data.snapshot)) throw new CloudError('INVALID_RESPONSE');
-      // Existing hosted RPC always transfers the full JSON. When an already
-      // validated owner session has this exact revision, its bytes will not be
-      // displayed. Avoid a second full HTML sanitization/model reconstruction.
-      // A changed revision, initial mount, and explicit discard-reload still
-      // take the complete fail-closed validator path below.
-      if (knownRevision === data.revision) return {revision:data.revision,unchanged:true};
+      const verifiedOwner = await verifyOwner(signal);
+      const useConditional = conditionalOwnerReads && knownRevision !== undefined && !conditionalEndpointMissing;
+      let data, conditionalResponse = false;
+      if (useConditional) {
+        const probe = await probeOwnerRevision(knownRevision,signal);
+        if (!probe.missing) { data = probe.data; conditionalResponse = true; }
+      }
+      if (!conditionalResponse) data = await execute(() => client.rpc('load_owner_snapshot'),signal);
+      // The optional endpoint introduces a second async identity boundary.
+      // Check the owner again before accepting ANY conditional/fallback result.
+      if (useConditional && await verifyOwner(signal) !== verifiedOwner) throw new CloudError('FORBIDDEN');
+      if (!object(data) || !validRevision(data.revision)) throw new CloudError('INVALID_RESPONSE');
+      if (conditionalResponse) {
+        if (data.unchanged === true) {
+          // An unchanged reply must not contain private data or a different
+          // revision. Extra keys fail closed instead of being silently ignored.
+          if (data.revision !== knownRevision || Object.keys(data).length !== 2 ||
+              !Object.hasOwn(data,'revision') || !Object.hasOwn(data,'unchanged')) {
+            throw new CloudError('INVALID_RESPONSE');
+          }
+          return {revision:data.revision,unchanged:true};
+        }
+        if ((Object.hasOwn(data,'unchanged') && data.unchanged !== false) ||
+            data.revision <= knownRevision) throw new CloudError('INVALID_RESPONSE');
+      }
+      if (!object(data.snapshot)) throw new CloudError('INVALID_RESPONSE');
+      // The unchanged client normalization fast path remains available for
+      // legacy full-snapshot responses, including a missing-RPC fallback.
+      if (!conditionalResponse && knownRevision === data.revision) return {revision:data.revision,unchanged:true};
       try { return {revision:data.revision,snapshot:normalizeSnapshot(data.snapshot)}; }
       catch { throw new CloudError('INVALID_RESPONSE'); }
     },
