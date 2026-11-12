@@ -82,6 +82,20 @@ def viewport_flow(browser, label, size):
         assert all(page.locator(f'[data-widget="{wid}"]').count()==1 for wid in core)
         assert all(page.locator(f'[data-widget="{wid}"] .widget-grip').count()==1 for wid in core)
         page.screenshot(path=str(OUT/f'm1-{label}-initial.png'))
+
+        # BP-08: optional focus is camera-only, reversible and accessible.
+        focus(page,'space')
+        before=page.evaluate('''() => ({camera:{scale:window.orbitDebug.board.scale,
+          pan:{...window.orbitDebug.board.pan}},layout:window.orbitDebug.board.getLayout()})''')
+        page.locator('#bp08-focus-picker').select_option('journal')
+        expect(page.locator('#bp08-focus-exit')).to_be_visible()
+        assert page.evaluate('''() => window.orbitDebug.board.widgets.get('space').inert === true''')
+        page.locator('#bp08-focus-exit').click()
+        expect(page.locator('#bp08-focus-exit')).to_be_hidden()
+        after=page.evaluate('''() => ({camera:{scale:window.orbitDebug.board.scale,
+          pan:{...window.orbitDebug.board.pan}},layout:window.orbitDebug.board.getLayout()})''')
+        assert before==after, 'BP-08 focus changed the camera bookmark or saved layout'
+
         focus(page,'journal')
         ensure_journal_edit(page);page.locator('#journal-entry-title').fill('M1 synthetic entry')
         ensure_journal_edit(page);page.locator('#journal-editor').fill('Synthetic M0 diagnostic entry.')
