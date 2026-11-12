@@ -140,6 +140,9 @@ def run_projects_shelf(browser,open_page,reload_page,out):
           'orbit.v8.extensions')).projects.research.status""")=='paused'
         assert page.evaluate("""() => JSON.parse(localStorage.getItem(
           'orbit.v8.extensions')).projects.research.targetDate""")=='2027-03-15'
+        restored_milestones=page.evaluate("""() => JSON.parse(localStorage.getItem(
+          'orbit.v8.extensions')).projects.research.milestones""")
+        assert restored_milestones==stored_milestones
         assert 'Await lab approval' in page.locator(
             '.project-card[data-project-id="research"]').inner_text()
         assert page.evaluate('() => window.orbitDebug.board.getLayout()')==original
