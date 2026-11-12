@@ -72,8 +72,8 @@
       "reason": "W1 BP-09: after full fail-closed normalization, retain already-valid tasks when no task-link overlay exists and copy only tasks with extension overrides; preserve Auth/RPC/CAS semantics."
     },
     "src/cloud/sync.js": {
-      "sha256": "96520de947eb95a22420b613dd2c9563989d217b4db2a3af6818e3321d1ec0c6",
-      "reason": "W1 BP-03: allow one eager authenticated reconnect write, then respect bounded NETWORK backoff on repeated online events; forbid automatic Auth/validation/CAS retries while keeping local drafts."
+      "sha256": "13515feba88f6ecd9d2c4654eed42c9e90ed671847ec9aa40f61f34c2f816bfd",
+      "reason": "W1 BP-03: coalesce clean online/focus full-snapshot reads inside existing foreground gap, preserve real offline and hidden-to-visible revalidation, dirty retry backoff and CAS."
     },
     "src/constellation.js": {
       "sha256": "6d17fe195d35d9e0de6b712855e5f4634d284c7368457b9676cea8d55d8f3c1b",
