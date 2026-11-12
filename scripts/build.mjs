@@ -6,12 +6,28 @@ import { assertProductionConfig } from './production-guard.mjs';
 
 // Keep native modules and a deliberately small public distribution allowlist.
 export const browserModules = [
-  'app.js','board.js','widget-registry.js','constellation.js','csv.js','data.js','journal.js','scene.js','excalidraw-adapter.js','inline-canvas.js','stickies.js',
+  'app.js','quick-jump.js','board.js','widget-registry.js','constellation.js','csv.js','data.js','journal.js','scene.js','excalidraw-adapter.js','inline-canvas.js','stickies.js',
   'backup.js','dates.js','layout.js','model.js','projects.js','project-shelf.js','storage.js','widgets.js','styles.css',
   'bootstrap.js','auth/controller.js','auth/shell.js','cloud/media.js','cloud/client-config.js',
   'cloud/mappers.js','cloud/repository.js','cloud/sync.js','cloud/owner-tools.js',
   'cloud/portable-backup.js',
 ];
+/** Validate the complete native import graph of the actual distribution.
+ * A green source build must never serve a bootstrap that imports a file missing
+ * from the intentionally explicit public allowlist.
+ */
+export async function assertNativeModuleClosure(outdir){
+  try{
+    await build({
+      entryPoints:[path.join(outdir,'src','bootstrap.js')],
+      bundle:true,write:false,platform:'browser',format:'esm',
+      target:['es2022'],logLevel:'silent',
+    });
+  }catch(error){
+    throw Error('Incomplete native browser distribution: '+error.message);
+  }
+}
+
 export const sdkBuildOptions=(root,outdir)=>({
   entryPoints:[path.join(root,'src/cloud/client.js')],outfile:path.join(outdir,'src/cloud/client.js'),
   bundle:true,platform:'browser',format:'esm',target:['es2022'],minify:false,
@@ -113,6 +129,7 @@ export async function buildDist({ root = process.cwd(), outdir = path.join(root,
     path.join(outdir,'assets','excalidraw','fonts'),{recursive:true});
 
   await writeFile(path.join(outdir,'src/runtime-config.js'), `// Build-generated allowlisted public configuration. No privileged credentials.\nexport const runtimeConfig = ${JSON.stringify(config)};\n`);
+  await assertNativeModuleClosure(outdir);
   const index = await readFile(path.join(outdir,'index.html'), 'utf8');
   for (const ref of ['./src/bootstrap.js','./src/styles.css']) {
     if (!index.includes(ref)) throw Error(`Build missing browser entry: ${ref}`);
