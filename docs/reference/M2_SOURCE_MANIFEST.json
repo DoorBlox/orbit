@@ -56,8 +56,8 @@
       "reason": "BP-12: read-only bounded owner media listing; verify active session after uploads and signed URL issuance."
     },
     "src/cloud/owner-tools.js": {
-      "sha256": "86412e0d92bed12af2e5de7ccc9135144505ed7c72c79aa8752f1484e10e5b81",
-      "reason": "W3 BP-12/EX-02: auth-scoped owner-private gallery with release-safe leased previews, opt-in detached media export, keyboard/mobile and fail-closed behavior."
+      "sha256": "b4353d01b6a6d545156c4cddd32e93f44960a664abc3e8bdbd7d22481cd10861",
+      "reason": "BP-12/EX-02 owner-private gallery: accessible leased previews even before lazy thumbnail decode, fail-closed owner inventory, explicit detached-image backup selection."
     },
     "src/cloud/portable-backup.js": {
       "sha256": "60e19c8e62dce710c4310850d4d48a1899490e8f163b2f7d90be05d522729139",
