@@ -2,9 +2,17 @@
 
 **Adopted:** 9 November 2026. **Purpose:** prevent context loss, contradictory state claims, uncontrolled scope growth and accidental infrastructure changes. This document is a maintained rulebook, not another release history.
 
+## Six workers and owner-test escalation (12 November 2026)
+
+[Six-worker coordination](ORBIT_PARALLEL_COMMAND_PROTOCOL.md) assigns W5 **exclusive canonical documentation editing** (CURRENT_STATE, PROGRESS, the master plan's status rows, CHANGELOG, RELEASE_NOTES, README navigation, CHATGPT_HANDOFF), with Command HQ reviewing/arbitrating. W1–W4 and W6 write their own worker handoffs and PR/issue evidence rather than competing edits to shared status files. [PROGRESS](PROGRESS.md) is an evidence-linked dashboard derived from the **one** master roadmap, never another planning queue. W6 handles cross-feature acceptance evidence in docs/acceptance/ and independent tests.
+
+The owner authorizes workers to **ask for real-user testing when genuinely needed**. Complete local/synthetic proof first, then ask for a concise protected Preview/device/account checklist with exact SHA, dummy steps and privacy-safe outcomes. Do not require the owner to repeat things automated tests can verify. Pending owner/device acceptance blocks claiming VERIFIED or independently gated release, **not** implementation of the next independent READY source task. No credentials or private data in GitHub/public artifacts.
+
+[Repository cleanup rules](REPO_HYGIENE_POLICY.md) distinguish verified merged source, actually published GitHub Releases, historical V6 notes, and guarded branch deletion.
+
 ## Agent-owned execution and continuity
 
-ChatGPT owns executing approved implementation work, not merely writing the plan. After each code or CI change, it records exact head/PR/check evidence, resolved and unresolved test gates, and a single file-level next task in CHATGPT_HANDOFF.md. Do not require the owner to manage the project through reminder prompts. The assistant can only advance work during active conversations unless an automation is explicitly created. Separately approve production changes, hosted data, identity access, destructive operations and paid resources.
+ChatGPT owns executing approved implementation work, not merely writing the plan. After each code or CI change, the implementing worker records exact head/PR/check evidence, unresolved gates, and the next file-level action in its own worker handoff and PR; W5 periodically reconciles CHATGPT_HANDOFF.md and the shared status index. Do not require the owner to manage the project through reminder prompts. The assistant can only advance work during active conversations unless an automation is explicitly created. Separately approve production changes, hosted data, identity access, destructive operations and paid resources.
 
 ## Active ChatGPT workflow and historic compatibility
 
@@ -63,6 +71,6 @@ The owner's consent to **plan and start documentation/research** is not consent 
 
 ## Session handoff template
 
-At the END of a task update [CHATGPT_HANDOFF.md](../CHATGPT_HANDOFF.md) once, with: (a) exact source/PR/deploy SHA; (b) shipped vs source-only; (c) completed BP/EX checks and their evidence; (d) blocker and owner actions; (e) the next single work unit with file paths and do-not-touch list; (f) rollback and any security/cost constraints. Preserve detailed research in its named plan/evidence file rather than copying pages into AGENTS/README/handoff.
+At the END of a task, each worker updates only its own handoff/PR evidence; W5 periodically reconciles [CHATGPT_HANDOFF.md](../CHATGPT_HANDOFF.md) with: (a) exact source/PR/deploy SHA; (b) shipped vs source-only; (c) completed BP/EX checks and their evidence; (d) blocker and owner actions; (e) the next single work unit with file paths and do-not-touch list; (f) rollback and any security/cost constraints. Preserve detailed research in its named plan/evidence file rather than copying pages into AGENTS/README/handoff.
 
 Archive earlier checkpoints by dating them, not by erasing or retroactively editing their conclusions.

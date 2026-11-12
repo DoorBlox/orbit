@@ -1,5 +1,8 @@
 # ORBIT roadmap — navigation page, not a second backlog
 
+**Want to see what's complete or still blocked?** Read the [BP-00–BP-16 progress dashboard](PROGRESS.md). GitHub Issues/Projects are tracking views; the single master execution plan below remains authoritative. W5 maintains both with Command HQ review.
+
+
 **Single authoritative planning document:** [Unified ORBIT post-2.4 BP-00–BP-16 execution roadmap with Projects, UX, Focus, publishing, Excalidraw and integrations](../plans/ORBIT_POST_2_4_EXECUTION.md).
 
 This page is intentionally **not** a separate feature checklist. Product-priority changes must update the unified execution roadmap only. Start from [verified current state](CURRENT_STATE.md) and [ChatGPT handoff](../CHATGPT_HANDOFF.md); use [operations and rollback](OPERATIONS.md) for any release question.
