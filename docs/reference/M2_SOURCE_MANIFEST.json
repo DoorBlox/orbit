@@ -1,47 +1,43 @@
 {
   "baselineCommit": "846ad7df3fa3fdf4c63fd22f2830fed56f83a06e",
   "milestone": "M2",
-  "review": "ORBIT 2.4 retained V6/M1 immutable provenance; BP-02 portable private media backup, EX-00 safe scene adapter, and EX-01 official Excalidraw lazy React island from exact pinned npm lockfile. No hosted database migration or Production alias change. BP-03 focused hidden-tab read reduction on a separate source branch, with existing CAS and owner isolation unchanged. BP-03 follow-up adds deterministic synthetic request/JSON-byte measurement with no hosted API change. SP-01A extracts the six legacy widget descriptors into a safe extensible registry; no seventh UI or storage migration. SP-01B adds a real mounted seventh test widget and owner-private extension layout without changing the six-ID V6 root layout. SP-01B Chromium diagnosed lost initial optional widget dimensions; preserved default inline size before applying saved size. PJ-01 adds reversible private project metadata keyed to existing branches; hosted security and public projection unchanged. PJ-02A exposes reversible private branch-project actions via accessible unscaled menu; original V6 spatial coordinates and public projection remain untouched. PJ-02B adds the functional private Projects window and synthetic eighth test fixture; no public project projection or hosted migration. PJ-02B visual audit of synthetic desktop/phone screenshots moved the new shelf away from the active rail and increased phone text legibility by reducing default first-party width.",
+  "review": "ORBIT 2.4 retained V6/M1 immutable provenance; BP-02 portable private media backup, EX-00 safe scene adapter, and EX-01 official Excalidraw lazy React island from exact pinned npm lockfile. No hosted database migration or Production alias change. BP-03 focused hidden-tab read reduction on a separate source branch, with existing CAS and owner isolation unchanged. BP-03 follow-up adds deterministic synthetic request/JSON-byte measurement with no hosted API change. SP-01A extracts the six legacy widget descriptors into a safe extensible registry; no seventh UI or storage migration. SP-01B adds a real mounted seventh test widget and owner-private extension layout without changing the six-ID V6 root layout. SP-01B Chromium diagnosed lost initial optional widget dimensions; preserved default inline size before applying saved size. PJ-01 adds reversible private project metadata keyed to existing branches; hosted security and public projection unchanged. PJ-02A exposes reversible private branch-project actions via accessible unscaled menu; original V6 spatial coordinates and public projection remain untouched. PJ-02B adds the functional private Projects window and synthetic eighth test fixture; no public project projection or hosted migration. PJ-02B visual audit of synthetic desktop/phone screenshots moved the new shelf away from the active rail and increased phone text legibility by reducing default first-party width. BP-07 WIP recovered on top of main; fixes mount/render crash, deferred editor writes, private media and navigation transitions, and in-place Excalidraw. No production or hosted schema changes.",
   "files": {
     "assets/orbit.svg": {
       "sha256": "97eb19dd4e0773d0b6489b1f49d794ffd272fb3bc2d42af4faffd6a1adca78c3",
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "index.html": {
-      "sha256": "8b38672847ad0c7a494d470baf7cccf29bdfeb15559081c9d679425b960e078e",
-      "reason": "BP-13: Journal Write/Canvas mode tabs and separately contained full freeform preview."
+      "sha256": "a9775041f5e65102e8fe950fc0817dbe5dd9a3db8553ec7491529f2fd7fdd0cc",
+      "reason": "BP-07: reviewed inline Edit/Preview and responsive spatial UI changes; preserve private drawings and source provenance."
     },
     "src/app.js": {
-      "sha256": "88f417c90a73406a1f4d5655ac7b53b8ae137f2b75b99ba938fa6a07bdc5947c",
-      "reason": "Expand Projects optional first-party resize to 5000px."
-    },
-    "src/auth/README.md": {
-      "sha256": "1ec9f199e2ab8b76ff9a7d462f1804d6653706a8eb4b005e23311d76c9d1f7d5",
-      "reason": "Document owner/session gate and private lifecycle invariants."
+      "sha256": "31056f313e2075d5613a1d66243eca3158a0b87f8d3b64cf506025a535fa09dd",
+      "reason": "BP-07: reviewed inline Edit/Preview and responsive spatial UI changes; preserve private drawings and source provenance."
     },
     "src/auth/controller.js": {
       "sha256": "af8cde170ef58e61df8c464ee34249df4267812991392a95dae5c4d69f47ba20",
       "reason": "ORBIT 2.0 reviewed draft: verified-user workspace gate and signup while preserving tenant privacy; Production release requires staged migration."
     },
+    "src/auth/README.md": {
+      "sha256": "1ec9f199e2ab8b76ff9a7d462f1804d6653706a8eb4b005e23311d76c9d1f7d5",
+      "reason": "Document owner/session gate and private lifecycle invariants."
+    },
     "src/auth/shell.js": {
-      "sha256": "b691170f45a7ec6183a25733b9507855eb1eb4e511ff02d97648fc4b86578d98",
-      "reason": "BP-06: private sync/backup status visible, infrequent account actions disclosed."
+      "sha256": "3b8dbe0e17087001e44c690de283156356e656a471b19c54d0571259c6f6b6ea",
+      "reason": "BP-07: reviewed inline Edit/Preview and responsive spatial UI changes; preserve private drawings and source provenance."
     },
     "src/backup.js": {
       "sha256": "c5c84b0aa4b77f7f82f76c2c4a1d850af2f0c1ef272febc91fbe5f98655e422a",
       "reason": "Normalize imported core widget dimensions into supported database-safe integers."
     },
     "src/board.js": {
-      "sha256": "07133e7deb6921b683bb4982cb68763216f65a7348427877e8276552c6086276",
-      "reason": "Fix fractional zoom dimensions for PostgreSQL integer geometry and CAS cloud saves."
+      "sha256": "9ce8c7165fe884003aa08de8478147582975f284fe032284a41fcbb3bef24a22",
+      "reason": "BP-07: reviewed inline Edit/Preview and responsive spatial UI changes; preserve private drawings and source provenance."
     },
     "src/bootstrap.js": {
-      "sha256": "d890dbb33689b72f19e1713618734831718bdcf7979056a506ed8db89b44eb99",
-      "reason": "BP-02: inject the verified account-scoped media adapter into owner-only recovery tools."
-    },
-    "src/cloud/README.md": {
-      "sha256": "2fa23ecebff7de9fa7e5463f3c77031e97850cf192398ea0da66c2f6cd19a4af",
-      "reason": "Unchanged from reviewed M1; retained and integrity checked."
+      "sha256": "b23098d9d6d6ff912ac3856ebbc89dda19f88fed1f75ac346d70c87e2ddb9223",
+      "reason": "BP-07: await editor flush on sign-out and protect dirty canvases on browser unload."
     },
     "src/cloud/client-config.js": {
       "sha256": "73f8785a6ba5fa9f5ebdf4ae84aa0bf8fb5183a975d4a5c71df12cdc6a73853b",
@@ -55,9 +51,21 @@
       "sha256": "21e3e285c08af6aa17d89acaf8e270aaaae1a78ccfcfa35e2e96500468ca5ee1",
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
+    "src/cloud/media.js": {
+      "sha256": "99eac387f80b7d9fe7214439ef935eff63686068a3ed3f50e0c9623f526b95a3",
+      "reason": "EX-02: private media owner identity and post-download auth validation before preview caching."
+    },
     "src/cloud/owner-tools.js": {
-      "sha256": "e768a633b001024e0a293d8b0e7ba48078849bb32f4b29d6a5f03f42fdc3ff35",
-      "reason": "BP-02: reviewed portable archive export/import UI with explicit confirmation and CAS-staged restore."
+      "sha256": "fbe66e463040f8a26c5b016a4e08ff26a3e001ec64319319b6dbddebe55992ab",
+      "reason": "BP-07: reviewed inline Edit/Preview and responsive spatial UI changes; preserve private drawings and source provenance."
+    },
+    "src/cloud/portable-backup.js": {
+      "sha256": "791ae983c344f55671d51056be4aea9b0112dac08eafa3701e258bbda69013c1",
+      "reason": "EX-02: checksummed archive of referenced canvas images and cross-owner path remapping."
+    },
+    "src/cloud/README.md": {
+      "sha256": "2fa23ecebff7de9fa7e5463f3c77031e97850cf192398ea0da66c2f6cd19a4af",
+      "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "src/cloud/repository.js": {
       "sha256": "d525d05e0fab6811ae0dde88e483e42f7c245cfe1276e82ccefe4ac2073c2f13",
@@ -83,9 +91,21 @@
       "sha256": "8c32e8c4fc62b0a06584fe0df7f6726d9c47871f3c99eb756c6637bc235a7218",
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
+    "src/excalidraw-adapter.js": {
+      "sha256": "518c725d2029ec5a058ece001c93af87faedabdb3eece41f7e7464fdf9cbcd43",
+      "reason": "EX-02: owner-verified private binary hydration, save after Storage upload, image saved-status and cross-account file ID rejection."
+    },
+    "src/excalidraw-island.entry.mjs": {
+      "sha256": "29b7d1a41ab7f21531898688311d124255aecfca3bde9b2c19aa6eb43fdf882e",
+      "reason": "EX-01: reviewed on-demand official React/ReactDOM Excalidraw entrypoint with local CSS and per-dialog mount/unmount; no initial app or sign-in bundle change."
+    },
+    "src/inline-canvas.js": {
+      "sha256": "ff8efd3d8ea45ddfbbc6f40da0ed21633257b223b9d3a6e5ad1dbaf8631b5c52",
+      "reason": "BP-07: lazy in-place Excalidraw island with guarded scene/media autosave and explicit flush before Preview."
+    },
     "src/journal.js": {
-      "sha256": "b1b1b3c7a340b5ba1499c8f767dace5afa7ccdf0a67a65b1b9bd07e4b64fd851",
-      "reason": "Extend sanitized rich-text formatting to links, quotes, underline, strikethrough and ordered lists; reject credential-bearing URLs."
+      "sha256": "5898568c937ec431d49301be9b709fca911c12c1fabdbcc834784f07da4f403f",
+      "reason": "BP-07: reviewed inline Edit/Preview and responsive spatial UI changes; preserve private drawings and source provenance."
     },
     "src/layout.js": {
       "sha256": "1895015e94741e987e696be8ab1d77ab348560dc847a70a41bd7c6ca74626ee3",
@@ -95,57 +115,41 @@
       "sha256": "80d566a5070b4b4154bf5ceb958bf4cb00fa9ff317648198475ef2f6b40c6e35",
       "reason": "Validate and parse bounded plain-text task checklist context without altering the hosted task table schema."
     },
+    "src/project-shelf.js": {
+      "sha256": "001677a133af388a44aa9574537878a8ca896fbd52fa07fa4fb516bbebd5cd2e",
+      "reason": "BP-07: reviewed inline Edit/Preview and responsive spatial UI changes; preserve private drawings and source provenance."
+    },
+    "src/projects.js": {
+      "sha256": "833092589f86d09494cf3fd5948663e70a04b4d8f1fea426c9d0ca3b074e4ba1",
+      "reason": "PJ-03: bounded private optional goal, next action, blockers and ISO target date metadata with safe V6 project validation."
+    },
     "src/runtime-config.js": {
       "sha256": "667beee515a5681ff91676cd5d7d5f4c53ed01aa6304163eb8919d2f4b20f2e8",
       "reason": "Null local default; only build-generated allowlisted public configuration activates cloud."
+    },
+    "src/scene.js": {
+      "sha256": "77b95efa29e33980ac6e5a80c1bb1fa7f6864cb0a9cc019a6d0e0b0e03bf1a1c",
+      "reason": "BP-07: reviewed inline Edit/Preview and responsive spatial UI changes; preserve private drawings and source provenance."
+    },
+    "src/stickies.js": {
+      "sha256": "0e43e4a93518f40e6e0b9e4253835e4a8aad5d1307b90f177065ba439a000e53",
+      "reason": "BP-07: reviewed inline Edit/Preview and responsive spatial UI changes; preserve private drawings and source provenance."
     },
     "src/storage.js": {
       "sha256": "ce630445a0191678fc845349efaeb34b7c057fb791b841c17c32914afd6d1838",
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "1cae57143b00cb874b9a8569920ad0a0d5e5f1fb53155a4a1a3f4791b60cba0a",
-      "reason": "BP-13: Journal canvas fills its page; preserve enlarged Sticky canvas, task dialog and navigator touch."
-    },
-    "src/widgets.js": {
-      "sha256": "aee68a4ce8a37edbb2de2fa1b0a2fc4589fcaf28a00603db2b148c6875a8ec58",
-      "reason": "Preserve task/timeline projection over canonical owner snapshots and read-only controls."
-    },
-    "src/scene.js": {
-      "sha256": "cb7c694852a68b90fcb84eb5960b4cc97b36a67bf8c63ea44b3abd127a2d23c7",
-      "reason": "Allow large private Sticky paper up to the extension schema's 5000px bound."
-    },
-    "src/stickies.js": {
-      "sha256": "d651eec13c38d866ab329b8166e5318717f1453e1a936305794b72bdae95b8ce",
-      "reason": "Expand Sticky dimensions and quantize drag geometry."
-    },
-    "src/cloud/media.js": {
-      "sha256": "99eac387f80b7d9fe7214439ef935eff63686068a3ed3f50e0c9623f526b95a3",
-      "reason": "EX-02: private media owner identity and post-download auth validation before preview caching."
-    },
-    "src/cloud/portable-backup.js": {
-      "sha256": "791ae983c344f55671d51056be4aea9b0112dac08eafa3701e258bbda69013c1",
-      "reason": "EX-02: checksummed archive of referenced canvas images and cross-owner path remapping."
-    },
-    "src/excalidraw-adapter.js": {
-      "sha256": "518c725d2029ec5a058ece001c93af87faedabdb3eece41f7e7464fdf9cbcd43",
-      "reason": "EX-02: owner-verified private binary hydration, save after Storage upload, image saved-status and cross-account file ID rejection."
-    },
-    "src/excalidraw-island.entry.mjs": {
-      "sha256": "29b7d1a41ab7f21531898688311d124255aecfca3bde9b2c19aa6eb43fdf882e",
-      "reason": "EX-01: reviewed on-demand official React/ReactDOM Excalidraw entrypoint with local CSS and per-dialog mount/unmount; no initial app or sign-in bundle change."
+      "sha256": "c924d32341ee3646b86cd7151edd762351ad18fe5ca5703187c2f3f81e8ed656",
+      "reason": "BP-07: reviewed inline Edit/Preview and responsive spatial UI changes; preserve private drawings and source provenance."
     },
     "src/widget-registry.js": {
       "sha256": "097767f8dd9c6c1e94504ec571c29ca2f1d0684955d2f8c87231d15db1a427f0",
       "reason": "Increase Journal maximum resize to existing database-supported 4000px."
     },
-    "src/projects.js": {
-      "sha256": "833092589f86d09494cf3fd5948663e70a04b4d8f1fea426c9d0ca3b074e4ba1",
-      "reason": "PJ-03: bounded private optional goal, next action, blockers and ISO target date metadata with safe V6 project validation."
-    },
-    "src/project-shelf.js": {
-      "sha256": "d4ffd2ff00da3f100a2fbefc130ef8744a7cdc8331df480e79136d36147e601e",
-      "reason": "PJ-03: edit and display private project brief fields, preserving task progress/status distinction and read-only presentation."
+    "src/widgets.js": {
+      "sha256": "aee68a4ce8a37edbb2de2fa1b0a2fc4589fcaf28a00603db2b148c6875a8ec58",
+      "reason": "Preserve task/timeline projection over canonical owner snapshots and read-only controls."
     }
   }
 }
