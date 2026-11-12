@@ -1,0 +1,35 @@
+name: ORBIT official MCP SDK v2 conformance
+on:
+  pull_request:
+    paths:
+      - 'server/mcp/**'
+      - 'tests/sdk/**'
+      - '.github/workflows/mcp-sdk-v2.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: orbit-mcp-sdk-v2-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  mcp-sdk-v2:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Node 22
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install existing locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Install pinned official MCP v2 client for CI only
+        # No dependency or lockfile modification is committed to the application.
+        run: npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund @modelcontextprotocol/client@2.4.0
+      - name: Verify true official client against synthetic localhost MCP
+        run: node --test tests/sdk/bp15_official_client_v2.test.mjs
+# Source-only. No hosted OAuth, real identity, Vercel deployment or private user data.
