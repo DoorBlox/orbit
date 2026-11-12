@@ -10,6 +10,9 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
   // A transport that ignores AbortSignal must not pin every subsequent poll.
   // A 45-second age budget is conservative relative to 15/30-second polling.
   maxReadAgeMs = 45000,
+  // Browser focus and visibilitychange may fire back-to-back after a fast RPC.
+  // Real hidden-to-visible transitions always revalidate immediately.
+  foregroundMinGapMs = 2000,
   now = () => globalThis.performance?.now?.() ?? Date.now(),
   eventTarget = globalThis.window,
   visibilityTarget = globalThis.document,
@@ -23,12 +26,14 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
   }
   if (typeof now !== 'function' || !Number.isFinite(idleAfterMs) || idleAfterMs < 0 ||
       !Number.isFinite(idlePollMs) || idlePollMs < Math.max(0,pollMs) ||
-      !Number.isFinite(maxReadAgeMs) || maxReadAgeMs < Math.max(0,pollMs)) {
+      !Number.isFinite(maxReadAgeMs) || maxReadAgeMs < Math.max(0,pollMs) ||
+      !Number.isFinite(foregroundMinGapMs) || foregroundMinGapMs < 0) {
     throw Error('Invalid idle poll timing or clock.');
   }
   const startedAt = now();
   if (!Number.isFinite(startedAt)) throw Error('Invalid idle poll clock.');
   let lastInteractionAt = startedAt, lastReadAt = startedAt;
+  let lastForegroundWakeAt = -Infinity, wasForegroundVisible = isVisible();
   const markInteraction = () => { lastInteractionAt = now(); };
   let revision = initialRevision, state = 'saved', errorCode = null;
   let pending = null, changeVersion = 0, debounceTimer = null, pollTimer = null;
@@ -172,8 +177,18 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
   // Hidden tabs must not repeatedly download full owner snapshots. A visible
   // transition revalidates immediately; pending drafts still use CAS on save.
   const onActivity = () => { if (isVisible()) markInteraction(); };
-  const onFocus = () => { if (isVisible()) { markInteraction(); void refresh(); } };
-  const onVisibility = () => { if (isVisible()) { markInteraction(); void refresh(); } };
+  const onWake = () => {
+    const visible = isVisible();
+    if (!visible) { wasForegroundVisible = false; return; }
+    markInteraction();
+    const current = now(), newlyVisible = !wasForegroundVisible;
+    wasForegroundVisible = true;
+    if (!newlyVisible && current - lastForegroundWakeAt < foregroundMinGapMs) return;
+    lastForegroundWakeAt = current;
+    void refresh();
+  };
+  const onFocus = onWake;
+  const onVisibility = onWake;
   const onPoll = () => {
     if (!isVisible() || !isOnline()) return;
     // Never delay error recovery, pending writes, or interactive revalidation.

@@ -39,6 +39,75 @@ export function assertStageApproval({reviewedSha, approvedSha, projectId, orgId,
   return {ok: true, reviewedSha, cliVersion};
 }
 
+
+const STAGING_ENV = 'orbit-release-staging';
+const STAGING_WORKFLOW = '.github/workflows/bp05-stage-reviewed.yml';
+
+/** GitHub can auto-create a named *unprotected* environment. A name or repository
+ * variable is never evidence of human approval. Validate actual settings AND
+ * review history of this exact first-attempt workflow run before using Vercel.
+ */
+export function assertReviewedStageRun({environment, reviews, run, reviewedSha,
+  actor, triggeringActor, runId, runAttempt} = {}) {
+  if (!environment || environment.name !== STAGING_ENV ||
+      !Number.isSafeInteger(environment.id) || environment.id <= 0 ||
+      !Array.isArray(environment.protection_rules)) noGo('missing protected GitHub release environment.');
+  const required = environment.protection_rules.find(rule =>
+    rule?.type === 'required_reviewers');
+  if (!required || required.prevent_self_review !== true ||
+      !Array.isArray(required.reviewers) || required.reviewers.length === 0 ||
+      required.reviewers.some(item => !['User','Team'].includes(item?.type) ||
+        !Number.isSafeInteger(item?.reviewer?.id))) {
+    noGo('required independent human reviewers are not configured.');
+  }
+  const policy = environment.deployment_branch_policy;
+  if (policy?.protected_branches !== true || policy?.custom_branch_policies !== false)
+    noGo('stage environment must allow protected branches only.');
+  if (!run || !Number.isSafeInteger(runId) || runId <= 0 || run.id !== runId ||
+      run.run_attempt !== 1 || String(runAttempt) !== '1' ||
+      run.path?.split('@')[0] !== STAGING_WORKFLOW ||
+      run.event !== 'workflow_dispatch' || run.head_branch !== 'main' ||
+      !SHA.test(reviewedSha || '') || run.head_sha !== reviewedSha ||
+      typeof actor !== 'string' || !actor.trim() ||
+      typeof triggeringActor !== 'string' || !triggeringActor.trim())
+    noGo('unreviewed, replayed or mismatched staging workflow run.');
+  if (!Array.isArray(reviews)) noGo('GitHub reviewer history is unavailable.');
+  const scoped = reviews.filter(review => Array.isArray(review?.environments) &&
+    review.environments.some(e => e?.name === STAGING_ENV && e?.id === environment.id));
+  if (scoped.some(review => review.state === 'rejected'))
+    noGo('a stage reviewer rejected this run.');
+  const disallowed = new Set([actor.toLowerCase(), triggeringActor.toLowerCase(),
+    'github-actions[bot]']);
+  const independent = scoped.some(review => review.state === 'approved' &&
+    review.user?.type === 'User' && typeof review.user.login === 'string' &&
+    review.user.login.trim() && !disallowed.has(review.user.login.toLowerCase()));
+  if (!independent) noGo('the current run requires an independent GitHub environment approval.');
+  return {ok:true,reviewedSha,environment:STAGING_ENV};
+}
+
+/** Release protection MUST exist before any raw deployment; a post-deploy 401
+ * is an additional defense, not permission to make an unprotected deploy first.
+ */
+export function assertStageProjectProtection(project) {
+  if (!project || project.id !== PROJECT_ID || project.accountId !== TEAM_ID ||
+      project.name !== 'orbit' || project.ssoProtection?.enabled !== true ||
+      !['all','prod_deployment_urls_and_all_previews'].includes(
+        project.ssoProtection.deploymentType))
+    noGo('Vercel project SSO must protect raw Production and Preview deployment URLs before staging.');
+  return {ok:true,projectId:PROJECT_ID};
+}
+
+async function getEvidence(url, token) {
+  if (typeof token !== 'string' || !token.trim())
+    noGo('release gate read-only API credential missing.');
+  const response = await fetch(url, {
+    method:'GET', redirect:'error', cache:'no-store', signal:AbortSignal.timeout(12000),
+    headers:{Accept:'application/json',Authorization:'Bearer ' + token},
+  });
+  if (!response.ok) noGo('release gate could not verify current remote security settings.');
+  return response.json();
+}
+
 export function assertStageArtifact(report, reviewedSha) {
   if (!SHA.test(reviewedSha || '') || !report || typeof report !== 'object' ||
       report.commit !== reviewedSha || report.version !== '1.0.0' ||
@@ -109,6 +178,31 @@ async function runCommand(mode, env = process.env) {
       projectId: env.VERCEL_PROJECT_ID, orgId: env.VERCEL_ORG_ID,
       cliVersion: env.ORBIT_VERCEL_CLI_VERSION});
     console.log('BP-05 PASS: separately scoped SHA approval and pinned Vercel target verified.');
+    return;
+  }
+  if (mode === 'review') {
+    if (env.GITHUB_REPOSITORY !== 'DoorBlox/orbit' || !env.GITHUB_TOKEN ||
+        !/^[1-9]\d{0,15}$/.test(env.GITHUB_RUN_ID || '') ||
+        env.GITHUB_SHA !== reviewedSha) noGo('trusted exact GitHub workflow context is required.');
+    const root='https://api.github.com/repos/DoorBlox/orbit';
+    const runId=Number(env.GITHUB_RUN_ID);
+    const [environment,reviews,run] = await Promise.all([
+      getEvidence(root + '/environments/' + STAGING_ENV, env.GITHUB_TOKEN),
+      getEvidence(root + '/actions/runs/' + runId + '/approvals', env.GITHUB_TOKEN),
+      getEvidence(root + '/actions/runs/' + runId, env.GITHUB_TOKEN),
+    ]);
+    assertReviewedStageRun({environment,reviews,run,reviewedSha,
+      actor:env.GITHUB_ACTOR, triggeringActor:env.GITHUB_TRIGGERING_ACTOR,
+      runId,runAttempt:env.GITHUB_RUN_ATTEMPT});
+    console.log('BP-05 PASS: protected environment and independent approval of exact run verified.');
+    return;
+  }
+  if (mode === 'vercel-protection') {
+    const url = 'https://api.vercel.com/v9/projects/' + PROJECT_ID +
+      '?teamId=' + encodeURIComponent(TEAM_ID);
+    const project=await getEvidence(url,env.VERCEL_TOKEN);
+    assertStageProjectProtection(project);
+    console.log('BP-05 PASS: raw deployment protection enabled before stage.');
     return;
   }
   if (mode === 'artifact') {
