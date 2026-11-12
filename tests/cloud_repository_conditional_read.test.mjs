@@ -63,13 +63,14 @@ test('BP-03 gated known equal revision accepts minimal envelope and retains loca
 test('BP-03 changed revision preserves private extensions and sanitizes complete snapshot',async()=>{
   const changed=snapshot();
   changed.tasks[0].title='New synthetic remote task';
-  changed.extensions.notes=[{id:'note-a',text:'synthetic'}];
+  changed.extensions.taskLinks={'one':[{label:'Synthetic evidence',url:'https://example.test'}]};
   const f=fixture({conditionalOwnerReads:true,handler:()=>full(8,changed)});
   const response=await f.repo.loadOwnerSnapshot({knownRevision:7});
   assert.equal(response.revision,8);
   assert.equal(response.snapshot.tasks[0].title,'New synthetic remote task');
   assert.equal(response.snapshot.journalEntries[0].html,'<p>Safe note</p>');
-  assert.deepEqual(response.snapshot.extensions.notes,[{id:'note-a',text:'synthetic'}]);
+  assert.deepEqual(response.snapshot.extensions.taskLinks.one,[{label:'Synthetic evidence',url:'https://example.test'}]);
+  assert.deepEqual(response.snapshot.tasks[0].links,[{label:'Synthetic evidence',url:'https://example.test'}]);
   assert.equal(f.calls.sanitizer,1);
 });
 
@@ -86,7 +87,7 @@ test('BP-03 missing endpoint uses only canonical PGRST202/404 fallback and latch
   assert.deepEqual(f.calls.rpcs.map(x=>x.name),[
     'load_owner_snapshot_if_changed','load_owner_snapshot','load_owner_snapshot'
   ]);
-  assert.equal(f.calls.auth,4,'Fallback retains post-request account verification');
+  assert.equal(f.calls.auth,3,'Only the experimental request rechecks Auth; a latched fallback uses the legacy single check');
 });
 
 test('BP-03 no fallback on 401, 403, network, malformed/missing reply or noncanonical 404',async()=>{
@@ -134,7 +135,7 @@ test('BP-03 abort during conditional RPC and account switch after response canno
   const switched=fixture({conditionalOwnerReads:true,users:['owner','other'],handler:()=>full(8)});
   await codes(switched.repo.loadOwnerSnapshot({knownRevision:7}),'FORBIDDEN');
   assert.equal(switched.calls.rpcs.length,1);
-  const unbound=fixture({conditionalOwnerReads:true,ownerId:undefined,users:['owner','other'],handler:()=>full(8)});
+  const unbound=fixture({conditionalOwnerReads:true,ownerId:null,users:['owner','other'],handler:()=>full(8)});
   await codes(unbound.repo.loadOwnerSnapshot({knownRevision:7}),'FORBIDDEN');
   const abort=new AbortController();
   const cancelled=fixture({conditionalOwnerReads:true,handler:()=>{
