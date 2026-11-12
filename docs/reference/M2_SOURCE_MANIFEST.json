@@ -60,8 +60,8 @@
       "reason": "BP-12/EX-02: authenticated owner gallery with bounded previews, valid empty and paginated inventory, reference-safe detached media selection, opt-in .orbit backup."
     },
     "src/cloud/portable-backup.js": {
-      "sha256": "7d18048c7ad7092e5db8c2295ab5d419bb21f51bf41014acef54b0026d986b47",
-      "reason": "BP-02: align .orbit export and import quotas with actual UTF-8 File.size, using bounded encoding while preserving image/base64 limits."
+      "sha256": "a4f869399cbe2df9db468e7626b6e60f1418bc3fbea66fea6b6b82f52526b382",
+      "reason": "BP-02: normalize direct object archive inputs through their checked JSON serialization, enforcing the 96 MiB UTF-8 import boundary without a toJSON inspection mismatch."
     },
     "src/cloud/README.md": {
       "sha256": "2fa23ecebff7de9fa7e5463f3c77031e97850cf192398ea0da66c2f6cd19a4af",

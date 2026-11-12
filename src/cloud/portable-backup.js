@@ -247,11 +247,18 @@ export async function createPortableArchive(snapshot,{ownerId:currentOwnerId,dow
 
 /** Fully validate the archive before the first Storage upload or workspace change. */
 export async function inspectPortableArchive(input,{sanitizeHtml}={}){
-  if(typeof input==='string'&&
-     (input.length>PORTABLE_MAX_TEXT_BYTES||utf8ByteLength(input)>PORTABLE_MAX_TEXT_BYTES))
+  // Normalize direct object callers to one exact JSON representation. Its
+  // byte budget and inspected contents must match, even with toJSON/getters.
+  let serialized=input;
+  if(typeof input!=='string'){
+    try{serialized=JSON.stringify(input);}catch{throw Error('Invalid portable backup JSON.');}
+    if(typeof serialized!=='string')throw Error('Invalid portable backup JSON.');
+  }
+  if(serialized.length>PORTABLE_MAX_TEXT_BYTES||
+     utf8ByteLength(serialized)>PORTABLE_MAX_TEXT_BYTES)
     throw Error('Portable backup file is too large.');
   let value;
-  try{value=typeof input==='string'?JSON.parse(input):input;}catch{throw Error('Invalid portable backup JSON.');}
+  try{value=JSON.parse(serialized);}catch{throw Error('Invalid portable backup JSON.');}
   if(!object(value)||value.format!==FORMAT||value.version!==VERSION)throw Error('Unsupported ORBIT portable backup.');
   if(!object(value.manifest)||!Number.isSafeInteger(value.manifest.assetCount)||
      !Number.isSafeInteger(value.manifest.totalBytes)||!Array.isArray(value.assets)||
