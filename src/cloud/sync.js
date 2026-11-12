@@ -41,10 +41,13 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
   }
   function cancelDebounce() { clearTimeout(debounceTimer); debounceTimer = null; }
   function request() { const controller = new AbortController(); requests.add(controller); return controller; }
-  function queue(snapshot) {
+  // Default callers may retain and mutate their input, so queue defensively
+  // clones it. queueOwned adopts a fully detached mountOrbit.getSnapshot()
+  // value, avoiding the second full-workspace clone on every UI edit.
+  function enqueue(snapshot,owned) {
     if (disposed) return false;
     markInteraction();
-    pending = {snapshot:clone(snapshot),version:++changeVersion};
+    pending = {snapshot:owned?snapshot:clone(snapshot),version:++changeVersion};
     cancelDebounce();
     // A stale base version requires an explicit review, never automatic overwrite.
     if (errorCode === 'CONFLICT') { status('conflict','CONFLICT'); return true; }
@@ -52,6 +55,8 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
     debounceTimer = setTimeout(() => { void flush(); },Math.max(0,debounceMs));
     return true;
   }
+  function queue(snapshot){return enqueue(snapshot,false);}
+  function queueOwned(detachedSnapshot){return enqueue(detachedSnapshot,true);}
   async function drain() {
     while (!disposed && pending) {
       if (!isOnline()) { status('offline','NETWORK'); return {ok:false,...getState()}; }
@@ -172,6 +177,6 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
     for (const controller of requests) controller.abort();
     requests.clear(); pending = null; ++changeVersion; state = 'disposed'; errorCode = null;
   }
-  return {queue,flush,refresh,retry,discardPendingAndReload,getState,
+  return {queue,queueOwned,flush,refresh,retry,discardPendingAndReload,getState,
     getPendingSnapshot:() => pending ? clone(pending.snapshot) : null,dispose};
 }

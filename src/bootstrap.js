@@ -110,7 +110,7 @@ export async function bootstrapOrbit(config=runtimeConfig) {
             if(['AUTH_REQUIRED','FORBIDDEN'].includes(status.errorCode))void auth.refresh(false);
           }});
         const media=client.storage?.from?createPrivateMedia(client,{ownerId:user.id}):null;
-        app=mountOrbit({initialSnapshot:loaded.snapshot,persistLocally:false,viewStateKey:user.id,media,onSnapshotChange:snapshot=>sync?.queue(snapshot)});
+        app=mountOrbit({initialSnapshot:loaded.snapshot,persistLocally:false,viewStateKey:user.id,media,onSnapshotChange:snapshot=>sync?.queueOwned(snapshot)});
         // The original owner alone may publish; other users still get private import tools.
         let canPublish=false;
         try{const result=await client.rpc('orbit_owner_access');canPublish=result?.data===true;}catch{}
