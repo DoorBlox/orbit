@@ -204,3 +204,48 @@ export function createPrivateMedia(client,{ownerId,maxIdlePreviews=8,maxIdleByte
     dispose:expire
   };
 }
+
+/**
+ * Read-only bounded private Storage usage. Known bytes are a lower bound until
+ * every owner-scoped page and every size is checked. No deletion or signed URLs.
+ */
+export async function summarizePrivateMediaUsage(media,{pageSize=100,maxPages=10}={}){
+  if(typeof media?.listOwnMedia!=='function'||typeof media.ownerId!=='string'||
+     !new RegExp('^'+ID+'$','i').test(media.ownerId))
+    throw Error('Authenticated private media inventory is required.');
+  if(!Number.isSafeInteger(pageSize)||pageSize<1||pageSize>100||
+     !Number.isSafeInteger(maxPages)||maxPages<1||maxPages>50)
+    throw Error('Invalid private media usage page budget.');
+  const byPath=new Map();
+  let knownBytes=0,unknownSizeFiles=0,offset=0,hasMore=true,consistent=true;
+  for(let pageIndex=0;pageIndex<maxPages&&hasMore;pageIndex++){
+    // listOwnMedia rechecks the signed-in account before and after each read.
+    const page=await media.listOwnMedia({offset,limit:pageSize});
+    if(!page||!Array.isArray(page.items)||page.items.length>pageSize||
+       typeof page.hasMore!=='boolean'||!Number.isSafeInteger(page.nextOffset)||
+       page.nextOffset<offset||page.nextOffset>offset+pageSize||
+       (page.hasMore&&page.nextOffset===offset))
+      throw Error('Private media usage inventory is unavailable.');
+    for(const item of page.items){
+      if(!item||!validMediaOwner(item.path,media.ownerId)||
+         (item.size!==null&&(!Number.isSafeInteger(item.size)||item.size<0)))
+        throw Error('Private media usage inventory is invalid.');
+      if(byPath.has(item.path)){
+        if(byPath.get(item.path)!==item.size)consistent=false;
+        continue;
+      }
+      byPath.set(item.path,item.size);
+      if(item.size===null)unknownSizeFiles++;
+      else{
+        if(!Number.isSafeInteger(knownBytes+item.size))
+          throw Error('Private media usage size is not safely representable.');
+        knownBytes+=item.size;
+      }
+    }
+    offset=page.nextOffset;
+    hasMore=page.hasMore;
+  }
+  const complete=!hasMore&&consistent;
+  return {files:byPath.size,knownBytes,unknownSizeFiles,complete,
+    totalBytes:complete&&unknownSizeFiles===0?knownBytes:null};
+}
