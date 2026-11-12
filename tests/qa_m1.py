@@ -87,6 +87,7 @@ def viewport_flow(browser, label, size):
         focus(page,'space')
         before=page.evaluate('''() => ({camera:{scale:window.orbitDebug.board.scale,
           pan:{...window.orbitDebug.board.pan}},layout:window.orbitDebug.board.getLayout()})''')
+        page.locator('.space-manage > summary').click()
         page.locator('#bp08-focus-picker').select_option('journal')
         expect(page.locator('#bp08-focus-exit')).to_be_visible()
         assert page.evaluate('''() => window.orbitDebug.board.widgets.get('space').inert === true''')
