@@ -98,6 +98,8 @@ test('no Origin is valid for authenticated non-browser clients; invalid supplied
     'https://orbit.example.test%00.evil.test']){
     await denied(()=>a.invoke(request(payload(),{headers:{Origin:bad}})),{status:403});
   }
+  await denied(()=>a.invoke(request(payload(),{method:'GET',
+    headers:{Origin:'https://evil.example.test'}})),{status:403});
   assert.throws(()=>admission({allowedOrigins:['*']}),/MCP_HTTP_DENIED/);
   assert.throws(()=>admission({allowedOrigins:['http://127.0.0.1']}),/MCP_HTTP_DENIED/);
 });
