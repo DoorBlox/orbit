@@ -34,9 +34,12 @@ const rows=Object.freeze({
 });
 
 const denyResult=(res,status)=>{
+  const body=JSON.stringify({jsonrpc:'2.0',
+    error:{code:-32000,message:'Request denied'}});
   res.writeHead(status,{'content-type':'application/json; charset=utf-8',
-    'cache-control':'no-store','x-content-type-options':'nosniff'});
-  res.end(JSON.stringify({jsonrpc:'2.0',error:{code:-32000,message:'Request denied'}}));
+    'cache-control':'no-store','x-content-type-options':'nosniff',
+    'content-length':Buffer.byteLength(body)});
+  res.end(body);
 };
 
 /** Return a disposable A/B fixture bound to 127.0.0.1 on an ephemeral port.
@@ -154,7 +157,8 @@ export async function startLocalMcpFixture({maxRequestsPerMinute=120}={}){
         method:req.method,path:req.url,headers:pairs,
         body:Buffer.concat(chunks,length),
       });
-      res.writeHead(reply.status,reply.headers);
+      res.writeHead(reply.status,{...reply.headers,
+        'content-length':Buffer.byteLength(reply.body)});
       res.end(reply.body);
     }catch{
       if(!res.headersSent)denyResult(res,400);
