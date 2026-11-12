@@ -17,6 +17,11 @@ from playwright.sync_api import sync_playwright, expect
 import qa_m2 as qa
 
 
+def ensure_journal_edit(page):
+    if page.locator('#journal-widget').get_attribute('data-journal-view') != 'edit':
+        page.locator('#journal-edit-toggle').click()
+    expect(page.locator('#journal-editor')).to_have_attribute('contenteditable','true')
+
 def cloud_context(browser, size, mode, **options):
     return qa.cloud_context(browser, size, mode, legacy_seed={
         'orbit.phase1.preferences.v1': '{ "colorMode": "urgency" }',
@@ -70,8 +75,11 @@ def mobile_flow(browser, width):
         saved(page)
         focus(page, 'journal')
         qa.assert_pointer_reachable(page, '#journal-entry-title')
+        ensure_journal_edit(page)
         page.locator('#journal-entry-title').fill(f'Closeout journal {width}')
+        ensure_journal_edit(page)
         page.locator('#journal-editor').fill(f'Synthetic mobile body {width}')
+        ensure_journal_edit(page)
         page.locator('#journal-entry-date').fill('2026-11-06')
         page.locator('#journal-entry-date').dispatch_event('change')
         saved(page)
@@ -144,11 +152,15 @@ def crud_undo(browser):
         saved(page)
         assert page.evaluate('window.__m2Fixture.snapshot.tasks') == before['tasks']
         focus(page, 'journal')
+        ensure_journal_edit(page)
         page.locator('#journal-new').click()
+        ensure_journal_edit(page)
         page.locator('#journal-entry-title').fill('Closeout undo page')
+        ensure_journal_edit(page)
         page.locator('#journal-editor').fill('Synthetic undo body')
         saved(page)
         before_pages = page.evaluate('window.__m2Fixture.snapshot.journalEntries')
+        ensure_journal_edit(page)
         page.locator('#journal-delete').click()
         saved(page)
         assert len(page.evaluate('window.__m2Fixture.snapshot.journalEntries')) == len(before_pages) - 1
@@ -170,6 +182,7 @@ def offline_recovery(browser):
         ctx.set_offline(True)
         assert page.evaluate('navigator.onLine') is False
         focus(page, 'journal')
+        ensure_journal_edit(page)
         page.locator('#journal-editor').fill('Closeout unsaved offline draft')
         expect(page.locator('.cloud-sync-state')).to_contain_text('Offline')
         draft = backup(page)
@@ -180,6 +193,7 @@ def offline_recovery(browser):
         saved(page)
         assert 'Closeout unsaved offline draft' in json.dumps(page.evaluate('window.__m2Fixture.snapshot.journalEntries'))
         ctx.set_offline(True)
+        ensure_journal_edit(page)
         page.locator('#journal-editor').fill('Closeout discard after private export')
         expect(page.locator('.cloud-sync-state')).to_contain_text('Offline')
         dialogs = []
@@ -220,6 +234,7 @@ def snapshot_integrity(browser):
         expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
         original = legacy(page)
         focus(page, 'journal')
+        ensure_journal_edit(page)
         page.locator('#journal-entry-title').fill('Closeout full snapshot')
         saved(page)
         stored = page.evaluate('window.__m2Fixture.snapshot')
