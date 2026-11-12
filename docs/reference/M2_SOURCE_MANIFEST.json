@@ -52,16 +52,16 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "src/cloud/media.js": {
-      "sha256": "abd09282ff6965abea336e38867f8f91788e794837d7fa8c723b07f07377c165",
-      "reason": "BP-12: read-only bounded owner media listing; verify active session after uploads and signed URL issuance."
+      "sha256": "685c2cd37454cdb9f69d4a5f1f443c40da1364ea5815445141bdb1c975a72d3d",
+      "reason": "BP-01/BP-12: recheck owner after asynchronous downloaded image signature inspection; prevent expired-session byte return and transient private preview URLs."
     },
     "src/cloud/owner-tools.js": {
       "sha256": "b4353d01b6a6d545156c4cddd32e93f44960a664abc3e8bdbd7d22481cd10861",
       "reason": "BP-12/EX-02 owner-private gallery: accessible leased previews even before lazy thumbnail decode, fail-closed owner inventory, explicit detached-image backup selection."
     },
     "src/cloud/portable-backup.js": {
-      "sha256": "60e19c8e62dce710c4310850d4d48a1899490e8f163b2f7d90be05d522729139",
-      "reason": "BP-02/12: seal reviewed in-memory archives; preflight all image bytes, paths, and snapshot before any private restore upload; reject mixed source-owner references."
+      "sha256": "d89bda8ce1c41f13175d9226efd0ff59c7aef03e198b188aa9a5c86683ac2ca7",
+      "reason": "BP-02/12: enforce 96 unique media files after explicit library selection deduplication; retain bounded raw-selection work."
     },
     "src/cloud/README.md": {
       "sha256": "2fa23ecebff7de9fa7e5463f3c77031e97850cf192398ea0da66c2f6cd19a4af",
@@ -72,8 +72,8 @@
       "reason": "W1 BP-09: revision-aware clean refresh avoids redundant model/HTML normalization at identical CAS revision; initial or changed reads remain validated."
     },
     "src/cloud/sync.js": {
-      "sha256": "2633fadd81b9159686b3b642563cce3074ae4da6a6cb103539ff762575ddbe24",
-      "reason": "W1 BP-03: coalesce completed rapid foreground focus/visibility rechecks while forcing immediate real hidden-to-visible refresh and preserving CAS/offline retries."
+      "sha256": "ae804cd1d6018f3da48bf102465551ec9fb88cd79aa862ff307f52dd667b0f66",
+      "reason": "W1 BP-03: automatically recover retained NETWORK-failed drafts on visible poll using capped exponential retries; preserve CAS conflicts, Auth-denial and offline privacy gates."
     },
     "src/constellation.js": {
       "sha256": "6d17fe195d35d9e0de6b712855e5f4634d284c7368457b9676cea8d55d8f3c1b",
