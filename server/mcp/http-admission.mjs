@@ -166,7 +166,7 @@ function validateJsonRpc(body){
       /[\u0000-\u001f\u007f]/.test(body.id)))||
     typeof body.method!=='string'||!plain(body.params))denied();
 }
-function validateHeadersAndBody(headers,body){
+function validateHeadersAndBody(headers,body,{allowMetadata=false}={}){
   const version=headers.get('mcp-protocol-version');
   const bodyVersion=plain(body.params._meta)?
     body.params._meta['io.modelcontextprotocol/protocolVersion']:undefined;
@@ -176,17 +176,29 @@ function validateHeadersAndBody(headers,body){
     denied(400,HEADER_MISMATCH);
   if(version!==VERSION)denied(400,UNSUPPORTED_VERSION,
     {supported:[VERSION],requested:version});
-  if(body.method!=='tools/call')denied(404,METHOD_NOT_FOUND);
-  const name=body.params.name;
-  if(typeof name!=='string'||typeof headers.get('mcp-name')!=='string'||
-    decodeMirroredName(headers.get('mcp-name'))!==name)
+  // No read tool registers x-mcp-header params. Never let a gateway treat an
+  // unsolicited mirrored parameter as a trustworthy routing/tenant identity.
+  for(const h of headers.keys())if(h.startsWith('mcp-param-'))
     denied(400,HEADER_MISMATCH);
-  if(!has(MCP_READ_TOOLS,name))denied(404,METHOD_NOT_FOUND);
-  if(!plain(body.params.arguments))denied();
-  // W4 read tools expose NO x-mcp-header parameter annotations. A custom
-  // Mcp-Param-* field would mislead an upstream policy gateway.
-  for(const h of headers.keys())if(h.startsWith('mcp-param-'))denied(400,HEADER_MISMATCH);
-  return Object.freeze({name,arguments:Object.freeze(body.params.arguments)});
+  if(body.method==='tools/call'){
+    const name=body.params.name;
+    if(typeof name!=='string'||typeof headers.get('mcp-name')!=='string'||
+      decodeMirroredName(headers.get('mcp-name'))!==name)
+      denied(400,HEADER_MISMATCH);
+    if(!has(MCP_READ_TOOLS,name))denied(404,METHOD_NOT_FOUND);
+    if(!plain(body.params.arguments))denied();
+    return Object.freeze({method:body.method,id:body.id,name,
+      arguments:Object.freeze(body.params.arguments)});
+  }
+  if(allowMetadata&&(body.method==='server/discover'||body.method==='tools/list')){
+    // These control messages carry no Mcp-Name. A future pagination change
+    // must explicitly validate cursor syntax rather than trust free params.
+    if(headers.has('mcp-name'))denied(400,HEADER_MISMATCH);
+    if(Object.keys(body.params).length!==1||!plain(body.params._meta))
+      denied(400,INVALID_REQUEST);
+    return Object.freeze({method:body.method,id:body.id});
+  }
+  denied(404,METHOD_NOT_FOUND);
 }
 
 /** An offline admission-and-dispatch policy. Caller MUST inject the existing
@@ -202,40 +214,47 @@ export function createMcpStreamableReadAdmission({
     !/^\/[a-zA-Z0-9/_-]+$/.test(endpointPath)||
     !Number.isSafeInteger(maxBodyBytes)||maxBodyBytes<512||
     maxBodyBytes>MAX_BYTES)denied();
+  function inspect(request,allowMetadata=false){
+    if(!plain(request))denied();
+    const headers=headersFromRaw(request.headers);
+    const origin=headers.get('origin');
+    // Origin validation applies to EVERY incoming connection/method.
+    if(origin!==undefined&&!origins.has(origin))denied(403);
+    if(request.method!=='POST')denied(405);
+    if(request.path!==endpointPath)denied(404);
+    if(!acceptsBoth(headers.get('accept')))denied(406);
+    if(!/^application\/json(?:;\s*charset=utf-8)?$/i.test(headers.get('content-type')||''))
+      denied(415);
+    if(headers.has('transfer-encoding')||headers.has('content-encoding'))
+      denied(400,HEADER_MISMATCH);
+    const length=headers.get('content-length');
+    if(length!==undefined&&(!/^(0|[1-9][0-9]*)$/.test(length)||
+      !Number.isSafeInteger(Number(length))||
+      !(request.body instanceof Uint8Array)||
+      Number(length)!==request.body.byteLength))denied(400,HEADER_MISMATCH);
+    const body=readBody(request.body,maxBodyBytes);
+    validateJsonRpc(body);
+    const validated=validateHeadersAndBody(headers,body,{allowMetadata});
+    const authorization=headers.get('authorization');
+    if(typeof authorization!=='string'||
+      !/^Bearer [A-Za-z0-9._~-]{20,4096}$/.test(authorization))
+      denied(401);
+    return Object.freeze({...validated,authorization});
+  }
   return Object.freeze({
+    // For separately-authenticated server/discover and tools/list handlers.
+    // This checks syntax/transport ONLY: consumers MUST verify JWT signature
+    // and current owner consent before returning any authenticated metadata.
+    inspect(request){return inspect(request,true);},
     async invoke(request){
-      if(!plain(request))denied();
-      const headers=headersFromRaw(request.headers);
-      const origin=headers.get('origin');
-      // The 2026-07-28 transport requires Origin validation on every
-      // connection, including otherwise unsupported legacy methods.
-      if(origin!==undefined&&!origins.has(origin))denied(403);
-      if(request.method!=='POST')denied(405);
-      if(request.path!==endpointPath)denied(404);
-      if(!acceptsBoth(headers.get('accept')))denied(406);
-      if(!/^application\/json(?:;\s*charset=utf-8)?$/i.test(headers.get('content-type')||''))
-        denied(415);
-      if(headers.has('transfer-encoding')||headers.has('content-encoding'))
-        denied(400,HEADER_MISMATCH);
-      const length=headers.get('content-length');
-      if(length!==undefined&&(!/^(0|[1-9][0-9]*)$/.test(length)||
-        !Number.isSafeInteger(Number(length))||
-        !(request.body instanceof Uint8Array)||
-        Number(length)!==request.body.byteLength))denied(400,HEADER_MISMATCH);
-      const body=readBody(request.body,maxBodyBytes);
-      validateJsonRpc(body);
-      const tool=validateHeadersAndBody(headers,body);
-      const authorization=headers.get('authorization');
-      if(typeof authorization!=='string'||
-        !/^Bearer [A-Za-z0-9._~-]{20,4096}$/.test(authorization))
-        denied(401);
+      const admitted=inspect(request,false);
       try{
         return await invokeReadBoundary(Object.freeze({
-          authorization,name:tool.name,arguments:tool.arguments,
+          authorization:admitted.authorization,
+          name:admitted.name,arguments:admitted.arguments,
         }));
       }catch{
-        // Backend exception (including auth/RLS errors) is never reflected.
-        denied(403);
+        denied(403); // Never reflect private JWT, grant or SQL diagnostics.
       }
     },
   });
