@@ -310,7 +310,9 @@ export function createOwnerTools({repository,app,sync,container,media,ownerId,ca
     if(gallery.open)void loadGalleryPage();
     else resetGallery();
   },{signal:events.signal});
-  root.addEventListener('toggle',()=>{if(!root.open)resetGallery();},{signal:events.signal});
+  root.addEventListener('toggle',()=>{
+    if(!root.open){gallery.open=false;resetGallery();}
+  },{signal:events.signal});
 
   const confirmPortable=button('Restore reviewed backup (private)',async()=>{
     if(!ready()||portableBusy||!portableDraft)return;
