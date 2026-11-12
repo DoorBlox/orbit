@@ -15,9 +15,9 @@ test('BP-05: obsolete pinned 1.0.0 Production staging workflow is not dispatchab
     assert.ok(!source.includes('fc5af5a8cd2c99d1e104615e72c3cd2b460f60d6'),
       `Active workflow ${file} must not silently stage the obsolete 1.0.0 commit.`);
     const active=source.split('\n').filter(line=>!/^\s*#/.test(line)).join('\n');
-    assert.doesNotMatch(active, /\\bvercel\\s+(?:promote|rollback|alias)\\b/,
+    assert.doesNotMatch(active, /\bvercel\s+(?:promote|rollback|alias)\b/,
       `Active workflow ${file} must not promote/rollback/alias.`);
-    if(file!==STAGE)assert.doesNotMatch(active, /\\bvercel\\s+(?:deploy\\b|--prod\\b)/,
+    if(file!==STAGE)assert.doesNotMatch(active, /\bvercel\s+(?:deploy\b|--prod\b)/,
       `Active workflow ${file} must not contain a deployment operation.`);
   }
 });
