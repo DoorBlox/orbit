@@ -83,12 +83,12 @@ export async function createCloudClient(){
 }
 '''
 
-@contextmanager
 def ensure_journal_edit(page):
     if page.locator('#journal-widget').get_attribute('data-journal-view') != 'edit':
         page.locator('#journal-edit-toggle').click()
     expect(page.locator('#journal-editor')).to_have_attribute('contenteditable','true')
 
+@contextmanager
 def server(source=False):
     with (OUT/'m2-server.log').open('w') as log:
         proc=subprocess.Popen(['node','scripts/dev-server.mjs']+([] if source else ['--dist']),cwd=ROOT,
