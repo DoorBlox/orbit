@@ -465,9 +465,10 @@ def preferences_and_dates(browser):
     background=luminance([248/255,241/255,221/255]);foreground=luminance(rgb)
     ratio=(max(background,foreground)+.05)/(min(background,foreground)+.05)
     assert ratio>=4.5,('journal saved-state contrast',ratio)
-    page.keyboard.press('Tab');page.locator('#journal-export').focus()
-    rect=page.locator('#journal-export').bounding_box()
+    page.keyboard.press('Tab');page.locator('#journal-edit-toggle').focus()
+    rect=page.locator('#journal-edit-toggle').bounding_box()
     assert rect['y']>=80 and rect['y']+rect['height']<=390-23,rect
+    ensure_journal_edit(page)
     page.locator('#journal-editor').focus()
     assert page.locator('#journal-editor').evaluate('e=>getComputedStyle(e).outlineStyle')!='none'
     assert page.locator('.ambient-orb').first.evaluate('e=>getComputedStyle(e).animationName')=='none'
