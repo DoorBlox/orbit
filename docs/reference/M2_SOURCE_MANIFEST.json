@@ -72,8 +72,8 @@
       "reason": "W1 BP-09: revision-aware clean refresh avoids redundant model/HTML normalization at identical CAS revision; initial or changed reads remain validated."
     },
     "src/cloud/sync.js": {
-      "sha256": "2633fadd81b9159686b3b642563cce3074ae4da6a6cb103539ff762575ddbe24",
-      "reason": "W1 BP-03: coalesce completed rapid foreground focus/visibility rechecks while forcing immediate real hidden-to-visible refresh and preserving CAS/offline retries."
+      "sha256": "ae804cd1d6018f3da48bf102465551ec9fb88cd79aa862ff307f52dd667b0f66",
+      "reason": "W1 BP-03: automatically recover retained NETWORK-failed drafts on visible poll using capped exponential retries; preserve CAS conflicts, Auth-denial and offline privacy gates."
     },
     "src/constellation.js": {
       "sha256": "6d17fe195d35d9e0de6b712855e5f4634d284c7368457b9676cea8d55d8f3c1b",
