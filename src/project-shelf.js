@@ -302,6 +302,8 @@ export class ProjectsShelf {
     header.append(title,count);
 
     const showView=()=>{
+      const trigger=header.querySelector('.project-edit-milestones');
+      if(trigger)trigger.hidden=false;
       const list=node('ul','project-milestone-list');
       if(!milestones.length){
         list.append(node('li','project-milestone-empty','Mark a meaningful step towards your goal.'));
@@ -327,6 +329,7 @@ export class ProjectsShelf {
       edit.type='button';
       edit.setAttribute('aria-label','Edit milestones for '+project.label);
       edit.addEventListener('click',()=>{
+        edit.hidden=true;
         const form=node('form','project-milestone-form');
         form.setAttribute('aria-label','Edit milestones for '+project.label);
         const rows=node('div','project-milestone-editor-rows');
