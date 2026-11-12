@@ -92,7 +92,11 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
         if (disposed || changeVersion !== requestVersion || pending || writePromise) return {ok:false,changed:false};
         if (!Number.isSafeInteger(result?.revision) || result.revision < revision) throw Object.assign(Error(),{code:'INVALID_RESPONSE'});
         const changed = result.revision > revision;
-        if (changed) { revision = result.revision; markInteraction(); onSnapshot(clone(result.snapshot)); }
+        if (changed) { // Accept the remote CAS revision only after the UI accepts its snapshot.
+          // A dirty Excalidraw edit can reject replacement: keep the old revision
+          // so its next save correctly conflicts rather than overwriting remote work.
+          onSnapshot(clone(result.snapshot)); revision = result.revision; markInteraction();
+        }
         if (!pending && !disposed) status('saved');
         return {ok:true,changed};
       } catch (error) {
