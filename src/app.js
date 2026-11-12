@@ -13,6 +13,7 @@ import { normalizeExtensions,renderScene,releaseScenePreview } from './scene.js'
 import { mountInlineCanvas } from './inline-canvas.js';
 import { setBranchProject, normalizeProjects } from './projects.js';
 import { ProjectsShelf } from './project-shelf.js';
+import { createQuickJump } from './quick-jump.js';
 
 /** Mount the same spatial scrapbook over either local or authenticated owner state. */
 export function mountOrbit({initialSnapshot=null,readOnly=false,persistLocally=true,onSnapshotChange=()=>{},viewStateKey='local',media=null}={}){
@@ -775,10 +776,88 @@ const known=new Set(state.tasks.map(t=>`${t.title.toLowerCase()}|${t.projectId}|
     }catch(err){message(`Import failed: ${err.message}`,5500);}finally{e.target.value='';}
   });
 }
+// BR-01: unscaled, private wayfinding across every object in the spatial world.
+// Search is rebuilt only on opening, and does not sync, index remotely or move
+// a saved widget. Text is rendered by the Jump controller using textContent.
+const jump=createQuickJump({
+  triggerParent:document.querySelector('.world-header .header-right'),
+  getItems:()=>{
+    const items=[];
+    for(const [id,widget] of board.widgets){
+      const title=widget.querySelector('.widget-heading h2')?.textContent?.trim()||id;
+      items.push({kind:'window',id,title,detail:'Spatial window'});
+    }
+    for(const b of state.branches){
+      items.push({kind:'branch',id:b.id,title:b.label,detail:branchPath(b.id,state.branches)});
+    }
+    for(const t of state.tasks){
+      items.push({kind:'task',id:t.id,title:t.title,
+        detail:(t.status==='completed'?'Finished task · ':'Task · ')+branchPath(t.projectId,state.branches),
+        searchText:[t.criteria,t.description].filter(Boolean).join(' ').slice(0,4000)});
+    }
+    for(const n of stickies.notes){
+      items.push({kind:'note',id:n.id,title:n.title||'Untitled note',
+        detail:String(n.text||'').slice(0,140)||'Floating sticky note',searchText:String(n.text||'').slice(0,6000)});
+    }
+    for(const entry of journal.entries){
+      items.push({kind:'journal',id:entry.id,
+        title:entry.title||'Journal · '+entry.date,
+        detail:'Journal page · '+entry.date,
+        searchText:String(entry.html||'').replace(/<[^>]*>/g,' ').slice(0,4000)});
+    }
+    return items;
+  },
+  onNavigate:item=>{
+    if(activeJournalCanvas||stickies.activeCanvas?.isDirty()||stickies.pendingCanvas){
+      message('Preview and save your canvas before jumping.',5500);
+      return false;
+    }
+    journal.commit();
+    leaveWidgetFocus();
+    if(item.kind==='window'){
+      if(!board.widgets.has(item.id))return false;
+      board.focus(item.id);return board.widgets.get(item.id)?.querySelector('.widget-grip');
+    }
+    if(item.kind==='branch'){
+      if(!state.branches.some(b=>b.id===item.id))return false;
+      board.focus('constellation');expandBranchPath(item.id,true);setBranch(item.id);
+      scene.focusNode(item.id);
+      return scene.domNodes.get(item.id)||$('map-viewport');
+    }
+    if(item.kind==='task'){
+      const task=state.tasks.find(t=>t.id===item.id);if(!task)return false;
+      if(task.status==='completed'){
+        board.focus('completed');message('Found in Already done.');
+        return board.widgets.get('completed')?.querySelector('.widget-grip');
+      }
+      board.focus('constellation');expandBranchPath(task.projectId,true);setBranch(task.projectId);
+      scene.expandedTaskId=task.id;scene.selectedTaskId=task.id;
+      sync({persist:false});scene.focusTask(task);
+      const row=[...scene.nodesEl.querySelectorAll('.task-row')].find(el=>el.dataset.taskId===task.id);
+      if(row){row.classList.add('is-expanded');row.setAttribute('aria-expanded','true');}
+      return row||scene.domNodes.get(task.projectId);
+    }
+    if(item.kind==='note'){
+      const note=stickies.notes.find(n=>n.id===item.id);if(!note)return false;
+      board.focusCoordinate(note.x+note.width/2,note.y+note.height/2,{scale:Math.max(.9,Math.min(1.1,board.scale))});
+      const article=[...document.querySelectorAll('.sticky-note')].find(el=>el.dataset.noteId===note.id);
+      if(article){article.tabIndex=-1;return article;}
+      return null;
+    }
+    if(item.kind==='journal'){
+      if(!journal.openEntry(item.id))return false;
+      board.focus('journal');return $('journal-entry-title');
+    }
+    return false;
+  }
+});
 function initKeyboard(){
   document.addEventListener('keydown',e=>{
     if(disposed||e.defaultPrevented)return;
     const isField=e.target instanceof HTMLElement&&(e.target.matches('input,textarea,select')||e.target.isContentEditable);
+    if((e.metaKey||e.ctrlKey)&&!e.shiftKey&&!e.altKey&&e.key.toLowerCase()==='k'&&!isField){
+      e.preventDefault();jump.open();return;
+    }
     if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='f'){e.preventDefault();switchCaptureMode('find');input.focus();return;}
     if((e.metaKey||e.ctrlKey)&&e.shiftKey&&e.key.toLowerCase()==='s'){e.preventDefault();backupJson();return;}
     if(isField)return;
@@ -855,7 +934,7 @@ function hasPendingEditor(){return Boolean(activeJournalCanvas?.isDirty()||stick
    if(stickies.activeCanvas)await stickies.activeCanvas.save();
    return journal.commit();
  }
- function dispose(){if(disposed)return;leaveWidgetFocus();disposed=true;activeJournalCanvas?.dispose();activeJournalCanvas=null;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);++journalImageRequest;const journalImage=$('journal-image-preview');journalImage?.removeAttribute('src');journalImageLease?.release();journalImageLease=null;releaseScenePreview($('journal-drawing-preview'));projectsShelf.dispose();board.dispose();journal.dispose();stickies.dispose();scene.dispose();media?.dispose?.();document.documentElement.dataset.theme='parchment';document.documentElement.dataset.motion='system';document.documentElement.dataset.ambient='off';window.orbitDebug=null;}
+ function dispose(){if(disposed)return;leaveWidgetFocus();disposed=true;activeJournalCanvas?.dispose();activeJournalCanvas=null;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);++journalImageRequest;const journalImage=$('journal-image-preview');journalImage?.removeAttribute('src');journalImageLease?.release();journalImageLease=null;releaseScenePreview($('journal-drawing-preview'));jump.dispose();projectsShelf.dispose();board.dispose();journal.dispose();stickies.dispose();scene.dispose();media?.dispose?.();document.documentElement.dataset.theme='parchment';document.documentElement.dataset.motion='system';document.documentElement.dataset.ambient='off';window.orbitDebug=null;}
 return {getSnapshot,applySnapshot,setCloudStatus,dispose,
   flushEditor,hasPendingEditor,journalCommit:()=>journal.commit(),exportBackup:backupJson};
 }
