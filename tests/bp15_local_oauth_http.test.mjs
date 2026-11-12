@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
+import {request as httpRequest} from 'node:http';
 import {join} from 'node:path';
 import {createHash,randomBytes} from 'node:crypto';
 import {startLocalMcpFixture} from '../server/mcp/local-fixture.mjs';
@@ -107,7 +108,8 @@ test('HTTP authorization requires a trusted owner session and gives two private 
   const a=await approve(auth,'ownerA'),b=await approve(auth,'ownerB');
   assert.deepEqual((await listBranches(mcp,a.access_token)).labels,['Owner A']);
   assert.deepEqual((await listBranches(mcp,b.access_token)).labels,['Owner B']);
-  assert.equal((await listBranches(mcp,'forged-access-token')).status,403);
+  assert.equal((await listBranches(mcp,'forged-access-token')).status,401,
+    'malformed bearer is an authentication failure, not a grant denial');
   assert.ok(!a.access_token.includes('ownerA'));
   assert.equal(a.scope,'tasks:read');
   assert.equal(a.expires_in,300);
@@ -224,8 +226,18 @@ test('refresh/revocation credentials are owner-bound and neither token nor owner
 test('no private cache, no CORS, no redirect leaks, and Host/Origin rebinding denied',()=>sandbox(async({auth})=>{
   const session=auth.mintSyntheticSession('ownerA');
   const base=auth.origin+'/authorize?'+form(authorizeParams(auth.resource));
-  const badHost=await fetch(base,{headers:{cookie:session.cookie,host:'evil.example'}});
-  assert.equal(badHost.status,403);
+  // Fetch implementations may silently replace a caller-supplied Host header.
+  // A raw Node HTTP request exercises the actual server-side Host preflight.
+  const target=new URL(base);
+  const badHost=await new Promise((resolve,reject)=>{
+    const req=httpRequest({hostname:'127.0.0.1',port:Number(target.port),
+      method:'GET',path:target.pathname+target.search,
+      headers:{host:'evil.example',cookie:session.cookie}},res=>{
+      res.resume();res.on('end',()=>resolve(res.statusCode));
+    });
+    req.once('error',reject);req.end();
+  });
+  assert.equal(badHost,403);
   const badOrigin=await fetch(base,{headers:{cookie:session.cookie,origin:'https://evil.example'}});
   assert.equal(badOrigin.status,403);
   const valid=await fetch(base,{headers:{cookie:session.cookie}});
