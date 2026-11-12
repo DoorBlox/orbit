@@ -100,7 +100,9 @@ test('unknown kid can refresh rotated keys exactly once per bounded cooldown',as
   state.clock+=1001;
   await rejected(()=>loader.loadJwks({issuer,kid:'invalid-kid'}));
   assert.equal(state.requests.length,6);
-  await rejected(()=>tokenVerifier(loader)(validToken(mainKey,'key-a')));
+  // Public JWT boundary must hide internal JWKS errors from callers.
+  await assert.rejects(()=>tokenVerifier(loader)(validToken(mainKey,'key-a')),
+    /MCP_TOKEN_DENIED/);
 });
 
 test('concurrent first-use requests share exactly one metadata/JWKS fetch pair',async()=>{
