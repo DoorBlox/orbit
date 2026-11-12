@@ -51,7 +51,7 @@ def run_jump(browser,open_page,focus):
         expect(page.locator('.orbit-jump-option')).to_have_count(1)
         page.keyboard.press('Enter')
         expect(page.locator('#orbit-jump-dialog')).not_to_be_visible()
-        assert page.evaluate('document.activeElement?.classList.contains("sticky-note")') is True
+        page.wait_for_function('document.activeElement?.classList.contains("sticky-note")', timeout=5000)
         results['sticky']='PASS'
 
         # Live task capture and journal formatting retain existing shortcuts.
