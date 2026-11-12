@@ -2005,3 +2005,30 @@ body.cloud-space-mounted #space-widget .cloud-sync-state{position:absolute!impor
   :root .orbit-jump-dialog{background:var(--orbit-solid-chrome,#f9fafc)}
   :root .orbit-jump-dialog::backdrop{backdrop-filter:none;-webkit-backdrop-filter:none}
 }
+
+
+/* PJ-03: resource links are short private references, not a publishing UI. */
+.project-resources{display:grid;gap:9px;margin-top:12px;padding-top:12px;border-top:1px solid var(--orbit-outline,rgba(120,130,140,.3))}
+.project-resources-summary{font-size:12px;line-height:1.4;margin:0;color:var(--orbit-chrome-muted,#64748b)}
+.project-edit-links,.project-add-link,.project-save-links,.project-cancel-links,.project-remove-link{
+  min-height:36px;max-width:100%;border-radius:10px;padding:7px 12px;
+  border:1px solid var(--orbit-outline,rgba(120,130,140,.4));
+  color:var(--orbit-chrome-ink,#263954);background:var(--orbit-control-faint,rgba(128,156,192,.12));
+  font:600 12px/1.35 var(--orbit-font-ui,system-ui);cursor:pointer;
+}
+.project-edit-links{justify-self:start}
+.project-add-link:disabled{opacity:.55;cursor:not-allowed}
+.project-links-form,.project-links-rows{display:grid;gap:10px;min-width:0}
+.project-link-editor-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.7fr) auto;gap:8px;align-items:end}
+.project-link-editor-row label{min-width:0;overflow-wrap:anywhere}
+.project-link-editor-row input{width:100%;min-width:0;box-sizing:border-box}
+.project-links-error{margin:0;color:var(--orbit-danger,#a52d38);font-size:12px}
+.project-links-error:empty{display:none}
+.project-edit-links:focus-visible,.project-add-link:focus-visible,.project-save-links:focus-visible,
+.project-cancel-links:focus-visible,.project-remove-link:focus-visible{
+  outline:3px solid var(--focus,#4477bf);outline-offset:2px;
+}
+@media(max-width:650px){
+  .project-link-editor-row{grid-template-columns:minmax(0,1fr)}
+  .project-remove-link{justify-self:start}
+}
