@@ -12,8 +12,8 @@
       "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service."
     },
     "src/app.js": {
-      "sha256": "bc3adcefcaed545be427c8bf7909f32498761b9504ac7800f848188abe2d4208",
-      "reason": "BP-08: view-only reversible Focus camera without moving, resizing or modifying private saved artifacts."
+      "sha256": "9cf55477085ff714368e333e8c47d8768c8d0a0caeb74cdc720b2a1da5649816",
+      "reason": "BP-10: owner-private image previews have explicit lease/teardown lifetimes; idle Blob URLs have count/byte caps; no hosted media deletion."
     },
     "src/auth/controller.js": {
       "sha256": "af8cde170ef58e61df8c464ee34249df4267812991392a95dae5c4d69f47ba20",
@@ -52,8 +52,8 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "src/cloud/media.js": {
-      "sha256": "99eac387f80b7d9fe7214439ef935eff63686068a3ed3f50e0c9623f526b95a3",
-      "reason": "EX-02: private media owner identity and post-download auth validation before preview caching."
+      "sha256": "f0dfbf92d1f3c91039534423ec71e6c4de91d50565cee49ff26f5c425eb8dea6",
+      "reason": "BP-10: owner-private image previews have explicit lease/teardown lifetimes; idle Blob URLs have count/byte caps; no hosted media deletion."
     },
     "src/cloud/owner-tools.js": {
       "sha256": "fbe66e463040f8a26c5b016a4e08ff26a3e001ec64319319b6dbddebe55992ab",
@@ -128,12 +128,12 @@
       "reason": "Null local default; only build-generated allowlisted public configuration activates cloud."
     },
     "src/scene.js": {
-      "sha256": "bbe1dbfc0b121273d97242cdddb62bbde2ee545a302f565b92b25047a9adc23a",
-      "reason": "BP-10: fallback pen records coalesced stylus samples and paints once per display frame, flushes on stroke release, cancels before embedded Excalidraw handoff."
+      "sha256": "37c6f26e84cca8bee6686e531953abc5927ed6980cd42147486305f9007b8dcd",
+      "reason": "BP-10: owner-private image previews have explicit lease/teardown lifetimes; idle Blob URLs have count/byte caps; no hosted media deletion."
     },
     "src/stickies.js": {
-      "sha256": "0e43e4a93518f40e6e0b9e4253835e4a8aad5d1307b90f177065ba439a000e53",
-      "reason": "BP-07: reviewed inline Edit/Preview and responsive spatial UI changes; preserve private drawings and source provenance."
+      "sha256": "8c6472cbcc0b9ae05ab954e8d1bddc37597da9395238f8e77fbab34477b284cb",
+      "reason": "BP-10: owner-private image previews have explicit lease/teardown lifetimes; idle Blob URLs have count/byte caps; no hosted media deletion."
     },
     "src/storage.js": {
       "sha256": "ce630445a0191678fc845349efaeb34b7c057fb791b841c17c32914afd6d1838",
