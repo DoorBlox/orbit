@@ -23,6 +23,12 @@ An initial lightweight Base64-JSON format was chosen to avoid a new ZIP dependen
 5. Only after all uploads succeed does the app stage the snapshot and use existing CAS-protected cloud synchronization. An authentication failure, changed account, invalid file or upload problem must not replace cloud data or weaken Storage RLS. A failed cloud save leaves a local in-session draft and a clear warning.
 6. **Cloud writes and Storage uploads are not one atomic transaction.** A failed restore may leave some unused private objects; they are **not auto-deleted**. Cleanup and safe permanent deletion belong to #29. Do not sign out until cloud synchronization is confirmed.
 
+### Restoration review integrity (W2 source hardening, 12 Nov 2026)
+
+The `inspectPortableArchive` result is an **in-memory reviewed object**, not a new portable format. A private module-held review record binds the normalized workspace snapshot and every source asset's SHA-256/size/type/path. `rehydratePortableArchive` now accepts only an object returned by the current review session; it rejects reconstructed or mutated review objects, wrong-source-account image references, changed bytes, missing/reordered assets, and changed workspace content. It verifies **all** bytes and reference paths and clones the reviewed snapshot **before the first upload**. The verified blobs are then passed to owner-scoped Storage uploads. A failed upload does not return a restored workspace; earlier completed uploads may remain as recoverable unreferenced objects and must not be automatically deleted. Retrying an unchanged reviewed object creates fresh private objects, rather than reusing unsafe partial writes.
+
+This review record is ephemeral and **is not an authentication signature for the .orbit file**. Importing a trusted local archive always requires a fresh `inspectPortableArchive` call, an explicit user confirmation, and the existing CAS cloud-save flow. Source tests are synthetic; signed-in user restore and second-account isolation still need owner acceptance.
+
 ## Acceptance and what remains unverified
 
 Tests must cover complete export/import roundtrip with synthetic files, multiple references and deduplication, forged image signatures, changed checksums, missing/extra assets, owner isolation, switched login mid-download, failure before cloud import, legacy V6 backup compatibility and size guards. The build allowlist must copy the new module, and Bootstrap must pass authenticated media and owner ID.
