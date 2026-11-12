@@ -130,7 +130,7 @@ test('BP-01/02/12/EX-02: two-owner rehearsal preserves referenced and selected d
     await assert.rejects(target.download(ATTACHED),/another space|invalid/i);
     assert.equal(original.extensions.notes[0].imagePath,ATTACHED);
     assert.equal(inspected.snapshot.extensions.notes[0].imagePath,ATTACHED);
-    assert.equal(ownedKeys(storage,SOURCE).length,2,'source owner's original files remain untouched');
+    assert.equal(ownedKeys(storage,SOURCE).length,2,'source account original files remain untouched');
   }finally{target.dispose();}
 });
 
