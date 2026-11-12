@@ -52,8 +52,8 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "src/cloud/media.js": {
-      "sha256": "abd09282ff6965abea336e38867f8f91788e794837d7fa8c723b07f07377c165",
-      "reason": "BP-12: read-only bounded owner media listing; verify active session after uploads and signed URL issuance."
+      "sha256": "685c2cd37454cdb9f69d4a5f1f443c40da1364ea5815445141bdb1c975a72d3d",
+      "reason": "BP-01/BP-12: recheck owner after asynchronous downloaded image signature inspection; prevent expired-session byte return and transient private preview URLs."
     },
     "src/cloud/owner-tools.js": {
       "sha256": "fbe66e463040f8a26c5b016a4e08ff26a3e001ec64319319b6dbddebe55992ab",
