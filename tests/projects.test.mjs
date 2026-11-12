@@ -154,3 +154,39 @@ test('PJ-03 rejects unsafe brief types, overlong fields, malformed dates and unk
   assert.deepEqual(normalizeProjects({research:{goal:'',nextAction:'',blockers:'',targetDate:''}}),
     {research:{description:'',status:'active',links:[]}});
 });
+
+test('PJ-03: per-project milestones are private bounded metadata separate from task progress',()=>{
+  const input={research:{description:'Lab',status:'active',
+    milestones:[
+      {id:'lit-1',title:'Literature review',dueDate:'2027-01-02',done:true},
+      {id:'pilot-2',title:'Pilot experiment',dueDate:'',done:false}
+    ]}};
+  const saved=normalizeProjects(input);
+  assert.notEqual(saved,input);
+  assert.notEqual(saved.research.milestones,input.research.milestones);
+  assert.deepEqual(saved.research.milestones,input.research.milestones);
+  const row=summarizeProjectPortfolio(saved,branches(),tasks()).projects[0];
+  assert.deepEqual(row.milestoneStats,{total:2,done:1});
+  assert.equal(row.progress,0,'Milestone checkoffs cannot fake completion of tasks');
+  assert.deepEqual(normalizeProjects(saved),saved);
+  assert.equal(Object.hasOwn(saved.research,'published'),false);
+});
+test('PJ-03: milestone validation fails closed on collisions, spoofing, malformed data and overload',()=>{
+  const first={id:'m_1',title:'Deliver phase 1',dueDate:'2027-03-15',done:false};
+  for(const bad of [
+    [{...first,id:'__proto__'}],
+    [{...first,id:'root'}],
+    [{...first,title:'  '}],
+    [{...first,title:'x'.repeat(121)}],
+    [{...first,dueDate:'2027-02-29'}],
+    [{...first,done:'yes'}],
+    [{...first,secret:'inline data'}],
+    [first,{...first}],
+    Array.from({length:21},(_,i)=>({...first,id:'m_'+i})),
+    'wrong type',
+  ])assert.throws(()=>normalizeProjects({research:{milestones:bad}}));
+  assert.deepEqual(normalizeProjects({research:{milestones:[]}}),
+    {research:{description:'',status:'active',links:[]}});
+  assert.deepEqual(normalizeProjects({research:{milestones:[{id:'m1',title:'Ready'}]}})
+    .research.milestones,[{id:'m1',title:'Ready',dueDate:'',done:false}]);
+});
