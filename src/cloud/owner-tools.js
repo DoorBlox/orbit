@@ -282,7 +282,10 @@ export function createOwnerTools({repository,app,sync,container,media,ownerId,ca
       const page=await media.listOwnMedia({offset:galleryOffset,limit:12});
       if(ticket!==galleryEpoch||disposed||!gallery.open)return;
       if(!page||!Array.isArray(page.items)||!Number.isSafeInteger(page.nextOffset)||
-        page.nextOffset<=galleryOffset||typeof page.hasMore!=='boolean')
+        typeof page.hasMore!=='boolean'||page.nextOffset<galleryOffset||
+        // A terminal empty page leaves the cursor unchanged. Do not report
+        // a brand-new empty owner library as an inventory failure.
+        (page.nextOffset===galleryOffset&&(page.hasMore||page.items.length)))
         throw Error('Invalid private media page.');
       const rows=classifyPrivateGalleryItems(page.items,usage,ownerId);
       for(const row of rows){
