@@ -72,10 +72,14 @@ function resolveIssuerPublicKey(jwks,kid) {
  * as a network address. Consent and revocation checks must be durable in a
  * future hosted adapter (not local process memory).
  */
-export function createMcpJwtAccessVerifier({issuer,resource,loadJwks,isRevoked,hasConsent,clock=Date.now}={}) {
+export function createMcpJwtAccessVerifier({issuer,resource,loadJwks,isRevoked,hasConsent,authorizeGrant,clock=Date.now}={}) {
   exactHttps(issuer);exactHttps(resource);
-  if(typeof loadJwks!=='function'||typeof isRevoked!=='function'||
-    typeof hasConsent!=='function'||typeof clock!=='function')denied();
+  const atomicGrant=typeof authorizeGrant==='function';
+  const legacyGrant=authorizeGrant===undefined&&typeof isRevoked==='function'&&
+    typeof hasConsent==='function';
+  if(typeof loadJwks!=='function'||typeof clock!=='function'||
+    !(atomicGrant||legacyGrant)||
+    (atomicGrant&&(isRevoked!==undefined||hasConsent!==undefined)))denied();
   return async function verifyAccessToken(token){
     try {
       if(typeof token!=='string'||token.length<30||token.length>MAX_BEARER)denied();
@@ -107,12 +111,19 @@ export function createMcpJwtAccessVerifier({issuer,resource,loadJwks,isRevoked,h
         claims.exp<=claims.iat||claims.exp-claims.iat>MAX_TTL_SECONDS||
         (claims.nbf!==undefined && (!Number.isSafeInteger(claims.nbf)||
           claims.nbf>seconds||claims.nbf<0)))denied();
-      const context=Object.freeze({issuer,subject:claims.sub,clientId:claims.client_id,
-        jti:claims.jti,scopes:Object.freeze(['tasks:read']),expiresAt:claims.exp});
-      // Token revocation and current owner consent must be checked on EVERY
-      // request; Bearer access tokens remain intentionally reusable until exp.
-      if(await isRevoked(context)!==false)denied();
-      if(await hasConsent(context)!==true)denied();
+      if(atomicGrant&&(!Number.isSafeInteger(claims.grant_epoch)||
+        claims.grant_epoch<1||claims.grant_epoch>2147483647))denied();
+      const context=Object.freeze({issuer,resource,subject:claims.sub,
+        clientId:claims.client_id,jti:claims.jti,
+        scopes:Object.freeze(['tasks:read']),expiresAt:claims.exp,
+        issuedAt:claims.iat,grantEpoch:claims.grant_epoch});
+      // The new mode checks owner grant + token revocation in ONE committed
+      // durable snapshot. Keep legacy hooks for source compatibility only.
+      if(atomicGrant){if(await authorizeGrant(context)!==true)denied();}
+      else {
+        if(await isRevoked(context)!==false)denied();
+        if(await hasConsent(context)!==true)denied();
+      }
       return Object.freeze({...claims});
     } catch { denied(); } // No token, cryptographic/key or backend detail leaks.
   };
