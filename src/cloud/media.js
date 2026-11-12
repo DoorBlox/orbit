@@ -80,6 +80,10 @@ export function createPrivateMedia(client,{ownerId,maxIdlePreviews=8,maxIdleByte
     const mime=Object.keys(TYPES).find(type=>TYPES[type]===extension);
     const blob=new Blob([result.data],{type:mime});
     await validateImage(blob);
+    // Signature verification reads Blob bytes asynchronously. The owner may
+    // sign out or switch accounts after the Storage response was checked.
+    // Recheck before any private bytes escape or a preview URL can be made.
+    await checkUser();
     return blob;
   }
   async function acquirePreview(path){
