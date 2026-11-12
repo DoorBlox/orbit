@@ -60,10 +60,18 @@ export function createPrivateMedia(client,{ownerId,maxIdlePreviews=8,maxIdleByte
   }
   async function checkUser(){
     if(disposed)throw Error('Your media session expired. Sign in again.');
-    const response=await client.auth.getUser();
+    let response;
+    try{response=await client.auth.getUser();}
+    catch{
+      // An unverified session cannot retain already-displayed private Blob URLs.
+      // Do not surface provider error details or silently revive this cache.
+      expire();
+      throw Error('Your media session expired. Sign in again.');
+    }
     if(disposed)throw Error('Your media session expired. Sign in again.');
-    if(response.error)throw Error('Your media session expired. Sign in again.');
-    if(response.data?.user?.id!==ownerId){
+    if(response?.error||response?.data?.user?.id!==ownerId){
+      // The same fail-closed lifetime applies to auth errors, missing sessions
+      // and an actual account switch; Storage writes are never undone here.
       expire();
       throw Error('Your media session expired. Sign in again.');
     }

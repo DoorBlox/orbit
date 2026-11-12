@@ -52,8 +52,8 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "src/cloud/media.js": {
-      "sha256": "685c2cd37454cdb9f69d4a5f1f443c40da1364ea5815445141bdb1c975a72d3d",
-      "reason": "BP-01/BP-12: recheck owner after asynchronous downloaded image signature inspection; prevent expired-session byte return and transient private preview URLs."
+      "sha256": "b2f401984979ceacfc1cfd4dddf6b9943b8b4b68917e92328ca16404b1a458b4",
+      "reason": "BP-01/BP-12: fail closed and revoke private Blob preview leases on auth.getUser errors/rejections; sanitize provider errors and prevent cached session revival."
     },
     "src/cloud/owner-tools.js": {
       "sha256": "f994bcae3ddf3e7413f2cb5cd7569d08c4f4fe0c525a00a5d418f9b74270271e",
@@ -72,8 +72,8 @@
       "reason": "W1 BP-09: after full fail-closed normalization, retain already-valid tasks when no task-link overlay exists and copy only tasks with extension overrides; preserve Auth/RPC/CAS semantics."
     },
     "src/cloud/sync.js": {
-      "sha256": "96520de947eb95a22420b613dd2c9563989d217b4db2a3af6818e3321d1ec0c6",
-      "reason": "W1 BP-03: allow one eager authenticated reconnect write, then respect bounded NETWORK backoff on repeated online events; forbid automatic Auth/validation/CAS retries while keeping local drafts."
+      "sha256": "13515feba88f6ecd9d2c4654eed42c9e90ed671847ec9aa40f61f34c2f816bfd",
+      "reason": "W1 BP-03: coalesce clean online/focus full-snapshot reads inside existing foreground gap, preserve real offline and hidden-to-visible revalidation, dirty retry backoff and CAS."
     },
     "src/constellation.js": {
       "sha256": "6d17fe195d35d9e0de6b712855e5f4634d284c7368457b9676cea8d55d8f3c1b",
