@@ -56,7 +56,7 @@ test('BP-04: removed revision trigger is detected before a conditional-read roll
   assert.throws(()=>auditRevisionTriggerContract(revisions.replace('create trigger orbit_revision after','create trigger orbit_revision_disabled after')),/orbit_revision/i);
 });
 test('BP-04: owner-filter bypass or missing CAS is rejected',()=>{
-  assert.throws(()=>auditOwnerRpcContract(tenant.replace('from public.tasks where owner_id=owner_uuid','from public.tasks')),/tasks snapshot projection/i);
+  assert.throws(()=>auditOwnerRpcContract(tenant.replaceAll('from public.tasks where owner_id=owner_uuid','from public.tasks')),/tasks snapshot projection/i);
   assert.throws(()=>auditOwnerRpcContract(tenant.replace('current_revision<>p_expected_revision','false')),/Stale writers/i);
 });
 test('BP-04: legacy private extensions cannot be silently discarded',()=>{
