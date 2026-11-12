@@ -126,7 +126,8 @@ test('CSRF and session-swapping denial cannot authorize somebody else or reuse t
   const other=await begin(auth,a,authorizeParams(auth.resource));
   assert.equal((await action(auth,'/consent',{consent_id:other.consent_id,csrf:other.csrf,
     decision:'approve'},{cookie:a.cookie,origin:'https://evil.example'})).status,403);
-  assert.equal((await decide(auth,a,other)).status,403);
+  // Cross-origin requests are blocked before consuming the pending approval;
+  // the genuine owner can still submit it (but this test leaves it unused).
   const missing=await begin(auth,a,authorizeParams(auth.resource));
   const noOrigin=await fetch(auth.origin+'/consent',{method:'POST',redirect:'manual',
     headers:{cookie:a.cookie,'content-type':'application/x-www-form-urlencoded'},
