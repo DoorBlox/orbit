@@ -28,12 +28,9 @@ function ensureStyles(){
 }
 
 const signature=(elements,files,appState)=>{
-  const parts=(elements||[]).map(item=>[
-    item.id,item.version,item.versionNonce,item.isDeleted,item.x,item.y,
-    item.width,item.height,item.angle,item.text?.length,item.points?.length,item.fileId
-  ].join(':'));
-  parts.push('files:'+Object.keys(files||{}).sort().join(','),String(appState?.viewBackgroundColor||''));
-  return parts.join('|');
+  // Compare real scene content, not only text/points lengths.
+  return JSON.stringify({elements,files:Object.entries(files||{}).map(([id,file])=>
+    [id,file?.created,file?.mimeType,file?.dataURL?.length]),background:appState?.viewBackgroundColor});
 };
 
 export function mountInlineCanvas({host,scene,media=null,notify=()=>{},onSave=()=>true,
@@ -118,5 +115,5 @@ export function mountInlineCanvas({host,scene,media=null,notify=()=>{},onSave=()
     host.replaceChildren();
     markDirty(false);
   }
-  return {ready,save,dispose,isDirty:()=>version!==savedVersion,hasError:()=>hasError};
+  return {ready,save,dispose,isDirty:()=>version!==savedVersion||Boolean(inFlight),hasError:()=>hasError};
 }
