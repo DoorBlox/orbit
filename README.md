@@ -1,6 +1,6 @@
 # ORBIT — The Spatial Scrapbook
 
-**W5 reconciliation (12 November 2026):** Live Production remains **ORBIT 2.4**, independently verified canonical Vercel alias `orbit.starscene.com` → READY deployment `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`, source `4e57aca785259192b92010c5d0e1634a4c1efe14`. Latest W5 observed GitHub main `a3b5203ef755e10a3976cb8e722c89ab7d5a0d00` is later **SOURCE ONLY**. Source merges, CI and localhost MCP **are not Production**, and owner/device acceptance remains pending. Requery all state before release.
+**W5 reconciliation (12 November 2026):** Live Production remains **ORBIT 2.4**, independently verified canonical Vercel alias `orbit.starscene.com` → READY deployment `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`, source `4e57aca785259192b92010c5d0e1634a4c1efe14`. Latest W5 observed GitHub main `6c2f1c3465a959faaf96b6db9260e168b3063bd6` is newer **SOURCE ONLY**. Source merges, CI and localhost MCP **are not Production**, and owner/device acceptance remains pending. Requery all state before release.
 
 
 **Start here — [Live BP/feature progress](docs/PROGRESS.md) · [GitHub PR activity](https://github.com/DoorBlox/orbit/pulls) · [GitHub Releases](https://github.com/DoorBlox/orbit/releases) · [One master roadmap](plans/ORBIT_POST_2_4_EXECUTION.md).** ORBIT now has **six workers (W1–W6) coordinated by Command HQ**. W5 keeps release notes, branch hygiene and progress readable; W6 owns cross-feature acceptance evidence. [Six-worker protocol](docs/ORBIT_PARALLEL_COMMAND_PROTOCOL.md). Source merges are **not** automatically Preview/Production or verified signed-in acceptance.
@@ -12,13 +12,10 @@
 
 **Start here for current status and next work:** [Verified state](docs/CURRENT_STATE.md) · [Execution blueprint](plans/ORBIT_POST_2_4_EXECUTION.md) · [Documentation rules](docs/DOCUMENTATION_PROTOCOL.md) · [Design evidence brief](docs/DESIGN_EVIDENCE_PLAN.md). The currently documented live app is **ORBIT 2.4**; newer Projects, official Excalidraw and embedded private canvas image support are source merged and not yet live. [PR #57](https://github.com/DoorBlox/orbit/pull/57) retired the old manual 1.0 stage workflow. Release/publishing approval remains separately gated. Historic pre-2.4 snapshots below are not active release instructions.
 
-**Current live release (9 Nov 2026):** ORBIT 2.4 at [orbit.starscene.com](https://orbit.starscene.com/), Git `4e57aca`, Vercel `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`. Ten themes, ambient animation option, sticky-aware draggable mini-map, richer private journal/sticky writing and task checklists. The six movable spatial windows remain; private media is Supabase Storage. The full upstream Excalidraw editor (#31), private media library (#29), and ChatGPT MCP connector (#32) are not yet shipped. #26 image rendering still requires authenticated Production verification.
+**Current live release (verified 12 Nov 2026):** ORBIT 2.4 at [orbit.starscene.com](https://orbit.starscene.com/), Git `4e57aca`, Vercel `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`. Ten themes, ambient animation option, sticky-aware draggable mini-map, richer private journal/sticky writing and task checklists. The six movable spatial windows remain; private media is Supabase Storage. The full upstream Excalidraw editor (#31), private media library (#29), and ChatGPT MCP connector (#32) are not yet shipped. #26 image rendering still requires authenticated Production verification.
 
 
-**Historical 2.4 source-review snapshot (superseded by live release):** ten saved visual themes, independent background animation, draggable mini-map with sticky markers, stronger journal/sticky formatting, scroll-safe Space controls and private task checklists. Original six movable windows and spatial world remain. Real embedded Excalidraw ([#31](https://github.com/DoorBlox/orbit/issues/31)) and scoped ChatGPT connector ([#32](https://github.com/DoorBlox/orbit/issues/32)) are separate security/version-verified work units; current native drawing UI is not presented as upstream Excalidraw. Release gated by CI, Preview and inspected Production artifacts.
-
-
-**Historical 2.2-era patch proposal (not current deployment status):** [#26](https://github.com/DoorBlox/orbit/issues/26) targets private image previews blocked by the Production image Content Security Policy. The source branch also adds independent **Copy** for paper sticky notes (text, drawing, tint and private image reference). Live beta still has the image-display limitation until tested and released.
+**Older 2.2–2.4 source-review checkpoints are historical.** See [project history](docs/PROJECT_HISTORY.md), [past GitHub PRs](https://github.com/DoorBlox/orbit/pulls?q=is%3Apr+is%3Aclosed), and [release archive](docs/archive/RELEASE_NOTES_V6_2026-11-01.md); they do not override the live release above.
 
 ## What ORBIT does
 
@@ -113,7 +110,7 @@ Start here for ongoing work:
 4. **[docs/releases/1.0.0.md](docs/releases/1.0.0.md)** — actual 1.0.0 release note and limitations.
 5. **[AGENTS.md](AGENTS.md)** — working constraints for future coding agents.
 
-Older V5/V6 handoff and pre-launch milestone documents are retained for historical and design context. Where a dated record says "not yet published", that reflects **its date**; the above current-state documents supersede it.
+Older V5/V6 handoff and pre-launch milestone documents are retained for historical and design context. Owner-approved GitHub Project setup is described in [docs/GITHUB_PROJECT_SETUP.md](docs/GITHUB_PROJECT_SETUP.md); no live board is claimed until its URL is verified. Where a dated record says "not yet published", that reflects **its date**; the above current-state documents supersede it.
 
 ## License
 

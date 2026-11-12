@@ -9,3 +9,9 @@ W5 enumerated **167** remote branches in two pages; the conservative exploratory
 **Suggested release candidate:** GitHub `v2.4.0` from exact shipped commit `4e57aca785259192b92010c5d0e1634a4c1efe14` only after explicit owner permission, confirmed tag noncollision, review of notes and source SHA; published date must be actual publication date, not falsely backdated. See [2.4 evidence](../releases/2.4.md) and [publication draft](../releases/GITHUB_2_4_RELEASE_DRAFT.md).
 
 **Next W5 action:** inspect specific old merged branches with PR diff + unique commits, propose small named owner deletion batch, and maintain current BP statuses as W1–W4 merge. Do not touch production, hosted security, private data, paid services or publishing without separate permission.
+
+## 12 Nov continuation — additional source merges and owner tracking decision
+
+Source `6c2f1c3465a959faaf96b6db9260e168b3063bd6` verified (W6 #165). Since the earlier checkpoint, W2 #154/#163, W1 #160/#166, W4 #162 and W6 #165 have merged **source only**; W3 #161 remains open as of this snapshot. The canonical Production alias is reverified unchanged. The full inventory's **170-ref count** is its dated snapshot; it is not a timeless current branch total. Five older merged documentation branches were independently rechecked using exact head refs, merged PR patch parity and indexed-main reference searches; see [named cleanup review](BRANCH_CLEANUP_CANDIDATES_2026-11-12.md). **No deletion or settings mutation.**
+
+Command HQ [comment on PR #164](https://github.com/DoorBlox/orbit/pull/164#issuecomment-6828784329) reports **owner approval** to create a GitHub Project, but connected tools do not expose Projects v2 create/fields/items; no live board was created. [Manual setup](../GITHUB_PROJECT_SETUP.md) is ready for owner. This approval is **not** approval of PR #164's docs diff, merged-branch deletion, auto-delete setting or GitHub Release publication.

@@ -1,11 +1,11 @@
 # Changelog
 
-**W5 reconciliation (12 November 2026):** Live Production remains **ORBIT 2.4**, independently verified canonical Vercel alias `orbit.starscene.com` → READY deployment `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`, source `4e57aca785259192b92010c5d0e1634a4c1efe14`. Latest W5 observed GitHub main `a3b5203ef755e10a3976cb8e722c89ab7d5a0d00` is later **SOURCE ONLY**. Source merges, CI and localhost MCP **are not Production**, and owner/device acceptance remains pending. Requery all state before release.
+**W5 reconciliation (12 November 2026):** Live Production remains **ORBIT 2.4**, independently verified canonical Vercel alias `orbit.starscene.com` → READY deployment `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`, source `4e57aca785259192b92010c5d0e1634a4c1efe14`. Latest W5 observed GitHub main `6c2f1c3465a959faaf96b6db9260e168b3063bd6` is newer **SOURCE ONLY**. Source merges, CI and localhost MCP **are not Production**, and owner/device acceptance remains pending. Requery all state before release.
 
 **Release semantics:** this file records historically shipped versions and separately labels unreleased main-only source. [Release notes](RELEASE_NOTES.md) summarize the live app; [GitHub Releases](https://github.com/DoorBlox/orbit/releases) are optional tagged publication records, currently empty.
 
 
-**Which changes are live?** This file separates merged source from real releases. See [BP progress](docs/PROGRESS.md), [GitHub Releases](https://github.com/DoorBlox/orbit/releases), and the [single master roadmap](plans/ORBIT_POST_2_4_EXECUTION.md). A source PR merge is **not** a Production deployment. W5 will reconcile all merged BP work and independently confirm any live release; do not retroactively claim current main is deployed.
+**Which changes are live?** This file separates merged source from real releases. See [BP progress](docs/PROGRESS.md), [GitHub Releases](https://github.com/DoorBlox/orbit/releases), and the [single master roadmap](plans/ORBIT_POST_2_4_EXECUTION.md). A source PR merge is **not** a Production deployment. W5 keeps merged-source evidence separate from the independently inspected Production alias; never retroactively call main deployed.
 
 ## Unreleased — source merged on main, NOT independently Production-verified (12 November 2026)
 
@@ -15,7 +15,8 @@ These are **selected milestones**, not a complete generated change history. Newe
 - **W2 private media:** reference-safe library APIs [#90](https://github.com/DoorBlox/orbit/pull/90), portable detached media recovery [#95](https://github.com/DoorBlox/orbit/pull/95) and preflight restore safety [#111](https://github.com/DoorBlox/orbit/pull/111). Signed-in owner and two-account acceptance remain open.
 - **W3 product:** spatial mobile camera and Focus [#133](https://github.com/DoorBlox/orbit/pull/133), Journal paste/date/undo fixes [#151](https://github.com/DoorBlox/orbit/pull/151)/[#157](https://github.com/DoorBlox/orbit/pull/157), and continuing Journal editing fixes; see [current PRs](https://github.com/DoorBlox/orbit/pulls).
 - **W4 security/platform:** cryptographic private MCP read boundary, grant revocation and Streamable HTTP admission [#147](https://github.com/DoorBlox/orbit/pull/147), runnable localhost MCP [#156](https://github.com/DoorBlox/orbit/pull/156) with official SDK v2 conformance [#159](https://github.com/DoorBlox/orbit/pull/159); **no live OAuth connector or released MCP endpoint**.
-- **Release/QA:** source-based release gate and accessibility checks advanced. None of these bullet points changes the documented Production 2.4 source without a separately verified deployment.
+- **Private recovery:** .orbit object-form byte-budget validation [#154](https://github.com/DoorBlox/orbit/pull/154) and disposable conditional RPC/MVCC isolation prototype [#160](https://github.com/DoorBlox/orbit/pull/160) with durable [#166](https://github.com/DoorBlox/orbit/pull/166) handoff. Both **source-only**; no hosted RPC rollout.
+- **Release/QA:** disposable PKCE S256 consent/refresh/grant revocation prototype [#162](https://github.com/DoorBlox/orbit/pull/162), protected stage guards and accessibility checks; independent synthetic cross-feature acceptance [#165](https://github.com/DoorBlox/orbit/pull/165). No owner/device verification or Production deploy.
 
 
 

@@ -180,3 +180,5 @@
 | `wip/bp07-inline-edit-preview-20261112` | [`0997893ee617`](https://github.com/DoorBlox/orbit/commit/0997893ee6177774fe764c30fd92f4e5d924c3b7) | **RETAIN** | Rollback/WIP or explicit W1 recovery preservation |
 
 [Current progress](../PROGRESS.md) · [Policy](../REPO_HYGIENE_POLICY.md) · [W5 checkpoint](W5_REPOSITORY_CHECKPOINT_2026-11-12.md).
+
+**Follow-up:** [Five named, patch-equivalent older documentation branch cleanup candidates](BRANCH_CLEANUP_CANDIDATES_2026-11-12.md) are prepared for separate owner approval. This does not reclassify all 170 snapshot entries as safe for deletion.

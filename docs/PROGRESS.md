@@ -1,9 +1,9 @@
 # ORBIT — progress at a glance
 
-**W5 reconciliation (12 November 2026):** Live Production remains **ORBIT 2.4**, independently verified canonical Vercel alias `orbit.starscene.com` → READY deployment `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`, source `4e57aca785259192b92010c5d0e1634a4c1efe14`. Latest W5 observed GitHub main `a3b5203ef755e10a3976cb8e722c89ab7d5a0d00` is later **SOURCE ONLY**. Source merges, CI and localhost MCP **are not Production**, and owner/device acceptance remains pending. Requery all state before release.
+**W5 reconciliation (12 November 2026):** Live Production remains **ORBIT 2.4**, independently verified canonical Vercel alias `orbit.starscene.com` → READY deployment `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`, source `4e57aca785259192b92010c5d0e1634a4c1efe14`. Latest W5 observed GitHub main `6c2f1c3465a959faaf96b6db9260e168b3063bd6` is newer **SOURCE ONLY**. Source merges, CI and localhost MCP **are not Production**, and owner/device acceptance remains pending. Requery all state before release.
 
 
-**Owner-facing status index; not a second roadmap.** Baseline audited 12 November 2026 after source main `a42a6deffe93f567d689d012407cd72a0b6338e1`. GitHub may advance while this document is read. **W5 must recheck live main, open PRs, deployments and worker handoffs before updating the table.** The [single canonical task/dependency roadmap](../plans/ORBIT_POST_2_4_EXECUTION.md) is the implementation queue; this page is a short, timestamped digest.
+**Owner-facing status index; not a second roadmap.** Reconciled 12 November 2026 after source main `6c2f1c3465a959faaf96b6db9260e168b3063bd6`. GitHub may advance while this document is read. **W5 must recheck live main, open PRs, deployments and worker handoffs before updating the table.** The [single canonical task/dependency roadmap](../plans/ORBIT_POST_2_4_EXECUTION.md) is the implementation queue; this page is a short, timestamped digest.
 
 **First check:** [GitHub open PRs](https://github.com/DoorBlox/orbit/pulls) · [open issues](https://github.com/DoorBlox/orbit/issues) · [GitHub Actions](https://github.com/DoorBlox/orbit/actions) · [Releases](https://github.com/DoorBlox/orbit/releases) · [Command HQ handoff](handoffs/ORBIT_COMMAND_HQ.md). The Releases page was empty at audit time; do **not** infer no Production deployment from that. The independently last documented Production release is ORBIT **2.4**, source `4e57aca`, Vercel `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4` at orbit.starscene.com. This Production alias **was independently reverified on 12 November 2026**. Numerous subsequent changes are merged source-only and NOT necessarily deployed.
 
@@ -21,9 +21,9 @@
 | --- | --- | --- | --- |
 | **BP-00** Version and release identities | SOURCE MERGED version contract; distinct app/npm/backup identities | Reconcile release docs/tag/Production identity; no silent version bump | W4 technical / W5 documentation |
 | **BP-01** Private images | PARTIAL SOURCE MERGED; private media APIs and guard fixes | [#26](https://github.com/DoorBlox/orbit/issues/26): signed-in visible pixels/reload, second-account denial, physical behavior | W2 + W6 |
-| **BP-02** Portable private recovery | SOURCE MERGED multiple archive/restore safeguards, [#95](https://github.com/DoorBlox/orbit/pull/95), [#111](https://github.com/DoorBlox/orbit/pull/111) | Actual signed-in restore, media byte parity, rollback and two-account owner acceptance | W2 + W6 |
+| **BP-02** Portable private recovery | SOURCE MERGED archive/restore safeguards [#95](https://github.com/DoorBlox/orbit/pull/95), [#111](https://github.com/DoorBlox/orbit/pull/111), [#154](https://github.com/DoorBlox/orbit/pull/154) | Actual signed-in restore, media byte parity, rollback and two-account owner acceptance | W2 + W6 |
 | **BP-03** Synchronization / polling | PARTIAL SOURCE MERGED, including [#136](https://github.com/DoorBlox/orbit/pull/136) and [#143](https://github.com/DoorBlox/orbit/pull/143) | Real two-device/network measurements; conditional owner RPC [#104](https://github.com/DoorBlox/orbit/pull/104) **design-only**, hosted approval separate | W1 |
-| **BP-04** DB parity | PARTIAL: read-only hosted function/trigger/RLS catalog comparisons | Local concurrent MVCC, complete object/Storage parity and real two-account verification; hosted edits approval-gated | W1 + W6 |
+| **BP-04** DB parity | PARTIAL: read-only hosted function/trigger/RLS catalog comparisons | Local MVCC prototype **SOURCE MERGED** [#160](https://github.com/DoorBlox/orbit/pull/160); complete hosted object/Storage parity and real two-account verification; hosted edits approval-gated | W1 + W6 |
 | **BP-05** Protected stage/release | SOURCE MERGED staged-release security pipeline, e.g. [#94](https://github.com/DoorBlox/orbit/pull/94) | Real independent reviewer/environment, protected staging, rollback and Production gates; no automatic release | W4 + W6 |
 | **BP-06** Spatial/visual baseline | PARTIAL SOURCE MERGED synthetic viewport QA | Physical Safari/Android, keyboard/assistive tech, zoom and signed-in UI | W3 + W6 |
 | **BP-07** Theme and editor polish | PARTIAL SOURCE MERGED | Theme/contrast/accessibility owner/device acceptance and remaining consistency | W3 |
@@ -34,7 +34,7 @@
 | **BP-12** Private library/gallery | PARTIAL SOURCE MERGED, [#90](https://github.com/DoorBlox/orbit/pull/90), [#95](https://github.com/DoorBlox/orbit/pull/95) | Gallery/reuse selection real-user check; physical file deletion is separately **GATED** | W2 API + W3 UI + W6 |
 | **BP-13** Embedded Excalidraw | PARTIAL SOURCE MERGED, official lazy editor and private image transport | Signed-in and real-device Excalidraw image import/export and backup integrity | W3 + W2 + W6 |
 | **BP-14** Client-side calendar | SOURCE MERGED [#76](https://github.com/DoorBlox/orbit/pull/76) | Actual client calendar import/timezone acceptance | W6 |
-| **BP-15** Scoped OAuth/MCP | PARTIAL SOURCE MERGED, security layers through [#159](https://github.com/DoorBlox/orbit/pull/159), **localhost SDK-only** | Real OAuth PKCE/consent and delegated DB RLS, two-account hosted tests; local runnable MCP demonstrated, **no live connector** | W4 / W1 data / W3 UX |
+| **BP-15** Scoped OAuth/MCP | PARTIAL SOURCE MERGED, security layers through [#159](https://github.com/DoorBlox/orbit/pull/159), **localhost SDK-only** | Disposable PKCE S256/consent/refresh prototype [#162](https://github.com/DoorBlox/orbit/pull/162) SOURCE MERGED; real delegated DB RLS and two-account hosted tests still GATED; **no live connector** | W4 / W1 data / W3 UX |
 | **BP-16** Quality/accessibility | PARTIAL SOURCE MERGED static semantic + runtime synthetic checks, [#102](https://github.com/DoorBlox/orbit/pull/102) | Real assistive-tech/screen-reader/mobile and release quality evidence | W4 + W6 |
 
 **Integrated workstream detail:**
@@ -68,10 +68,12 @@
 
 ## Immediate active work at 12 November 2026 snapshot
 
-- **W1:** [#160](https://github.com/DoorBlox/orbit/pull/160) draft; local conditional RPC tenant/MVCC proof, no hosted authorization.
-- **W2:** [#154](https://github.com/DoorBlox/orbit/pull/154) draft with prior RED evidence; complete checksum/byte-quota tests, do not merge failing head.
-- **W3:** [#161](https://github.com/DoorBlox/orbit/pull/161) draft; Journal clipboard fallback and native undo regressions.
+- **W1:** [#160](https://github.com/DoorBlox/orbit/pull/160) and handoff [#166](https://github.com/DoorBlox/orbit/pull/166) SOURCE MERGED; next real CAS/network parity, hosted RPC **not authorized**.
+- **W2:** [#154](https://github.com/DoorBlox/orbit/pull/154) and [#163](https://github.com/DoorBlox/orbit/pull/163) SOURCE MERGED with corrected exact-head CI; next real owner-private restore, signed-in A/B proof.
+- **W3:** [#161](https://github.com/DoorBlox/orbit/pull/161) OPEN at this snapshot; Journal clipboard fallback and native undo regressions.
 - **W4:** localhost MCP official SDK v2 [#159](https://github.com/DoorBlox/orbit/pull/159) merged, hosted PKCE/RLS still gated.
-- **W5:** refresh docs, branch inventory and reviewable GitHub Release draft, no publication/deletion. **W6:** independent integration/real-device acceptance gate.
+- **W4:** disposable PKCE/consent/refresh [#162](https://github.com/DoorBlox/orbit/pull/162) SOURCE MERGED, no hosted endpoint. **W5:** [#164](https://github.com/DoorBlox/orbit/pull/164) draft reconciliation, no release/branch deletion. **W6:** [#165](https://github.com/DoorBlox/orbit/pull/165) cross-feature **synthetic SOURCE MERGED**; owner/device acceptance remains NOT RUN.
 
 GitHub active PR state changes frequently; [recheck it](https://github.com/DoorBlox/orbit/pulls). This digest does not imply any later source merge is deployed.
+
+**GitHub progress view:** Command HQ reports owner approval for one Project with Table + Board views, but **no Project URL exists in this audit**; see [setup guide](GITHUB_PROJECT_SETUP.md). This Project mirrors this dashboard and the one roadmap, never becomes a competing queue.
