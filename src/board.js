@@ -406,6 +406,36 @@ export class SpatialBoard {
     document.getElementById('board-scale-label').textContent=`${Math.round(this.scale*100)}%`;
     this.drawNavigatorCursor();
   }
+  /**
+   * BP-08: reversible view-only Focus. Never changes layout, persisted sizes,
+   * note coordinates or cloud payloads. The camera can return exactly even if
+   * an animation was interrupted or the user changed browser zoom.
+   */
+  enterWidgetFocus(id){
+    const selected=this.widgets.get(id);
+    if(this.disposed||this.focusReturn||!selected||selected.hidden)return false;
+    cancelAnimationFrame(this.raf);this.raf=0;
+    this.focusReturn={id,scale:this.scale,pan:{...this.pan},
+      elements:[...this.widgets.entries()].map(([key,el])=>({key,el,inert:el.inert}))};
+    this.world.classList.add('bp08-focus-mode');
+    for(const {key,el} of this.focusReturn.elements){
+      el.inert=key!==id;
+      el.classList.toggle('bp08-focus-target',key===id);
+    }
+    this.focus(id);
+    return true;
+  }
+  exitWidgetFocus(){
+    const saved=this.focusReturn;
+    if(!saved)return false;
+    this.focusReturn=null;
+    this.world.classList.remove('bp08-focus-mode');
+    for(const {el,inert} of saved.elements){
+      el.inert=inert;el.classList.remove('bp08-focus-target');
+    }
+    this.animate({scale:saved.scale,x:saved.pan.x,y:saved.pan.y},0);
+    return true;
+  }
   focus(id,{initial=false}={}){
     const item=this.widgets.get(id),p=this.positions[id];if(!item)return;
     if(item.hidden&&this.extraIds.has(id))this.setWidgetVisible(id,true);
@@ -571,6 +601,6 @@ export class SpatialBoard {
     el.style.left=`${clampNavigatorPercent((wx-x0)/(x1-x0)*100,this.nav.clientWidth||180)}%`;
     el.style.top=`${clampNavigatorPercent((wy-y0)/(y1-y0)*100,this.nav.clientHeight||90)}%`;
   }
-  dispose(){this.disposed=true;this.cancelNavigatorPan();this.navigatorObserver?.disconnect();cancelAnimationFrame(this.raf);this.raf=0;this.events.abort();this.pointers.clear();this.widgets.clear();}
+  dispose(){this.exitWidgetFocus();this.disposed=true;this.cancelNavigatorPan();this.navigatorObserver?.disconnect();cancelAnimationFrame(this.raf);this.raf=0;this.events.abort();this.pointers.clear();this.widgets.clear();}
 
 }
