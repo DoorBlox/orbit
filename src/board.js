@@ -45,6 +45,8 @@ export function navigatorWorldPoint(px,py,bounds){
   const x=clamp(px,0,1),y=clamp(py,0,1);
   return {x:bounds.x0+(bounds.x1-bounds.x0)*x,y:bounds.y0+(bounds.y1-bounds.y0)*y};
 }
+/** A tap on a map pin opens it; dragging beyond 8px pans the same viewport. */
+export const navigatorDragIntent=(dx,dy,threshold=8)=>Math.hypot(dx,dy)>=threshold;
 export function navigatorGrabOffset(pointer,center,size){
   const {x,y}=pointer??{}, {x:cx,y:cy}=center??{};
   const {width,height}=size??{};
@@ -84,6 +86,7 @@ export class SpatialBoard {
     this.scale=1;this.pan={x:0,y:0};this.gesture=null;this.pointers=new Map();this.raf=0;
     this.widgets=new Map();this.stickyNotes=[];this.navPointer=null;this.navDragStart=null;
     this.nav=document.getElementById('space-nav-map');
+    this.navPinStart=null;this.navSuppressClick=false;
     // Keep touch drag gestures in the map even if style bundles or theme overrides lag.
     // Native panning must never cancel the active pointer stream on hybrid devices.
     this.nav.style.setProperty('touch-action','none','important');
@@ -100,6 +103,10 @@ export class SpatialBoard {
     }
     this.buildNavigator();
     this.nav.addEventListener('pointerdown',e=>this.startNavigatorPan(e),{signal:this.events.signal});
+    this.nav.addEventListener('click',e=>{
+      if(!this.navSuppressClick||!e.target.closest('button.space-point'))return;
+      e.preventDefault();e.stopImmediatePropagation();this.navSuppressClick=false;
+    },{signal:this.events.signal,capture:true});
     // Hybrid touchscreen laptops sometimes lose pointer capture when a finger
     // leaves the mini-map. Keep tracking on the window until up/cancel/blur.
     window.addEventListener('pointermove',e=>this.moveNavigatorPan(e),{
@@ -333,7 +340,16 @@ export class SpatialBoard {
   }
   startNavigatorPan(e){
     if(this.disposed||this.navPointer!==null||
-      (e.button!==0&&e.pointerType!=='touch')||e.target.closest('button'))return;
+      (e.button!==0&&e.pointerType!=='touch'))return;
+    const pin=e.target.closest('button.space-point');
+    if(pin){
+      // Do not steal a tap: the same pin is draggable after a deliberate move.
+      const rect=this.nav.getBoundingClientRect();
+      this.navPointer=e.pointerId;
+      this.navPinStart={x:e.clientX,y:e.clientY,pan:{...this.pan},rect,
+        bounds:{...this.navBounds},scale:this.scale,dragging:false};
+      return;
+    }
     e.preventDefault();e.stopPropagation();
     this.navPointer=e.pointerId;
     const cursor=this.nav.querySelector('#space-nav-cursor');
@@ -353,6 +369,16 @@ export class SpatialBoard {
   }
   moveNavigatorPan(e){
     if(e.pointerId!==this.navPointer)return;
+    if(this.navPinStart){
+      const pin=this.navPinStart;
+      if(!pin.dragging){
+        if(!navigatorDragIntent(e.clientX-pin.x,e.clientY-pin.y))return;
+        pin.dragging=true;this.navSuppressClick=true;
+        this.navDragStart={x:pin.x,y:pin.y,pan:pin.pan,rect:pin.rect,bounds:pin.bounds,scale:pin.scale};
+        this.nav.classList.add('is-dragging');
+        try{this.nav.setPointerCapture(e.pointerId);}catch{}
+      }
+    }
     e.preventDefault();
     const drag=this.navDragStart;
     if(!drag){this.navigatorToWorld(e);return;}
@@ -364,12 +390,16 @@ export class SpatialBoard {
   }
   endNavigatorPan(e){
     if(e.pointerId!==this.navPointer)return;
+    const dragged=this.navPinStart?.dragging===true;
+    if(dragged){this.navSuppressClick=true;
+      setTimeout(()=>{this.navSuppressClick=false;},35);}
     this.cancelNavigatorPan();
   }
   cancelNavigatorPan(){
     const id=this.navPointer;
     if(id==null)return;
-    this.navPointer=null;this.navDragStart=null;this.nav?.classList?.remove('is-dragging');
+    this.navPointer=null;this.navDragStart=null;this.navPinStart=null;
+    this.nav?.classList?.remove('is-dragging');
     try{if(this.nav?.hasPointerCapture?.(id))this.nav.releasePointerCapture(id);}catch{}
   }
   render(){this.world.style.transform=`translate3d(${this.pan.x.toFixed(2)}px,${this.pan.y.toFixed(2)}px,0) scale(${this.scale.toFixed(4)})`;

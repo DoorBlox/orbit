@@ -49,7 +49,7 @@ export function normalizeScene(scene){
 export function normalizeExtensions(raw={}){
   if(raw===undefined||raw===null)raw={};
   if(!object(raw)||JSON.stringify(raw).length>900000)throw Error('Invalid or oversized workspace extensions.');
-  const notes=raw.notes??[],taskLinks=raw.taskLinks??{},journalScenes=raw.journalScenes??{},journalImages=raw.journalImages??{},journalModes=raw.journalModes??{};
+  const notes=raw.notes??[],taskLinks=raw.taskLinks??{},journalScenes=raw.journalScenes??{},journalImages=raw.journalImages??{},journalModes=raw.journalModes??{},journalPaperStyles=raw.journalPaperStyles??{};
   const taskChecklists=raw.taskChecklists??{};
   const spatialWidgets=normalizeExtraWidgetLayout(raw.spatialWidgets);
   const projects=normalizeProjects(raw.projects);
@@ -62,6 +62,7 @@ export function normalizeExtensions(raw={}){
   if(!Array.isArray(notes)||notes.length>80||!object(taskLinks)||Object.keys(taskLinks).length>10000||
      !object(journalScenes)||Object.keys(journalScenes).length>600||!object(journalImages)||Object.keys(journalImages).length>600||
      !object(journalModes)||Object.keys(journalModes).length>600||
+     !object(journalPaperStyles)||Object.keys(journalPaperStyles).length>600||
      !object(taskChecklists)||Object.keys(taskChecklists).length>10000)throw Error('Invalid workspace extensions.');
   const ids=new Set();
   const cleanNotes=notes.map(n=>{
@@ -103,13 +104,19 @@ export function normalizeExtensions(raw={}){
     if(!validId(id)||mode!=='canvas')throw Error('Invalid journal content mode.');
     pageModes[id]='canvas';
   }
+  const pagePaper={};
+  for(const [id,style] of Object.entries(journalPaperStyles)){
+    if(!validId(id)||!['plain','grid'].includes(style))throw Error('Invalid journal paper texture.');
+    pagePaper[id]=style;
+  }
   const images={};
   for(const [id,path] of Object.entries(journalImages)){
     if(!validId(id))throw Error('Invalid journal image ID.');
     images[id]=assertImagePath(path);
   }
   return {notes:cleanNotes,taskLinks:links,taskChecklists:checklists,journalScenes:scenes,journalImages:images,
-    ...(Object.keys(pageModes).length?{journalModes:pageModes}:{}),spatialWidgets,projects,appearance};
+    ...(Object.keys(pageModes).length?{journalModes:pageModes}:{}),
+    ...(Object.keys(pagePaper).length?{journalPaperStyles:pagePaper}:{}),spatialWidgets,projects,appearance};
 }
 /** Fit the entire retained drawing, not an arbitrary 800×460 crop. No mutation. */
 export function scenePreviewBounds(scene){
@@ -140,6 +147,20 @@ export function scenePreviewBounds(scene){
   const height=Math.max(132,maxY-minY+padding*2);
   const x=(minX+maxX-width)/2,y=(minY+maxY-height)/2;
   return {x,y,width,height};
+}
+const fontFamilies={1:'Virgil, Excalifont, cursive',2:'Arial, Helvetica, sans-serif',
+  3:'Cascadia, monospace',5:'Excalifont, cursive',6:'Nunito, sans-serif',
+  7:'Lilita One, sans-serif',8:'Comic Shanns, monospace',9:'Liberation Sans, sans-serif',
+  10:'Assistant, sans-serif'};
+let previewFontSheet=null;
+function ensureCanvasPreviewFonts(){
+  if(previewFontSheet||document.querySelector('link[data-orbit-excalidraw-styles]'))return;
+  const style=document.createElement('link');style.rel='stylesheet';
+  style.href=new URL('./excalidraw-island.css',import.meta.url).href;
+  style.dataset.orbitExcalidrawStyles='loading';
+  style.onload=()=>{style.dataset.orbitExcalidrawStyles='ready';};
+  style.onerror=()=>{style.remove();previewFontSheet=null;};
+  document.head.append(style);previewFontSheet=style;
 }
 export function renderScene(scene,target,{media=null}={}){
   target.replaceChildren();
@@ -176,10 +197,22 @@ export function renderScene(scene,target,{media=null}={}){
         }).catch(()=>{image.setAttribute('aria-label','Private image unavailable');});
       }
     }else if(item.type==='text'&&typeof item.text==='string'){
+      ensureCanvasPreviewFonts();
       const font=Math.min(120,Math.max(8,item.fontSize||20));
-      const t=svgNode('text',{x:item.x,y:item.y+font,fill:attrs.stroke,'font-size':font});
+      const family=fontFamilies[item.fontFamily]||fontFamilies[5];
+      const align=['center','right'].includes(item.textAlign)?item.textAlign:'left';
+      const lineHeight=Number.isFinite(item.lineHeight)?Math.min(2,Math.max(1,item.lineHeight)):1.25;
+      const anchor=align==='center'?'middle':align==='right'?'end':'start';
+      const textX=item.x+(align==='center'?item.width/2:align==='right'?item.width:0);
+      const t=svgNode('text',{x:textX,y:item.y+font,fill:attrs.stroke,
+        'font-family':family,'font-size':font,'text-anchor':anchor,
+        'font-weight':item.fontFamily===7?700:400});
+      if(Number.isFinite(item.angle)&&item.angle){
+        const centerX=item.x+item.width/2,centerY=item.y+item.height/2;
+        t.setAttribute('transform',`rotate(${item.angle*180/Math.PI} ${centerX} ${centerY})`);
+      }
       String(item.text).slice(0,4000).split('\n').forEach((line,i)=>{
-        const span=svgNode('tspan',{x:item.x,dy:i?font*1.3:0});
+        const span=svgNode('tspan',{x:textX,dy:i?font*lineHeight:0});
         span.textContent=line;t.append(span);
       });
       canvas.append(t);
