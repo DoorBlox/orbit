@@ -298,7 +298,7 @@ export async function startLocalOAuthHttpFixture({
       catch{if(!res.headersSent)reject(res,400);else res.end();}
     });
   }else{
-  const server=createServer(async(req,res)=>{
+  server=createServer(async(req,res)=>{
     try{await handle(req,res);}
     catch{
       if(!res.headersSent)reject(res,400);
