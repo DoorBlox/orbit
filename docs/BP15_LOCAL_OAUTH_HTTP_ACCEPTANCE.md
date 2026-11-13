@@ -5,7 +5,7 @@ This is a **source-only, disposable synthetic integration** implementing an OAut
 ## Run
 
 ```bash
-node --test tests/bp15_local_oauth_http.test.mjs tests/bp15_disposable_grant_ledger.test.mjs
+node --test tests/bp15_local_oauth_http.test.mjs tests/bp15_disposable_grant_ledger.test.mjs tests/bp15_oauth_identifiers.test.mjs
 ```
 
 The separate `mcp-sdk-v2` GitHub Actions job installs pinned `@modelcontextprotocol/client@2.4.0` in ephemeral CI and runs **both** `tests/sdk/bp15_official_client_v2.test.mjs` and `tests/sdk/bp15_official_http_oauth_v2.test.mjs`. No application package or lockfile is changed.
@@ -27,12 +27,12 @@ Seven real Node HTTP test groups cover A/B JWT private branches, missing owner s
 
 Still required before a real connector: conformant HTTPS issuer and protected-resource metadata discovery (RFC 8414, RFC 9728), Client ID Metadata Documents, official SDK `OAuthClientProvider` browser callback/automatic refresh testing, production-grade owner login/session/Cookie Secure/CSRF, real client registration and redirect allowlist, durable authorization-code/session replay state, persistent signing keys and independent key rotation, distributed atomic SQL grants and client_id-aware RLS/Storage user delegation, replay/DPoP decisions, revocation history/audit, real two-account owner acceptance and Command HQ security/release approval.
 
-The test issuer remains `https://synthetic-auth.example.test/tenant`, not an issuer served at the localhost HTTP origin. **Do not publish synthetic authorization-server metadata claiming otherwise.** The next W4 source slice should address trusted metadata with consistent issuer/resource URLs and the genuine official SDK OAuth provider flow, not weaken the exact existing JWT validation to make a mock pass.
+The original standalone fixture's issuer remains `https://synthetic-auth.example.test/tenant`; this is historical behavior and must not be presented as localhost metadata. The new, opt-in `loopbackDiscovery:true` fixture explicitly uses the **same** dynamically bound `http://127.0.0.1:<port>/` issuer and protected `/mcp` resource; the test-only HTTP exception never removes exact JWT issuer/audience validation.
 
 **Rollback:** revert this source PR. All tests remove only their own `mkdtemp` fixtures. No hosted state exists.
 
 
-## 13 November — localhost discovery experiment (NOT yet CI/SDK verified)
+## 13 November — localhost discovery and official SDK v2 proof (SOURCE ONLY)
 
 The new opt-in `loopbackDiscovery:true` MCP fixture creates the issuer
 `http://127.0.0.1:<ephemeral-port>/` and protected resource
@@ -67,9 +67,7 @@ Actual official SDK v2 `OAuthClientProvider` integration is wired into
 discovery, issuer-verified AS metadata, SDK-generated S256 and state, simulated
 trusted owner consent, callback state comparison before `finishAuth`,
 `iss` callback verification, token exchange, owner A/B isolation, 401-based
-refresh and revocation. It must pass the exact-head CI job before this
-milestone can be called validated; tests are **not** equivalent to real
-browser login, HTTPS, hosted RLS or user acceptance.
+refresh and revocation. The official `mcp-sdk-v2` job [43337129344](https://github.com/DoorBlox/orbit/actions/runs/43337129344) completed successfully on exact source head `8ceb389d27760eafa2af99b869455aa0c3cb7ad4`: **12/12 official SDK tests pass**. This is evidence for the disposable local flow only, not real browser login, HTTPS, hosted RLS or owner acceptance. Any subsequent documentation commit requires a fresh exact-head CI check before merge.
 
 Security nonclaims: HTTP loopback is accepted only by explicitly configured
 disposable source fixtures and does not establish a production authorization
