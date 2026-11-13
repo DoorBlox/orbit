@@ -72,8 +72,8 @@
       "reason": "W1 BP-03: default-off conditional owner revision probe with strict minimal unchanged envelope, auth recheck, canonical PGRST202/404 fallback and legacy full read; hosted RPC not activated."
     },
     "src/cloud/sync.js": {
-      "sha256": "9dd095d87c4b5e8d26da196b367c661fac181ab9b10476e73b010a9d8bf1c1c0",
-      "reason": "W1 BP-03: suppress unattended full-snapshot polling for clean AUTH_REQUIRED/FORBIDDEN/VALIDATION/INVALID_RESPONSE states; explicit retry/focus and transient NETWORK recovery retained, with synthetic 12-poll regression."
+      "sha256": "80bcdd790c8a7c2ace48337d8c3cbcf777f6a949d9600d5e398254368cb0a7f2",
+      "reason": "W1 BP-09: defensive save clone rechecks pending owner draft after getter-driven synchronous supersession; unstable cloning bounded to 16 attempts, with latest pending draft and revision-CAS protected."
     },
     "src/constellation.js": {
       "sha256": "6d17fe195d35d9e0de6b712855e5f4634d284c7368457b9676cea8d55d8f3c1b",
