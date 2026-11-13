@@ -129,3 +129,22 @@ test('FO-01 corrupt or unavailable session storage degrades safely without throw
   assert.equal(blocked.getState().storageAvailable,false);
   blocked.dispose({clearSession:true});
 });
+
+test('FO-01 a SecurityError reading sessionStorage cannot prevent clock startup',()=>{
+  const previous=Object.getOwnPropertyDescriptor(globalThis,'sessionStorage');
+  Object.defineProperty(globalThis,'sessionStorage',{
+    configurable:true,
+    get(){throw Object.assign(Error('Browser storage blocked'),{name:'SecurityError'});},
+  });
+  try{
+    const clock=createFocusClock();
+    assert.equal(clock.getState().status,'idle');
+    assert.equal(clock.getState().storageAvailable,false);
+    assert.equal(clock.start(),true);
+    assert.equal(clock.getState().status,'running');
+    clock.dispose({clearSession:true});
+  }finally{
+    if(previous)Object.defineProperty(globalThis,'sessionStorage',previous);
+    else Reflect.deleteProperty(globalThis,'sessionStorage');
+  }
+});
