@@ -1,3 +1,15 @@
+## 13 November 2026 — W4 OAuth discovery / SDK authorization source checkpoint (PR #191 DRAFT)
+
+**Current W4 source branch:** `feat/orbit-w4-bp15-loopback-discovery-sdk-20261113`, started from independently verified `main` `4ff6fb58b1fb953c50514edd212ce738e6dde7be`. [Draft PR #191](https://github.com/DoorBlox/orbit/pull/191) contains scoped W4-owned MCP/OAuth security code, official SDK 2.4.0 tests and this handoff. **Do not merge before rechecking the latest exact head**, five CI jobs, complete patch, review blockers and clean mergeability. W1/W2/W3/W5/W6 have independent open PRs; avoid their source and canonical documentation. Concurrent main advances are expected.
+
+**Built as source, not yet validated:** opt-in **127.0.0.1 ephemeral port** shared OAuth+MCP listener with consistent `http://127.0.0.1:<port>/` issuer and `/mcp` resource; RFC 8414 and RFC 9728 endpoints, signed `iss` callback, Bearer 401 discovery challenge, signed RS256 token issuer/resource strict equality, persistent synthetic grant/refresh ledger, explicit code+state/PKCE and owner A/B. HTTPS remains mandatory by default; only the explicitly requested local fixture permits HTTP on exact IPv4 loopback. New `tests/sdk/bp15_official_discovery_oauth_v2.test.mjs` tests **actual OAuthClientProvider**, not just pre-issued `AuthProvider` bearer. The SDK job runs it under ephemeral pinned `@modelcontextprotocol/client@2.4.0` together with existing official tests. **All CI is pending until independently checked**; do not claim green. Known lack of live browser identity session and full client metadata registration remains explicitly documented.
+
+**Registration/security contract:** exact registered test client `fixture-local-client`, only `http://127.0.0.1:8765/oauth/callback` redirect; `client_id_metadata_document_supported:false` (CIMD NOT implemented), exact `tasks:read`, no journals/media/write. Validate callback state before `finishAuth` as SDK explicitly requires. Check metadata poisoning/issuer substitution, cross-origin redirects, credential replay/rotation/owner switching, expiry and issuer-origin attacks. No hosted OAuth, Supabase SQL/RLS/Auth/Storage, credentials, service-role data, paid service, public MCP, staging or Production.
+
+**Next executable:** Re-query PR #191 current SHA and all five exact-head checks. Review failing logs; fix source/test defects only on this branch and rerun checks on new head, then fully audit final patch and merge cleanly with `expected_head_sha` only if every check succeeds. Save final precise CI/merge evidence as PR and issue #32 comments. W1 must design/prove delegated `client_id` all-table+Storage RLS and atomic grant/JTI consistency; W3 owns accessible signed-in consent, denial and disconnect UX. Owner retains separate hosted and Production approval gates. The existing PR #181 `1648ff7a...` milestone is already merged; do not repeat it.
+
+---
+
 # ORBIT Worker W4 — Platform, Security & Release
 
 ## 13 Nov 2026 — W4 localhost OAuth HTTP consent/token/revoke source checkpoint
