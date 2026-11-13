@@ -7,6 +7,7 @@ import {
 } from '../server/mcp/cimd-https-retrieval.mjs';
 import {
   pinnedCimdRequestOptions,verifyPinnedCimdTlsPeer,
+  validatePinnedCimdResponseHeaders,
   createNodeCimdDnsPort,createNodeCimdHttpsPort,
 } from '../server/mcp/cimd-node-https.mjs';
 
