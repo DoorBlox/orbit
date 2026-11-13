@@ -64,12 +64,9 @@ def _check_all_visible(page):
     expect(card).to_contain_text(PROJECT_BODY)
 
 
-def run(browser):
-    results = {
-        "same_workspace_edit_reload": "NOT RUN",
-        "touch_capable_mobile_seed_focus": "NOT RUN",
-        "fresh_context_isolation": "NOT RUN",
-    }
+def run(browser, results):
+    # Mutate the caller-owned register so completed cases and the first FAIL
+    # are retained even if the browser runner raises before returning.
     seed = None
     context, page, errors = open_page(browser, (1440, 900))
     try:
@@ -113,6 +110,7 @@ def run(browser):
         assert not errors, errors
         results["same_workspace_edit_reload"] = "PASS"
     except Exception:
+        results["same_workspace_edit_reload"] = "FAIL"
         page.screenshot(path=str(OUT / "w6-desktop-failure.png"), animations="disabled")
         context.tracing.stop(path=str(OUT / "w6-desktop-failure-trace.zip"))
         raise
@@ -147,6 +145,7 @@ def run(browser):
         assert not errors, errors
         results["touch_capable_mobile_seed_focus"] = "PASS"
     except Exception:
+        results["touch_capable_mobile_seed_focus"] = "FAIL"
         page.screenshot(path=str(OUT / "w6-mobile-failure.png"), animations="disabled")
         context.tracing.stop(path=str(OUT / "w6-mobile-failure-trace.zip"))
         raise
@@ -170,6 +169,7 @@ def run(browser):
         assert not errors, errors
         results["fresh_context_isolation"] = "PASS"
     except Exception:
+        results["fresh_context_isolation"] = "FAIL"
         page.screenshot(path=str(OUT / "w6-fresh-context-failure.png"),
                         animations="disabled")
         context.tracing.stop(path=str(OUT / "w6-fresh-context-failure-trace.zip"))
@@ -182,7 +182,14 @@ def run(browser):
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    results = None
+    # Each status starts NOT RUN; the first failing case becomes FAIL without
+    # falsely marking any later case as executed. No user data or error text
+    # is written to this small synthetic-only status artifact.
+    results = {
+        "same_workspace_edit_reload": "NOT RUN",
+        "touch_capable_mobile_seed_focus": "NOT RUN",
+        "fresh_context_isolation": "NOT RUN",
+    }
     with server(), sync_playwright() as playwright:
         executable = (None if os.environ.get("ORBIT_BROWSER_BUNDLED")
                       else os.environ.get("ORBIT_CHROMIUM") or shutil.which("chromium"))
@@ -190,12 +197,14 @@ def main():
             headless=True, executable_path=executable, args=["--no-sandbox"]
         )
         try:
-            results = run(browser)
+            run(browser, results)
         finally:
             browser.close()
-    (OUT / "w6-cross-widget-results.json").write_text(
-        json.dumps(results, indent=2) + "\n", encoding="utf-8"
-    )
+            # Preserve evidence on failures as well as success. The Python
+            # exception still propagates, so CI remains fail closed.
+            (OUT / "w6-cross-widget-results.json").write_text(
+                json.dumps(results, indent=2) + "\n", encoding="utf-8"
+            )
     print("PASS W6 real-origin, same-workspace multi-widget/phone-context acceptance")
     print(json.dumps(results, indent=2))
 
