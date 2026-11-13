@@ -52,8 +52,8 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "src/cloud/media.js": {
-      "sha256": "afa9118dce897407ee01208e04d8ffedc3ca167c019044db0ebeaf4a69de26bb",
-      "reason": "BP-12: bounded owner-private read-only usage summary deduplicates paginated files; reports exact bytes only on complete consistent size data, fails closed on auth/errors."
+      "sha256": "da4fcadb5c5206d3f18c59a4c289c7de13d54a499f5a4f166c0cc1e8765a4ef7",
+      "reason": "BP-01/BP-12: authenticate after every Storage outcome including rejected or error responses; revoke previously leased private Blob previews on a concurrent account switch, preserve sanitized same-owner retries."
     },
     "src/cloud/owner-tools.js": {
       "sha256": "f994bcae3ddf3e7413f2cb5cd7569d08c4f4fe0c525a00a5d418f9b74270271e",

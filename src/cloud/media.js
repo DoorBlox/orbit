@@ -61,7 +61,18 @@ export function createPrivateMedia(client,{ownerId,maxIdlePreviews=8,maxIdleByte
   // A Storage SDK may reject rather than return {error}. Never expose provider
   // diagnostic details to gallery or restore consumers; keep auth failures separate.
   async function storageResult(run,message){
-    try{return await run();}catch{throw Error(message);}
+    let result;
+    try{result=await run();}
+    catch{
+      // A Storage rejection can coincide with sign-out. Recheck the account
+      // before reporting a safe provider error and revoke any old Blob leases.
+      await checkUser();
+      throw Error(message);
+    }
+    // Recheck even on an SDK {error} or malformed response. The caller will
+    // validate the reply, but it must not hide a concurrent owner switch.
+    await checkUser();
+    return result;
   }
   async function checkUser(){
     if(disposed)throw Error('Your media session expired. Sign in again.');
@@ -87,8 +98,7 @@ export function createPrivateMedia(client,{ownerId,maxIdlePreviews=8,maxIdleByte
     const result=await storageResult(()=>bucket.download(path),'Private image could not be downloaded.');
     if(result?.error||!(result?.data instanceof Blob)||result.data.size<12||result.data.size>MAX)
       throw Error('Private image could not be downloaded.');
-    // A long-running Storage request must not survive a sign-out/account switch.
-    await checkUser();
+    // storageResult has already checked for an owner switch after Storage IO.
     const extension=path.split('.').at(-1).toLowerCase();
     const mime=Object.keys(TYPES).find(type=>TYPES[type]===extension);
     const blob=new Blob([result.data],{type:mime});
@@ -162,7 +172,6 @@ export function createPrivateMedia(client,{ownerId,maxIdlePreviews=8,maxIdleByte
       }),'Private media list is unavailable.');
       if(result?.error||!Array.isArray(result?.data))
         throw Error('Private media list is unavailable.');
-      await checkUser();
       const seen=new Set(),items=[];
       for(const item of result.data){
         if(!item||typeof item.name!=='string'||!item.id)continue;
@@ -188,9 +197,8 @@ export function createPrivateMedia(client,{ownerId,maxIdlePreviews=8,maxIdleByte
       // Publish a reference only after Storage confirms the generated path.
       // Ambiguous results may leave an orphan, so retries use new object names.
       if(result?.error||result?.data?.path!==path)throw Error('Private upload failed. Try again.');
-      // Never hand a path back to a different account after in-flight upload.
-      // Storage deletion is intentionally NOT attempted on session expiry.
-      await checkUser();
+      // storageResult rechecked the account after IO. Never delete an
+      // ambiguous upload or hand its path to a different signed-in account.
       return path;
     },
     async signedUrl(path){
@@ -198,7 +206,6 @@ export function createPrivateMedia(client,{ownerId,maxIdlePreviews=8,maxIdleByte
       await checkUser();
       const result=await storageResult(()=>bucket.createSignedUrl(path,600),'Cannot load the private image.');
       if(result?.error||!result?.data?.signedUrl)throw Error('Cannot load the private image.');
-      await checkUser();
       return result.data.signedUrl;
     },
     dispose:expire
