@@ -100,7 +100,8 @@ export async function startLocalOAuthHttpFixture({
       typeof a[2]!=='string'||!secretRe.test(a[2]))fail();
     return {owner:a[1],raw:a[2]};
   }
-  let port=0,lastMinute=-1,requests=0;
+  const shared=typeof fixture.attachLocalOAuthRoutes==='function';
+  let port=shared?Number(new URL(fixture.url).port):0,lastMinute=-1,requests=0;
   const origin=()=> 'http://127.0.0.1:'+port;
   function preflight(req,res){
     const counts=new Map(),headers=req.rawHeaders||[];
@@ -130,6 +131,22 @@ export async function startLocalOAuthHttpFixture({
     let parsed;
     try{parsed=new URL(req.url,origin());}catch{reject(res,400);return;}
     const path=parsed.pathname;
+    if(shared&&req.method==='GET'&&!parsed.search&&
+      path==='/.well-known/oauth-authorization-server'){
+      send(res,200,{
+        issuer:grant.issuer,authorization_endpoint:origin()+'/authorize',
+        token_endpoint:origin()+'/token',revocation_endpoint:origin()+'/revoke',
+        response_types_supported:['code'],grant_types_supported:['authorization_code','refresh_token'],
+        token_endpoint_auth_methods_supported:['none'],code_challenge_methods_supported:['S256'],
+        scopes_supported:['tasks:read'],authorization_response_iss_parameter_supported:true,
+        client_id_metadata_document_supported:false,protected_resources:[resource],
+      });return;
+    }
+    if(shared&&req.method==='GET'&&!parsed.search&&
+      path==='/.well-known/oauth-protected-resource/mcp'){
+      send(res,200,{resource,authorization_servers:[grant.issuer],
+        bearer_methods_supported:['header'],scopes_supported:['tasks:read']});return;
+    }
     if(path==='/authorize'){
       if(req.method!=='GET'){reject(res,405);return;}
       const session=requireSession(req,res);if(!session)return;
@@ -187,6 +204,7 @@ export async function startLocalOAuthHttpFixture({
         const destination=new URL(REDIRECT);
         destination.searchParams.set('error','access_denied');
         destination.searchParams.set('state',state);
+        if(shared)destination.searchParams.set('iss',grant.issuer);
         redirect(res,destination.href);return;
       }
       try{
@@ -197,6 +215,7 @@ export async function startLocalOAuthHttpFixture({
         });
         const destination=new URL(r.redirectUri);
         destination.searchParams.set('code',pack('CODE',record.owner,r.code));
+        if(shared)destination.searchParams.set('iss',grant.issuer);
         redirect(res,destination.href);
       }catch{reject(res,503,'temporarily_unavailable');}
       return;
@@ -271,6 +290,14 @@ export async function startLocalOAuthHttpFixture({
     }
     reject(res,404);
   }
+  let server=null,detach=null;
+  if(shared){
+    if(grant.issuer!==origin()+'/'||resource!==fixture.url)fail();
+    detach=fixture.attachLocalOAuthRoutes(async(req,res)=>{
+      try{await handle(req,res);}
+      catch{if(!res.headersSent)reject(res,400);else res.end();}
+    });
+  }else{
   const server=createServer(async(req,res)=>{
     try{await handle(req,res);}
     catch{
@@ -287,6 +314,7 @@ export async function startLocalOAuthHttpFixture({
     });
   });
   port=server.address().port;
+  }
   return Object.freeze({
     origin:origin(),resource,issuer:grant.issuer,
     mintSyntheticSession(owner){
@@ -298,7 +326,10 @@ export async function startLocalOAuthHttpFixture({
       return Object.freeze({cookie:COOKIE+'='+value,
         setCookie:COOKIE+'='+value+'; HttpOnly; SameSite=Strict; Path=/'});
     },
-    async close(){await new Promise((resolve,reject)=>
-      server.close(e=>e?reject(e):resolve()));},
+    async close(){
+      if(detach){detach();return;}
+      await new Promise((resolve,reject)=>
+        server.close(e=>e?reject(e):resolve()));
+    },
   });
 }

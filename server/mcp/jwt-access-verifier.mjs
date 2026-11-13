@@ -4,6 +4,7 @@
  * current and fail closed. Uses platform RSA verification, not bespoke crypto.
  */
 import {constants, createPublicKey, verify as verifySignature} from 'node:crypto';
+import {canonicalMcpIdentifier} from './identifier.mjs';
 
 const denied = () => { throw Error('MCP_TOKEN_DENIED'); };
 const plain = value => value !== null && typeof value === 'object' &&
@@ -17,12 +18,8 @@ const b64Pattern=/^[A-Za-z0-9_-]+$/;
 const MAX_BEARER=4096;
 const MAX_TTL_SECONDS=15*60;
 
-function exactHttps(value) {
-  if(typeof value!=='string') denied();
-  let url;
-  try { url=new URL(value); } catch { denied(); }
-  if(url.protocol!=='https:' || url.username || url.password || url.hash || url.search ||
-    url.origin==='null' || url.href!==value) denied();
+function exactHttps(value,allowLoopbackHttp=false){
+  if(!canonicalMcpIdentifier(value,{allowLoopbackHttp}))denied();
   return value;
 }
 
@@ -72,8 +69,8 @@ function resolveIssuerPublicKey(jwks,kid) {
  * as a network address. Consent and revocation checks must be durable in a
  * future hosted adapter (not local process memory).
  */
-export function createMcpJwtAccessVerifier({issuer,resource,loadJwks,isRevoked,hasConsent,authorizeGrant,clock=Date.now}={}) {
-  exactHttps(issuer);exactHttps(resource);
+export function createMcpJwtAccessVerifier({issuer,resource,loadJwks,isRevoked,hasConsent,authorizeGrant,clock=Date.now,allowLoopbackHttp=false}={}) {
+  exactHttps(issuer,allowLoopbackHttp);exactHttps(resource,allowLoopbackHttp);
   const atomicGrant=typeof authorizeGrant==='function';
   const legacyGrant=authorizeGrant===undefined&&typeof isRevoked==='function'&&
     typeof hasConsent==='function';

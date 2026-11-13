@@ -10,8 +10,8 @@ import {createMcpJwtAccessVerifier} from './jwt-access-verifier.mjs';
 import {createMcpGrantAuthorizer} from './grant-decision.mjs';
 import {createPrivateMcpReadBoundary} from './read-boundary.mjs';
 
-const issuer='https://synthetic-auth.example.test/tenant';
-const resource='https://synthetic-mcp.example.test/mcp';
+const syntheticIssuer='https://synthetic-auth.example.test/tenant';
+const syntheticResource='https://synthetic-mcp.example.test/mcp';
 const clientId='fixture-local-client';
 const ownerIds=Object.freeze({
   ownerA:'11111111-1111-4111-8111-111111111111',
@@ -46,7 +46,7 @@ const denyResult=(res,status)=>{
  * Deliberately not configurable to public interfaces, permanent storage,
  * production project IDs, hosted JWT signing keys or third-party accounts.
  */
-export async function startLocalMcpFixture({maxRequestsPerMinute=120,trustedGrantStore=null}={}){
+export async function startLocalMcpFixture({maxRequestsPerMinute=120,trustedGrantStore=null,loopbackDiscovery=false}={}){
   // Opt-in durable adapter is still a synthetic trusted test fixture; NEVER
   // mount its owner-selection/token signer as an untrusted/public route.
   if(trustedGrantStore!==null&&
@@ -55,6 +55,9 @@ export async function startLocalMcpFixture({maxRequestsPerMinute=120,trustedGran
   if(!Number.isSafeInteger(maxRequestsPerMinute)||
     maxRequestsPerMinute<1||maxRequestsPerMinute>1000)
     throw Error('MCP_FIXTURE_DENIED');
+  if(typeof loopbackDiscovery!=='boolean')throw Error('MCP_FIXTURE_DENIED');
+  let issuer=syntheticIssuer,resource=syntheticResource;
+  let oauthRoutes=null;
   const keys=generateKeyPairSync('rsa',{modulusLength:2048});
   const key={...keys.publicKey.export({format:'jwk'}),kid:'local-synthetic-1',
     kty:'RSA',alg:'RS256',use:'sig',key_ops:['verify']};
@@ -84,42 +87,7 @@ export async function startLocalMcpFixture({maxRequestsPerMinute=120,trustedGran
       return found?{...found}:null;
     },
   };
-  const grantAuthorizer=createMcpGrantAuthorizer({
-    readAuthorizationSnapshot:trustedGrantStore?async query=>
-      trustedGrantStore.readAuthorizationSnapshot(query):async ({issuer:iss,resource:res,ownerId,clientId:client,
-      tokenId})=>{
-      const current=grants.get(ownerId);
-      if(iss!==issuer||res!==resource||client!==clientId||!current)return null;
-      return {issuer,resource,ownerId,clientId,tokenId,
-        grantEpoch:current.epoch,status:current.active?'active':'revoked',
-        scopes:['tasks:read'],grantedAt:current.grantedAt,
-        consentExpiresAt:current.expiresAt,
-        consentRevokedAt:current.active?null:now(),
-        tokenRevokedAt:current.revokedTokens.has(tokenId)?now():null};
-    },
-  });
-  const verify=createMcpJwtAccessVerifier({issuer,resource,
-    loadJwks:async()=>({keys:[key]}),authorizeGrant:grantAuthorizer});
-  const boundary=createPrivateMcpReadBoundary({issuer,resource,
-    verifyAccessToken:verify,dataSource});
-  const admission=createMcpStreamableReadAdmission({
-    allowedOrigins:['https://orbit.example.test'],
-    invokeReadBoundary:boundary.invoke.bind(boundary),
-  });
-  const handler=createMcpHttpResponseHandler({
-    admission,verifyAccessToken:verify,issuer,resource,
-    consumeQuota:async ctx=>{
-      const minute=Math.floor(Date.now()/60000);
-      const key=ctx.subject+'|'+ctx.clientId+'|'+minute;
-      // Bounded synthetic state. This Map MUST NOT serve as a hosted
-      // multi-instance rate-limit adapter or a durable consent ledger.
-      if(quota.size>24)quota.clear();
-      const count=quota.get(key)||0;
-      if(count>=maxRequestsPerMinute)return false;
-      quota.set(key,count+1);
-      return true;
-    },
-  });
+  let handler;
   const issueForEpoch=(label,epoch)=>{
     if(!Object.hasOwn(ownerIds,label)||!Number.isSafeInteger(epoch)||
       epoch<1||epoch>2147483647)throw Error('MCP_FIXTURE_DENIED');
@@ -138,8 +106,7 @@ export async function startLocalMcpFixture({maxRequestsPerMinute=120,trustedGran
     return issueForEpoch(label,grants.get(ownerIds[label]).epoch);
   };
   // No pre-issued bypass tokens when a persisted consent ledger is active.
-  const tokens=trustedGrantStore?Object.freeze({}):
-    Object.freeze({ownerA:tokenFor('ownerA'),ownerB:tokenFor('ownerB')});
+  let tokens;
 
   let listeningPort=0;
   const server=createServer(async (req,res)=>{
@@ -153,6 +120,14 @@ export async function startLocalMcpFixture({maxRequestsPerMinute=120,trustedGran
       }
       if(hosts.length!==1||hosts[0]!=='127.0.0.1:'+listeningPort){
         denyResult(res,403);req.resume();return;
+      }
+      const route=req.url?.split('?')[0];
+      if(loopbackDiscovery&&oauthRoutes&&[
+        '/.well-known/oauth-authorization-server',
+        '/.well-known/oauth-protected-resource/mcp',
+        '/authorize','/consent','/token','/revoke',
+      ].includes(route)){
+        await oauthRoutes(req,res);return;
       }
       const announced=Number(req.headers['content-length']);
       if(Number.isFinite(announced)&&announced>MAX_INPUT){
@@ -170,7 +145,11 @@ export async function startLocalMcpFixture({maxRequestsPerMinute=120,trustedGran
         method:req.method,path:req.url,headers:pairs,
         body:Buffer.concat(chunks,length),
       });
-      res.writeHead(reply.status,{...reply.headers,
+      const headers={...reply.headers};
+      if(loopbackDiscovery&&reply.status===401)
+        headers['www-authenticate']='Bearer resource_metadata="'+
+          issuer+'.well-known/oauth-protected-resource/mcp", scope="tasks:read"';
+      res.writeHead(reply.status,{...headers,
         'content-length':Buffer.byteLength(reply.body)});
       res.end(reply.body);
     }catch{
@@ -189,9 +168,62 @@ export async function startLocalMcpFixture({maxRequestsPerMinute=120,trustedGran
     });
   });
   listeningPort=server.address().port;
+  if(loopbackDiscovery){
+    issuer='http://127.0.0.1:'+listeningPort+'/';
+    resource='http://127.0.0.1:'+listeningPort+'/mcp';
+  }
+  const grantAuthorizer=createMcpGrantAuthorizer({
+    allowLoopbackHttp:loopbackDiscovery,
+    readAuthorizationSnapshot:trustedGrantStore?async query=>
+      trustedGrantStore.readAuthorizationSnapshot(query):async ({issuer:iss,resource:res,ownerId,clientId:client,
+      tokenId})=>{
+      const current=grants.get(ownerId);
+      if(iss!==issuer||res!==resource||client!==clientId||!current)return null;
+      return {issuer,resource,ownerId,clientId,tokenId,
+        grantEpoch:current.epoch,status:current.active?'active':'revoked',
+        scopes:['tasks:read'],grantedAt:current.grantedAt,
+        consentExpiresAt:current.expiresAt,
+        consentRevokedAt:current.active?null:now(),
+        tokenRevokedAt:current.revokedTokens.has(tokenId)?now():null};
+    },
+  });
+  const verify=createMcpJwtAccessVerifier({issuer,resource,
+    allowLoopbackHttp:loopbackDiscovery,
+    loadJwks:async()=>({keys:[key]}),authorizeGrant:grantAuthorizer});
+  const boundary=createPrivateMcpReadBoundary({issuer,resource,
+    allowLoopbackHttp:loopbackDiscovery,
+    verifyAccessToken:verify,dataSource});
+  const admission=createMcpStreamableReadAdmission({
+    allowedOrigins:['https://orbit.example.test'],
+    invokeReadBoundary:boundary.invoke.bind(boundary),
+  });
+  handler=createMcpHttpResponseHandler({
+    admission,verifyAccessToken:verify,issuer,resource,
+    allowLoopbackHttp:loopbackDiscovery,
+    consumeQuota:async ctx=>{
+      const minute=Math.floor(Date.now()/60000);
+      const key=ctx.subject+'|'+ctx.clientId+'|'+minute;
+      // Bounded synthetic state. This Map MUST NOT serve as a hosted
+      // multi-instance rate-limit adapter or a durable consent ledger.
+      if(quota.size>24)quota.clear();
+      const count=quota.get(key)||0;
+      if(count>=maxRequestsPerMinute)return false;
+      quota.set(key,count+1);
+      return true;
+    },
+  });
+  tokens=trustedGrantStore?Object.freeze({}):
+    Object.freeze({ownerA:tokenFor('ownerA'),ownerB:tokenFor('ownerB')});
   return Object.freeze({
     url:'http://127.0.0.1:'+listeningPort+'/mcp',
     tokens,ownerIds,tokenFor,
+    ...(loopbackDiscovery?{
+      attachLocalOAuthRoutes(fn){
+        if(typeof fn!=='function'||oauthRoutes)throw Error('MCP_FIXTURE_DENIED');
+        oauthRoutes=fn;
+        return ()=>{if(oauthRoutes===fn)oauthRoutes=null;};
+      },
+    }:{}),
     ...(trustedGrantStore?{
       trustedIssueForEpoch:issueForEpoch,
       grantIdentity:Object.freeze({issuer,resource,clientId}),
