@@ -14,10 +14,10 @@ import {join} from 'node:path';
 import {createHash,createHmac,randomBytes,timingSafeEqual} from 'node:crypto';
 import {setTimeout as sleep} from 'node:timers/promises';
 import {canonicalMcpIdentifier} from './identifier.mjs';
+import {validMcpClientId} from './cimd-client-metadata.mjs';
 
 const denied=()=>{throw Error('MCP_LEDGER_DENIED');};
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const client=/^[A-Za-z0-9_-]{1,128}$/;
 const tokenId=/^[A-Za-z0-9_.:-]{8,128}$/;
 const refreshToken=/^[A-Za-z0-9_-]{43}$/;
 const MAX_BYTES=256*1024,MAX_EPOCH=2147483647,MAX_SPENT=256;
@@ -27,11 +27,11 @@ const plain=x=>x!==null&&typeof x==='object'&&!Array.isArray(x)&&
   Object.getPrototypeOf(x)===Object.prototype;
 const hash=x=>createHash('sha256').update(x).digest('hex');
 
-function identity(x,allowLoopbackHttp=false){
+function identity(x,allowLoopbackHttp=false,allowCimdClientIds=false){
   if(!plain(x))denied();
   if(!canonicalMcpIdentifier(x.issuer,{allowLoopbackHttp})||
     !canonicalMcpIdentifier(x.resource,{allowLoopbackHttp}))denied();
-  if(!uuid.test(x.ownerId||'')||!client.test(x.clientId||''))denied();
+  if(!uuid.test(x.ownerId||'')||!validMcpClientId(x.clientId,{allowCimdClientIds}))denied();
   return hash(JSON.stringify([x.issuer,x.resource,x.ownerId,x.clientId]));
 }
 function validateRow(row,id){
@@ -55,7 +55,7 @@ function plus(epoch){
   return epoch+1;
 }
 
-export function createDisposableGrantLedger({directory,macKey,clock=Date.now,allowLoopbackHttp=false}={}){
+export function createDisposableGrantLedger({directory,macKey,clock=Date.now,allowLoopbackHttp=false,allowCimdClientIds=false}={}){
   if(typeof directory!=='string'||!directory.startsWith('/')||
     directory.includes('\0')||!Buffer.isBuffer(macKey)||macKey.byteLength!==32||
     typeof clock!=='function')denied();
@@ -149,7 +149,7 @@ export function createDisposableGrantLedger({directory,macKey,clock=Date.now,all
     });
   }
   const get=(state,id)=>{
-    const key=identity(id,allowLoopbackHttp),row=state.grants[key]||null;
+    const key=identity(id,allowLoopbackHttp,allowCimdClientIds),row=state.grants[key]||null;
     if(row)validateRow(row,id);
     return {key,row};
   };
@@ -168,7 +168,7 @@ export function createDisposableGrantLedger({directory,macKey,clock=Date.now,all
     });
   }
   async function consent(id){
-    identity(id,allowLoopbackHttp);
+    identity(id,allowLoopbackHttp,allowCimdClientIds);
     const sec=Math.floor(now()/1000);
     return transact(state=>{
       const {key,row}=get(state,id);
@@ -181,7 +181,7 @@ export function createDisposableGrantLedger({directory,macKey,clock=Date.now,all
     });
   }
   async function revoke(id){
-    identity(id,allowLoopbackHttp);
+    identity(id,allowLoopbackHttp,allowCimdClientIds);
     const sec=Math.floor(now()/1000);
     return transact(state=>{
       const {row}=get(state,id);
@@ -194,7 +194,7 @@ export function createDisposableGrantLedger({directory,macKey,clock=Date.now,all
     });
   }
   async function revokeToken(id){
-    identity(id,allowLoopbackHttp);
+    identity(id,allowLoopbackHttp,allowCimdClientIds);
     if(!tokenId.test(id.tokenId||''))denied();
     const sec=Math.floor(now()/1000);
     return transact(state=>{
@@ -209,7 +209,7 @@ export function createDisposableGrantLedger({directory,macKey,clock=Date.now,all
     });
   }
   async function readAuthorizationSnapshot(id){
-    identity(id,allowLoopbackHttp);
+    identity(id,allowLoopbackHttp,allowCimdClientIds);
     if(!tokenId.test(id.tokenId||''))denied();
     return transact(state=>{
       const {row}=get(state,id);
@@ -226,7 +226,7 @@ export function createDisposableGrantLedger({directory,macKey,clock=Date.now,all
     });
   }
   async function issueRefresh(id){
-    identity(id,allowLoopbackHttp);
+    identity(id,allowLoopbackHttp,allowCimdClientIds);
     const token=randomBytes(32).toString('base64url');
     return transact(state=>{
       const ms=now();
@@ -242,7 +242,7 @@ export function createDisposableGrantLedger({directory,macKey,clock=Date.now,all
    * Previously rotated or pre-reconsent bearers MUST NOT revoke newer grants.
    */
   async function revokeRefresh(id){
-    identity(id,allowLoopbackHttp);
+    identity(id,allowLoopbackHttp,allowCimdClientIds);
     if(!refreshToken.test(id.refreshToken||''))denied();
     const digest=hash(id.refreshToken);
     return transact(state=>{
@@ -256,7 +256,7 @@ export function createDisposableGrantLedger({directory,macKey,clock=Date.now,all
     });
   }
   async function rotateRefresh(id){
-    identity(id,allowLoopbackHttp);
+    identity(id,allowLoopbackHttp,allowCimdClientIds);
     if(!refreshToken.test(id.refreshToken||''))denied();
     const digest=hash(id.refreshToken);
     const next=randomBytes(32).toString('base64url');

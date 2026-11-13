@@ -5,6 +5,7 @@
  */
 import {constants, createPublicKey, verify as verifySignature} from 'node:crypto';
 import {canonicalMcpIdentifier} from './identifier.mjs';
+import {validMcpClientId} from './cimd-client-metadata.mjs';
 
 const denied = () => { throw Error('MCP_TOKEN_DENIED'); };
 const plain = value => value !== null && typeof value === 'object' &&
@@ -13,7 +14,6 @@ const plain = value => value !== null && typeof value === 'object' &&
 const kidPattern=/^[A-Za-z0-9_-]{1,64}$/;
 const uuidPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const tokenIdPattern=/^[A-Za-z0-9_.:-]{8,128}$/;
-const clientPattern=/^[A-Za-z0-9_-]{1,128}$/;
 const b64Pattern=/^[A-Za-z0-9_-]+$/;
 const MAX_BEARER=4096;
 const MAX_TTL_SECONDS=15*60;
@@ -69,7 +69,7 @@ function resolveIssuerPublicKey(jwks,kid) {
  * as a network address. Consent and revocation checks must be durable in a
  * future hosted adapter (not local process memory).
  */
-export function createMcpJwtAccessVerifier({issuer,resource,loadJwks,isRevoked,hasConsent,authorizeGrant,clock=Date.now,allowLoopbackHttp=false}={}) {
+export function createMcpJwtAccessVerifier({issuer,resource,loadJwks,isRevoked,hasConsent,authorizeGrant,clock=Date.now,allowLoopbackHttp=false,allowCimdClientIds=false}={}) {
   exactHttps(issuer,allowLoopbackHttp);exactHttps(resource,allowLoopbackHttp);
   const atomicGrant=typeof authorizeGrant==='function';
   const legacyGrant=authorizeGrant===undefined&&typeof isRevoked==='function'&&
@@ -99,7 +99,7 @@ export function createMcpJwtAccessVerifier({issuer,resource,loadJwks,isRevoked,h
           claims.aud.length===1&&claims.aud[0]===resource))||
         !uuidPattern.test(claims.sub||'')||
         !tokenIdPattern.test(claims.jti||'')||
-        !clientPattern.test(claims.client_id||'')||
+        !validMcpClientId(claims.client_id,{allowCimdClientIds})||
         Object.hasOwn(claims,'cnf')||
         claims.role!=='authenticated'||claims.token_use!=='access'||
         claims.scope!=='tasks:read'||

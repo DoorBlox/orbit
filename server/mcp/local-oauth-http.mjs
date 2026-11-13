@@ -6,8 +6,9 @@
 import {createServer} from 'node:http';
 import {createHash,createHmac,randomBytes,timingSafeEqual} from 'node:crypto';
 import {createDurableLocalPkce} from './durable-local-oauth-pkce.mjs';
+import {isCimdClientId} from './cimd-client-metadata.mjs';
 
-const CLIENT='fixture-local-client';
+const STATIC_CLIENT='fixture-local-client';
 const REDIRECT='http://127.0.0.1:8765/oauth/callback';
 const COOKIE='orbit_local_session',MAX_BODY=8192;
 const secretRe=/^[A-Za-z0-9_-]{43}$/,stateRe=/^[A-Za-z0-9._~-]{16,128}$/;
@@ -64,7 +65,7 @@ function cookieSession(header,sessions,now){
 }
 
 export async function startLocalOAuthHttpFixture({
-  fixture,ledger,refreshBindingKey,clock=Date.now,
+  fixture,ledger,refreshBindingKey,clock=Date.now,cimdRegistry=null,
 }={}){
   if(typeof fixture?.trustedIssueForEpoch!=='function'||
     typeof ledger?.revokeRefresh!=='function'||
@@ -72,8 +73,13 @@ export async function startLocalOAuthHttpFixture({
     !Buffer.isBuffer(refreshBindingKey)||refreshBindingKey.length!==32||
     typeof clock!=='function')fail();
   const grant=fixture.grantIdentity,owners=fixture.ownerIds;
-  if(grant?.clientId!==CLIENT||typeof grant.issuer!=='string'||
+  if(typeof grant?.clientId!=='string'||typeof grant.issuer!=='string'||
     typeof grant.resource!=='string'||!owners||typeof owners!=='object')fail();
+  const CLIENT=grant.clientId;
+  const cimdMode=CLIENT!==STATIC_CLIENT;
+  if(cimdMode?(!isCimdClientId(CLIENT)||
+    typeof cimdRegistry?.resolve!=='function'):
+    cimdRegistry!==null)fail();
   const resource=grant.resource,flow=createDurableLocalPkce({fixture,ledger,clock});
   const bindingKey=Buffer.from(refreshBindingKey);
   const sessions=new Map(),pending=new Map();
@@ -139,7 +145,7 @@ export async function startLocalOAuthHttpFixture({
         response_types_supported:['code'],grant_types_supported:['authorization_code','refresh_token'],
         token_endpoint_auth_methods_supported:['none'],code_challenge_methods_supported:['S256'],
         scopes_supported:['tasks:read'],authorization_response_iss_parameter_supported:true,
-        client_id_metadata_document_supported:false,protected_resources:[resource],
+        client_id_metadata_document_supported:cimdMode,protected_resources:[resource],
       });return;
     }
     if(shared&&req.method==='GET'&&!parsed.search&&
@@ -161,17 +167,28 @@ export async function startLocalOAuthHttpFixture({
           !secretRe.test(q.get('code_challenge')||'')||
           !stateRe.test(q.get('state')||''))fail();
       }catch{reject(res,400);return;}
+      let clientMetadata=null;
+      if(cimdMode){
+        try{
+          clientMetadata=await cimdRegistry.resolve({
+            clientId:CLIENT,redirectUri:q.get('redirect_uri'),
+          });
+        }catch{reject(res,400,'invalid_client');return;}
+      }
       if(pending.size>=64){reject(res,429);return;}
       const consentId=random(),csrf=random();
       pending.set(hash(consentId),{
         sessionKey:session.key,owner:session.owner,csrf,
-        request:Object.fromEntries(q),expiresAt:now()+120000,
+        request:Object.fromEntries(q),clientName:clientMetadata?.clientName??CLIENT,
+        expiresAt:now()+120000,
       });
       const html='<!doctype html><html lang="en"><head><meta charset="utf-8">'+
         '<title>ORBIT synthetic consent</title></head><body><main>'+
-        '<h1>Test-only OAuth consent</h1><p>Client '+htmlEscape(CLIENT)+
+        '<h1>Test-only OAuth consent</h1><p>Client '+htmlEscape(clientMetadata?.clientName??CLIENT)+
         ' requests <strong>tasks:read</strong> for resource '+
         htmlEscape(resource)+'.</p>'+
+        '<p>Registered callback host: '+htmlEscape(new URL(REDIRECT).hostname)+
+        '. Localhost redirects require care.</p>'+
         '<p>No journals or write tools are authorized.</p>'+
         '<form method="post" action="/consent">'+
         '<input type="hidden" name="consent_id" value="'+consentId+'">'+
@@ -208,6 +225,13 @@ export async function startLocalOAuthHttpFixture({
         redirect(res,destination.href);return;
       }
       try{
+        if(cimdMode){
+          const metadata=await cimdRegistry.resolve({
+            clientId:record.request.client_id,
+            redirectUri:record.request.redirect_uri,
+          });
+          if(metadata.clientName!==record.clientName)fail();
+        }
         const r=await flow.authorize({
           owner:record.owner,clientId:record.request.client_id,
           redirectUri:record.request.redirect_uri,scope:record.request.scope,
@@ -230,6 +254,9 @@ export async function startLocalOAuthHttpFixture({
           'code_verifier','resource','refresh_token'],
           ['grant_type','client_id','resource']);
         if(p.get('client_id')!==CLIENT||p.get('resource')!==resource)fail();
+        if(cimdMode)await cimdRegistry.resolve({
+          clientId:CLIENT,redirectUri:REDIRECT,
+        });
       }catch{reject(res,400);return;}
       if(p.get('grant_type')==='authorization_code'){
         const fields=['grant_type','client_id','redirect_uri','code',
