@@ -1,3 +1,4 @@
+import {canonicalMcpIdentifier} from './identifier.mjs';
 /** BP-15 offline read-only MCP policy core. NOT a network endpoint or token verifier.
  * The host MUST cryptographically verify token signatures, issuer, expiry, audience,
  * grant/revocation and use user-delegated RLS credentials before this boundary.
@@ -10,10 +11,8 @@ const object = x => x !== null && typeof x==='object' && !Array.isArray(x) &&
   (Object.getPrototypeOf(x)===Object.prototype || Object.getPrototypeOf(x)===null);
 const str = (value,max,allowEmpty=false) => typeof value==='string' && value.length<=max &&
   (allowEmpty || value.trim().length>0) && !/[\u0000-\u0008\u000B-\u001F\u007F]/.test(value);
-const canonicalHttps = value => {
-  if(typeof value!=='string')deny();
-  let url; try{url=new URL(value);}catch{deny();}
-  if(url.protocol!=='https:'||url.username||url.password||url.search||url.hash||url.origin==='null'||url.href!==value)deny();
+const canonicalHttps = (value,allowLoopbackHttp=false) => {
+  if(!canonicalMcpIdentifier(value,{allowLoopbackHttp}))deny();
   return value;
 };
 const validId = value => typeof value==='string' && ID.test(value);
@@ -31,8 +30,8 @@ export const MCP_READ_TOOLS = Object.freeze({
 });
 
 /** Claims MUST be produced by a real cryptographic verifier, never parsed by the client. */
-export function validateMcpAccessClaims(claims,{issuer,resource,now=Date.now()}={}) {
-  canonicalHttps(issuer); canonicalHttps(resource);
+export function validateMcpAccessClaims(claims,{issuer,resource,now=Date.now(),allowLoopbackHttp=false}={}) {
+  canonicalHttps(issuer,allowLoopbackHttp); canonicalHttps(resource,allowLoopbackHttp);
   if(!object(claims)||!Number.isFinite(now)||claims.iss!==issuer||
      !UUID.test(claims.sub||'')||claims.role==='service_role'||
      (claims.token_use!==undefined&&claims.token_use!=='access')||
@@ -71,8 +70,8 @@ const projectTask=(row,ownerId,detailed=false)=>{
 /** Dependencies deliberately injected: DO NOT build a public route before OAuth
  * metadata, signature verification, RLS-delegated adapter and A/B integration pass.
  */
-export function createPrivateMcpReadBoundary({issuer,resource,verifyAccessToken,dataSource,clock=Date.now}={}){
-  canonicalHttps(issuer);canonicalHttps(resource);
+export function createPrivateMcpReadBoundary({issuer,resource,verifyAccessToken,dataSource,clock=Date.now,allowLoopbackHttp=false}={}){
+  canonicalHttps(issuer,allowLoopbackHttp);canonicalHttps(resource,allowLoopbackHttp);
   if(typeof verifyAccessToken!=='function'||typeof clock!=='function'||
      !object(dataSource)||['listBranches','searchTasks','getTask'].some(k=>typeof dataSource[k]!=='function'))deny();
   return Object.freeze({
@@ -83,7 +82,7 @@ export function createPrivateMcpReadBoundary({issuer,resource,verifyAccessToken,
         if(!tool||typeof authorization!=='string'||
            !/^Bearer [A-Za-z0-9._~+\/-]{1,4096}$/.test(authorization))deny();
         const verified=await verifyAccessToken(authorization.slice(7));
-        const identity=validateMcpAccessClaims(verified,{issuer,resource,now:clock()});
+        const identity=validateMcpAccessClaims(verified,{issuer,resource,now:clock(),allowLoopbackHttp});
         if(!identity.scopes.includes(tool.scope))deny();
         if(name==='list_branches'){
           exactArgs(args,[]);

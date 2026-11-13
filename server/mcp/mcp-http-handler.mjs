@@ -57,10 +57,11 @@ const rpcError=(status,code,data)=>{
  * atomic and durable across workers, not a process-local Map.
  */
 export function createMcpHttpResponseHandler({
-  admission,verifyAccessToken,issuer,resource,consumeQuota,
+  admission,verifyAccessToken,issuer,resource,consumeQuota,allowLoopbackHttp=false,clock=Date.now,
 }={}){
   if(typeof admission?.inspect!=='function'||typeof admission?.invoke!=='function'||
     typeof verifyAccessToken!=='function'||typeof consumeQuota!=='function'||
+    typeof clock!=='function'||
     typeof issuer!=='string'||typeof resource!=='string')
     throw Error('MCP_HTTP_HANDLER_DENIED');
   return Object.freeze({
@@ -70,8 +71,11 @@ export function createMcpHttpResponseHandler({
         // A real grant decision is required for metadata and for every tool.
         // For tools/call admission.invoke checks the token AGAIN immediately
         // before reading user records, narrowing a revoke/read race window.
-        const claims=await verifyAccessToken(accepted.authorization.slice(7));
-        const identity=validateMcpAccessClaims(claims,{issuer,resource});
+        // Expired/revoked access is 401 so standard OAuth clients can refresh.
+        let claims;
+        try{claims=await verifyAccessToken(accepted.authorization.slice(7));}
+        catch{if(allowLoopbackHttp)return rpcError(401,-32000);throw Error('token');}
+        const identity=validateMcpAccessClaims(claims,{issuer,resource,allowLoopbackHttp,now:clock()});
         if(!identity.scopes.includes('tasks:read'))throw Error('scope');
         const quota=Object.freeze({subject:identity.sub,
           clientId:claims.client_id,resource,issuer});

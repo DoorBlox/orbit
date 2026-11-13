@@ -1,3 +1,4 @@
+import {canonicalMcpIdentifier} from './identifier.mjs';
 /** BP-15 owner-grant decision: source-only contract for a future durable store.
  *
  * readAuthorizationSnapshot MUST return one committed, tenant-scoped projection
@@ -19,21 +20,17 @@ const expectedKeys=Object.freeze([
 ]);
 const validEpoch=n=>Number.isSafeInteger(n)&&n>=1&&n<=2147483647;
 
-function exactHttps(value){
-  if(typeof value!=='string')deny();
-  let url;
-  try{url=new URL(value);}catch{deny();}
-  if(url.protocol!=='https:'||url.username||url.password||url.search||
-    url.hash||url.origin==='null'||url.href!==value)deny();
+function exactHttps(value,allowLoopbackHttp=false){
+  if(!canonicalMcpIdentifier(value,{allowLoopbackHttp}))deny();
   return value;
 }
 
 function validScopes(scopes){
   return Array.isArray(scopes)&&scopes.length===1&&scopes[0]==='tasks:read';
 }
-function validContext(ctx,now){
+function validContext(ctx,now,allowLoopbackHttp){
   if(!plain(ctx)||!Number.isSafeInteger(now)||now<0)deny();
-  exactHttps(ctx.issuer);exactHttps(ctx.resource);
+  exactHttps(ctx.issuer,allowLoopbackHttp);exactHttps(ctx.resource,allowLoopbackHttp);
   if(!uuid.test(ctx.subject||'')||!client.test(ctx.clientId||'')||
     !token.test(ctx.jti||'')||!validScopes(ctx.scopes)||
     !validEpoch(ctx.grantEpoch)||
@@ -71,12 +68,12 @@ function activeSnapshot(snapshot,ctx,seconds){
  * source again, with no positive caching. A response whose fields differ
  * from the verified token context is denied, not used as an authority.
  */
-export function createMcpGrantAuthorizer({readAuthorizationSnapshot,clock=Date.now}={}){
+export function createMcpGrantAuthorizer({readAuthorizationSnapshot,clock=Date.now,allowLoopbackHttp=false}={}){
   if(typeof readAuthorizationSnapshot!=='function'||typeof clock!=='function')deny();
   return async function authorizeGrant(context){
     try{
       const ms=clock();
-      validContext(context,ms);
+      validContext(context,ms,allowLoopbackHttp);
       const request=Object.freeze({
         issuer:context.issuer,resource:context.resource,ownerId:context.subject,
         clientId:context.clientId,tokenId:context.jti,
