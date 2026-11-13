@@ -257,3 +257,75 @@ test('BP-09 finite synchronous save-boundary supersession writes only latest det
     assert.equal(c.getState().hasPending,false);
   }finally{c.dispose();}
 });
+
+test('BP-09: save clone-boundary reentrancy never submits an obsolete CAS draft',async()=>{
+  const saved=[];let cloneReads=0;
+  const repository={
+    async saveSnapshot(value,revision){saved.push({value,revision});return {revision:revision+1};},
+    async loadOwnerSnapshot(){throw Error('No remote read expected');}
+  };
+  const c=make(repository,{initialRevision:7});
+  try{
+    c.queueDeferredOwned(()=>{
+      const old=snap('old');
+      Object.defineProperty(old.tasks[0],'title',{
+        configurable:true,enumerable:true,
+        get(){
+          cloneReads++;
+          // structuredClone invokes enumerable getters. A synchronous
+          // editor callback can queue a newer owner draft during that clone.
+          c.queueDeferredOwned(()=>snap('latest at clone boundary'));
+          return 'old at clone boundary';
+        }
+      });
+      return old;
+    });
+    const result=await c.flush();
+    assert.equal(result.ok,true);
+    assert.equal(cloneReads,1);
+    assert.deepEqual(
+      saved.map(x=>[x.value.tasks[0].title,x.revision]),
+      [['latest at clone boundary',7]],
+      'A superseded clone must never be submitted to the repository'
+    );
+    assert.equal(c.getState().revision,8);
+    assert.equal(c.getState().hasPending,false);
+  }finally{c.dispose();}
+});
+
+test('BP-09: repeated changes during save clone have a bounded budget and preserve recoverability',async()=>{
+  let cloneReads=0,writes=0;
+  const statuses=[];
+  const repository={
+    async saveSnapshot(){writes++;return {revision:writes};},
+    async loadOwnerSnapshot(){throw Error('No remote read expected');}
+  };
+  const c=make(repository,{onStatus:value=>statuses.push(value)});
+  const unstable=()=>{
+    const value=snap('private synthetic value');
+    Object.defineProperty(value.tasks[0],'title',{
+      configurable:true,enumerable:true,
+      get(){
+        cloneReads++;
+        if (cloneReads < 40) c.queueDeferredOwned(unstable);
+        return 'superseded synthetic value';
+      }
+    });
+    return value;
+  };
+  try{
+    c.queueDeferredOwned(unstable);
+    const result=await c.flush();
+    assert.equal(result.ok,false,'Repeated clone-time changes must not consume unbounded CPU/CAS writes');
+    assert.equal(result.errorCode,'INVALID_RESPONSE');
+    assert.ok(cloneReads>=1&&cloneReads<=16,'Clone-time supersessions share the bounded save budget');
+    assert.equal(writes,0,'Never transmit an unstable owner snapshot');
+    assert.equal(c.getState().hasPending,true);
+    assert.equal(c.getState().revision,0);
+    assert.equal(JSON.stringify(statuses).includes('synthetic value'),false);
+    c.queueDeferredOwned(()=>snap('stable recovery'));
+    assert.equal((await c.flush()).ok,true);
+    assert.equal(writes,1);
+    assert.equal(c.getState().revision,1);
+  }finally{c.dispose();}
+});
