@@ -16,17 +16,17 @@ const form=x=>new URLSearchParams(x).toString();
 const data=r=>JSON.parse(r.content[0].text);
 const rnd=()=>randomBytes(24).toString('base64url');
 
-async function fixtureRun(fn){
+async function fixtureRun(fn,{clock=Date.now}={}){
   const directory=await mkdtemp(join(tmpdir(),'orbit-w4-sdk-discovery-'));
   let mcp,oauth;
   try{
     const ledger=createDisposableGrantLedger({
-      directory,macKey:randomBytes(32),allowLoopbackHttp:true,
+      directory,macKey:randomBytes(32),allowLoopbackHttp:true,clock,
     });
     await ledger.initialize();
-    mcp=await startLocalMcpFixture({trustedGrantStore:ledger,loopbackDiscovery:true});
+    mcp=await startLocalMcpFixture({trustedGrantStore:ledger,loopbackDiscovery:true,clock});
     oauth=await startLocalOAuthHttpFixture({
-      fixture:mcp,ledger,refreshBindingKey:randomBytes(32),
+      fixture:mcp,ledger,refreshBindingKey:randomBytes(32),clock,
     });
     assert.equal(oauth.issuer,new URL(mcp.url).origin+'/');
     assert.equal(oauth.resource,mcp.url);
@@ -57,7 +57,19 @@ function provider(oauth){
     codeVerifier(){return verifier;},
     saveDiscoveryState(x){discovery=x;},
     discoveryState(){return discovery;},
-    redirectToAuthorization(x){redirect=new URL(x);},
+    redirectToAuthorization(x){
+      const location=new URL(x);
+      // The fixed-test owner browser may visit ONLY this local AS.
+      if(location.origin!==oauth.origin||location.pathname!=='/authorize')
+        throw Error('LOCAL_AUTHORIZATION_REDIRECT_DENIED');
+      redirect=location;
+    },
+    validateResourceURL(serverUrl,resource){
+      if(new URL(serverUrl).href!==oauth.resource||
+        (resource!==undefined&&resource!==oauth.resource))
+        throw Error('LOCAL_RESOURCE_METADATA_DENIED');
+      return Promise.resolve(new URL(oauth.resource));
+    },
     get redirect(){return redirect;},
     get expectedState(){return currentState;},
     forceInvalidAccess(){
@@ -69,8 +81,8 @@ function provider(oauth){
 }
 const client=()=>new Client({name:'orbit-sdk-oauth-discovery',version:'1.0.0'},
   {versionNegotiation:{mode:{pin:'2026-07-28'}}});
-const transport=(mcp,auth)=>new StreamableHTTPClientTransport(new URL(mcp.url),
-  {authProvider:auth});
+const transport=(mcp,auth,fetchFn)=>new StreamableHTTPClientTransport(new URL(mcp.url),
+  {authProvider:auth,...(fetchFn?{fetch:fetchFn}:{})});
 async function browserCallback(oauth,owner,redirect){
   assert.equal(redirect.origin,oauth.origin);
   assert.equal(redirect.pathname,'/authorize');
