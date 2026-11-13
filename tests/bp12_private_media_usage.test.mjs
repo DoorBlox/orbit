@@ -34,7 +34,7 @@ test('BP-12: read-only usage reports known bytes, unknown sizes and deduplicates
   try{
     const usage=await mediaModule.summarizePrivateMediaUsage(service,{pageSize:3,maxPages:3});
     assert.deepEqual(usage,{files:3,knownBytes:300,unknownSizeFiles:1,
-      complete:true,totalBytes:null});
+      complete:false,totalBytes:null});
     assert.deepEqual(calls.map(x=>x.prefix),[OWNER,OWNER]);
     assert.deepEqual(calls.map(x=>x.opts.offset),[0,3],
       'Advance by all Storage rows, including rejected entries');
@@ -120,4 +120,44 @@ test('BP-12: conflicting metadata for a repeated path cannot produce an exact to
     assert.deepEqual(usage,{files:1,knownBytes:12,unknownSizeFiles:0,
       complete:false,totalBytes:null});
   }finally{service.dispose();}
+});
+
+test('BP-12: a filtered private Storage object prevents a false exact usage total',async()=>{
+  const {service,calls}=fakeMedia(async()=>({data:[
+    item(FILE_A,12),item('legacy-private-image.png',9000)
+  ],error:null}));
+  try{
+    const page=await service.listOwnMedia({offset:0,limit:10});
+    assert.deepEqual(page.items.map(x=>x.path),[OWNER+'/'+FILE_A],
+      'Unknown media names must not become gallery entries or owner references');
+    assert.equal(page.ignoredEntries,1,
+      'Inventory must report that a Storage row was omitted without revealing its path');
+    const usage=await mediaModule.summarizePrivateMediaUsage(service,{pageSize:10,maxPages:1});
+    assert.deepEqual(usage,{files:1,knownBytes:12,unknownSizeFiles:0,
+      complete:false,totalBytes:null},
+      'Skipping billed/legacy objects cannot justify an exact owner usage total');
+    assert.deepEqual(calls.map(x=>x.prefix),[OWNER,OWNER]);
+  }finally{service.dispose();}
+});
+
+test('BP-12: an untrusted duplicate Storage row cannot make usage falsely exact',async()=>{
+  const {service}=fakeMedia(async()=>({data:[
+    item(FILE_A,12),item(FILE_A,999),item(FILE_B,8)
+  ],error:null}));
+  try{
+    const usage=await mediaModule.summarizePrivateMediaUsage(service,{pageSize:10,maxPages:1});
+    assert.deepEqual(usage,{files:2,knownBytes:20,unknownSizeFiles:0,
+      complete:false,totalBytes:null},
+      'Duplicated Storage rows may conceal inconsistent metadata; never claim exact usage');
+  }finally{service.dispose();}
+});
+
+test('BP-12: invalid inventory omission metadata fails closed',async()=>{
+  for(const value of [-1,NaN,'1',1.5,101]){
+    const fake={ownerId:OWNER,listOwnMedia:async()=>({
+      items:[],nextOffset:0,hasMore:false,ignoredEntries:value
+    })};
+    await assert.rejects(mediaModule.summarizePrivateMediaUsage(fake,{pageSize:10}),
+      /inventory|unavailable|invalid/i,'Invalid skip metadata should not produce complete=true');
+  }
 });
