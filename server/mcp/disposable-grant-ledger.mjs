@@ -149,7 +149,7 @@ export function createDisposableGrantLedger({directory,macKey,clock=Date.now,all
     });
   }
   const get=(state,id)=>{
-    const key=identity(id),row=state.grants[key]||null;
+    const key=identity(id,allowLoopbackHttp),row=state.grants[key]||null;
     if(row)validateRow(row,id);
     return {key,row};
   };
