@@ -127,6 +127,9 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
     return snapshot;
   }
   async function drain() {
+    // Prevent a reentrant editor producer from starving the event loop or
+    // spinning indefinitely before its first network CAS request.
+    let supersededCaptures = 0;
     while (!disposed && pending) {
       if (!isOnline()) { status('offline','NETWORK'); return {ok:false,...getState()}; }
       const saving = pending;
@@ -135,8 +138,18 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
       try {
         const captured = materialize(saving);
         // A defensive producer may synchronously enqueue a newer edit. Never
-        // send the obsolete version it replaced.
-        if (disposed || pending !== saving) continue;
+        // send the obsolete version it replaced. Bound synchronous reentrancy
+        // as explicit draft export already does: retain the latest pending
+        // producer, fail visibly, and leave retry to an explicit user action.
+        if (disposed) return {ok:false,...getState()};
+        if (pending !== saving) {
+          if (++supersededCaptures >= 16) {
+            cancelDebounce();
+            throw Object.assign(Error('Deferred save capture could not stabilize'),{code:'INVALID_RESPONSE'});
+          }
+          continue;
+        }
+        supersededCaptures = 0;
         const result = await repository.saveSnapshot(clone(captured),revision,{signal:controller.signal});
         if (disposed) return {ok:false,...getState()};
         if (!Number.isSafeInteger(result?.revision) || result.revision <= revision) throw Object.assign(Error(),{code:'INVALID_RESPONSE'});

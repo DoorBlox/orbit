@@ -201,3 +201,59 @@ test('BP-09 endlessly reentrant export fails boundedly and keeps the latest dirt
     assert.equal(c.getState().revision,0);
   }finally{c.dispose();}
 });
+
+test('BP-09 save boundary rejects an unbounded chain of reentrant owner edits without overwriting drafts',async()=>{
+  let captures=0,writes=0;
+  const states=[];
+  const repository={
+    async saveSnapshot(){writes++;return {revision:1};},
+    async loadOwnerSnapshot(){throw Error('No remote read expected');}
+  };
+  const c=make(repository,{onStatus:status=>states.push(status)});
+  const unstable=()=>{
+    captures++;
+    // Finite 64-step fixture reproduces CPU-starvation without an infinite CI hang.
+    if(captures<64)c.queueDeferredOwned(unstable);
+    return snap('synthetic superseded capture');
+  };
+  try{
+    c.queueDeferredOwned(unstable);
+    const result=await c.flush();
+    assert.equal(result.ok,false,'Do not continue synchronously through a repeated mutation chain');
+    assert.equal(result.errorCode,'INVALID_RESPONSE');
+    assert.ok(captures>=1&&captures<=16,'One flush has a fixed synchronous capture budget');
+    assert.equal(writes,0,'Never submit an unstable owner snapshot to revision CAS');
+    assert.equal(c.getState().hasPending,true,'Last pending draft must remain recoverable');
+    assert.equal(c.getState().revision,0);
+    assert.equal(JSON.stringify(states).includes('synthetic superseded capture'),false);
+    c.queueDeferredOwned(()=>snap('recovered stable draft'));
+    assert.equal((await c.flush()).ok,true);
+    assert.equal(writes,1);
+    assert.equal(c.getState().revision,1);
+  }finally{c.dispose();}
+});
+
+test('BP-09 finite synchronous save-boundary supersession writes only latest detached revision',async()=>{
+  const saved=[];let captures=0;
+  const repository={
+    async saveSnapshot(value,revision){saved.push({value,revision});return {revision:revision+1};},
+    async loadOwnerSnapshot(){throw Error('No owner read expected');}
+  };
+  const c=make(repository,{initialRevision:7});
+  try{
+    c.queueDeferredOwned(()=>{
+      captures++;
+      c.queueDeferredOwned(()=>{
+        captures++;
+        c.queueDeferredOwned(()=>{captures++;return snap('latest retained');});
+        return snap('middle stale');
+      });
+      return snap('old stale');
+    });
+    assert.equal((await c.flush()).ok,true);
+    assert.equal(captures,3);
+    assert.deepEqual(saved.map(x=>[x.value.tasks[0].title,x.revision]),[['latest retained',7]]);
+    assert.equal(c.getState().revision,8);
+    assert.equal(c.getState().hasPending,false);
+  }finally{c.dispose();}
+});

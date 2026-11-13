@@ -72,8 +72,8 @@
       "reason": "W1 BP-03: default-off conditional owner revision probe with strict minimal unchanged envelope, auth recheck, canonical PGRST202/404 fallback and legacy full read; hosted RPC not activated."
     },
     "src/cloud/sync.js": {
-      "sha256": "cbe81fcb9d049498440b1b4a5a19ec8005737b34497e0148b1d34a4bb3180f63",
-      "reason": "W1 BP-09: deferred pending export retries newest producer after synchronous edit reentrancy, bounds unstable producers and preserves unsaved recovery draft; existing CAS/offline queue contract unchanged."
+      "sha256": "ae34210d4afed253a3632b62213821132d3819cb701874bc89890c18f947aa03",
+      "reason": "W1 BP-09: cap synchronous reentrant deferred save capture to 16 supersessions; fail with private-safe INVALID_RESPONSE, cancel auto debounce and retain latest pending owner draft without CAS write; preserve stable saves/retry."
     },
     "src/constellation.js": {
       "sha256": "6d17fe195d35d9e0de6b712855e5f4634d284c7368457b9676cea8d55d8f3c1b",
