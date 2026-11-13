@@ -46,7 +46,7 @@ const denyResult=(res,status)=>{
  * Deliberately not configurable to public interfaces, permanent storage,
  * production project IDs, hosted JWT signing keys or third-party accounts.
  */
-export async function startLocalMcpFixture({maxRequestsPerMinute=120,trustedGrantStore=null,loopbackDiscovery=false}={}){
+export async function startLocalMcpFixture({maxRequestsPerMinute=120,trustedGrantStore=null,loopbackDiscovery=false,clock=Date.now}={}){
   // Opt-in durable adapter is still a synthetic trusted test fixture; NEVER
   // mount its owner-selection/token signer as an untrusted/public route.
   if(trustedGrantStore!==null&&
@@ -55,7 +55,7 @@ export async function startLocalMcpFixture({maxRequestsPerMinute=120,trustedGran
   if(!Number.isSafeInteger(maxRequestsPerMinute)||
     maxRequestsPerMinute<1||maxRequestsPerMinute>1000)
     throw Error('MCP_FIXTURE_DENIED');
-  if(typeof loopbackDiscovery!=='boolean')throw Error('MCP_FIXTURE_DENIED');
+  if(typeof loopbackDiscovery!=='boolean'||typeof clock!=='function')throw Error('MCP_FIXTURE_DENIED');
   let issuer=syntheticIssuer,resource=syntheticResource;
   let oauthRoutes=null;
   const keys=generateKeyPairSync('rsa',{modulusLength:2048});
@@ -65,7 +65,7 @@ export async function startLocalMcpFixture({maxRequestsPerMinute=120,trustedGran
   const lastTokens=new Map();
   const quota=new Map();
   let serial=0;
-  const now=()=>Math.floor(Date.now()/1000);
+  const now=()=>Math.floor(clock()/1000);
   for(const label of ['ownerA','ownerB']){
     grants.set(ownerIds[label],{epoch:1,active:true,grantedAt:now()-200,
       expiresAt:now()+3600,revokedTokens:new Set()});
@@ -173,7 +173,7 @@ export async function startLocalMcpFixture({maxRequestsPerMinute=120,trustedGran
     resource='http://127.0.0.1:'+listeningPort+'/mcp';
   }
   const grantAuthorizer=createMcpGrantAuthorizer({
-    allowLoopbackHttp:loopbackDiscovery,
+    allowLoopbackHttp:loopbackDiscovery,clock,
     readAuthorizationSnapshot:trustedGrantStore?async query=>
       trustedGrantStore.readAuthorizationSnapshot(query):async ({issuer:iss,resource:res,ownerId,clientId:client,
       tokenId})=>{
@@ -188,10 +188,10 @@ export async function startLocalMcpFixture({maxRequestsPerMinute=120,trustedGran
     },
   });
   const verify=createMcpJwtAccessVerifier({issuer,resource,
-    allowLoopbackHttp:loopbackDiscovery,
+    allowLoopbackHttp:loopbackDiscovery,clock,
     loadJwks:async()=>({keys:[key]}),authorizeGrant:grantAuthorizer});
   const boundary=createPrivateMcpReadBoundary({issuer,resource,
-    allowLoopbackHttp:loopbackDiscovery,
+    allowLoopbackHttp:loopbackDiscovery,clock,
     verifyAccessToken:verify,dataSource});
   const admission=createMcpStreamableReadAdmission({
     allowedOrigins:['https://orbit.example.test'],
@@ -201,7 +201,7 @@ export async function startLocalMcpFixture({maxRequestsPerMinute=120,trustedGran
     admission,verifyAccessToken:verify,issuer,resource,
     allowLoopbackHttp:loopbackDiscovery,
     consumeQuota:async ctx=>{
-      const minute=Math.floor(Date.now()/60000);
+      const minute=Math.floor(clock()/60000);
       const key=ctx.subject+'|'+ctx.clientId+'|'+minute;
       // Bounded synthetic state. This Map MUST NOT serve as a hosted
       // multi-instance rate-limit adapter or a durable consent ledger.
