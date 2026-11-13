@@ -2264,5 +2264,6 @@ body.cloud-space-mounted #space-widget .cloud-sync-state{position:absolute!impor
   .focus-timer-display{font-size:60px}
 }
 @media(prefers-reduced-motion:reduce){
-  .focus-timer-progress-fill{transition:none}
+  /* The global reduced-motion duration has !important; disable this timer transition entirely. */
+  .focus-timer-progress-fill{transition:none!important}
 }

@@ -72,8 +72,8 @@
       "reason": "W1 BP-03: default-off conditional owner revision probe with strict minimal unchanged envelope, auth recheck, canonical PGRST202/404 fallback and legacy full read; hosted RPC not activated."
     },
     "src/cloud/sync.js": {
-      "sha256": "ae34210d4afed253a3632b62213821132d3819cb701874bc89890c18f947aa03",
-      "reason": "W1 BP-09: cap synchronous reentrant deferred save capture to 16 supersessions; fail with private-safe INVALID_RESPONSE, cancel auto debounce and retain latest pending owner draft without CAS write; preserve stable saves/retry."
+      "sha256": "9dd095d87c4b5e8d26da196b367c661fac181ab9b10476e73b010a9d8bf1c1c0",
+      "reason": "W1 BP-03: suppress unattended full-snapshot polling for clean AUTH_REQUIRED/FORBIDDEN/VALIDATION/INVALID_RESPONSE states; explicit retry/focus and transient NETWORK recovery retained, with synthetic 12-poll regression."
     },
     "src/constellation.js": {
       "sha256": "6d17fe195d35d9e0de6b712855e5f4634d284c7368457b9676cea8d55d8f3c1b",
@@ -144,8 +144,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "383a1d9ab56ec550d5b71e7d3c055e96e13293366ecc4ea3bf2203cd21bfabf0",
-      "reason": "W3 FO-01: theme-compatible Focus window typography, contrast, touch targets, progress and reduced-motion styling."
+      "sha256": "24acdabb49ec160bf14f2d0732ca7a38a60e5be923bcf537792797245cc3a7b8",
+      "reason": "W3 FO-01: exact-zero reduced-motion Focus progress transition overrides the global 0.001ms important rule; all original theme/touch styling retained."
     },
     "src/widget-registry.js": {
       "sha256": "097767f8dd9c6c1e94504ec571c29ca2f1d0684955d2f8c87231d15db1a427f0",
