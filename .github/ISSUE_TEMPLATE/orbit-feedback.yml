@@ -1,6 +1,7 @@
 name: "ORBIT — report a problem or request"
 description: "Show us what feels wrong or what you want. Screenshots welcome; no technical writing needed."
 title: "[ORBIT] "
+
 body:
   - type: markdown
     attributes:
@@ -47,9 +48,10 @@ body:
     id: visual
     attributes:
       label: "Screenshots, recordings or reference images"
-      description: "Attach CURRENT (what is wrong) and EXPECTED (what you want) when available. Please crop/redact private information before uploading."
+      description: "Drag CURRENT and EXPECTED screenshots or short recordings here. Redact names, private journals, login information and private content first."
     validations:
       required: false
+      accept: ".png,.jpg,.jpeg,.gif,.webp,.mp4,.mov,.webm"
   - type: textarea
     id: visual_notes
     attributes:
