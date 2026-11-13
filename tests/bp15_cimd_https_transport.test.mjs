@@ -283,3 +283,36 @@ test('unwired DNS and HTTPS ports require explicit permission and allowed origin
     explicitNetworkAuthorization:true,allowedOrigins:[ORIGIN],
   }),'function');
 });
+
+
+test('Node HTTPS rejects redirects, duplicate ambiguity and oversized/compressed headers before body',()=>{
+  const good={
+    statusCode:200,
+    headers:{'content-type':'application/json','content-length':'300'},
+    rawHeaders:['Content-Type','application/json','Content-Length','300'],
+  };
+  assert.doesNotThrow(()=>validatePinnedCimdResponseHeaders(good,8192));
+  for(const invalid of [
+    {statusCode:301},
+    {statusCode:302,headers:{'content-type':'application/json',
+      location:'https://evil.example.test/metadata.json'}},
+    {headers:{'content-type':'text/html'}},
+    {headers:{'content-type':'application/json','content-encoding':'gzip'}},
+    {headers:{'content-type':'application/json','set-cookie':'sid=private'}},
+    {headers:{'content-type':'application/json','content-length':'8193'}},
+    {headers:{'content-type':'application/json','content-length':'008'}},
+    {rawHeaders:[
+      'Content-Type','application/json','content-type','text/html',
+    ]},
+    {rawHeaders:[
+      'Content-Length','300','content-length','8193',
+    ]},
+    {rawHeaders:[
+      'Transfer-Encoding','chunked','transfer-encoding','chunked',
+    ]},
+  ]){
+    const response={...good,...invalid};
+    assert.throws(()=>validatePinnedCimdResponseHeaders(response,8192),
+      /MCP_CIMD_TRANSPORT_DENIED/,JSON.stringify(Object.keys(invalid)));
+  }
+});
