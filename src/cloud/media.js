@@ -173,10 +173,17 @@ export function createPrivateMedia(client,{ownerId,maxIdlePreviews=8,maxIdleByte
       if(result?.error||!Array.isArray(result?.data))
         throw Error('Private media list is unavailable.');
       const seen=new Set(),items=[];
+      let ignoredEntries=0;
       for(const item of result.data){
-        if(!item||typeof item.name!=='string'||!item.id)continue;
+        if(!item||typeof item.name!=='string'||!item.id){
+          ignoredEntries++;
+          continue;
+        }
         const path=ownerId+'/'+item.name;
-        if(!validMediaOwner(path,ownerId)||seen.has(path))continue;
+        if(!validMediaOwner(path,ownerId)||seen.has(path)){
+          ignoredEntries++;
+          continue;
+        }
         seen.add(path);
         const mime=Object.entries(TYPES).find(([,ext])=>ext===item.name.split('.').at(-1).toLowerCase())?.[0];
         items.push({
@@ -186,7 +193,10 @@ export function createPrivateMedia(client,{ownerId,maxIdlePreviews=8,maxIdleByte
         });
       }
       return {items,nextOffset:offset+result.data.length,
-        hasMore:result.data.length===limit};
+        hasMore:result.data.length===limit,
+        // Preserve owner privacy by returning only the omission count. A
+        // usage total must not call a filtered view the complete bucket.
+        ...(ignoredEntries?{ignoredEntries}:{})};
     },
     async upload(file){
       const extension=await validateImage(file);
@@ -233,6 +243,14 @@ export async function summarizePrivateMediaUsage(media,{pageSize=100,maxPages=10
        page.nextOffset<offset||page.nextOffset>offset+pageSize||
        (page.hasMore&&page.nextOffset===offset))
       throw Error('Private media usage inventory is unavailable.');
+    const ignoredEntries=page.ignoredEntries??0;
+    if(!Number.isSafeInteger(ignoredEntries)||ignoredEntries<0||
+       ignoredEntries>pageSize||
+       ignoredEntries+page.items.length>page.nextOffset-offset)
+      throw Error('Private media usage inventory is unavailable.');
+    // Unsupported legacy object names, malformed rows and in-page
+    // duplicates may carry bytes we cannot safely account for.
+    if(ignoredEntries>0)consistent=false;
     for(const item of page.items){
       if(!item||!validMediaOwner(item.path,media.ownerId)||
          (item.size!==null&&(!Number.isSafeInteger(item.size)||item.size<0)))
