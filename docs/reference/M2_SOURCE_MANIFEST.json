@@ -100,8 +100,8 @@
       "reason": "EX-01: reviewed on-demand official React/ReactDOM Excalidraw entrypoint with local CSS and per-dialog mount/unmount; no initial app or sign-in bundle change."
     },
     "src/focus.js": {
-      "sha256": "b529d6b462490d23e3fc1df34556626900376b604de26c1c7f3a1b8a5d7178b0",
-      "reason": "W3 FO-01: private session-scoped monotonic Focus clock and accessible first-party timer, no tick-driven cloud writes, bounded wall-clock resume and account cleanup."
+      "sha256": "30a730bd3efdb263032ed5f3f946f02854ab072e6ad1cf64a4aa9870cdf55d05",
+      "reason": "W3 FO-01: private scoped Focus clock, monotonic time and reload anchor; blocked or throwing sessionStorage getter falls back without crashing; no tick-driven workspace writes."
     },
     "src/inline-canvas.js": {
       "sha256": "d038a3df91e3d47f18fc039e764125670a070fd8d2ffa34c2beacb3d7868859c",

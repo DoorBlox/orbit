@@ -26,12 +26,16 @@ function sensibleNow(now){
   return Number.isFinite(value)?value:0;
 }
 
+const safeSessionStorage=()=>{
+  try{return globalThis.sessionStorage??null;}catch{return null;}
+};
+
 /** Testable clock independent of DOM, animation frames and network callbacks. */
 export function createFocusClock({
-  storage=globalThis.sessionStorage,storageKey='orbit.fo01.v1.local',
+  storage=safeSessionStorage(),storageKey='orbit.fo01.v1.local',
   monoNow=()=>performance.now(),wallNow=()=>Date.now(),
 }={}){
-  let disposed=false,storageAvailable=true,stored=null;
+  let disposed=false,storageAvailable=Boolean(storage),stored=null;
   try{
     const raw=storage?.getItem(storageKey);
     if(raw&&raw.length<=1000)stored=validateSaved(JSON.parse(raw));
@@ -144,7 +148,7 @@ const formatTime=milliseconds=>{
 /** The visible, first-party spatial window; the only saved workspace data is
  * its existing optional-window geometry. Clock session data stays tab-scoped. */
 export class FocusWidget {
-  constructor({readOnly=false,storageKey='orbit.fo01.v1.local',storage=globalThis.sessionStorage}={}){
+  constructor({readOnly=false,storageKey='orbit.fo01.v1.local',storage=safeSessionStorage()}={}){
     this.readOnly=readOnly;this.events=new AbortController();
     this.clock=createFocusClock({storageKey,storage});
     const root=el('section','glass-widget spatial-item focus-timer-widget');
