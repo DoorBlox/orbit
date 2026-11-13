@@ -614,6 +614,11 @@ def normal_flows(browser):
       element.dispatchEvent(new PointerEvent('pointerup',{...base,clientX:r.left+r.width*.70,clientY:r.top+r.height*.5}));
     }""")
     assert page.evaluate('window.orbitDebug.board.pan.x') != pan_before
+    # The map drag legitimately travels away from the note. Return via its real
+    # Places pin before editing; keep the original map-pan assertion intact.
+    focus(page,'space')
+    page.locator('.space-point-sticky').click()
+    expect(page.locator('.sticky-note').first.get_by_role('button',name='Edit sticky note')).to_be_in_viewport()
     # Reading is uncluttered. Edit toggles are at the bottom of each note.
     assert page.locator('.sticky-note').first.get_attribute('data-view') == 'preview'
     page.locator('.sticky-note').first.get_by_role('button',name='Edit sticky note').click()
@@ -864,6 +869,9 @@ def main():
         results['pj02b_projects_shelf']=run_projects_shelf(browser,open_page,reload_page,OUT)
         from qa_jump import run_jump
         results['br01_spatial_jump']=run_jump(browser,open_page,focus)
+        from qa_focus_widget import run_focus_widget
+        results['fo01_focus_widget']=run_focus_widget(browser,open_page,reload_page,OUT)
+        print('PASS FO-01 focus timer spatial/reload/keyboard/mobile',flush=True)
         browser.close()
     (OUT/'m1-results.json').write_text(json.dumps(results,indent=2)+'\n')
     print(json.dumps(results,indent=2))

@@ -13,6 +13,7 @@ import { normalizeExtensions,renderScene,releaseScenePreview } from './scene.js'
 import { mountInlineCanvas } from './inline-canvas.js';
 import { setBranchProject, normalizeProjects } from './projects.js';
 import { ProjectsShelf } from './project-shelf.js';
+import { FocusWidget } from './focus.js';
 import { createQuickJump } from './quick-jump.js';
 
 /** Mount the same spatial scrapbook over either local or authenticated owner state. */
@@ -197,6 +198,22 @@ board.registerWidget({
   id:'projects',position:{x:1940,y:115},
   limits:{minW:350,minH:340,maxW:5000,maxH:5000},icon:'◆'
 },projectsShelf.element);
+const focusWidget=new FocusWidget({
+  readOnly,storageKey:'orbit.fo01.v1.'+viewScope,
+});
+board.registerWidget({
+  id:'focus-timer',position:{x:3210,y:240},
+  limits:{minW:340,minH:390,maxW:1400,maxH:1200},icon:'◷'
+},focusWidget.element);
+const openFocusTimer=document.createElement('button');
+openFocusTimer.type='button';openFocusTimer.id='open-focus-timer';
+openFocusTimer.className='glass-button';openFocusTimer.textContent='◷ Focus timer';
+openFocusTimer.addEventListener('click',()=>{
+  if(board.widgets.get('focus-timer')?.hidden&&!readOnly)
+    board.setWidgetVisible('focus-timer',true);
+  board.focus('focus-timer');
+},{signal:events.signal});
+document.querySelector('.space-primary-actions')?.append(openFocusTimer);
 const openProjects=document.createElement('button');
 openProjects.type='button';openProjects.className='glass-button';
 openProjects.id='open-projects';openProjects.textContent='◆ My projects';
@@ -214,7 +231,8 @@ for(const [id] of board.widgets){
   const choice=document.createElement('option');choice.value=id;
   choice.textContent=id==='constellation'?'The constellation':id==='journal'?'The journal':
     id==='timeline'?'The continuum':id==='active'?'Things to do':
-    id==='completed'?'Already done':id==='space'?'My space':'Projects';
+    id==='completed'?'Already done':id==='space'?'My space':
+    id==='projects'?'Projects':'Focus timer';
   focusPicker.append(choice);
 }
 document.querySelector('.space-manage-actions')?.append(focusPicker);
@@ -893,7 +911,7 @@ hydrating=false;
 $('app').dataset.readOnly=String(readOnly);
 if(readOnly){for(const id of ['capture-name','capture-mode','capture-submit','import-csv','clear-demo','csv-file','rename-space','expand-all-branches','collapse-all-branches','new-sticky','journal-draw','journal-image'])$(id).disabled=true;}
 $('journal-image').disabled=readOnly||!media;
-window.orbitDebug={get state(){return {tasks:state.tasks.length,notes:stickies.notes.length,branches:state.branches.length,collapsedBranches:state.collapsedBranchIds.length,selectedBranchId:state.selectedBranchId,camera:scene.getCamera(),boardScale:board.scale,boardPan:{...board.pan},mode:state.preferences.colorMode,milestones:milestones.length,journalPages:journal.entries.length,widgetSizes:structuredClone(board.sizes)};},fit:()=>scene.fitAll(),focusWidget:id=>board.focus(id),board,scene,journal};
+window.orbitDebug={get state(){return {tasks:state.tasks.length,notes:stickies.notes.length,branches:state.branches.length,collapsedBranches:state.collapsedBranchIds.length,selectedBranchId:state.selectedBranchId,camera:scene.getCamera(),boardScale:board.scale,boardPan:{...board.pan},mode:state.preferences.colorMode,milestones:milestones.length,journalPages:journal.entries.length,widgetSizes:structuredClone(board.sizes)};},fit:()=>scene.fitAll(),focusWidget:id=>board.focus(id),board,scene,journal,focusTimer:focusWidget.clock};
 // SpatialBoard establishes the initial camera position.
 
 function getSnapshot(){return {
@@ -935,7 +953,7 @@ function hasPendingEditor(){return Boolean(activeJournalCanvas?.isDirty()||stick
    if(stickies.activeCanvas)await stickies.activeCanvas.save();
    return journal.commit();
  }
- function dispose(){if(disposed)return;leaveWidgetFocus();disposed=true;activeJournalCanvas?.dispose();activeJournalCanvas=null;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);++journalImageRequest;const journalImage=$('journal-image-preview');journalImage?.removeAttribute('src');journalImageLease?.release();journalImageLease=null;releaseScenePreview($('journal-drawing-preview'));jump.dispose();projectsShelf.dispose();board.dispose();journal.dispose();stickies.dispose();scene.dispose();media?.dispose?.();document.documentElement.dataset.theme='parchment';document.documentElement.dataset.motion='system';document.documentElement.dataset.ambient='off';window.orbitDebug=null;}
+ function dispose(){if(disposed)return;leaveWidgetFocus();disposed=true;activeJournalCanvas?.dispose();activeJournalCanvas=null;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);++journalImageRequest;const journalImage=$('journal-image-preview');journalImage?.removeAttribute('src');journalImageLease?.release();journalImageLease=null;releaseScenePreview($('journal-drawing-preview'));jump.dispose();projectsShelf.dispose();focusWidget.dispose({clearSession:!persistLocally});board.dispose();journal.dispose();stickies.dispose();scene.dispose();media?.dispose?.();document.documentElement.dataset.theme='parchment';document.documentElement.dataset.motion='system';document.documentElement.dataset.ambient='off';window.orbitDebug=null;}
 return {getSnapshot,applySnapshot,setCloudStatus,dispose,
   flushEditor,hasPendingEditor,journalCommit:()=>journal.commit(),exportBackup:backupJson};
 }

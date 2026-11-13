@@ -12,8 +12,8 @@
       "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service."
     },
     "src/app.js": {
-      "sha256": "6cae0474771280d89c45b1ed5e52e709af3b2fe3dc8cffefd1cce5875c33ee1e",
-      "reason": "BR-01: integrate spatial Jump across private tasks, branches, notes, journals and windows without changing saved layout or cloud schema."
+      "sha256": "7ac8f42cca9e48bac5eff508fdd9c4958a3f13e0ade009f3fa274785b0fdf06c",
+      "reason": "W3 FO-01: optional Focus spatial window positioned clear of Projects editing, preserving all six legacy widget coordinates and existing private cloud/backup APIs."
     },
     "src/auth/controller.js": {
       "sha256": "af8cde170ef58e61df8c464ee34249df4267812991392a95dae5c4d69f47ba20",
@@ -99,6 +99,10 @@
       "sha256": "29b7d1a41ab7f21531898688311d124255aecfca3bde9b2c19aa6eb43fdf882e",
       "reason": "EX-01: reviewed on-demand official React/ReactDOM Excalidraw entrypoint with local CSS and per-dialog mount/unmount; no initial app or sign-in bundle change."
     },
+    "src/focus.js": {
+      "sha256": "30a730bd3efdb263032ed5f3f946f02854ab072e6ad1cf64a4aa9870cdf55d05",
+      "reason": "W3 FO-01: private scoped Focus clock, monotonic time and reload anchor; blocked or throwing sessionStorage getter falls back without crashing; no tick-driven workspace writes."
+    },
     "src/inline-canvas.js": {
       "sha256": "d038a3df91e3d47f18fc039e764125670a070fd8d2ffa34c2beacb3d7868859c",
       "reason": "BP-07: lazy owner-private Excalidraw island, true-content signature, guards and explicit save/flush with unit regression."
@@ -140,8 +144,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "8160b9b63d2a9b020035e502d2b2d688b9a36cfd8499a73bfea025e0eabfed31",
-      "reason": "W3 BP-12/EX-02: auth-scoped owner-private gallery with release-safe leased previews, opt-in detached media export, keyboard/mobile and fail-closed behavior."
+      "sha256": "24acdabb49ec160bf14f2d0732ca7a38a60e5be923bcf537792797245cc3a7b8",
+      "reason": "W3 FO-01: exact-zero reduced-motion Focus progress transition overrides the global 0.001ms important rule; all original theme/touch styling retained."
     },
     "src/widget-registry.js": {
       "sha256": "097767f8dd9c6c1e94504ec571c29ca2f1d0684955d2f8c87231d15db1a427f0",
