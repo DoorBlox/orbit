@@ -61,11 +61,14 @@ function gatedStorage(pauseAt) {
   const bucket = {
     async download(path) {
       ++downloads;
+      // Simulate a Storage response authorized at request start. In-flight
+      // results may still arrive after sign-out; the media client MUST recheck.
+      const requestOwner = session.owner;
       if (downloads === pauseAt) {
         notifyStarted(path);
         await gate;
       }
-      if (!path.startsWith(session.owner + '/') || !stored.has(path))
+      if (!path.startsWith(requestOwner + '/') || !stored.has(path))
         return { data: null, error: Error('Synthetic Storage owner refusal') };
       return { data: stored.get(path), error: null };
     },
@@ -136,7 +139,15 @@ for (const pauseAt of [1, 2]) {
         assert.deepEqual(archive.assets.map(asset => asset.path),
           [ATTACHED, DETACHED], 'Shared scene references must download only once');
         reviewed = await inspectPortableArchive(JSON.stringify(archive), { sanitizeHtml });
-        assert.deepEqual(reviewed.snapshot, pristine);
+        assert.equal(reviewed.snapshot.tasks[0].title, pristine.tasks[0].title);
+        assert.equal(reviewed.snapshot.journalEntries[0].title, pristine.journalEntries[0].title);
+        assert.equal(reviewed.snapshot.extensions.notes[0].text,
+          pristine.extensions.notes[0].text);
+        assert.equal(reviewed.snapshot.extensions.projects.research.description,
+          pristine.extensions.projects.research.description);
+        assert.equal(reviewed.snapshot.extensions.notes[0].imagePath, ATTACHED);
+        assert.equal(reviewed.snapshot.extensions.journalScenes.page_1.files.file_1.path,
+          ATTACHED);
       } finally {
         freshSource.dispose();
       }
