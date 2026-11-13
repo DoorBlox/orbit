@@ -202,7 +202,7 @@ const focusWidget=new FocusWidget({
   readOnly,storageKey:'orbit.fo01.v1.'+viewScope,
 });
 board.registerWidget({
-  id:'focus-timer',position:{x:2570,y:240},
+  id:'focus-timer',position:{x:3210,y:240},
   limits:{minW:340,minH:390,maxW:1400,maxH:1200},icon:'◷'
 },focusWidget.element);
 const openFocusTimer=document.createElement('button');
