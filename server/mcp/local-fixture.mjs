@@ -9,10 +9,11 @@ import {createMcpHttpResponseHandler} from './mcp-http-handler.mjs';
 import {createMcpJwtAccessVerifier} from './jwt-access-verifier.mjs';
 import {createMcpGrantAuthorizer} from './grant-decision.mjs';
 import {createPrivateMcpReadBoundary} from './read-boundary.mjs';
+import {isCimdClientId} from './cimd-client-metadata.mjs';
 
 const syntheticIssuer='https://synthetic-auth.example.test/tenant';
 const syntheticResource='https://synthetic-mcp.example.test/mcp';
-const clientId='fixture-local-client';
+const staticClientId='fixture-local-client';
 const ownerIds=Object.freeze({
   ownerA:'11111111-1111-4111-8111-111111111111',
   ownerB:'22222222-2222-4222-8222-222222222222',
@@ -46,7 +47,7 @@ const denyResult=(res,status)=>{
  * Deliberately not configurable to public interfaces, permanent storage,
  * production project IDs, hosted JWT signing keys or third-party accounts.
  */
-export async function startLocalMcpFixture({maxRequestsPerMinute=120,trustedGrantStore=null,loopbackDiscovery=false,clock=Date.now}={}){
+export async function startLocalMcpFixture({maxRequestsPerMinute=120,trustedGrantStore=null,loopbackDiscovery=false,clock=Date.now,cimdClientId=null}={}){
   // Opt-in durable adapter is still a synthetic trusted test fixture; NEVER
   // mount its owner-selection/token signer as an untrusted/public route.
   if(trustedGrantStore!==null&&
@@ -56,6 +57,10 @@ export async function startLocalMcpFixture({maxRequestsPerMinute=120,trustedGran
     maxRequestsPerMinute<1||maxRequestsPerMinute>1000)
     throw Error('MCP_FIXTURE_DENIED');
   if(typeof loopbackDiscovery!=='boolean'||typeof clock!=='function')throw Error('MCP_FIXTURE_DENIED');
+  if(cimdClientId!==null&&(!loopbackDiscovery||!trustedGrantStore||
+    !isCimdClientId(cimdClientId)))throw Error('MCP_FIXTURE_DENIED');
+  const clientId=cimdClientId??staticClientId;
+  const allowCimdClientIds=cimdClientId!==null;
   let issuer=syntheticIssuer,resource=syntheticResource;
   let oauthRoutes=null;
   const keys=generateKeyPairSync('rsa',{modulusLength:2048});
@@ -173,7 +178,7 @@ export async function startLocalMcpFixture({maxRequestsPerMinute=120,trustedGran
     resource='http://127.0.0.1:'+listeningPort+'/mcp';
   }
   const grantAuthorizer=createMcpGrantAuthorizer({
-    allowLoopbackHttp:loopbackDiscovery,clock,
+    allowLoopbackHttp:loopbackDiscovery,allowCimdClientIds,clock,
     readAuthorizationSnapshot:trustedGrantStore?async query=>
       trustedGrantStore.readAuthorizationSnapshot(query):async ({issuer:iss,resource:res,ownerId,clientId:client,
       tokenId})=>{
@@ -188,7 +193,7 @@ export async function startLocalMcpFixture({maxRequestsPerMinute=120,trustedGran
     },
   });
   const verify=createMcpJwtAccessVerifier({issuer,resource,
-    allowLoopbackHttp:loopbackDiscovery,clock,
+    allowLoopbackHttp:loopbackDiscovery,allowCimdClientIds,clock,
     loadJwks:async()=>({keys:[key]}),authorizeGrant:grantAuthorizer});
   const boundary=createPrivateMcpReadBoundary({issuer,resource,
     allowLoopbackHttp:loopbackDiscovery,clock,

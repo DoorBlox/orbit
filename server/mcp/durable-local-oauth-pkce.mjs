@@ -5,9 +5,10 @@
  * grant epoch/JTI consent and opaque refresh family live in a durable ledger.
  */
 import {createHash,randomBytes,timingSafeEqual} from 'node:crypto';
+import {isCimdClientId} from './cimd-client-metadata.mjs';
 
 const fail=()=>{throw Error('OAUTH_FIXTURE_DENIED');};
-const CLIENT='fixture-local-client';
+const STATIC_CLIENT='fixture-local-client';
 const REDIRECT='http://127.0.0.1:8765/oauth/callback';
 const statePattern=/^[A-Za-z0-9._~-]{16,128}$/;
 const verifierPattern=/^[A-Za-z0-9._~-]{43,128}$/;
@@ -26,8 +27,10 @@ export function createDurableLocalPkce({fixture,ledger,clock=Date.now}={}){
     typeof ledger?.rotateRefresh!=='function'||typeof clock!=='function')
     fail();
   const {issuer,resource,clientId}=fixture.grantIdentity;
-  if(clientId!==CLIENT||typeof issuer!=='string'||typeof resource!=='string')
+  if((clientId!==STATIC_CLIENT&&!isCimdClientId(clientId))||
+    typeof issuer!=='string'||typeof resource!=='string')
     fail();
+  const CLIENT=clientId;
   const codes=new Map(); // Authorization codes remain one-time and non-durable.
   const now=()=>{
     const n=clock();

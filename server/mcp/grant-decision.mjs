@@ -1,4 +1,5 @@
 import {canonicalMcpIdentifier} from './identifier.mjs';
+import {validMcpClientId} from './cimd-client-metadata.mjs';
 /** BP-15 owner-grant decision: source-only contract for a future durable store.
  *
  * readAuthorizationSnapshot MUST return one committed, tenant-scoped projection
@@ -11,7 +12,6 @@ const own=Object.prototype.hasOwnProperty;
 const plain=x=>x!==null&&typeof x==='object'&&!Array.isArray(x)&&
   (Object.getPrototypeOf(x)===Object.prototype||Object.getPrototypeOf(x)===null);
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const client=/^[A-Za-z0-9_-]{1,128}$/;
 const token=/^[A-Za-z0-9_.:-]{8,128}$/;
 const expectedKeys=Object.freeze([
   'clientId','consentExpiresAt','consentRevokedAt','grantEpoch',
@@ -28,10 +28,10 @@ function exactHttps(value,allowLoopbackHttp=false){
 function validScopes(scopes){
   return Array.isArray(scopes)&&scopes.length===1&&scopes[0]==='tasks:read';
 }
-function validContext(ctx,now,allowLoopbackHttp){
+function validContext(ctx,now,allowLoopbackHttp,allowCimdClientIds){
   if(!plain(ctx)||!Number.isSafeInteger(now)||now<0)deny();
   exactHttps(ctx.issuer,allowLoopbackHttp);exactHttps(ctx.resource,allowLoopbackHttp);
-  if(!uuid.test(ctx.subject||'')||!client.test(ctx.clientId||'')||
+  if(!uuid.test(ctx.subject||'')||!validMcpClientId(ctx.clientId,{allowCimdClientIds})||
     !token.test(ctx.jti||'')||!validScopes(ctx.scopes)||
     !validEpoch(ctx.grantEpoch)||
     !Number.isSafeInteger(ctx.issuedAt)||ctx.issuedAt<0||
@@ -68,12 +68,12 @@ function activeSnapshot(snapshot,ctx,seconds){
  * source again, with no positive caching. A response whose fields differ
  * from the verified token context is denied, not used as an authority.
  */
-export function createMcpGrantAuthorizer({readAuthorizationSnapshot,clock=Date.now,allowLoopbackHttp=false}={}){
+export function createMcpGrantAuthorizer({readAuthorizationSnapshot,clock=Date.now,allowLoopbackHttp=false,allowCimdClientIds=false}={}){
   if(typeof readAuthorizationSnapshot!=='function'||typeof clock!=='function')deny();
   return async function authorizeGrant(context){
     try{
       const ms=clock();
-      validContext(context,ms,allowLoopbackHttp);
+      validContext(context,ms,allowLoopbackHttp,allowCimdClientIds);
       const request=Object.freeze({
         issuer:context.issuer,resource:context.resource,ownerId:context.subject,
         clientId:context.clientId,tokenId:context.jti,
