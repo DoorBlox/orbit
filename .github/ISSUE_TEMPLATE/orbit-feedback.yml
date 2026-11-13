@@ -1,0 +1,100 @@
+name: "ORBIT — report a problem or request"
+description: "Show us what feels wrong or what you want. Screenshots welcome; no technical writing needed."
+title: "[ORBIT] "
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Your original words and pictures matter.** One sentence and a screenshot are enough to start.
+        This GitHub repository is public. **Do not upload** private journal entries, account details, session links, API keys, access tokens, or unredacted personal information. Use safe sample data, blur sensitive details, or describe private cases without exposing their contents.
+        Command HQ converts your report into a tracked requirement and worker task after triage. Form submission itself does **not** automatically notify a ChatGPT worker; send the new issue number/link to Command HQ.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: "What kind of feedback?"
+      options:
+        - "Something is broken"
+        - "It looks or feels wrong"
+        - "I want a new feature"
+        - "Something we agreed on was missed"
+        - "I'm not sure"
+      default: 4
+    validations:
+      required: true
+  - type: input
+    id: area
+    attributes:
+      label: "Where in ORBIT?"
+      description: "Page, button, widget, or just 'not sure'."
+      placeholder: "Example: Space widget → Animated background button"
+  - type: textarea
+    id: current
+    attributes:
+      label: "What happens now?"
+      description: "Describe what you see in your own words. One sentence is enough."
+      placeholder: "I click the animated background button, but nothing seems to change."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: "What do you want to happen?"
+      description: "Describe the result, not the code. If you do not know yet, say what feels missing."
+      placeholder: "When enabled I should clearly see a gentle animated background. Turning it off should stop it."
+    validations:
+      required: true
+  - type: upload
+    id: visual
+    attributes:
+      label: "Screenshots, recordings or reference images"
+      description: "Drag CURRENT and EXPECTED screenshots or short recordings here. Redact names, private journals, login information and private content first."
+    validations:
+      required: false
+      accept: ".png,.jpg,.jpeg,.gif,.webp,.mp4,.mov,.webm"
+  - type: textarea
+    id: visual_notes
+    attributes:
+      label: "What should we notice in the images?"
+      description: "Optional: 'Image 1 = current', 'Image 2 = expected', and the exact area to compare."
+      placeholder: "In image 1 the background does not move. Image 2 shows the mood and motion I want."
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: "How can we see it?"
+      description: "Optional steps, browser/device, or which build you used. You do not need technical details."
+      placeholder: |
+        1. Open ORBIT.
+        2. Open Space.
+        3. Enable Animated background.
+        Device/browser: Chrome on laptop
+  - type: dropdown
+    id: impact
+    attributes:
+      label: "How urgent does it feel?"
+      description: "Your estimate helps triage; Command HQ confirms the engineering priority."
+      options:
+        - "Critical — data loss, privacy or blocked access"
+        - "High — a feature doesn't work or makes ORBIT hard to use"
+        - "Medium — visual/interaction issue or useful improvement"
+        - "Low — polish or future idea"
+        - "Not sure — please decide"
+      default: 4
+    validations:
+      required: true
+  - type: textarea
+    id: preserve
+    attributes:
+      label: "What must stay the same?"
+      description: "Optional guardrails: a layout, color, behavior, data, or feature we should preserve."
+      placeholder: "Keep my existing widgets, positions and saved content."
+  - type: textarea
+    id: previous
+    attributes:
+      label: "Did we discuss this before?"
+      description: "Optional previous issue/chat/PR links or decisions you don't want to repeat."
+      placeholder: "We talked about the background earlier. Please use the original visual references."
+  - type: markdown
+    attributes:
+      value: |
+        **After submission:** copy the new issue number/link into your ORBIT Command HQ chat and say **Triage this**. HQ will preserve the original report, assign the appropriate W1–W6 owner, write observable acceptance criteria, link the work to the **one** master roadmap, and keep the issue open until the required evidence/owner review is complete.
