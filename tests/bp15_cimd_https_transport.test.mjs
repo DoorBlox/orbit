@@ -129,8 +129,11 @@ test('wrong origin, callback, network capability, malformed config fail BEFORE D
     await assert.rejects(()=>x.service.resolve(req),/MCP_CIMD_NETWORK_DENIED/);
     assert.equal(x.stats().dns,0);
   }
+  const foreign=adapter({trustedOrigins:['https://attacker.invalid']});
+  await assert.rejects(()=>foreign.service.resolve(request),
+    /MCP_CIMD_NETWORK_DENIED/);
+  assert.equal(foreign.stats().dns,0);
   for(const changes of [
-    {trustedOrigins:['https://attacker.invalid']},
     {trustedOrigins:[ORIGIN,ORIGIN]},
     {allowedRedirectUris:[REDIRECT,REDIRECT]},
     {resolveAll:null},{requestPinned:null},{egressPolicy:null},
