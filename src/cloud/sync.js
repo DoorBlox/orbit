@@ -1,5 +1,7 @@
 const clone = value => structuredClone(value);
 const knownCodes = new Set(['AUTH_REQUIRED','FORBIDDEN','CONFLICT','NETWORK','VALIDATION','INVALID_RESPONSE','ABORTED']);
+// Persistent authorization/schema errors need explicit recovery, not repeated owner reads.
+const nonRetryableReadCodes = new Set(['AUTH_REQUIRED','FORBIDDEN','VALIDATION','INVALID_RESPONSE']);
 /** One serialized save queue per signed-in owner. Drafts never enter telemetry. */
 export function createSyncController({ repository, initialRevision = 0, onSnapshot = () => {}, onStatus = () => {},
   debounceMs = 500, pollMs = 15000,
@@ -267,6 +269,10 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
       if (errorCode === 'NETWORK' && !writePromise && now() >= nextNetworkRetryAt) void flush();
       return;
     }
+    // Do not poll full owner snapshots every 15 seconds on a denied session
+    // or permanent invalid response. Explicit retry/focus may revalidate after
+    // authentication is restored; transient NETWORK polling remains enabled.
+    if (nonRetryableReadCodes.has(errorCode)) return;
     // Never delay error recovery, pending writes, or interactive revalidation.
     // Idle backoff skips only clean, unchanged full-snapshot reads.
     const quiet = state === 'saved' && !pending && !writePromise && !errorCode &&
