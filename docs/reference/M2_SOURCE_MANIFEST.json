@@ -52,8 +52,8 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "src/cloud/media.js": {
-      "sha256": "cda3cf728e6682ca29e9ce4ab00d83de94039c2c49efce2acd5d4505e176f24a",
-      "reason": "BP-12: normalize null/undefined resolved private Storage download and signed URL responses, retaining independently retryable authenticated sessions."
+      "sha256": "da4fcadb5c5206d3f18c59a4c289c7de13d54a499f5a4f166c0cc1e8765a4ef7",
+      "reason": "BP-01/BP-12: authenticate after every Storage outcome including rejected or error responses; revoke previously leased private Blob previews on a concurrent account switch, preserve sanitized same-owner retries."
     },
     "src/cloud/owner-tools.js": {
       "sha256": "f994bcae3ddf3e7413f2cb5cd7569d08c4f4fe0c525a00a5d418f9b74270271e",
@@ -72,8 +72,8 @@
       "reason": "W1 BP-03: default-off conditional owner revision probe with strict minimal unchanged envelope, auth recheck, canonical PGRST202/404 fallback and legacy full read; hosted RPC not activated."
     },
     "src/cloud/sync.js": {
-      "sha256": "33fcd7526a00fcc8b697a661eeb8eed5479f2e3c77f3640840ec08b1fca60981",
-      "reason": "W1 BP-09: opt-in queueDeferredOwned synchronous owner snapshot factory, lazy save/export materialization with immutable captured retry/CAS draft, unchanged eager queue APIs, strict producer failure and cancellation safeguards."
+      "sha256": "ae34210d4afed253a3632b62213821132d3819cb701874bc89890c18f947aa03",
+      "reason": "W1 BP-09: cap synchronous reentrant deferred save capture to 16 supersessions; fail with private-safe INVALID_RESPONSE, cancel auto debounce and retain latest pending owner draft without CAS write; preserve stable saves/retry."
     },
     "src/constellation.js": {
       "sha256": "6d17fe195d35d9e0de6b712855e5f4634d284c7368457b9676cea8d55d8f3c1b",
@@ -98,6 +98,10 @@
     "src/excalidraw-island.entry.mjs": {
       "sha256": "29b7d1a41ab7f21531898688311d124255aecfca3bde9b2c19aa6eb43fdf882e",
       "reason": "EX-01: reviewed on-demand official React/ReactDOM Excalidraw entrypoint with local CSS and per-dialog mount/unmount; no initial app or sign-in bundle change."
+    },
+    "src/focus.js": {
+      "sha256": "b529d6b462490d23e3fc1df34556626900376b604de26c1c7f3a1b8a5d7178b0",
+      "reason": "W3 FO-01: private session-scoped monotonic Focus clock and accessible first-party timer, no tick-driven cloud writes, bounded wall-clock resume and account cleanup."
     },
     "src/inline-canvas.js": {
       "sha256": "d038a3df91e3d47f18fc039e764125670a070fd8d2ffa34c2beacb3d7868859c",
@@ -154,10 +158,6 @@
     "src/quick-jump.js": {
       "sha256": "52d9592e71edeb700b70bec3b79d792620d36a172af14f80ad79935c95f7a23e",
       "reason": "BR-01: locally indexed, keyboard-accessible private spatial Jump controller; no network, DOM injection or persisted search cache."
-    },
-    "src/focus.js": {
-      "sha256": "b529d6b462490d23e3fc1df34556626900376b604de26c1c7f3a1b8a5d7178b0",
-      "reason": "W3 FO-01: private session-scoped monotonic Focus clock and accessible first-party timer, no tick-driven cloud writes, bounded wall-clock resume and account cleanup."
     }
   }
 }

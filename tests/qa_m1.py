@@ -614,6 +614,11 @@ def normal_flows(browser):
       element.dispatchEvent(new PointerEvent('pointerup',{...base,clientX:r.left+r.width*.70,clientY:r.top+r.height*.5}));
     }""")
     assert page.evaluate('window.orbitDebug.board.pan.x') != pan_before
+    # The map drag legitimately travels away from the note. Return via its real
+    # Places pin before editing; keep the original map-pan assertion intact.
+    focus(page,'space')
+    page.locator('.space-point-sticky').click()
+    expect(page.locator('.sticky-note').first.get_by_role('button',name='Edit sticky note')).to_be_in_viewport()
     # Reading is uncluttered. Edit toggles are at the bottom of each note.
     assert page.locator('.sticky-note').first.get_attribute('data-view') == 'preview'
     page.locator('.sticky-note').first.get_by_role('button',name='Edit sticky note').click()

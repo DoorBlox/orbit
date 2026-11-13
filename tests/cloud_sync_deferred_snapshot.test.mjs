@@ -153,3 +153,107 @@ test('BP-09: disposal and explicit CAS conflict never execute a newly stale prod
   assert.equal(c.queueDeferredOwned(()=>{captures++;return snap('after dispose');}),false);
   assert.equal(captures,2);
 });
+
+test('BP-09 export follows the latest reentrant owner edit rather than returning an empty backup',async()=>{
+  const writes=[];
+  const repository={
+    async saveSnapshot(value,revision){writes.push({value,revision});return {revision:revision+1};},
+    async loadOwnerSnapshot(){throw Error('No read expected');}
+  };
+  const c=make(repository);
+  try{
+    let oldCaptures=0,newCaptures=0;
+    c.queueDeferredOwned(()=>{
+      oldCaptures++;
+      // A synchronous editor commit inside getSnapshot can queue another edit.
+      c.queueDeferredOwned(()=>{newCaptures++;return snap('latest exportable draft');});
+      return snap('superseded draft');
+    });
+    const exported=c.getPendingSnapshot();
+    assert.equal(exported.tasks[0].title,'latest exportable draft');
+    assert.equal(oldCaptures,1);
+    assert.equal(newCaptures,1);
+    assert.equal(c.getState().hasPending,true);
+    assert.equal((await c.flush()).ok,true);
+    assert.equal(writes.length,1);
+    assert.equal(writes[0].value.tasks[0].title,'latest exportable draft');
+    assert.equal(writes[0].revision,0);
+  }finally{c.dispose();}
+});
+
+test('BP-09 endlessly reentrant export fails boundedly and keeps the latest dirty draft',()=>{
+  const repository={
+    async saveSnapshot(){throw Error('An unstable producer must not write');},
+    async loadOwnerSnapshot(){throw Error('No read expected');}
+  };
+  const c=make(repository);
+  let captures=0;
+  const unstable=()=>{
+    captures++;
+    c.queueDeferredOwned(unstable);
+    return snap('superseded');
+  };
+  try{
+    c.queueDeferredOwned(unstable);
+    assert.throws(()=>c.getPendingSnapshot(),error=>error?.code==='INVALID_RESPONSE');
+    assert.ok(captures>1&&captures<=16,'Exporter must never spin indefinitely');
+    assert.equal(c.getState().hasPending,true,'Keep latest draft for later recovery');
+    assert.equal(c.getState().revision,0);
+  }finally{c.dispose();}
+});
+
+test('BP-09 save boundary rejects an unbounded chain of reentrant owner edits without overwriting drafts',async()=>{
+  let captures=0,writes=0;
+  const states=[];
+  const repository={
+    async saveSnapshot(){writes++;return {revision:1};},
+    async loadOwnerSnapshot(){throw Error('No remote read expected');}
+  };
+  const c=make(repository,{onStatus:status=>states.push(status)});
+  const unstable=()=>{
+    captures++;
+    // Finite 64-step fixture reproduces CPU-starvation without an infinite CI hang.
+    if(captures<64)c.queueDeferredOwned(unstable);
+    return snap('synthetic superseded capture');
+  };
+  try{
+    c.queueDeferredOwned(unstable);
+    const result=await c.flush();
+    assert.equal(result.ok,false,'Do not continue synchronously through a repeated mutation chain');
+    assert.equal(result.errorCode,'INVALID_RESPONSE');
+    assert.ok(captures>=1&&captures<=16,'One flush has a fixed synchronous capture budget');
+    assert.equal(writes,0,'Never submit an unstable owner snapshot to revision CAS');
+    assert.equal(c.getState().hasPending,true,'Last pending draft must remain recoverable');
+    assert.equal(c.getState().revision,0);
+    assert.equal(JSON.stringify(states).includes('synthetic superseded capture'),false);
+    c.queueDeferredOwned(()=>snap('recovered stable draft'));
+    assert.equal((await c.flush()).ok,true);
+    assert.equal(writes,1);
+    assert.equal(c.getState().revision,1);
+  }finally{c.dispose();}
+});
+
+test('BP-09 finite synchronous save-boundary supersession writes only latest detached revision',async()=>{
+  const saved=[];let captures=0;
+  const repository={
+    async saveSnapshot(value,revision){saved.push({value,revision});return {revision:revision+1};},
+    async loadOwnerSnapshot(){throw Error('No owner read expected');}
+  };
+  const c=make(repository,{initialRevision:7});
+  try{
+    c.queueDeferredOwned(()=>{
+      captures++;
+      c.queueDeferredOwned(()=>{
+        captures++;
+        c.queueDeferredOwned(()=>{captures++;return snap('latest retained');});
+        return snap('middle stale');
+      });
+      return snap('old stale');
+    });
+    assert.equal((await c.flush()).ok,true);
+    assert.equal(captures,3);
+    assert.deepEqual(saved.map(x=>[x.value.tasks[0].title,x.revision]),[['latest retained',7]]);
+    assert.equal(c.getState().revision,8);
+    assert.equal(c.getState().hasPending,false);
+  }finally{c.dispose();}
+});

@@ -171,3 +171,22 @@ test('JTI names overlapping object prototypes cannot forge or evade revocation',
   assert.equal(await auth(ctx(a,g.grantEpoch,'constructor')),false);
   assert.equal(await auth(ctx(a,g.grantEpoch,'normal-token-001')),true);
 }));
+
+test('revoking only the currently active refresh bearer is atomic and cannot revoke re-consent',()=>sandbox(async({ledger,open})=>{
+  const ownerA=await ledger.consent(a),ownerB=await ledger.consent(b);
+  const first=await ledger.issueRefresh(a);
+  const reopened=open();await reopened.initialize();
+  assert.equal(await reopened.revokeRefresh({...a,refreshToken:first.refreshToken}),true);
+  assert.equal((await ledger.readAuthorizationSnapshot(envelope(a))).status,'revoked');
+  assert.equal((await ledger.readAuthorizationSnapshot(envelope(b))).status,'active');
+  const freshGrant=await ledger.consent(a);
+  assert.ok(freshGrant.grantEpoch>ownerA.grantEpoch);
+  const second=await ledger.issueRefresh(a);
+  assert.equal(await reopened.revokeRefresh({...a,refreshToken:first.refreshToken}),false,
+    'previously signed token must never revoke a newly consented grant');
+  assert.equal((await ledger.readAuthorizationSnapshot(envelope(a))).status,'active');
+  assert.equal(await reopened.revokeRefresh({...b,refreshToken:second.refreshToken}),false);
+  assert.equal(await ledger.revokeRefresh({...a,refreshToken:second.refreshToken}),true);
+  assert.equal((await reopened.readAuthorizationSnapshot(envelope(a))).status,'revoked');
+  assert.equal((await reopened.readAuthorizationSnapshot(envelope(b))).grantEpoch,ownerB.grantEpoch);
+}));

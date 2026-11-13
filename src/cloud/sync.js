@@ -127,6 +127,9 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
     return snapshot;
   }
   async function drain() {
+    // Prevent a reentrant editor producer from starving the event loop or
+    // spinning indefinitely before its first network CAS request.
+    let supersededCaptures = 0;
     while (!disposed && pending) {
       if (!isOnline()) { status('offline','NETWORK'); return {ok:false,...getState()}; }
       const saving = pending;
@@ -135,8 +138,18 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
       try {
         const captured = materialize(saving);
         // A defensive producer may synchronously enqueue a newer edit. Never
-        // send the obsolete version it replaced.
-        if (disposed || pending !== saving) continue;
+        // send the obsolete version it replaced. Bound synchronous reentrancy
+        // as explicit draft export already does: retain the latest pending
+        // producer, fail visibly, and leave retry to an explicit user action.
+        if (disposed) return {ok:false,...getState()};
+        if (pending !== saving) {
+          if (++supersededCaptures >= 16) {
+            cancelDebounce();
+            throw Object.assign(Error('Deferred save capture could not stabilize'),{code:'INVALID_RESPONSE'});
+          }
+          continue;
+        }
+        supersededCaptures = 0;
         const result = await repository.saveSnapshot(clone(captured),revision,{signal:controller.signal});
         if (disposed) return {ok:false,...getState()};
         if (!Number.isSafeInteger(result?.revision) || result.revision <= revision) throw Object.assign(Error(),{code:'INVALID_RESPONSE'});
@@ -310,6 +323,24 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
     for (const controller of requests) controller.abort();
     requests.clear(); pending = null; ++changeVersion; state = 'disposed'; errorCode = null;
   }
+  // A producer may synchronously commit an editor change and enqueue a newer
+  // draft while producing (or cloning) the export. Never report a null/stale
+  // recovery snapshot merely because the previous pending version was replaced.
+  function getPendingSnapshot() {
+    for (let attempt = 0; attempt < 16; attempt++) {
+      const selected = pending;
+      if (disposed || !selected) return null;
+      const snapshot = materialize(selected);
+      if (disposed) return null;
+      if (pending !== selected) continue;
+      const detached = clone(snapshot);
+      if (disposed) return null;
+      if (pending === selected) return detached;
+    }
+    // Keep the most recent pending producer intact for explicit later recovery.
+    // Do not leak draft contents or spin indefinitely on unstable producers.
+    throw Object.assign(Error('Deferred draft export could not stabilize'),{code:'INVALID_RESPONSE'});
+  }
   return {queue,queueOwned,queueDeferredOwned,flush,refresh,retry,discardPendingAndReload,getState,
-    getPendingSnapshot:() => pending ? clone(materialize(pending)) : null,dispose};
+    getPendingSnapshot,dispose};
 }
