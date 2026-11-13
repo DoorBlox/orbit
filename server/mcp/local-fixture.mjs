@@ -199,7 +199,7 @@ export async function startLocalMcpFixture({maxRequestsPerMinute=120,trustedGran
   });
   handler=createMcpHttpResponseHandler({
     admission,verifyAccessToken:verify,issuer,resource,
-    allowLoopbackHttp:loopbackDiscovery,
+    allowLoopbackHttp:loopbackDiscovery,clock,
     consumeQuota:async ctx=>{
       const minute=Math.floor(clock()/60000);
       const key=ctx.subject+'|'+ctx.clientId+'|'+minute;
