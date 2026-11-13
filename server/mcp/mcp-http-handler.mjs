@@ -73,7 +73,7 @@ export function createMcpHttpResponseHandler({
         // Expired/revoked access is 401 so standard OAuth clients can refresh.
         let claims;
         try{claims=await verifyAccessToken(accepted.authorization.slice(7));}
-        catch{return rpcError(401,-32000);}
+        catch{if(allowLoopbackHttp)return rpcError(401,-32000);throw Error('token');}
         const identity=validateMcpAccessClaims(claims,{issuer,resource,allowLoopbackHttp});
         if(!identity.scopes.includes('tasks:read'))throw Error('scope');
         const quota=Object.freeze({subject:identity.sub,
