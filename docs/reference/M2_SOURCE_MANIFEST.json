@@ -12,8 +12,8 @@
       "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service."
     },
     "src/app.js": {
-      "sha256": "1522d407e2426ee644debb4d1c8d7e1b5f22452b4fa6c10f33e376764f15edfe",
-      "reason": "W3 FO-01: mount an eighth optional Focus spatial window with Space navigation, scoped recovery and safe teardown, preserving the six original widget geometry entries."
+      "sha256": "7ac8f42cca9e48bac5eff508fdd9c4958a3f13e0ade009f3fa274785b0fdf06c",
+      "reason": "W3 FO-01: optional Focus spatial window positioned clear of Projects editing, preserving all six legacy widget coordinates and existing private cloud/backup APIs."
     },
     "src/auth/controller.js": {
       "sha256": "af8cde170ef58e61df8c464ee34249df4267812991392a95dae5c4d69f47ba20",
