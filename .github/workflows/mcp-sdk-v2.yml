@@ -31,5 +31,5 @@ jobs:
         # No dependency or lockfile modification is committed to the application.
         run: npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund @modelcontextprotocol/client@2.4.0
       - name: Verify true official client against synthetic localhost MCP
-        run: node --test tests/sdk/bp15_official_client_v2.test.mjs tests/sdk/bp15_official_http_oauth_v2.test.mjs tests/sdk/bp15_official_discovery_oauth_v2.test.mjs
+        run: node --test tests/sdk/bp15_official_client_v2.test.mjs tests/sdk/bp15_official_http_oauth_v2.test.mjs tests/sdk/bp15_official_discovery_oauth_v2.test.mjs tests/sdk/bp15_official_cimd_v2.test.mjs
 # Source-only. No hosted OAuth, real identity, Vercel deployment or private user data.
