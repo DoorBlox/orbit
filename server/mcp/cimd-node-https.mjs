@@ -117,7 +117,8 @@ export function verifyPinnedCimdTlsPeer(socket,plan){
     deny();
   return true;
 }
-const validHeaders=(res,maxBytes)=>{
+/** Pure, no-I/O header admission reused by dormant Node HTTPS port. */
+export const validatePinnedCimdResponseHeaders=(res,maxBytes)=>{
   const counts=new Map();
   for(let i=0;i<(res.rawHeaders||[]).length;i+=2){
     const k=String(res.rawHeaders[i]).toLowerCase();
@@ -170,7 +171,7 @@ export function createNodeCimdHttpsPort({
           try{
             socket=response.socket;
             verifyPinnedCimdTlsPeer(socket,plan);
-            validHeaders(response,plan.maxBytes);
+            validatePinnedCimdResponseHeaders(response,plan.maxBytes);
           }catch{
             response.destroy();stop();return;
           }
