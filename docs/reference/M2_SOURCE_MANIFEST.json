@@ -52,8 +52,8 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "src/cloud/media.js": {
-      "sha256": "cda3cf728e6682ca29e9ce4ab00d83de94039c2c49efce2acd5d4505e176f24a",
-      "reason": "BP-12: normalize null/undefined resolved private Storage download and signed URL responses, retaining independently retryable authenticated sessions."
+      "sha256": "afa9118dce897407ee01208e04d8ffedc3ca167c019044db0ebeaf4a69de26bb",
+      "reason": "BP-12: bounded owner-private read-only usage summary deduplicates paginated files; reports exact bytes only on complete consistent size data, fails closed on auth/errors."
     },
     "src/cloud/owner-tools.js": {
       "sha256": "f994bcae3ddf3e7413f2cb5cd7569d08c4f4fe0c525a00a5d418f9b74270271e",
@@ -72,8 +72,8 @@
       "reason": "W1 BP-03: default-off conditional owner revision probe with strict minimal unchanged envelope, auth recheck, canonical PGRST202/404 fallback and legacy full read; hosted RPC not activated."
     },
     "src/cloud/sync.js": {
-      "sha256": "33fcd7526a00fcc8b697a661eeb8eed5479f2e3c77f3640840ec08b1fca60981",
-      "reason": "W1 BP-09: opt-in queueDeferredOwned synchronous owner snapshot factory, lazy save/export materialization with immutable captured retry/CAS draft, unchanged eager queue APIs, strict producer failure and cancellation safeguards."
+      "sha256": "cbe81fcb9d049498440b1b4a5a19ec8005737b34497e0148b1d34a4bb3180f63",
+      "reason": "W1 BP-09: deferred pending export retries newest producer after synchronous edit reentrancy, bounds unstable producers and preserves unsaved recovery draft; existing CAS/offline queue contract unchanged."
     },
     "src/constellation.js": {
       "sha256": "6d17fe195d35d9e0de6b712855e5f4634d284c7368457b9676cea8d55d8f3c1b",

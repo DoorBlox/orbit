@@ -1,6 +1,6 @@
 # Changelog
 
-**W5 verified status snapshot — 13 November 2026:** GitHub source [`2fb868d7d4b7`](https://github.com/DoorBlox/orbit/commit/2fb868d7d4b7439472f462205e5ca28509e8ee40) includes post-2.4 merges, **not** a new Production release. Independently rechecked `orbit.starscene.com` still points to **ORBIT 2.4**, Vercel READY `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4` built from Git `4e57aca785259192b92010c5d0e1634a4c1efe14`. Signed-in owner/device acceptance of newer source remains pending; requery GitHub before acting.
+**W5 verified status snapshot — 13 November 2026:** GitHub source [`71eae629e308`](https://github.com/DoorBlox/orbit/commit/71eae629e308174cd0ea36bc4fa2d2f29bf230d9) is **SOURCE ONLY** for post-2.4 changes. Independently verified `orbit.starscene.com` still aliases **ORBIT 2.4** Vercel READY `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4` from Git `4e57aca785259192b92010c5d0e1634a4c1efe14`. No later source code is claimed deployed; signed-in owner/device acceptance remains pending. Requery live state before taking release action.
 
 **Release semantics:** this file records historically shipped versions and separately labels unreleased main-only source. [Release notes](RELEASE_NOTES.md) summarize the live app; [GitHub Releases](https://github.com/DoorBlox/orbit/releases) are optional tagged publication records, currently empty.
 
@@ -24,6 +24,9 @@ These are **selected milestones**, not a complete generated change history. Newe
 - **W3 / BP-11:** native Journal paste now retains a valid text/plain fallback when all supplied HTML is rejected, preserving selection/undo and sanitizer boundaries [#161](https://github.com/DoorBlox/orbit/pull/161).
 - **W4 / BP-15:** local-only persistent grant/revocation ledger [#167](https://github.com/DoorBlox/orbit/pull/167) wired into disposable PKCE/refresh and actual localhost MCP test flow [#172](https://github.com/DoorBlox/orbit/pull/172); **no hosted OAuth, delegated RLS or public connector**.
 - **W6 / QA:** independent cross-widget Chromium runner [#168](https://github.com/DoorBlox/orbit/pull/168) source merged, **execution NOT RUN** pending [#169](https://github.com/DoorBlox/orbit/issues/169); synthetic cross-feature tests [#165](https://github.com/DoorBlox/orbit/pull/165) pass. Proposed unmerged RED draft [#175](https://github.com/DoorBlox/orbit/pull/175) is tracked in [progress](docs/PROGRESS.md), not misrepresented as a shipped fix.
+- **W1 / BP-09 recovery export:** explicit snapshot export retains the newest pending epoch and bounds synchronous reentry [#178](https://github.com/DoorBlox/orbit/pull/178); save-boundary guard [#184](https://github.com/DoorBlox/orbit/pull/184) is an unmerged draft. No W3 UI bridge or new hosted sync behavior.
+- **W2 / BP-12 private media:** paginated, bounded, read-only usage accounting with explicit unknown/incomplete byte totals [#179](https://github.com/DoorBlox/orbit/pull/179). No deletion, new provider or signed-in acceptance claim.
+- **W4 / BP-15 local HTTP OAuth:** disposable trusted-owner localhost HTTP PKCE consent, refresh and revocation integration [#181](https://github.com/DoorBlox/orbit/pull/181), **not a public OAuth provider, live ChatGPT connector or Production deployment**.
 
 ## ORBIT 2.4 — LIVE Production, 9 Nov 2026
 
