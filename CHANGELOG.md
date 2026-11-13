@@ -27,6 +27,7 @@ These are **selected milestones**, not a complete generated change history. Newe
 - **W1 / BP-09 recovery export:** explicit snapshot export retains the newest pending epoch and bounds synchronous reentry [#178](https://github.com/DoorBlox/orbit/pull/178); save-boundary guard [#184](https://github.com/DoorBlox/orbit/pull/184) is an unmerged draft. No W3 UI bridge or new hosted sync behavior.
 - **W2 / BP-12 private media:** paginated, bounded, read-only usage accounting with explicit unknown/incomplete byte totals [#179](https://github.com/DoorBlox/orbit/pull/179). No deletion, new provider or signed-in acceptance claim.
 - **W4 / BP-15 local HTTP OAuth:** disposable trusted-owner localhost HTTP PKCE consent, refresh and revocation integration [#181](https://github.com/DoorBlox/orbit/pull/181), **not a public OAuth provider, live ChatGPT connector or Production deployment**.
+- **W6 / source-only acceptance:** independent deferred snapshot, CAS, portable multi-feature private-media restore and coherent reentrant export tests [#185](https://github.com/DoorBlox/orbit/pull/185) **synthetic CI PASS (581/581 Node)**; not owner-device or standalone cross-widget Chromium verification.
 
 ## ORBIT 2.4 — LIVE Production, 9 Nov 2026
 
