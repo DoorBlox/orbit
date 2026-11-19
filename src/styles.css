@@ -2200,3 +2200,70 @@ body.cloud-space-mounted #space-widget .cloud-sync-state{position:absolute!impor
 @media(prefers-reduced-transparency:reduce){
   :root .private-gallery-dialog::backdrop{background:#1b2636}
 }
+
+
+/* FO-01: a restrained, accessible eighth private spatial window. */
+.focus-timer-widget{
+  display:flex;flex-direction:column;gap:13px;box-sizing:border-box;
+  padding:20px 24px 22px;overflow:auto;min-width:0;
+  color:var(--ink);
+}
+.focus-timer-widget .focus-timer-heading{
+  display:flex;align-items:center;gap:15px;flex:0 0 auto;
+}
+.focus-timer-identity{display:flex;flex-direction:column;gap:2px;min-width:0}
+.focus-timer-identity h2{font-size:clamp(25px,2.2vw,35px);line-height:1.06;margin:1px 0}
+.focus-timer-phase{
+  margin:5px 0 0;color:var(--muted);font-size:11px;
+  letter-spacing:.16em;font-weight:750;text-transform:uppercase;
+}
+.focus-timer-display{
+  display:block;align-self:center;margin:0;
+  font-variant-numeric:tabular-nums;
+  font-size:clamp(56px,6vw,85px);font-weight:650;line-height:1.02;
+  letter-spacing:-.055em;color:var(--ink);
+}
+.focus-timer-progress{
+  height:8px;flex:0 0 8px;overflow:hidden;border-radius:99px;
+  background:color-mix(in srgb,var(--ink) 11%,transparent);
+}
+.focus-timer-progress-fill{
+  height:100%;width:0;border-radius:inherit;
+  background:var(--accent);transition:width .25s linear;
+}
+.focus-timer-status{
+  margin:0;min-height:22px;font-size:13px;
+  text-align:center;line-height:1.45;color:var(--muted);
+}
+.focus-timer-settings{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.focus-timer-setting{
+  display:flex;flex-direction:column;gap:6px;
+  color:var(--muted);font-size:12px;font-weight:650;
+}
+.focus-timer-setting input{
+  display:block;box-sizing:border-box;width:100%;min-height:44px;
+  padding:9px 12px;border:1px solid color-mix(in srgb,var(--ink) 21%,transparent);
+  border-radius:12px;background:color-mix(in srgb,var(--canvas) 86%,white);
+  color:var(--ink);font:inherit;font-size:15px;font-variant-numeric:tabular-nums;
+}
+.focus-timer-setting input:focus-visible,.focus-timer-actions button:focus-visible{
+  outline:3px solid var(--focus);outline-offset:3px;
+}
+.focus-timer-actions{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;margin-top:2px;
+}
+.focus-timer-actions button{min-height:44px;min-width:0;white-space:normal}
+.focus-timer-actions button:disabled{opacity:.52;cursor:not-allowed}
+.focus-timer-note{
+  margin:0 0 2px;font-size:11px;line-height:1.45;
+  text-align:center;color:var(--muted);
+}
+@media(max-width:450px){
+  .focus-timer-widget{padding:18px 18px 20px;gap:12px}
+  .focus-timer-display{font-size:60px}
+}
+@media(prefers-reduced-motion:reduce){
+  /* The global reduced-motion duration has !important; disable this timer transition entirely. */
+  .focus-timer-progress-fill{transition:none!important}
+}
