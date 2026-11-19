@@ -208,7 +208,9 @@ export async function createPortableArchive(snapshot,{ownerId:currentOwnerId,dow
   // a combined 96 MiB JSON text limit, not just an image count/byte budget.
   const snapshotBytes=utf8ByteLength(JSON.stringify(clean));
   if(snapshotBytes>PORTABLE_MAX_TEXT_BYTES)throw textLimit();
-  const referenced=collectReferencedPaths(clean);
+  // Preflight ALL owner paths before fetching any private image bytes. A later
+  // foreign Excalidraw file must not trigger earlier valid Storage downloads.
+  const referenced=[...collectMediaReferenceUsage(clean,{ownerId:currentOwnerId}).keys()].sort();
   // Bound raw selection work, but enforce the 96-image archive budget on
   // unique files after deduplication (including already referenced images).
   if(libraryPaths.length>PORTABLE_MAX_IMAGES*32)throw bytesLimit();
