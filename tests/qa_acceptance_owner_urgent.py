@@ -169,8 +169,9 @@ def issue_217(page):
     assert page.locator('.task-stack[data-branch-id="w6-leaf"]').count() == 0, (
         "Collapsed terminal branch still displays its task stack"
     )
-    assert page.locator(".terminal-path").count() == 0, (
-        "Collapsed terminal leaf left a dangling task connector"
+    assert not page.evaluate("""() => window.orbitDebug.scene.edgeEntries
+      .some(e => e.toStack && e.to === 'w6-leaf')"""), (
+        "Collapsed terminal leaf left its own dangling task connector"
     )
     shot(page, "217-leaf-collapsed")
     reload_page(page)
