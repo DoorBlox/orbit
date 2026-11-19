@@ -604,6 +604,16 @@ def normal_flows(browser):
     page.locator('#new-sticky').click()
     expect(page.locator('.sticky-note')).to_have_count(1)
     expect(page.locator('.space-point-sticky')).to_have_count(1)
+    # Owner issue #215: sticky actions must not paint a detached paper bar.
+    # Assert rendered browser styles, not the text of a CSS declaration.
+    def sticky_actions_have_no_strip():
+        return page.locator('.sticky-note').first.locator('.sticky-actions').evaluate("""element=>{
+          const style=getComputedStyle(element);
+          return style.backgroundImage==='none' &&
+            style.backgroundColor==='rgba(0, 0, 0, 0)' &&
+            style.borderTopWidth==='0px';
+        }""")
+    assert sticky_actions_have_no_strip(), 'Sticky preview has an unwanted action strip (#215)'
     # The minimap is the same world: dragging its viewport changes the board camera.
     pan_before=page.evaluate('window.orbitDebug.board.pan.x')
     page.locator('#space-nav-map').evaluate("""element=>{
@@ -617,6 +627,7 @@ def normal_flows(browser):
     # Reading is uncluttered. Edit toggles are at the bottom of each note.
     assert page.locator('.sticky-note').first.get_attribute('data-view') == 'preview'
     page.locator('.sticky-note').first.get_by_role('button',name='Edit sticky note').click()
+    assert sticky_actions_have_no_strip(), 'Sticky editor has an unwanted action strip (#215)'
     page.locator('.sticky-title').fill('M1 visual note')
     page.locator('.sticky-title').dispatch_event('change')
     page.locator('.sticky-body').fill('Private note in the same world')
