@@ -151,8 +151,20 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
           }
           continue;
         }
+        // The defensive clone itself may invoke an enumerable getter whose
+        // synchronous editor commit queues a newer draft. Recheck the version
+        // after cloning, not only after the deferred capture, before any CAS.
+        const detached = clone(captured);
+        if (disposed) return {ok:false,...getState()};
+        if (pending !== saving) {
+          if (++supersededCaptures >= 16) {
+            cancelDebounce();
+            throw Object.assign(Error('Deferred save clone could not stabilize'),{code:'INVALID_RESPONSE'});
+          }
+          continue;
+        }
         supersededCaptures = 0;
-        const result = await repository.saveSnapshot(clone(captured),revision,{signal:controller.signal});
+        const result = await repository.saveSnapshot(detached,revision,{signal:controller.signal});
         if (disposed) return {ok:false,...getState()};
         if (!Number.isSafeInteger(result?.revision) || result.revision <= revision) throw Object.assign(Error(),{code:'INVALID_RESPONSE'});
         revision = result.revision;

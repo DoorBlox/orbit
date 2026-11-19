@@ -1,6 +1,6 @@
 # Changelog
 
-**W5 verified status snapshot — 13 November 2026:** GitHub source [`1e982a494ab1`](https://github.com/DoorBlox/orbit/commit/1e982a494ab1dda24b8ca19c5b87da5c5a15f942) is **SOURCE ONLY** for post-2.4 changes. Independently verified `orbit.starscene.com` still aliases **ORBIT 2.4** Vercel READY `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4` from Git `4e57aca785259192b92010c5d0e1634a4c1efe14`. No later source code is claimed deployed; signed-in owner/device acceptance remains pending. Requery live state before taking release action.
+**W5 verified status snapshot — 13 November 2026:** GitHub source [`61341361631d`](https://github.com/DoorBlox/orbit/commit/61341361631d629f0bcdf6e9e178f541c37e779e) is **SOURCE ONLY** for post-2.4 changes. Independently verified `orbit.starscene.com` still aliases **ORBIT 2.4** Vercel READY `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4` from Git `4e57aca785259192b92010c5d0e1634a4c1efe14`. No later source code is claimed deployed; signed-in owner/device acceptance remains pending. Requery live state before taking release action.
 
 **Release semantics:** this file records historically shipped versions and separately labels unreleased main-only source. [Release notes](RELEASE_NOTES.md) summarize the live app; [GitHub Releases](https://github.com/DoorBlox/orbit/releases) are optional tagged publication records, currently empty.
 
@@ -33,6 +33,11 @@ These are **selected milestones**, not a complete generated change history. Newe
 - **W2 / BP-01/BP-12:** failed/rejected Storage replies during account switch revoke existing owner-private Blob previews [#187](https://github.com/DoorBlox/orbit/pull/187), 8 synthetic regression cases; actual signed-in images still unverified.
 - **W6 / synthetic acceptance:** fail-closed owner A→B portable media export [#189](https://github.com/DoorBlox/orbit/pull/189) **585/585 Node PASS** at reviewed head, closeout [#193](https://github.com/DoorBlox/orbit/pull/193); follow-up active URL lease [#194](https://github.com/DoorBlox/orbit/pull/194) DRAFT, real owner/Chromium NOT RUN.
 - **W5 / docs:** canonical PR [#180](https://github.com/DoorBlox/orbit/pull/180) was HQ-approved and merged at `420a07242643`. No new GitHub Release or Production promotion.
+
+- **W2 / BP-12 read-only usage integrity:** filtered legacy/duplicate Storage listing rows now report omissions rather than a falsely exact private byte total [#196](https://github.com/DoorBlox/orbit/pull/196), with `complete=false` and `totalBytes=null` for incomplete scans; handoff [#199](https://github.com/DoorBlox/orbit/pull/199). No object deletion or hosted Storage change.
+- **W4 / BP-15 SDK loopback:** actual official `@modelcontextprotocol/client@2.4.0` `OAuthClientProvider` discovery via local RFC 8414/9728 metadata + PKCE state/issuer/refresh/revoke [#191](https://github.com/DoorBlox/orbit/pull/191), 12/12 SDK tests and five exact-head checks PASS; handoff [#198](https://github.com/DoorBlox/orbit/pull/198). Local test-only; no hosted OAuth, live connector or published endpoint.
+- **W6 / synthetic private recovery:** active private Blob preview leases revoked during failing owner-switch portable export [#194](https://github.com/DoorBlox/orbit/pull/194), four synthetic combinations PASS, not actual hosted A/B or browser image-pixel acceptance.
+- **W5 / provenance:** prior canonical docs [#197](https://github.com/DoorBlox/orbit/pull/197) HQ-approved, four exact-head CI success, squash-merged `c74c068f948c`. No new GitHub Release, staging, Production or owner-device verification.
 
 ## ORBIT 2.4 — LIVE Production, 9 Nov 2026
 

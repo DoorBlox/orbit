@@ -13,7 +13,7 @@
     },
     "src/app.js": {
       "sha256": "7ac8f42cca9e48bac5eff508fdd9c4958a3f13e0ade009f3fa274785b0fdf06c",
-      "reason": "W3 FO-01: optional Focus spatial window positioned clear of Projects editing, preserving all six legacy widget coordinates and existing private cloud/backup APIs."
+      "reason": "W3 FO-01 optional Focus spatial window, original six widget coordinates and backup unchanged."
     },
     "src/auth/controller.js": {
       "sha256": "af8cde170ef58e61df8c464ee34249df4267812991392a95dae5c4d69f47ba20",
@@ -60,8 +60,8 @@
       "reason": "BP-12/EX-02: authenticated owner gallery with bounded previews, valid empty and paginated inventory, reference-safe detached media selection, opt-in .orbit backup."
     },
     "src/cloud/portable-backup.js": {
-      "sha256": "a4f869399cbe2df9db468e7626b6e60f1418bc3fbea66fea6b6b82f52526b382",
-      "reason": "BP-02: normalize direct object archive inputs through their checked JSON serialization, enforcing the 96 MiB UTF-8 import boundary without a toJSON inspection mismatch."
+      "sha256": "de5a96fedcbd08ed5ecac2f1eef3b751af96781425257d995dade43d376abbe1",
+      "reason": "BP-02 release: preflight every referenced Excalidraw image owner before first private Storage download; preserve mixed-format portable backup bytes and existing image quotas."
     },
     "src/cloud/README.md": {
       "sha256": "2fa23ecebff7de9fa7e5463f3c77031e97850cf192398ea0da66c2f6cd19a4af",
@@ -72,8 +72,8 @@
       "reason": "W1 BP-03: default-off conditional owner revision probe with strict minimal unchanged envelope, auth recheck, canonical PGRST202/404 fallback and legacy full read; hosted RPC not activated."
     },
     "src/cloud/sync.js": {
-      "sha256": "9dd095d87c4b5e8d26da196b367c661fac181ab9b10476e73b010a9d8bf1c1c0",
-      "reason": "W1 BP-03: suppress unattended full-snapshot polling for clean AUTH_REQUIRED/FORBIDDEN/VALIDATION/INVALID_RESPONSE states; explicit retry/focus and transient NETWORK recovery retained, with synthetic 12-poll regression."
+      "sha256": "83528429ae6f18cf15c49f7ab50289dcdf27825b3c1c905e5b0e44e98189b3b1",
+      "reason": "W1 BP-09: defensive save clone rechecks pending owner draft after getter-driven synchronous supersession; unstable cloning bounded to 16 attempts, with latest pending draft and revision-CAS protected."
     },
     "src/constellation.js": {
       "sha256": "6d17fe195d35d9e0de6b712855e5f4634d284c7368457b9676cea8d55d8f3c1b",
@@ -101,7 +101,7 @@
     },
     "src/focus.js": {
       "sha256": "30a730bd3efdb263032ed5f3f946f02854ab072e6ad1cf64a4aa9870cdf55d05",
-      "reason": "W3 FO-01: private scoped Focus clock, monotonic time and reload anchor; blocked or throwing sessionStorage getter falls back without crashing; no tick-driven workspace writes."
+      "reason": "W3 FO-01 private monotonic timer and blocked sessionStorage fallback without cloud writes."
     },
     "src/inline-canvas.js": {
       "sha256": "d038a3df91e3d47f18fc039e764125670a070fd8d2ffa34c2beacb3d7868859c",
@@ -144,8 +144,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "24acdabb49ec160bf14f2d0732ca7a38a60e5be923bcf537792797245cc3a7b8",
-      "reason": "W3 FO-01: exact-zero reduced-motion Focus progress transition overrides the global 0.001ms important rule; all original theme/touch styling retained."
+      "sha256": "e744ca5303b287c7568203f4393b62dc403abbb90af09e0328f156737ef441bb",
+      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip."
     },
     "src/widget-registry.js": {
       "sha256": "097767f8dd9c6c1e94504ec571c29ca2f1d0684955d2f8c87231d15db1a427f0",

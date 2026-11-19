@@ -13,6 +13,7 @@ import {constants as flags} from 'node:fs';
 import {join} from 'node:path';
 import {createHash,createHmac,randomBytes,timingSafeEqual} from 'node:crypto';
 import {setTimeout as sleep} from 'node:timers/promises';
+import {performance} from 'node:perf_hooks';
 import {canonicalMcpIdentifier} from './identifier.mjs';
 import {validMcpClientId} from './cimd-client-metadata.mjs';
 
@@ -102,14 +103,20 @@ export function createDisposableGrantLedger({directory,macKey,clock=Date.now,all
     let held=false;
     try{
       await secureDirectory();
-      for(let i=0;i<30;i++){
+      // Monotonic, bounded contention window. The old 30 * 20ms attempts
+      // expired under unrelated parallel CI load during a 14-write burst.
+      // An orphaned lock still DENIES; never steal/clear it or trust a stale
+      // snapshot. No positive authorization caching or lock bypass.
+      const deadline=performance.now()+3000;
+      for(;;){
         try{
           await fs.mkdir(lock,{mode:0o700});
           held=true;break;
         }catch(e){
           if(e?.code!=='EEXIST')throw e;
-          if(i===29)denied();
-          await sleep(20);
+          const remaining=deadline-performance.now();
+          if(remaining<=0)denied();
+          await sleep(Math.min(20,remaining));
         }
       }
       return await action();

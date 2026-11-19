@@ -1693,8 +1693,8 @@ body.cloud-space-mounted #space-widget>.cloud-toolbar[data-sync-state="conflict"
 :root .inline-canvas-loading.is-error{color:var(--orbit-warning,#a9624e)}
 :root .sticky-actions{
   flex-wrap:wrap;justify-content:flex-end;
-  background:color-mix(in srgb,var(--orbit-paper) 94%,transparent 6%);
-  border-top:1px solid var(--orbit-editor-outline);
+  background:transparent;
+  border-top:0;
 }
 :root .sticky-primary-action{
   flex:0 0 auto;margin-left:auto;padding:9px 19px;min-width:104px;

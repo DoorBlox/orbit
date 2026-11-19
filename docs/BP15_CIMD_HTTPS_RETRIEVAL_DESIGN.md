@@ -1,0 +1,38 @@
+# BP-15 — Gated HTTPS CIMD retrieval: source-only security design
+
+**Status: security-focused source experiment, NOT a wired network integration.** This work adds dormant Node 22 adapters and synthetic, deterministic contract tests. No application, localhost OAuth handler, release bundle, hosted Auth, database, Storage or public MCP route imports these adapters. The existing #202 in-memory pinned registry remains the only executable CIMD registration source in the OAuth fixture. Merely adding source code is not permission to perform live network fetching.
+
+## Authorization boundary
+
+A real authorization server needs to retrieve HTTPS Client ID Metadata Documents (the client ID is the entire URL), validate exact document identity and callback, and resist a malicious client who chooses the URL. MCP 2026-07-28's authorization security guidance specifically calls out SSRF, DNS rebinding, untrusted redirect targets and localhost callback impersonation. The retrieved display name does **not** authenticate a caller or bypass explicit signed-in owner consent.
+
+This experiment separates policy and transport. \`createCimdHttpsRetrievalAdapter\` defaults to **disabled**; when explicitly passed only synthetic port functions, it requires an allowlisted HTTPS origin and exact callback before invoking DNS. It validates **all** A and AAAA answers, rejecting an entire set if any member is malformed, duplicated, special-use, nonpublic, or denied by a trusted egress callback. A single public IP is then frozen into a per-request plan. There is no fallback-to-another-IP, redirect, implicit retry, DNS-after-authorization or positive authorization cache. Network operations are limited to at most two concurrent requests, a default three-second wall-clock bound and an eight-KiB JSON body cap.
+
+The conservative IPv4 deny list includes 0/8, RFC1918, shared 100.64/10, loopback, link-local, benchmarking, documentation, 192.0.0/24, obsolete relay, multicast and reserved blocks. IPv6 requires global unicast within 2000::/3 and excludes mapped/embedded IPv4, NAT64 prefixes, discard-only, Teredo/orchid and 2001::/23, documentation, 6to4, unique-local, link-local and multicast. Classification uses Node core \`net.BlockList\`, not a handwritten address parser. This is a conservative snapshot; it must be reconciled with current IANA IPv4/IPv6 Special-Purpose registries and an independently enforced **default-deny outbound firewall** before any real deployment. A publicly routable but otherwise malicious peer remains possible and must be constrained by TLS identity and operator egress rules.
+
+## Dormant Node HTTPS transport
+
+\`createNodeCimdDnsPort\` and \`createNodeCimdHttpsPort\` require an explicit authorization option AND trusted hosts/origins before they can even be constructed. They are **never instantiated or called by a server path**. The resolver performs one bounded A+AAAA lookup using a Node \`Resolver\` (timeout 800 ms, one try), and the policy rejects all unsafe answers before sending the request.
+
+For a future approved call, \`pinnedCimdRequestOptions\` sets the original DNS hostname and HTTPS port 443, TLS \`servername\` to that exact hostname, \`rejectUnauthorized:true\`, platform \`checkServerIdentity\`, minimum TLS 1.2, \`agent:false\` (no global/proxy agent or pooling), and an injected \`lookup()\` that **only ever returns the vetted chosen IP**. \`verifyPinnedCimdTlsPeer\` requires CA authorization, SAN/hostname match, TLS 1.2/1.3 and actual socket \`remoteAddress===chosen IP\` before HTTP body processing. This pins the physical connection even if the domain's DNS changes after lookup. A deployed firewall still needs to prevent bypass through alternate processes or interfaces.
+
+A request is GET with no user cookies, bearer tokens, custom credentials or query-string forwarding; only exact canonical \`.json\` metadata paths are accepted. Node core HTTP does **not follow redirects**. Status must be 200, content-type strictly \`application/json\` with optional UTF-8 charset, content-encoding identity only; duplicate sensitive headers, cookie responses and any redirect Location are denied. Total headers are limited to 4 KiB, and content-length and streamed data are capped at 8 KiB. No automatic decompression, proxy, login, hidden egress credentials, positive caching or fallback origin exists.
+
+## Disposable grant-ledger reliability discovered by the full source suite
+
+The first CI candidate caught a test expectation problem, which was corrected to assert untrusted-origin denial at the `resolve()` request boundary. A later full `npm test` run reproduced an inherited ledger-concurrency failure: 14 simultaneous synthetic JTI writes could exhaust the old fixed 30 × 20 ms lock-retry window under CI load. The W4-owned disposable ledger uses a monotonic 3000 ms acquisition budget instead, retaining its **fail-closed orphan lock**, exclusive directory lock, HMAC integrity, atomic rename/fsync and no positive authorization cache. Existing concurrency and abandoned-lock tests must both pass at the **latest** PR head. This change does not touch SQL, hosted storage, grants for real users or production metadata.
+
+## Test matrix and evidence limits
+
+\`node --test tests/bp15_cimd_https_transport.test.mjs\` exercises **only synthetic ports**: disabled default, mixed good/bad DNS answers, mapped IPv6, link-local/cloud metadata and private networks, DNS rebinding attempts, failed per-IP egress policy, one-IP request pin, TLS peer IP/cert/SNI/protocol failure, redirected/compressed/oversized response, changed client document/redirect, concurrency limit and timer timeout. The real Node port test **inspects only the offline options and hostname verification function**; it never calls \`https.request()\` or \`dns.resolve*()\`. The normal \`mcp-sdk-v2\` job must remain green to verify previous #202 URL-ID grant/refresh/owner isolation still works.
+
+Any exact-head CI success establishes **source and synthetic contract coverage only**. It does not establish real DNS behavior, a firewall, a tested real network socket, a TLS CA-chain in an actual deployment, generic client registration, a hosted OAuth issuer or real user consent. Until separate owner approval, do not wire these ports into \`local-oauth-http.mjs\`, Vercel, Supabase, or any public MCP service.
+
+## Remaining owner-gated acceptance
+
+1. Independently review IANA special-use ranges and a real environment-specific allowlist/deny firewall; prohibit transparent HTTPS proxies, HTTP redirects and server-side credential forwarding.
+2. In a separately approved isolated network namespace, use synthetic domains and certificate authorities to validate A+AAAA rebinding, peer socket IP and CA/SAN/SNI, browser callback, full response/header timing and hard abort.
+3. Design durable resource/issuer/owner/**full HTTPS URL client_id**/JTI/epoch SQL grant and RLS/Storage validation with W1; require W3 to show the client hostname, full redirect URI, read scope and expiry in accessible real-user consent/deny/revoke UX.
+4. Re-run official SDK conformance with approved two controlled owner accounts; retain protected Preview/Production and hosted Auth/SQL/Storage as separately scoped owner decisions.
+
+References: [MCP 2026-07-28 authorization security](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/security-considerations), [Node 22 HTTPS](https://nodejs.org/docs/latest-v22.x/api/https.html), [Node net.BlockList](https://nodejs.org/docs/latest-v22.x/api/net.html), [IANA IPv4 registry](https://www.iana.org/assignments/iana-ipv4-special-registry), [IANA IPv6 registry](https://www.iana.org/assignments/iana-ipv6-special-registry).
