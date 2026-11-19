@@ -28,6 +28,7 @@ CASES = (
     ("218", "visible_task_creation_and_keyboard_save"),
     ("223", "panel_theme_contrast_resize_and_mobile"),
     ("210", "ambient_toggle_visible_and_reduced_motion"),
+    ("211", "synthetic_no_login_browser_context_isolation"),
 )
 MARKER = "W6 SYNTHETIC OWNER URGENT"
 
@@ -293,6 +294,33 @@ def issue_210(page):
     expect(page.locator("#appearance-ambient")).not_to_be_checked()
 
 
+def issue_211(page):
+    """No-login fixture is a separate local origin context, NEVER hosted auth."""
+    focus(page, "journal")
+    ensure_journal_edit(page)
+    page.locator("#journal-entry-title").fill(MARKER + " PRIVATE")
+    page.locator("#journal-editor").fill("W6 disposable content is local to A")
+    page.wait_for_function("""() => (localStorage.getItem('orbit.v5.journal')||'')
+      .includes('W6 SYNTHETIC OWNER URGENT PRIVATE')""")
+    shot(page, "211-synthetic-fixture-A-desktop")
+
+    # Entirely fresh local Chromium context, no auth token copied from A.
+    browser = page.context.browser
+    context_b, page_b, errors_b = open_page(
+        browser, (390, 844), is_mobile=True, has_touch=True
+    )
+    try:
+        blob = page_b.evaluate("""() => JSON.stringify(
+          Object.fromEntries(Object.entries(localStorage)))""")
+        assert MARKER + " PRIVATE" not in blob, "B context inherited A dummy Journal"
+        assert MARKER + " PRIVATE" not in page_b.locator("#app").inner_text()
+        shot(page_b, "211-fresh-browser-B-mobile")
+        assert not errors_b, "Unexpected local B browser errors"
+    finally:
+        context_b.tracing.stop()
+        context_b.close()
+
+
 def execute(browser, case_id, name, fn, report):
     context = page = None
     errors = []
@@ -354,7 +382,8 @@ def main():
     checks = {
         "214": issue_214, "216a": issue_216a,
         "216b": issue_216b, "217": issue_217,
-        "218": issue_218, "223": issue_223, "210": issue_210
+        "218": issue_218, "223": issue_223, "210": issue_210,
+        "211": issue_211
     }
     with server(), sync_playwright() as playwright:
         executable = (None if os.environ.get("ORBIT_BROWSER_BUNDLED")
