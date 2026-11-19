@@ -130,7 +130,8 @@ test('#212 unsorted or duplicated date-key history is canonical and bounded with
   })}};
   large['routine-1'].startDate='2020-01-01';
   assert.equal(normalizeTaskRoutines(large)['routine-1'].completedDates.length,2000);
-  assert.throws(()=>normalizeExtensions({taskRoutines:{...large,['r2']:{...large['routine-1'],completedDates:large['routine-1'].completedDates}} ,
+  const manyRules=Object.fromEntries(Array.from({length:30},(_,i)=>['r'+i,large['routine-1']]));
+  assert.throws(()=>normalizeExtensions({taskRoutines:manyRules,
     notes:Array.from({length:80},(_,i)=>({id:'n'+i,title:'',text:'x'.repeat(6000),x:0,y:0,width:250,height:200,color:'sand'}))
   }),/oversized|extensions/i);
 });
