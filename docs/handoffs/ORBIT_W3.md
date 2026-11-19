@@ -126,3 +126,8 @@
 ### FO-01 post-owner-approval integration (19 November 2026)
 - W4 owner review approved the sole `scripts/build.mjs` allowlist entry at [PR #176 comment 6842776940](https://github.com/DoorBlox/orbit/pull/176#issuecomment-6842776940). Owner instructed proceeding past procedural waits, while keeping safety, real CI and protected-main source verification.
 - Current reconciliation base main `a4d47c213e2a7bb1913c6dbe9352d81bf809eca0`; preserve new W1/W2/W4/W5/W6 files including #215 Sticky action strip CSS and browser assertions, plus all newest M2 source entries. W3 FO-01 app `7ac8f42c...`, Focus `30a730bd...`, merged CSS `e744ca5303b287c7568203f4393b62dc403abbb90af09e0328f156737ef441bb`. New integration requires four SUCCESS exact-head checks and reviewed 11-file diff before expected-head guarded squash; no Production or hosted action.
+
+### W3 BP-09 deferred owner save bridge — 19 November 2026
+- Issue #115, draft PR #244, test-only RED head d77561d42004aff1fbf388bb6e1d0a440de21399: quality run 44569188218 had 637 PASS and one expected missing dispatchSnapshotChange export. W3 owns app/bootstrap; W1 sync unchanged.
+- Implemented opt-in onSnapshotDirty() with a synchronous detached snapshot producer, and owner-specific queueDeferredOwned() adapter. Legacy eager onSnapshotChange(snapshot) remains opt-out compatible. Reviewed hashes app 698927686214505a24df3b3219a2ff09487cb13fdee16c3c139e25abf49b67db and bootstrap 6c3e49574936f4b8e4c16602e362d48ad5992c6b5e120f9e57c727b0fdff03df.
+- Keep synthetic browser and four exact-head CI gates; SOURCE ONLY. W6 #171 crash-survival remains a separate issue.

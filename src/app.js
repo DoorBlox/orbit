@@ -16,8 +16,14 @@ import { ProjectsShelf } from './project-shelf.js';
 import { FocusWidget } from './focus.js';
 import { createQuickJump } from './quick-jump.js';
 
+/** BP-09: preserve eager snapshot callers but optionally notify a deferred
+ * producer which constructs an owner-detached snapshot only at save/export. */
+export function dispatchSnapshotChange({getSnapshot,onSnapshotDirty=null,onSnapshotChange=()=>{}}){
+  if(typeof onSnapshotDirty==='function')return onSnapshotDirty(getSnapshot);
+  return onSnapshotChange(getSnapshot());
+}
 /** Mount the same spatial scrapbook over either local or authenticated owner state. */
-export function mountOrbit({initialSnapshot=null,readOnly=false,persistLocally=true,onSnapshotChange=()=>{},viewStateKey='local',media=null}={}){
+export function mountOrbit({initialSnapshot=null,readOnly=false,persistLocally=true,onSnapshotChange=()=>{},onSnapshotDirty=null,viewStateKey='local',media=null}={}){
 let disposed=false,hydrating=true,cloudStatus={state:'saved',hasPending:false};
 const events=new AbortController();
 const $=id=>document.getElementById(id);
@@ -919,7 +925,7 @@ function getSnapshot(){return {
   preferences:structuredClone(state.preferences),profile:structuredClone(state.profile),milestones:structuredClone(milestones),
   journalEntries:structuredClone(journal.entries),spatialLayout:board.getLayout(),extensions:collectExtensions(),
 };}
-function emitChange(){if(disposed||hydrating||persistLocally||readOnly)return;onSnapshotChange(getSnapshot());}
+function emitChange(){if(disposed||hydrating||persistLocally||readOnly)return;dispatchSnapshotChange({getSnapshot,onSnapshotDirty,onSnapshotChange});}
 function applySnapshot(snapshot){
    if(disposed)return;
    if(hasPendingEditor())throw Error('Unsaved canvas changes must be saved before replacing the workspace.');

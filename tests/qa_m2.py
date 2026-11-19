@@ -243,6 +243,44 @@ def gate_case(browser,size,mode,source):
     finally:close_context(ctx,page)
 
 
+def deferred_owner_rapid_edits(browser,source):
+    """BP-09: 100 real Journal input events defer owner snapshot construction."""
+    ctx,page,errors=cloud_context(browser,(1024,820),'owner',source=source)
+    try:
+        expect(page.locator('#app')).to_be_visible()
+        page.evaluate("window.orbitDebug.board.focus('journal',{initial:true})")
+        ensure_journal_edit(page)
+        # Count clones of the owner profile, a field constructed by getSnapshot().
+        # Other UI rendering clones do not clone this distinct profile payload.
+        page.evaluate("""() => {
+          window.__bp09ProfileClones=0;
+          const original=window.structuredClone;
+          window.structuredClone=function(value,...rest){
+            if(value && !Array.isArray(value) && value.displayName==='Synthetic owner')
+              window.__bp09ProfileClones++;
+            return original(value,...rest);
+          };
+          const editor=document.querySelector('#journal-editor');
+          for(let i=0;i<100;i++){
+            editor.textContent='SYNTHETIC rapid journal edit '+i;
+            editor.dispatchEvent(new Event('input',{bubbles:true}));
+          }
+        }""")
+        assert page.evaluate('window.__bp09ProfileClones')==0, \
+            '100 edits must not construct any full owner profile snapshot before save'
+        expect(page.locator('.cloud-sync-state')).to_contain_text('Changes waiting to save')
+        wait_until(page,"window.__m2Fixture.calls.some(c=>c.name==='save_owner_snapshot')")
+        expect(page.locator('.cloud-sync-state')).to_have_text('Saved to your cloud')
+        saved=page.evaluate("window.__m2Fixture.calls.filter(c=>c.name==='save_owner_snapshot')")
+        assert len(saved)==1,'Debounced burst must produce one owner CAS write'
+        assert page.evaluate('window.__bp09ProfileClones')==1, \
+            'Only one full owner snapshot must be created at the save boundary'
+        assert any('SYNTHETIC rapid journal edit 99' in entry.get('html','')
+                   for entry in saved[0]['args']['p_snapshot']['journalEntries'])
+        assert_no_local_leak(page)
+        assert not errors,errors
+    finally:close_context(ctx,page)
+
 def owner_case(browser,size,source):
     ctx,page,errors=cloud_context(browser,size,'owner',source=source)
     try:
@@ -676,7 +714,7 @@ def main():
     with server(args.source),sync_playwright() as p:
         executable=None if os.environ.get('ORBIT_BROWSER_BUNDLED') else os.environ.get('CHROMIUM_PATH') or shutil.which('chromium')
         browser=p.chromium.launch(headless=True,executable_path=executable,args=['--no-sandbox'])
-        cases=[('password-flow',lambda:password_case(browser,args.source)),('otp-flow',lambda:otp_flow_case(browser,args.source)),('otp-failures',lambda:otp_failure_case(browser,args.source)),('local-compatibility',lambda:local_compatibility(browser,args.source)),('journal-refresh-save-races',lambda:journal_races(browser,args.source)),('immediate-logout-draft',lambda:immediate_logout_draft(browser,args.source)),('failed-logout-recovery',lambda:failed_logout_recovery(browser,args.source)),('owner-opt-in-tools',lambda:owner_tools_case(browser,args.source)),
+        cases=[('password-flow',lambda:password_case(browser,args.source)),('otp-flow',lambda:otp_flow_case(browser,args.source)),('otp-failures',lambda:otp_failure_case(browser,args.source)),('local-compatibility',lambda:local_compatibility(browser,args.source)),('journal-refresh-save-races',lambda:journal_races(browser,args.source)),('bp09-deferred-owner-burst',lambda:deferred_owner_rapid_edits(browser,args.source)),('immediate-logout-draft',lambda:immediate_logout_draft(browser,args.source)),('failed-logout-recovery',lambda:failed_logout_recovery(browser,args.source)),('owner-opt-in-tools',lambda:owner_tools_case(browser,args.source)),
           ('private-gallery',lambda:private_gallery_case(browser,args.source,390)),
           ('private-gallery-fail-closed',lambda:private_gallery_failure_case(browser,args.source)),
         ('private-gallery-empty',lambda:private_gallery_empty_case(browser,args.source)),('owner-empty-expiry',lambda:owner_lifecycle_case(browser,args.source))]

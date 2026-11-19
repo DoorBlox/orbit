@@ -12,8 +12,8 @@
       "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service."
     },
     "src/app.js": {
-      "sha256": "7ac8f42cca9e48bac5eff508fdd9c4958a3f13e0ade009f3fa274785b0fdf06c",
-      "reason": "W3 FO-01 optional Focus spatial window, original six widget coordinates and backup unchanged."
+      "sha256": "698927686214505a24df3b3219a2ff09487cb13fdee16c3c139e25abf49b67db",
+      "reason": "W3 BP-09 opt-in deferred owner snapshot producer with legacy eager onSnapshotChange semantics preserved; FO-01 retained."
     },
     "src/auth/controller.js": {
       "sha256": "af8cde170ef58e61df8c464ee34249df4267812991392a95dae5c4d69f47ba20",
@@ -36,8 +36,8 @@
       "reason": "W3 BP-08: preserve centered world coordinate and reversible Focus camera bookmark through portrait, short-landscape, browser chrome and keyboard viewport changes without editing saved widget geometry."
     },
     "src/bootstrap.js": {
-      "sha256": "74f929543fddbf828f3b7560a0eba0d6901b9f0c8c8939ffa01501144e5cd387",
-      "reason": "BP-09: detached owner snapshot fast path removes redundant queue clone while preserving CAS and save-boundary isolation."
+      "sha256": "6c3e49574936f4b8e4c16602e362d48ad5992c6b5e120f9e57c727b0fdff03df",
+      "reason": "W3 BP-09 account-scoped owner bridge to existing W1 queueDeferredOwned; pending/CAS/retry semantics retained."
     },
     "src/cloud/client-config.js": {
       "sha256": "73f8785a6ba5fa9f5ebdf4ae84aa0bf8fb5183a975d4a5c71df12cdc6a73853b",
