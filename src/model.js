@@ -1,4 +1,4 @@
-import { civilTimestamp, todayKey, dateLabel, DAY_MS } from './dates.js';
+import { civilTimestamp, todayKey, dateLabel, DAY_MS, ORBIT_TIMEZONE, validDateKey } from './dates.js';
 
 export const STATUS=['captured','needs_clarity','ready','scheduled','in_progress','waiting','completed','parked'];
 export const STATUS_LABEL={captured:'Captured',needs_clarity:'Needs clarity',ready:'Ready',scheduled:'Scheduled',in_progress:'In progress',waiting:'Waiting',completed:'Completed',parked:'Parked'};
@@ -61,6 +61,105 @@ export function parseTaskChecklist(lines){
 export function taskChecklistLines(list=[]){
   return normalizeTaskChecklist(list).map(item=>`- [${item.done?'x':' '}] ${item.text}`).join('\n');
 }
+// #212: A routine remains ONE existing task row. Date-keyed occurrence
+// completion lives only in the already private workspace extensions JSON.
+// Do not put frequency or per-day status into the hosted task SQL row.
+const routineObject = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+const routineId = id => typeof id === 'string' &&
+  /^[A-Za-z0-9_-]{1,100}$/.test(id) && !['__proto__','constructor','prototype'].includes(id);
+const routineZoneCache = new Map();
+function routineZone(value = ORBIT_TIMEZONE){
+  if(typeof value !== 'string' || !/^[A-Za-z0-9_+\/-]{1,80}$/.test(value))
+    throw Error('Invalid routine timezone.');
+  if(!routineZoneCache.has(value)){
+    let zone;
+    try{zone=new Intl.DateTimeFormat('en-US',{timeZone:value}).resolvedOptions().timeZone;}
+    catch{throw Error('Invalid routine timezone.');}
+    if(!zone)throw Error('Invalid routine timezone.');
+    // Only a small bounded formatter cache; no new network service or locale
+    // inferred from the device, which may differ between synced clients.
+    if(routineZoneCache.size>=32)routineZoneCache.clear();
+    routineZoneCache.set(value,zone);
+  }
+  return routineZoneCache.get(value);
+}
+function routineRule(raw){
+  if(!routineObject(raw)||Object.keys(raw).some(k=>
+    !['frequency','startDate','timeZone','completedDates'].includes(k))||
+    raw.frequency!=='daily'||!validDateKey(raw.startDate))
+    throw Error('Invalid daily routine rule or start date.');
+  const timeZone=routineZone(raw.timeZone??ORBIT_TIMEZONE);
+  const dates=raw.completedDates??[];
+  if(!Array.isArray(dates)||dates.length>2000||dates.some(d=>
+    !validDateKey(d)||d<raw.startDate))throw Error('Invalid daily completion history.');
+  return {frequency:'daily',startDate:raw.startDate,timeZone,
+    completedDates:[...new Set(dates)].sort()};
+}
+/** Fail-closed canonical owner-private map; no task rows or dates are generated. */
+export function normalizeTaskRoutines(raw={}){
+  if(!routineObject(raw)||Object.keys(raw).length>10000)
+    throw Error('Invalid workspace task routines.');
+  const result={};
+  for(const [id,rule] of Object.entries(raw)){
+    if(!routineId(id))throw Error('Invalid routine task ID.');
+    result[id]=routineRule(rule);
+  }
+  return result;
+}
+/** Calendar dates are projected in the routine's pinned IANA zone, NOT UTC
+ * offsets or fixed-millisecond increments (which fail across DST shifts). */
+export function routineDayKey(now=new Date(),timeZone=ORBIT_TIMEZONE){
+  if(!(now instanceof Date)||!Number.isFinite(now.getTime()))
+    throw Error('Invalid routine clock.');
+  const zone=routineZone(timeZone);
+  let formatter=new Intl.DateTimeFormat('en-GB',{
+    timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit'
+  });
+  const parts=Object.fromEntries(formatter.formatToParts(now).map(p=>[p.type,p.value]));
+  const key=`${parts.year.padStart(4,'0')}-${parts.month}-${parts.day}`;
+  if(!validDateKey(key))throw Error('Invalid routine calendar day.');
+  return key;
+}
+/** W3 renders one deterministic virtual occurrence; status on the underlying
+ * task is NOT used as the occurrence's completion flag. */
+export function getDailyOccurrence(task,routines,{now=new Date()}={}){
+  const id=task?.id;
+  if(!routineId(id))throw Error('Invalid routine task.');
+  if(!routineObject(routines))throw Error('Invalid workspace task routines.');
+  if(!Object.hasOwn(routines,id))return null;
+  const rule=routineRule(routines[id]);
+  const dayKey=routineDayKey(now,rule.timeZone);
+  const active=dayKey>=rule.startDate;
+  return {taskId:id,occurrenceKey:`${id}@${dayKey}`,dayKey,
+    frequency:'daily',timeZone:rule.timeZone,active,
+    completed:active&&rule.completedDates.includes(dayKey)};
+}
+/** Idempotently enable daily recurrence; never reinterpret already recorded
+ * history under another timezone/start date without a deliberate migration. */
+export function setDailyRoutine(routines,taskId,{startDate,timeZone=ORBIT_TIMEZONE}={}){
+  if(!routineId(taskId))throw Error('Invalid routine task ID.');
+  const current=normalizeTaskRoutines(routines);
+  const rule=routineRule({frequency:'daily',startDate,timeZone,completedDates:[]});
+  const old=current[taskId];
+  if(old?.completedDates.length&&(old.startDate!==rule.startDate||old.timeZone!==rule.timeZone))
+    throw Error('Cannot change timezone or start date with existing routine history.');
+  return {...current,[taskId]:{...rule,completedDates:old?.completedDates??[]}};
+}
+/** Same task + same civil day has at most one completion; toggles are pure.
+ * CAS conflicts remain the existing sync controller's explicit review path. */
+export function setDailyCompletion(routines,taskId,dayKey,completed){
+  if(!routineId(taskId)||typeof completed!=='boolean'||!validDateKey(dayKey))
+    throw Error('Invalid daily completion request.');
+  const current=normalizeTaskRoutines(routines);
+  const rule=current[taskId];
+  if(!rule)throw Error('Daily routine does not exist.');
+  if(dayKey<rule.startDate)throw Error('Completion cannot precede routine start date.');
+  const days=new Set(rule.completedDates);
+  if(completed)days.add(dayKey);else days.delete(dayKey);
+  if(days.size>2000)throw Error('Daily completion history is full; export or archive before adding more.');
+  return {...current,[taskId]:{...rule,completedDates:[...days].sort()}};
+}
+
 export function cleanTask(raw,fallbackBranch='inbox'){
   const title=String(raw.title||'').trim().slice(0,180);if(!title)throw Error('A task needs a name.');
   let dueDate=String(raw.dueDate||'').trim();if(dueDate&&daysUntil(dueDate)===null)dueDate='';
