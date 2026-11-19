@@ -142,18 +142,33 @@ def _widget_ids(page):
 
 
 def _capture_widget(page, name, widget, output):
+    print(f"Visual #211: framing {name}/{widget}", flush=True)
     focus(page, widget)
+    # ORBIT's native focus prioritizes the camera/layout. A long widget may
+    # exceed the viewport; frame its heading with the production camera API
+    # instead of requiring the ENTIRE widget rectangle to fit on-screen.
+    page.evaluate(
+        """id => {
+          const board=window.orbitDebug.board;
+          const element=board.widgets.get(id);
+          if(!element || element.hidden) throw Error('Synthetic widget missing');
+          const heading=element.querySelector('.widget-heading');
+          if(!heading) throw Error('Synthetic widget has no heading');
+          board.ensureVisible(heading);
+        }""", widget,
+    )
     page.wait_for_function(
         """id => {
           const board=window.orbitDebug.board;
           const element=board.widgets.get(id);
+          const heading=element?.querySelector('.widget-heading');
+          if(!heading || element.hidden) return false;
           const viewport=board.viewport.getBoundingClientRect();
-          if(!element || element.hidden) return false;
-          const rect=element.getBoundingClientRect();
+          const rect=heading.getBoundingClientRect();
           return rect.right>viewport.left && rect.left<viewport.right &&
             rect.bottom>viewport.top && rect.top<viewport.bottom;
         }""",
-        arg=widget, timeout=12000,
+        arg=widget, timeout=4000,
     )
     location = OUT / f"{name}-{widget}.png"
     page.screenshot(
