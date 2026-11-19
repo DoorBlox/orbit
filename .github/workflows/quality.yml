@@ -59,6 +59,11 @@ jobs:
         env:
           ORBIT_BROWSER_BUNDLED: '1'
         run: python tests/qa_m1.py
+      - name: W6 cross-widget synthetic acceptance (desktop, touch and local isolation)
+        if: steps.scope.outputs.docs_only != 'true'
+        env:
+          ORBIT_BROWSER_BUNDLED: '1'
+        run: python tests/qa_acceptance_cross_widget.py
       - name: BP-16 keyboard, focus, native dialog and ARIA acceptance
         if: steps.scope.outputs.docs_only != 'true'
         env:
@@ -100,6 +105,9 @@ jobs:
             qa/m25-results.json
             qa/m2-results.json
             qa/m2-closeout-results.json
+            qa/acceptance/w6-cross-widget-results.json
+            qa/acceptance/w6-*-failure.png
+            qa/acceptance/w6-*-failure-trace.zip
             test-results/
           retention-days: 7
 # No deployment or database migration. Automatic Vercel deployments disabled pending approval.
