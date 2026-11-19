@@ -217,16 +217,19 @@ def sticky_canvas_surface(page):
     width=page.viewport_size['width']
     page.screenshot(path=str(qa.OUT/f'm25-sticky-canvas-{width}.png'))
     note.get_by_role('button',name='Preview sticky note').click()
+    page.screenshot(path=str(qa.OUT/f'm25-sticky-canvas-preview-{width}.png'))
     qa.wait_until(page,"window.__m2Fixture.calls.some(c=>c.name==='save_owner_snapshot' && c.args?.p_snapshot?.extensions?.notes?.some(n=>n.scene?.type==='excalidraw'))",timeout=15000)
     saved=page.evaluate("window.__m2Fixture.snapshot")
     assert any(n['id']==note_id and n.get('mode')=='canvas' and n.get('scene',{}).get('type')=='excalidraw'
       for n in saved['extensions']['notes']), 'The private owner scene did not persist on Preview'
     reopened_ctx,reopened,errors=qa.cloud_context(
-      page.context.browser,page.viewport_size,'owner',snapshot=saved)
+      page.context.browser,(page.viewport_size['width'],page.viewport_size['height']),
+      'owner',snapshot=saved)
     try:
         reopened_note=reopened.locator(f'.sticky-note[data-note-id="{note_id}"]')
         expect(reopened_note).to_have_count(1)
         expect(reopened_note).to_have_attribute('data-note-mode','canvas')
+        reopened.screenshot(path=str(qa.OUT/f'm25-sticky-canvas-reopen-{width}.png'))
         assert not errors,errors
         qa.assert_no_local_leak(reopened)
     finally:
@@ -273,7 +276,6 @@ def main():
                 expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
                 page.emulate_media(reduced_motion='no-preference')
                 cases=[('interruption',interruption),('reduced-motion',reduced_motion),('spring-settling',spring_settling),('touch-continuity',touch_continuity),('navigator-grab',navigator_grab_continuity)]
-                if label in ('desktop','phone'):cases.append(('sticky-canvas-surface',sticky_canvas_surface))
                 cases.append(('teardown',teardown))
                 for name, run in cases:
                     started = time.monotonic()
@@ -281,8 +283,7 @@ def main():
                         page.emulate_media(reduced_motion='no-preference')
                         run(page)
                         qa.assert_no_local_leak(page)
-                        if name!='sticky-canvas-surface':
-                            assert not page.evaluate('window.__m2Fixture.calls.some(c=>c.name==="save_owner_snapshot")')
+                        assert not page.evaluate('window.__m2Fixture.calls.some(c=>c.name==="save_owner_snapshot")')
                         assert not errors, errors
                         result = {'case':f'{name}-{label}','status':'PASS'}
                         if name == 'touch-continuity':
@@ -296,6 +297,27 @@ def main():
                     print(json.dumps(result), flush=True)
             finally:
                 qa.close_context(ctx, page)
+            # New owner-save acceptance must not pollute the read-only motion
+            # assertions or the sign-out teardown of the established suite.
+            if label in ('desktop','phone'):
+                ctx, page, errors = qa.cloud_context(browser, size, 'owner', source=args.source)
+                started = time.monotonic()
+                try:
+                    expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
+                    sticky_canvas_surface(page)
+                    qa.assert_no_local_leak(page)
+                    assert not errors, errors
+                    result = {'case':f'sticky-canvas-surface-{label}','status':'PASS'}
+                except Exception:
+                    result = {'case':f'sticky-canvas-surface-{label}',
+                              'status':'FAIL','traceback':traceback.format_exc()}
+                    try: page.screenshot(path=str(qa.OUT/f'm25-sticky-canvas-failure-{label}.png'))
+                    except Exception: pass
+                finally:
+                    qa.close_context(ctx,page)
+                result['seconds']=round(time.monotonic()-started,2)
+                results.append(result)
+                print(json.dumps(result),flush=True)
         browser.close()
     (qa.OUT/'m25-results.json').write_text(json.dumps(results,indent=2)+'\n')
     raise SystemExit(1 if any(r['status']=='FAIL' for r in results) else 0)
