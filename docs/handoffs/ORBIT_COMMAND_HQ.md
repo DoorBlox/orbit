@@ -1,5 +1,22 @@
 # ORBIT — Command HQ continuity and integration checkpoint
 
+## 19 Nov 2026 — later verified HQ completion and six-worker pickup
+
+**Newer than the first 19 Nov checkpoint below.** Requeried `main` after source/doc merges: `0cba1d16b611ada1ebba4ca3c1ccfad010cd66e5` (W5/HQ canonical roadmap/progress PR #232). The owner-urgent fourteen issue triages #211–#224 and [#225](https://github.com/DoorBlox/orbit/issues/225) remain active; none is yet marked Production-verified.
+
+- **HQ #227 MERGED** as `93ef2d3dde6be91098376717c934b91c748b99d8` (4/4 exact-head CI).
+- **W4 #228 MERGED** as `d2ff68fe388c08558a92b9dbecca9a930a002f85`, adding the actual W6 cross-widget Chromium runner to the required quality workflow. Distinguish CI invocation from individual acceptance-case results.
+- **Isolated W3/HQ sticky #215 #226 SOURCE MERGED** as `4898e7a384de5d095a6a0c8bc90cfce0ed8f0f85`, with four SUCCESS exact-head jobs: initial test-only `a1be44e991bb117cb7721f46dd23cbe4678c803d` failed in real Chromium exactly at the unwanted sticky strip; final `8c8ba16fffb01495b086b5e55a6661223c2d3fd2` passed real browser, RLS, artifact and anonymous access. Three reviewed files only: CSS, browser test, integrity manifest. **No actual Production release** and issue #215 remains OPEN for visual/live verification.
+- **HQ temporary W5 docs fallback #232 MERGED** as `0cba1d16b611ada1ebba4ca3c1ccfad010cd66e5` with four exact-head CI checks SUCCESS. The *single* canonical roadmap `plans/ORBIT_POST_2_4_EXECUTION.md` and `docs/PROGRESS.md` now include #211–#224 priority waves and source-vs-Production facts. W5 resumes canonical ownership and should reconcile future changes; do not duplicate #232.
+- **Live Vercel domain lookup** for `orbit.starscene.com` still mapped to READY deployment `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4` (ORBIT 2.4, Git `4e57aca785259192b92010c5d0e1634a4c1efe14`). This was not guessed from GitHub or prior docs. Do not surface or reuse any alias bypass/shareable-link data in docs or PR evidence.
+- **Six-worker activity observed**: W1 recurrence core [#230](https://github.com/DoorBlox/orbit/pull/230); W2 owner-private Excalidraw backup preflight [#229](https://github.com/DoorBlox/orbit/pull/229); W3 sticky canvas [#233](https://github.com/DoorBlox/orbit/pull/233); W4 synthetic isolated no-login view [#234](https://github.com/DoorBlox/orbit/pull/234); W6 leaf task-collapse RED [#231](https://github.com/DoorBlox/orbit/pull/231) and pending cross-widget evidence retention [#205](https://github.com/DoorBlox/orbit/pull/205). Cross-lane owner comments placed on W3 #233 and W6 #205. Preserve independent test-first work, do not merge deliberately RED proposals.
+- **Production HOLD is an unverified release gate, not a generic delay.** Existing [BP-05 staging runbook](../BP05_REVIEWED_STAGE_RUNBOOK.md) requires a configured independently reviewed `orbit-release-staging` GitHub environment, scoped token, pinned CLI, exact-main successful manual NO-DEPLOY preflight, approved SHA, protected identical-build staging and smoke, then separately controlled promotion. GitHub connector cannot inspect or modify environment settings, and setup currently **NOT VERIFIED**; do not bypass. W4 and owner must independently confirm it before staging. Also require W6 browser/privacy acceptance and signed-in account/media recovery evidence as applicable; standalone RED crash-recovery #171/#175 is a documented gap, not a confirmed Production incident. [#225 release checkpoint comment](https://github.com/DoorBlox/orbit/issues/225) contains exact domain and next gate. No hosted Auth/SQL/RLS/Storage, destructive or Production changes by HQ.
+
+**HQ continuation:** requery main and all PR exact heads, review new worker fixes and QA (especially #233, #230, #229, #231, #234), maintain W5 single roadmap, coordinate W4 precise release candidate and owner environment setup; do not conflate source merge with actual release. Avoid editing W3's #214 `src/stickies.js` or W4 CI while their worker branches are active.
+
+---
+
+
 ## 19 November 2026 — owner-urgent feedback triage + expedited production handoff (HQ)
 
 **Owner mandate:** "TRIAGE LOTSSSSSSSSS OF THE ISSUES I POSTED ... directly going to production ... fast." This authorizes urgent prioritization, source engineering and pursuing a verified expedited release, **not** bypassing existing security/acceptance safeguards or silently mutating hosted SQL/Auth/RLS/Storage, paid accounts, private media, OAuth exposure or permanent deletion.
