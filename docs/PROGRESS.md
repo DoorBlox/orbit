@@ -1,5 +1,8 @@
 # ORBIT — progress at a glance
 
+> **19 November 2026 — URGENT owner feedback intake (source/release distinct).** All 14 new original issues [#211–#224](https://github.com/DoorBlox/orbit/issues?q=is%3Aissue+is%3Aopen+author%3ADoorBlox) have concrete triage comments and a canonical queue in the [single roadmap](../plans/ORBIT_POST_2_4_EXECUTION.md). Operational release tracker [#225](https://github.com/DoorBlox/orbit/issues/225) covers test-first waves, controlled staging/promotion and rollback. Small sticky cosmetic fix [draft PR #226](https://github.com/DoorBlox/orbit/pull/226) is **IN PROGRESS**, not Production. Source/owner/handoff [#227](https://github.com/DoorBlox/orbit/pull/227) was squash-merged with four exact-head CI successes; this is documentation, not a release. The last independently verified Production artifact is **ORBIT 2.4** (`4e57aca`, `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`); recheck actual domain mapping before any promotion. Real owner/private-data acceptance and independent cross-widget Chromium runner remain separate gates. W5 will reconcile further merges and actual release evidence; no issue is marked delivered merely because it was triaged.
+
+
 **W5 verified status snapshot — 13 November 2026:** GitHub source [`61341361631d`](https://github.com/DoorBlox/orbit/commit/61341361631d629f0bcdf6e9e178f541c37e779e) is **SOURCE ONLY** for post-2.4 changes. Independently verified `orbit.starscene.com` still aliases **ORBIT 2.4** Vercel READY `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4` from Git `4e57aca785259192b92010c5d0e1634a4c1efe14`. No later source code is claimed deployed; signed-in owner/device acceptance remains pending. Requery live state before taking release action.
 
 
