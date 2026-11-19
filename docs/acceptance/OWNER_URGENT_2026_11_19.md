@@ -22,7 +22,7 @@
 
 | Issue | Independent evidence required before release | W6 status |
 | --- | --- | --- |
-| [#211](https://github.com/DoorBlox/orbit/issues/211) | Fake-data agent view on exact-source localhost/isolated protected preview without login bypass or hosted private data; A/B browser-context isolation, screenshot metadata and keyboard review; **does not prove live RLS** | **NOT RUN** (W4 fixture/CI pending) |
+| [#211](https://github.com/DoorBlox/orbit/issues/211) | Fake-data agent view on exact-source localhost; 7 widgets × 2 viewport screenshots, no cloud/Auth; **does not prove live RLS** | **PASS (synthetic Chromium)** at W4 PR #234 head `a0a47f76491699e736731ae6733d08866c92fa50`, [quality 44567486807](https://github.com/DoorBlox/orbit/actions/runs/44567486807), artifact `14553071646`; **NOT RELEASED** |
 | [#212](https://github.com/DoorBlox/orbit/issues/212) | Daily routine regeneration across local-day boundary/DST, mark-complete per occurrence, no duplicates on reload/offline reconnect; CAS and export integrity | **NOT RUN — no verified candidate** |
 | [#213](https://github.com/DoorBlox/orbit/issues/213) | Private local-only ledger proposal: input validation, privacy, calculations, export and owner data, no remote finance linkage without scope | **NOT RUN — proposal only** |
 | [#219](https://github.com/DoorBlox/orbit/issues/219) | Visible Help entry point, focus-trapped/escapable contextual guidance, real task creation steps, respects reduced motion and mobile view | **NOT RUN — no verified candidate** |
@@ -43,3 +43,15 @@
 ## Release tracker #225 — HOLD, not Production
 
 Every candidate needs independent **source head + complete scope diff + 4/4 exact-head CI**, the named W6 browser case(s) actually **executed** and producing safe screenshot evidence, no private/CAS/backup regression, a verified **exact-source protected stage**, rollback identity, and post-promotion Production domain+SHA smoke. Source merge, Preview READY, owner visual approval, and Production release must be recorded separately, never inferred. The current release tracker is a request, **not a release action or broad Auth/SQL/Storage authorization**. Keep issue OPEN until its specified behavior is verified on real Production. Deliberately RED crash-durability [PR #175](https://github.com/DoorBlox/orbit/pull/175) stays unmerged pending owner/HQ security decision.
+
+## Verified new W4 browser execution (19 November 2026)
+
+W4 [PR #234](https://github.com/DoorBlox/orbit/pull/234) at exact head `a0a47f76491699e736731ae6733d08866c92fa50` **PASS** in [quality run 44567486807](https://github.com/DoorBlox/orbit/actions/runs/44567486807), static-quality job `135713105314`. W6 inspected [synthetic browser artifact ID 14553071646](https://github.com/DoorBlox/orbit/actions/runs/44567486807/artifacts): `qa/acceptance/w6-cross-widget-results.json` reports **PASS** for same-workspace save/reload, touch-capable mobile focus/rotation and new-context isolation. `qa/synthetic-visual-211/manifest.json` reports `DISPOSABLE_LOCAL_NO_LOGIN`, `auth_bypass:false`, `cloud_requests:0`, desktop 1440×900 and phone 390×844, seven widgets each, **14 actual Chromium PNG screenshots and two traces**, both viewports PASS. W6 viewed those generated screenshots. This is a real browser PASS for **local synthetic fixtures only**, not the owner's protected Preview, live RLS, native phone or Production.
+
+The owner-urgent **new** runner `tests/qa_acceptance_owner_urgent.py` remains **NOT RUN** until W4 adds that exact command to its currently source-merged quality workflow; a Python AST test PASS does not prove dynamic interaction acceptance.
+
+## Additional RED source-level accessibility finding
+
+[#223](https://github.com/DoorBlox/orbit/issues/223) independent W6 [draft PR #242](https://github.com/DoorBlox/orbit/pull/242) head `61ea7cf088dc35be714648389c3e1750b497b026`: [quality 44568581439](https://github.com/DoorBlox/orbit/actions/runs/44568581439) recorded **647 Node PASS, 1 FAIL**: Sakura selected-theme text foreground `--orbit-sky` over `--orbit-accent` contrast **4.25:1** (below **4.5:1** WCAG AA normal text). W3 notified in [#223](https://github.com/DoorBlox/orbit/issues/223). This is a token-level contrast failure, **not yet rendered pixel/hover/focus evidence**. Keep #242 deliberately draft/RED until a W3 CSS fix passes separate exact-head CI. This failure and #217 RED do not authorize merging test branches with intentionally broken required checks or promoting Production.
+
+The original owner screenshots are still available at the issue attachment links above; the current execution interface could not retrieve their pixel data, so direct visual before/after comparison remains **NOT RUN**. The independently downloaded **synthetic** screenshots were reviewed and should not be misattributed as owner uploads.
