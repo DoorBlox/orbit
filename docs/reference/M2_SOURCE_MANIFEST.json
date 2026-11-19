@@ -140,8 +140,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "8160b9b63d2a9b020035e502d2b2d688b9a36cfd8499a73bfea025e0eabfed31",
-      "reason": "W3 BP-12/EX-02: auth-scoped owner-private gallery with release-safe leased previews, opt-in detached media export, keyboard/mobile and fail-closed behavior."
+      "sha256": "50bab3d3e721357b6c3e80657f669ecbd746d36b177d82c2c2dc701071cc4742",
+      "reason": "W3 BP-12/EX-02: auth-scoped owner-private gallery with release-safe leased previews, opt-in detached media export, keyboard/mobile and fail-closed behavior; #215 removes the unwanted sticky action-strip background/border."
     },
     "src/widget-registry.js": {
       "sha256": "097767f8dd9c6c1e94504ec571c29ca2f1d0684955d2f8c87231d15db1a427f0",
