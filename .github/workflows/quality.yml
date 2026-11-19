@@ -64,6 +64,13 @@ jobs:
         env:
           ORBIT_BROWSER_BUNDLED: '1'
         run: python tests/qa_acceptance_cross_widget.py
+      - name: "#211 local-only synthetic visual previews (no login, no cloud)"
+        if: steps.scope.outputs.docs_only != 'true'
+        env:
+          ORBIT_BROWSER_BUNDLED: '1'
+          ORBIT_SYNTHETIC_ONLY: '1'
+          ORBIT_VISUAL_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: python tests/qa_synthetic_visual_211.py
       - name: BP-16 keyboard, focus, native dialog and ARIA acceptance
         if: steps.scope.outputs.docs_only != 'true'
         env:
@@ -108,6 +115,9 @@ jobs:
             qa/acceptance/w6-cross-widget-results.json
             qa/acceptance/w6-*-failure.png
             qa/acceptance/w6-*-failure-trace.zip
+            qa/synthetic-visual-211/*.png
+            qa/synthetic-visual-211/*.zip
+            qa/synthetic-visual-211/manifest.json
             test-results/
           retention-days: 7
 # No deployment or database migration. Automatic Vercel deployments disabled pending approval.
