@@ -12,8 +12,8 @@
       "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service."
     },
     "src/app.js": {
-      "sha256": "6cae0474771280d89c45b1ed5e52e709af3b2fe3dc8cffefd1cce5875c33ee1e",
-      "reason": "BR-01: integrate spatial Jump across private tasks, branches, notes, journals and windows without changing saved layout or cloud schema."
+      "sha256": "973a6783aef9b2cd70512216fd2f49370e9154ad39399ce77d3fc5b0236f0eb0",
+      "reason": "W3 #217: persist leaf task collapse, expose keyboard toggles, hide task stacks and terminal connector paths without task mutation."
     },
     "src/auth/controller.js": {
       "sha256": "af8cde170ef58e61df8c464ee34249df4267812991392a95dae5c4d69f47ba20",
@@ -76,8 +76,8 @@
       "reason": "W1 BP-09: defensive save clone rechecks pending owner draft after getter-driven synchronous supersession; unstable cloning bounded to 16 attempts, with latest pending draft and revision-CAS protected."
     },
     "src/constellation.js": {
-      "sha256": "6d17fe195d35d9e0de6b712855e5f4634d284c7368457b9676cea8d55d8f3c1b",
-      "reason": "BP-06: viewport-native task inspector with scroll, keyboard, cancel, validation and preserved checklist/links."
+      "sha256": "c63a05f7c5bfac38a9b4f9e9649a71f47044f0bd106c70cbe0431700d3dcc5b3",
+      "reason": "W3 #217: persist leaf task collapse, expose keyboard toggles, hide task stacks and terminal connector paths without task mutation."
     },
     "src/csv.js": {
       "sha256": "e5de107e78d76d26553d25dca1b200765aaafeb2b836216b1ae11f57e5499178",
@@ -108,8 +108,8 @@
       "reason": "W3 BP-11: safely use clipboard plain text when untrusted rich HTML is fully rejected; preserve selection on empty payload and native undo/redo."
     },
     "src/layout.js": {
-      "sha256": "1895015e94741e987e696be8ab1d77ab348560dc847a70a41bd7c6ca74626ee3",
-      "reason": "2.1 reviewed: branch collapse/expand, keyboard disclosure and per-account local view state with backup support"
+      "sha256": "c62f15af823fd0b1e4d9abfcf680f7257fbd67af850adf9be6703a269f9d9676",
+      "reason": "W3 #217: persist leaf task collapse, expose keyboard toggles, hide task stacks and terminal connector paths without task mutation."
     },
     "src/model.js": {
       "sha256": "80d566a5070b4b4154bf5ceb958bf4cb00fa9ff317648198475ef2f6b40c6e35",
