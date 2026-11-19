@@ -288,11 +288,16 @@ export class StickyNotes {
       formatBar.append(done);
       const preview=document.createElement('div');preview.className='sticky-drawing';
       preview.setAttribute('aria-label','Freeform note canvas');
-      renderScene(n.scene,preview,{media:this.media});this.drawingPreviews.add(preview);
-      if(mode==='canvas'&&(!n.scene||!n.scene.elements?.some(e=>!e.isDeleted))){
-        const empty=document.createElement('p');empty.className='sticky-canvas-empty';
-        empty.textContent='Your canvas is ready for text, arrows, shapes and sketches.';
-        preview.append(empty);
+      // Read-only previews belong only to Preview mode. Even a [hidden]
+      // drawing can consume space in Canvas edit because legacy ID-specific
+      // styles override the hidden display rule. The live editor owns the sheet.
+      if(!editing&&mode==='canvas'){
+        renderScene(n.scene,preview,{media:this.media});this.drawingPreviews.add(preview);
+        if(!n.scene||!n.scene.elements?.some(e=>!e.isDeleted)){
+          const empty=document.createElement('p');empty.className='sticky-canvas-empty';
+          empty.textContent='Your canvas is ready for text, arrows, shapes and sketches.';
+          preview.append(empty);
+        }
       }
       editor.hidden=!(editing&&mode==='write');
       formatBar.hidden=!(editing&&mode==='write');
@@ -415,7 +420,10 @@ export class StickyNotes {
         const attachment=document.createElement('div');attachment.className='sticky-attachment';
         attachment.append(image,image._orbitStatus);moreActions.append(attachment);
       }
-      article.append(head,modeTabs,formatBar,editor,formatted,preview,inlineHost,actions,resizer);this.layer.append(article);
+      article.append(head,modeTabs,formatBar,editor,formatted);
+      // Never mount the preview alongside Excalidraw in the editable Canvas.
+      if(!editing&&mode==='canvas')article.append(preview);
+      article.append(inlineHost,actions,resizer);this.layer.append(article);
       if(editing&&mode==='write')editor.focus({preventScroll:true});
       if(editing&&mode==='canvas'){
         this.activeCanvas=mountInlineCanvas({host:inlineHost,scene:n.scene,media:this.media,

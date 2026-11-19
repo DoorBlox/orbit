@@ -132,8 +132,8 @@
       "reason": "BP-10: owner-private image previews have explicit lease/teardown lifetimes; idle Blob URLs have count/byte caps; no hosted media deletion."
     },
     "src/stickies.js": {
-      "sha256": "8c6472cbcc0b9ae05ab954e8d1bddc37597da9395238f8e77fbab34477b284cb",
-      "reason": "BP-10: owner-private image previews have explicit lease/teardown lifetimes; idle Blob URLs have count/byte caps; no hosted media deletion."
+      "sha256": "bc2a5e9d16d23bff2b7f29041723a41209f3e6263a4917fd09167812134dd61c",
+      "reason": "W3 #214: render scene preview only in read-only Canvas mode; keep live Excalidraw sheet unobstructed and preserve note, media, mode and save behavior."
     },
     "src/storage.js": {
       "sha256": "ce630445a0191678fc845349efaeb34b7c057fb791b841c17c32914afd6d1838",
