@@ -272,13 +272,17 @@ def main():
             try:
                 expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
                 page.emulate_media(reduced_motion='no-preference')
-                cases=[('interruption',interruption),('reduced-motion',reduced_motion),('spring-settling',spring_settling),('touch-continuity',touch_continuity),('navigator-grab',navigator_grab_continuity)]\n                if label in ('desktop','phone'):cases.append(('sticky-canvas-surface',sticky_canvas_surface))\n                cases.append(('teardown',teardown))\n                for name, run in cases:
+                cases=[('interruption',interruption),('reduced-motion',reduced_motion),('spring-settling',spring_settling),('touch-continuity',touch_continuity),('navigator-grab',navigator_grab_continuity)]
+                if label in ('desktop','phone'):cases.append(('sticky-canvas-surface',sticky_canvas_surface))
+                cases.append(('teardown',teardown))
+                for name, run in cases:
                     started = time.monotonic()
                     try:
                         page.emulate_media(reduced_motion='no-preference')
                         run(page)
                         qa.assert_no_local_leak(page)
-                        if name!='sticky-canvas-surface':\n                            assert not page.evaluate('window.__m2Fixture.calls.some(c=>c.name==="save_owner_snapshot")')
+                        if name!='sticky-canvas-surface':
+                            assert not page.evaluate('window.__m2Fixture.calls.some(c=>c.name==="save_owner_snapshot")')
                         assert not errors, errors
                         result = {'case':f'{name}-{label}','status':'PASS'}
                         if name == 'touch-continuity':
