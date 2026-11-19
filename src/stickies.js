@@ -121,6 +121,11 @@ export class StickyNotes {
     e.preventDefault();e.stopPropagation();
     const target=e.currentTarget,pointer=e.pointerId,startX=e.clientX,startY=e.clientY;
     const initial={x:n.x,y:n.y,width:n.width,height:n.height};
+    // Canvas edit temporarily opens a usable drawing desk without silently
+    // rewriting saved note geometry. A deliberate resize starts at the
+    // visible height; only a completed drag persists the changed dimension.
+    const canvasDesk=element.dataset.noteMode==='canvas'&&element.dataset.view==='edit';
+    const visibleResizeHeight=canvasDesk?Math.max(initial.height,540):initial.height;
     let finished=false;
     const move=event=>{
       if(finished||event.pointerId!==pointer)return;
@@ -128,7 +133,7 @@ export class StickyNotes {
       const scale=clamp(Number(this.getScale())||1,.1,5);
       const dx=(event.clientX-startX)/scale,dy=(event.clientY-startY)/scale;
       if(mode==='move'){n.x=clamp(initial.x+dx,-5000,7500);n.y=clamp(initial.y+dy,-5000,7500);}
-      else{n.width=Math.round(clamp(initial.width+dx,220,5000));n.height=Math.round(clamp(initial.height+dy,160,5000));}
+      else{n.width=Math.round(clamp(initial.width+dx,220,5000));n.height=Math.round(clamp(visibleResizeHeight+dy,160,5000));}
       element.style.left=n.x+'px';element.style.top=n.y+'px';
       element.style.width=n.width+'px';element.style.height=n.height+'px';
     };
@@ -142,7 +147,7 @@ export class StickyNotes {
       if(cancel){
         Object.assign(n,initial);
         element.style.left=n.x+'px';element.style.top=n.y+'px';
-        element.style.width=n.width+'px';element.style.height=n.height+'px';
+        element.style.width=n.width+'px';element.style.height=(canvasDesk?Math.max(n.height,540):n.height)+'px';
       }
       try{if(target.hasPointerCapture?.(pointer))target.releasePointerCapture(pointer);}catch{}
       if(!cancel&&Object.keys(initial).some(key=>initial[key]!==n[key]))this.changed();
@@ -186,6 +191,8 @@ export class StickyNotes {
       });
       const mode=n.mode==='canvas'?'canvas':'write';
       const editing=this.editingNoteId===n.id&&!this.readOnly;
+      // A temporary full-height drawing surface; Preview restores geometry.
+      if(editing&&mode==='canvas')article.style.height=Math.max(n.height,540)+'px';
       const title=document.createElement('input');title.type='text';title.maxLength=100;title.value=n.title;
       title.className='sticky-title';title.setAttribute('aria-label','Sticky note title');
       title.disabled=this.readOnly;title.readOnly=!editing;

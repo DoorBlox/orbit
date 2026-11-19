@@ -195,9 +195,13 @@ def sticky_canvas_surface(page):
     page.locator('#new-sticky').click()
     expect(page.locator('.sticky-note')).to_have_count(1)
     page.evaluate("window.orbitDebug.board.focus('space',{initial:true})")
-    page.locator('.space-point-sticky').first.click()
+    pin=page.locator('.space-point-sticky').first
+    if pin.is_hidden():
+        page.get_by_role('button',name='Open places map').click()
+    pin.click()
     note=page.locator('.sticky-note').first
     note_id=note.get_attribute('data-note-id')
+    saved_note_height=note.evaluate('e=>parseInt(e.style.height,10)')
     note.get_by_role('button',name='Edit sticky note').click()
     note.get_by_role('button',name='Canvas',exact=True).click()
     expect(note.locator('.sticky-inline-canvas .excalidraw')).to_be_visible(timeout=30000)
@@ -211,12 +215,13 @@ def sticky_canvas_surface(page):
       return {noteHeight:e.getBoundingClientRect().height,hostHeight:bounds?.height||0,
         hostWidth:bounds?.width||0,editorHeight:canvas?.height||0,editorWidth:canvas?.width||0};
     }""")
-    assert geometry['hostHeight'] >= 105 and geometry['hostWidth'] >= 180,geometry
+    assert geometry['noteHeight'] >= 500 and geometry['hostHeight'] >= 300 and geometry['hostWidth'] >= 180,geometry
     assert geometry['editorHeight'] >= geometry['hostHeight']*.9,geometry
     assert geometry['editorWidth'] >= geometry['hostWidth']*.9,geometry
     width=page.viewport_size['width']
     page.screenshot(path=str(qa.OUT/f'm25-sticky-canvas-{width}.png'))
     note.get_by_role('button',name='Preview sticky note').click()
+    assert note.evaluate('e=>parseInt(e.style.height,10)') == saved_note_height, 'Editing Canvas must not silently change saved note height'
     page.screenshot(path=str(qa.OUT/f'm25-sticky-canvas-preview-{width}.png'))
     qa.wait_until(page,"window.__m2Fixture.calls.some(c=>c.name==='save_owner_snapshot' && c.args?.p_snapshot?.extensions?.notes?.some(n=>n.scene?.type==='excalidraw'))",timeout=15000)
     saved=page.evaluate("window.__m2Fixture.snapshot")
