@@ -2,7 +2,7 @@
  * EX-02 keeps binary image assets in authenticated private Storage; scenes save
  * only bounded fileId -> owner-scoped file references, never data URLs.
  */
-import { normalizeTaskChecklist } from './model.js';
+import { normalizeTaskChecklist, normalizeTaskRoutines } from './model.js';
 import { normalizeExtraWidgetLayout } from './widget-registry.js';
 import { normalizeProjects } from './projects.js';
 const object = value => !!value && typeof value==='object' && !Array.isArray(value);
@@ -51,6 +51,8 @@ export function normalizeExtensions(raw={}){
   if(!object(raw)||JSON.stringify(raw).length>900000)throw Error('Invalid or oversized workspace extensions.');
   const notes=raw.notes??[],taskLinks=raw.taskLinks??{},journalScenes=raw.journalScenes??{},journalImages=raw.journalImages??{},journalModes=raw.journalModes??{},journalPaperStyles=raw.journalPaperStyles??{};
   const taskChecklists=raw.taskChecklists??{};
+  // #212 additive owner-private extension; omitted for legacy one-off workspaces.
+  const taskRoutines=normalizeTaskRoutines(raw.taskRoutines??{});
   const spatialWidgets=normalizeExtraWidgetLayout(raw.spatialWidgets);
   const projects=normalizeProjects(raw.projects);
   const rawAppearance=raw.appearance??{};
@@ -114,7 +116,8 @@ export function normalizeExtensions(raw={}){
     if(!validId(id))throw Error('Invalid journal image ID.');
     images[id]=assertImagePath(path);
   }
-  return {notes:cleanNotes,taskLinks:links,taskChecklists:checklists,journalScenes:scenes,journalImages:images,
+  return {notes:cleanNotes,taskLinks:links,taskChecklists:checklists,
+    ...(Object.keys(taskRoutines).length?{taskRoutines}:{}),journalScenes:scenes,journalImages:images,
     ...(Object.keys(pageModes).length?{journalModes:pageModes}:{}),
     ...(Object.keys(pagePaper).length?{journalPaperStyles:pagePaper}:{}),spatialWidgets,projects,appearance};
 }

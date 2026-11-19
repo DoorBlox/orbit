@@ -112,8 +112,8 @@
       "reason": "2.1 reviewed: branch collapse/expand, keyboard disclosure and per-account local view state with backup support"
     },
     "src/model.js": {
-      "sha256": "80d566a5070b4b4154bf5ceb958bf4cb00fa9ff317648198475ef2f6b40c6e35",
-      "reason": "Validate and parse bounded plain-text task checklist context without altering the hosted task table schema."
+      "sha256": "569ccef567b94fad60420e6088a4b9973a240c07cd2fa5b59c6de2ae6f511c0a",
+      "reason": "W1 #212: migration-safe daily occurrence/date-key completion API with immutable IANA zones, validated history and no SQL task-row changes."
     },
     "src/project-shelf.js": {
       "sha256": "f434be70ff40d575636da653d4fd7964d92ec1e28f6b264facb983a1214e6b1a",
@@ -128,8 +128,8 @@
       "reason": "Null local default; only build-generated allowlisted public configuration activates cloud."
     },
     "src/scene.js": {
-      "sha256": "37c6f26e84cca8bee6686e531953abc5927ed6980cd42147486305f9007b8dcd",
-      "reason": "BP-10: owner-private image previews have explicit lease/teardown lifetimes; idle Blob URLs have count/byte caps; no hosted media deletion."
+      "sha256": "76193f6059bf90ac89805ef8b9f633e85524d92eca928dc1af1b13ad2c9144e3",
+      "reason": "W1 #212: additive owner-private extension normalization preserves validated daily routine history through cloud snapshots and portable backup without changing old one-off schemas."
     },
     "src/stickies.js": {
       "sha256": "8c6472cbcc0b9ae05ab954e8d1bddc37597da9395238f8e77fbab34477b284cb",
