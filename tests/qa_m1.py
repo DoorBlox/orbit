@@ -403,6 +403,7 @@ def viewport_flow(browser, label, size):
         expect(hud).to_be_visible()
         expect(hud.locator('#new-sticky')).to_be_visible()
         assert page.locator('#space-widget #new-sticky').count()==0
+        assert page.locator('#space-widget #open-focus-timer').count()==1, 'Focus must remain discoverable after HUD migration'
         assert hud.locator('#color-mode').count()==1
         current=page.evaluate('window.orbitDebug.state.mode')
         hud.locator('#color-mode').click()
