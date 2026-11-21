@@ -16,7 +16,9 @@ export function createLayout(branches,tasks=[],displayName='My space',collapsedB
   const counts=new Map();for(const t of tasks)counts.set(t.projectId,(counts.get(t.projectId)||0)+1);
   const branchIds=new Set(branches.map(b=>b.id));
   const parentsWithChildren=new Set(branches.map(b=>b.parentId).filter(id=>id!=='root'));
-  const collapsed=new Set(Array.isArray(collapsedBranchIds)?collapsedBranchIds.filter(id=>branchIds.has(id)&&parentsWithChildren.has(id)):[]);
+  // A branch can fold either child branches or its own active task stack.
+  const foldable=new Set([...parentsWithChildren,...counts.keys()]);
+  const collapsed=new Set(Array.isArray(collapsedBranchIds)?collapsedBranchIds.filter(id=>branchIds.has(id)&&foldable.has(id)):[]);
   const leafDescriptors=[];const ancestry=new Map([['root',[]]]);
   const depth=new Map([['root',0]]);let maxDepth=1;
   const visit=(id,parentIds=[],d=1)=>{
@@ -75,10 +77,12 @@ export function createLayout(branches,tasks=[],displayName='My space',collapsedB
     if(terminal)radius=INNER_MAX;
     radius=clamp(radius,INNER,INNER_MAX);
     const node={...b,type:'branch',depth:d,color:inheritedColor(b.id),count:endpoints.length,angle,
-      childCount,hasChildren:childCount>0,collapsed:isCollapsed,...polar(angle,radius),terminal};
+      childCount,hasChildren:childCount>0,canCollapse:childCount>0||(counts.get(b.id)||0)>0,
+      collapsed:isCollapsed,...polar(angle,radius),terminal};
     nodes.push(node);edges.push([b.parentId,b.id]);
   }
-  const stacks=stackPositions.map((p,i)=>{
+  // Hidden direct task stacks must not render ghost terminal connectors.
+  const stacks=stackPositions.filter(p=>!p.collapsed).map((p,i)=>{
     const estimatedHeight=Math.max(42,p.count*46+10);
     // List rows always flow downward. For a northern branch we place the list
     // completely ABOVE its connection point, so later rows cannot collide
