@@ -2327,3 +2327,40 @@ body.cloud-space-mounted #space-widget .cloud-sync-state{position:absolute!impor
   flex:0 0 auto!important;align-self:stretch;width:100%;height:auto!important;
   min-height:0!important;max-height:none;aspect-ratio:4 / 3;
 }
+
+/* FB-220 — a single discoverable command surface outside the spatial widgets.
+   It never changes owner-private storage directly: the existing actions do. */
+:root .orbit-quickbar{position:fixed;z-index:78;left:22px;
+  bottom:calc(17px + env(safe-area-inset-bottom,0px));
+  max-width:min(690px,calc(100dvw - 286px));min-height:58px;
+  display:flex;align-items:center;gap:6px;padding:7px;
+  overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;
+  border:1px solid var(--orbit-outline,#bac7d6);border-radius:19px;
+  background:var(--orbit-solid-chrome,#f6f9fb);color:var(--orbit-chrome-ink,#30455a);
+  box-shadow:0 12px 32px rgba(23,37,53,.18)}
+:root .orbit-quickbar button{flex:0 0 auto;min-height:44px;min-width:58px;
+  border:1px solid transparent;border-radius:12px;padding:9px 12px;
+  background:transparent;color:inherit;cursor:pointer;
+  font:700 13px/1.3 var(--orbit-font-ui,system-ui);white-space:nowrap}
+:root .orbit-quickbar button:hover{background:var(--orbit-hover-surface,#e9f0f7)}
+:root .orbit-quickbar button:focus-visible{outline:3px solid var(--orbit-accent,#507bb6);outline-offset:1px}
+:root .orbit-quickbar #hud-new-task,:root .orbit-quickbar #new-sticky{
+  border-color:var(--orbit-outline,#bac7d6);background:var(--orbit-field,#edf3f7)}
+:root .orbit-quickbar .hud-sort{border-color:var(--orbit-outline,#bac7d6)}
+:root .orbit-quickbar button:disabled{opacity:.48;cursor:not-allowed}
+body.cloud-space-mounted .orbit-quickbar{
+  bottom:calc(17px + var(--cloud-dock-height,0px) + env(safe-area-inset-bottom,0px))}
+@media(max-width:760px){
+  /* Reserve a real 80px command strip outside the transformed spatial world.
+     A fixed overlay blocked task capture near the bottom and Journal actions
+     near the top on 320px and 390px phones. Pan/focus uses the smaller viewport. */
+  :root .spatial-viewport{bottom:calc(80px + env(safe-area-inset-bottom,0px))}
+  :root .orbit-quickbar{left:12px;right:12px;max-width:none;width:auto;
+    top:auto;bottom:calc(9px + env(safe-area-inset-bottom,0px));
+    min-height:54px;border-radius:16px}
+  body.cloud-space-mounted .spatial-viewport{
+    bottom:calc(80px + var(--cloud-dock-height,0px) + env(safe-area-inset-bottom,0px))}
+  body.cloud-space-mounted .orbit-quickbar{
+    top:auto;bottom:calc(9px + var(--cloud-dock-height,0px) + env(safe-area-inset-bottom,0px))}
+}
+body.map-immersive .orbit-quickbar{opacity:.15;pointer-events:none}
