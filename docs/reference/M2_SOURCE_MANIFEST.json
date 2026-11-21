@@ -144,7 +144,7 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "5422454e91654b68e0af4fc49c00d8e4174b7f273867a334091d847866926180",
+      "sha256": "87cb7a52fa19684c0987f4ad15747b692a7a5941e3c226463e510f0b2c3b8c48",
       "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior.; #210 ambient toggle off/no-motion CSS invariant."
     },
     "src/widget-registry.js": {
