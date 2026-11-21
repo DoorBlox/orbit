@@ -29,6 +29,19 @@ export async function bootstrapOrbit(config=runtimeConfig) {
   const lifecycle=new AbortController();
   appElement.hidden=true;appElement.inert=true;
   let app=null,sync=null,auth=null,ownerTools=null,readRequest=null,viewVersion=0;
+  let draftVault=null,draftWarningShown=false;
+  const warnDraft=()=>{
+    if(draftWarningShown)return;
+    draftWarningShown=true;
+    window.alert('Secure crash recovery is unavailable in this browser. Export a private backup before leaving with unsaved changes.');
+  };
+  function downloadRecoveredDraft(snapshot){
+    const file=new Blob([JSON.stringify(snapshot,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(file),link=document.createElement('a');
+    link.href=url;link.download='orbit-private-crash-recovery.json';
+    document.body.append(link);link.click();link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),30000);
+  }
   window.addEventListener('beforeunload',event=>{
     // beforeunload cannot await private uploads: warn while a canvas is dirty.
     app?.journalCommit?.();
@@ -46,6 +59,10 @@ export async function bootstrapOrbit(config=runtimeConfig) {
       try{await app?.flushEditor();}
       catch(error){window.alert('Canvas not saved: '+error.message+' Keep editing and retry.');return;}
       if(sync?.getState().hasPending&&!window.confirm('Some changes are not saved to the cloud. Cancel and export a backup to keep them, or sign out and discard this session draft.'))return;
+      if(draftVault){
+        try{await draftVault.forget();}
+        catch{window.alert('Could not erase the encrypted recovery record. Clear this site’s storage before signing out.');return;}
+      }
       await auth?.signOut();
     },
     onExport:()=>app?.exportBackup(),
@@ -59,7 +76,8 @@ export async function bootstrapOrbit(config=runtimeConfig) {
     // Return workspace controls to the auth shell before clearing private DOM.
     shell.detachSpaceControls();
     ++viewVersion;readRequest?.abort();readRequest=null;
-    sync?.dispose();sync=null;ownerTools?.dispose();ownerTools=null;
+    sync?.dispose();sync=null;draftVault?.close();draftVault=null;
+    ownerTools?.dispose();ownerTools=null;
     app?.dispose();app=null;
     appElement.hidden=true;appElement.inert=true;appElement.replaceChildren();
     delete globalThis.orbitDebug;
@@ -100,10 +118,33 @@ export async function bootstrapOrbit(config=runtimeConfig) {
         const request=new AbortController();readRequest=request;
         const loaded=await repository.loadOwnerSnapshot({signal:request.signal});
         if(!isCurrent())return;
-        const [{mountOrbit},{createOwnerTools},{createPrivateMedia}]=await Promise.all([import('./app.js'),import('./cloud/owner-tools.js'),import('./cloud/media.js')]);
+        const [{mountOrbit},{createOwnerTools},{createPrivateMedia},
+          {createOwnerDraftVault},{validateBackup}]=await Promise.all([
+          import('./app.js'),import('./cloud/owner-tools.js'),import('./cloud/media.js'),
+          import('./cloud/durable-draft.js'),import('./backup.js')]);
         if(!isCurrent())return;
+        // Only the authenticated owner may decrypt this origin's private draft.
+        // Never restore a stale cloud revision automatically: preserve it for
+        // explicit offline backup and resolve the cloud conflict separately.
+        let vault=null,recovery=null,recoveredSnapshot=null;
+        try{
+          vault=await createOwnerDraftVault(user.id);
+          recovery=await vault.load();
+          if(recovery)recoveredSnapshot=validateBackup(recovery.snapshot,{sanitizeHtml:sanitizeJournal});
+        }catch{warnDraft();}
+        if(!isCurrent()){vault?.close();return;}
+        draftVault=vault;
+        let restoring=false;
+        if(recovery&&recoveredSnapshot){
+          if(recovery.revision===loaded.revision){
+            restoring=window.confirm('ORBIT found an encrypted copy of unsaved work from an interrupted session. Restore it into your private workspace and retry saving to the cloud?');
+          }else if(window.confirm('ORBIT found unsaved work from an older cloud revision. It cannot be applied automatically. Download a PRIVATE JSON recovery copy now?')){
+            downloadRecoveredDraft(recoveredSnapshot);
+          }
+        }
         restoreApp();
         sync=createSyncController({repository,initialRevision:loaded.revision,
+          draftVault:vault,onDraftVaultError:warnDraft,
           onSnapshot:snapshot=>app?.applySnapshot(snapshot),
           onStatus:status=>{
             app?.setCloudStatus(status);shell.setSyncStatus(status);
@@ -112,8 +153,9 @@ export async function bootstrapOrbit(config=runtimeConfig) {
         const media=client.storage?.from?createPrivateMedia(client,{ownerId:user.id}):null;
         // Bind to this owner controller so an old view cannot enqueue into a new account.
         const ownerSync=sync;
-        app=mountOrbit({initialSnapshot:loaded.snapshot,persistLocally:false,viewStateKey:user.id,media,
+        app=mountOrbit({initialSnapshot:restoring?recoveredSnapshot:loaded.snapshot,persistLocally:false,viewStateKey:user.id,media,
           onSnapshotDirty:getDetachedSnapshot=>ownerSync.queueDeferredOwned(getDetachedSnapshot)});
+        if(restoring)ownerSync.queueOwned(structuredClone(recoveredSnapshot));
         // The original owner alone may publish; other users still get private import tools.
         let canPublish=false;
         try{const result=await client.rpc('orbit_owner_access');canPublish=result?.data===true;}catch{}

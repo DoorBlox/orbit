@@ -36,8 +36,8 @@
       "reason": "W3 BP-08: preserve centered world coordinate and reversible Focus camera bookmark through portrait, short-landscape, browser chrome and keyboard viewport changes without editing saved widget geometry.; #216 foreground Journal pointer/resize affordance and saved dimensions.; C1F source integration of #221 adaptive minimap and #212 daily routine UI over #219 Help."
     },
     "src/bootstrap.js": {
-      "sha256": "6c3e49574936f4b8e4c16602e362d48ad5992c6b5e120f9e57c727b0fdff03df",
-      "reason": "W3 BP-09 account-scoped owner bridge to existing W1 queueDeferredOwned; pending/CAS/retry semantics retained."
+      "sha256": "767f67b86c2416cc9e9a6502552439fd46f8a8af9e1534bbb79f699ac3f8b370",
+      "reason": "W3 BP-09 account-scoped owner bridge to existing W1 queueDeferredOwned; pending/CAS/retry semantics retained.; #171 encrypted crash recovery, detached owner-specific IndexedDB key and cloud-CAS-safe owner replay."
     },
     "src/cloud/client-config.js": {
       "sha256": "73f8785a6ba5fa9f5ebdf4ae84aa0bf8fb5183a975d4a5c71df12cdc6a73853b",
@@ -72,8 +72,8 @@
       "reason": "W1 BP-03: default-off conditional owner revision probe with strict minimal unchanged envelope, auth recheck, canonical PGRST202/404 fallback and legacy full read; hosted RPC not activated."
     },
     "src/cloud/sync.js": {
-      "sha256": "83528429ae6f18cf15c49f7ab50289dcdf27825b3c1c905e5b0e44e98189b3b1",
-      "reason": "W1 BP-09: defensive save clone rechecks pending owner draft after getter-driven synchronous supersession; unstable cloning bounded to 16 attempts, with latest pending draft and revision-CAS protected."
+      "sha256": "a0b6c65bb8f5e8c49a9885476913590c2e8360b22602571c36b93d0e83d9abc1",
+      "reason": "W1 BP-09: defensive save clone rechecks pending owner draft after getter-driven synchronous supersession; unstable cloning bounded to 16 attempts, with latest pending draft and revision-CAS protected.; #171 encrypted crash recovery, detached owner-specific IndexedDB key and cloud-CAS-safe owner replay."
     },
     "src/constellation.js": {
       "sha256": "e63cf261d9447ea3384e6f7a0b92039683d5bacafcacdc2fdfb8dd8a2fc698f0",
@@ -166,6 +166,10 @@
     "src/money-widget.js": {
       "sha256": "61951ca9dd1a799406f087dc50d88209f1dc1984f9875ff8ebc4247ecb9b248a",
       "reason": "FB-213 first-party Money source, bounded owner-private financial data; no hosted migration or external API."
+    },
+    "src/cloud/durable-draft.js": {
+      "sha256": "c4726429c28f77846056e4fda4559439c023b7cb55cbc487bbaa966435e36df8",
+      "reason": "#171 owner-specific encrypted crash recovery vault with no public projection or plaintext storage."
     }
   }
 }

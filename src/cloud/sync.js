@@ -22,7 +22,9 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
   isVisible = () => visibilityTarget?.visibilityState !== 'hidden',
   // Injectable solely for deterministic synthetic polling tests; browsers use native intervals.
   pollScheduler = {setInterval:(fn,ms)=>globalThis.setInterval(fn,ms),
-    clearInterval:id=>globalThis.clearInterval(id)} } = {}) {
+    clearInterval:id=>globalThis.clearInterval(id)},
+  // Optional encrypted IndexedDB durability; never writes plaintext localStorage.
+  draftVault=null,onDraftVaultError=()=>{} } = {}) {
   if (!repository?.saveSnapshot || !repository?.loadOwnerSnapshot || !Number.isSafeInteger(initialRevision) || initialRevision < 0) {
     throw Error('A snapshot repository and valid initial revision are required.');
   }
@@ -58,6 +60,8 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
     nextNetworkRetryAt = now() + Math.min(120000, base * (2 ** (networkRetryFailures - 1)));
   }
   const requests = new Set();
+  const warnVault=error=>{try{onDraftVaultError(error);}catch{}};
+  if(draftVault&&(!draftVault.save||!draftVault.clear))throw Error('Invalid owner draft vault.');
   const getState = () => ({state, revision, hasPending:pending !== null, errorCode});
   function status(next, code = null) {
     if (disposed) return;
@@ -101,6 +105,18 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
     resetNetworkRetry();
     status(isOnline() ? 'pending' : 'offline', isOnline() ? null : 'NETWORK');
     debounceTimer = setTimeout(() => { void flush(); },Math.max(0,debounceMs));
+    if(draftVault){
+      const version=pending.version;
+      // Capture without blocking input; a later version supersedes this one.
+      // All vault operations serialize, so a late earlier encryption cannot
+      // overwrite a newer record or reappear after a successful save/clear.
+      void Promise.resolve().then(()=>{
+        if(disposed||!pending||pending.version!==version)return;
+        const detached=getPendingSnapshot();
+        if(!detached||disposed)return;
+        return draftVault.save(detached,revision);
+      }).catch(warnVault);
+    }
     return true;
   }
   function queue(snapshot){return enqueue(snapshot,false);}
@@ -169,7 +185,10 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
         if (!Number.isSafeInteger(result?.revision) || result.revision <= revision) throw Object.assign(Error(),{code:'INVALID_RESPONSE'});
         revision = result.revision;
         resetNetworkRetry();
-        if (pending?.version === saving.version) pending = null;
+        if (pending?.version === saving.version){
+          pending = null;
+          if(draftVault)void draftVault.clear().catch(warnVault);
+        }
       } catch (error) {
         if (!disposed) {
           failed(error);
@@ -247,7 +266,10 @@ export function createSyncController({ repository, initialRevision = 0, onSnapsh
         if (!pending) { pending = oldPending; revision = oldRevision; }
         throw error;
       }
-      if (!pending && !disposed) status('saved');
+      if (!pending && !disposed){
+        status('saved');
+        if(draftVault)void draftVault.clear().catch(warnVault);
+      }
       return {ok:true,changed:true};
     } catch (error) {
       if (!disposed && requestVersion === changeVersion) failed(error);

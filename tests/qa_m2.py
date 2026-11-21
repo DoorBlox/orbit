@@ -266,8 +266,10 @@ def deferred_owner_rapid_edits(browser,source):
             editor.dispatchEvent(new Event('input',{bubbles:true}));
           }
         }""")
-        assert page.evaluate('window.__bp09ProfileClones')==0, \
-            '100 edits must not construct any full owner profile snapshot before save'
+        # Crash durability permits ONE coalesced private capture during a burst;
+        # 100 synchronous input events must never produce 100 full profiles.
+        assert page.evaluate('window.__bp09ProfileClones')<=1, \
+            '100 edits may capture at most one coalesced encrypted owner draft'
         expect(page.locator('.cloud-sync-state')).to_contain_text('Changes waiting to save')
         wait_until(page,"window.__m2Fixture.calls.some(c=>c.name==='save_owner_snapshot')")
         expect(page.locator('.cloud-sync-state')).to_have_text('Saved to your cloud')
@@ -597,6 +599,67 @@ def failed_logout_recovery(browser,source):
     finally:close_context(ctx,page)
 
 
+def crash_draft_recovery_case(browser,source):
+    """#171 real-origin encrypted IndexedDB vault survives killed renderer, then
+    only the same authenticated owner manually confirms recovery and CAS retry."""
+    ctx,page,errors=cloud_context(browser,(390,844),'owner',source=source)
+    try:
+        expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
+        page.evaluate("window.__m2Fixture.deferSave=true")
+        page.evaluate("window.orbitDebug.board.focus('constellation',{initial:true})")
+        page.locator('#capture-name').fill('SYNTHETIC CRASH RECOVERY OWNER ONLY')
+        page.locator('#capture-name').press('Enter')
+        checks=[]
+        for _ in range(70):
+            result=page.evaluate("""async(ownerId)=>{
+              const db=await new Promise((resolve,reject)=>{
+                const request=indexedDB.open('orbit-private-drafts-v1',1);
+                request.onsuccess=()=>resolve(request.result);
+                request.onerror=()=>reject(request.error);
+              });
+              const tx=db.transaction('private','readonly');
+              const data=await Promise.all(['draft:'+ownerId,'key:'+ownerId].map(id=>new Promise((resolve,reject)=>{
+                const request=tx.objectStore('private').get(id);
+                request.onsuccess=()=>resolve(request.result);
+                request.onerror=()=>reject(request.error);
+              })));
+              db.close();
+              const [row,key]=data;
+              return {sealed:!!row && row.ciphertext instanceof Uint8Array,
+                owner:row?.ownerId,revision:row?.revision,
+                noPlaintext:!JSON.stringify(row||{}).includes('SYNTHETIC CRASH'),
+                keyProtected:!!key && key.extractable===false};
+            }""",OWNER_ID)
+            if result['sealed']:checks.append(result);break
+            page.wait_for_timeout(40)
+        assert checks, 'Unsaved private edit did not reach crash vault'
+        assert checks[0]['owner']==OWNER_ID
+        assert checks[0]['noPlaintext'] and checks[0]['keyProtected'],checks[0]
+        assert checks[0]['revision']==1,checks[0]
+        assert not any(c.get('name')=='save_owner_snapshot' and
+          c.get('type')=='rpc-complete' for c in page.evaluate('window.__m2Fixture.calls'))
+        # Closing the renderer without beforeunload is the exact crash boundary.
+        page.close(run_before_unload=False)
+        page=ctx.new_page();page.set_default_timeout(8000)
+        page.on('pageerror',lambda error:errors.append(str(error)))
+        dialogs=[]
+        def recover(dialog):
+            dialogs.append(dialog.message)
+            dialog.accept()
+        page.on('dialog',recover)
+        page.goto(BASE,wait_until='domcontentloaded')
+        expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
+        expect(page.locator('#active-task-list')).to_contain_text('SYNTHETIC CRASH RECOVERY OWNER ONLY')
+        assert any('encrypted copy' in text for text in dialogs),dialogs
+        wait_until(page,"window.__m2Fixture.calls.some(call=>call.name==='save_owner_snapshot')")
+        expect(page.locator('.cloud-sync-state')).to_have_text('Saved to your cloud')
+        saved=page.evaluate("window.__m2Fixture.calls.filter(c=>c.name==='save_owner_snapshot').at(-1).args.p_snapshot")
+        assert any(t['title']=='SYNTHETIC CRASH RECOVERY OWNER ONLY' for t in saved['tasks'])
+        assert_no_local_leak(page)
+        assert not errors,errors
+    finally:close_context(ctx,page)
+
+
 def immediate_logout_draft(browser,source):
     ctx,page,errors=cloud_context(browser,(390,844),'owner',source=source)
     try:
@@ -723,7 +786,7 @@ def main():
     with server(args.source),sync_playwright() as p:
         executable=None if os.environ.get('ORBIT_BROWSER_BUNDLED') else os.environ.get('CHROMIUM_PATH') or shutil.which('chromium')
         browser=p.chromium.launch(headless=True,executable_path=executable,args=['--no-sandbox'])
-        cases=[('password-flow',lambda:password_case(browser,args.source)),('otp-flow',lambda:otp_flow_case(browser,args.source)),('otp-failures',lambda:otp_failure_case(browser,args.source)),('local-compatibility',lambda:local_compatibility(browser,args.source)),('journal-refresh-save-races',lambda:journal_races(browser,args.source)),('bp09-deferred-owner-burst',lambda:deferred_owner_rapid_edits(browser,args.source)),('immediate-logout-draft',lambda:immediate_logout_draft(browser,args.source)),('failed-logout-recovery',lambda:failed_logout_recovery(browser,args.source)),('owner-opt-in-tools',lambda:owner_tools_case(browser,args.source)),
+        cases=[('password-flow',lambda:password_case(browser,args.source)),('otp-flow',lambda:otp_flow_case(browser,args.source)),('otp-failures',lambda:otp_failure_case(browser,args.source)),('local-compatibility',lambda:local_compatibility(browser,args.source)),('journal-refresh-save-races',lambda:journal_races(browser,args.source)),('bp09-deferred-owner-burst',lambda:deferred_owner_rapid_edits(browser,args.source)),('immediate-logout-draft',lambda:immediate_logout_draft(browser,args.source)),('crash-draft-encrypted-recovery',lambda:crash_draft_recovery_case(browser,args.source)),('failed-logout-recovery',lambda:failed_logout_recovery(browser,args.source)),('owner-opt-in-tools',lambda:owner_tools_case(browser,args.source)),
           ('private-gallery',lambda:private_gallery_case(browser,args.source,390)),
           ('private-gallery-fail-closed',lambda:private_gallery_failure_case(browser,args.source)),
         ('private-gallery-empty',lambda:private_gallery_empty_case(browser,args.source)),('owner-empty-expiry',lambda:owner_lifecycle_case(browser,args.source))]
