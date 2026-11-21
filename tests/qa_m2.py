@@ -266,8 +266,10 @@ def deferred_owner_rapid_edits(browser,source):
             editor.dispatchEvent(new Event('input',{bubbles:true}));
           }
         }""")
-        assert page.evaluate('window.__bp09ProfileClones')==0, \
-            '100 edits must not construct any full owner profile snapshot before save'
+        # Crash durability permits ONE coalesced private capture during a burst;
+        # 100 synchronous input events must never produce 100 full profiles.
+        assert page.evaluate('window.__bp09ProfileClones')<=1, \
+            '100 edits may capture at most one coalesced encrypted owner draft'
         expect(page.locator('.cloud-sync-state')).to_contain_text('Changes waiting to save')
         wait_until(page,"window.__m2Fixture.calls.some(c=>c.name==='save_owner_snapshot')")
         expect(page.locator('.cloud-sync-state')).to_have_text('Saved to your cloud')
