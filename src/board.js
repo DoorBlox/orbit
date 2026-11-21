@@ -167,6 +167,8 @@ export class SpatialBoard {
     });
     widget.hidden=this.extraIds.has(id)&&this.optionalLayout[id]?.hidden===true;
     this.position(id);this.applySize(id);
+    // Keep the interacted widget above floating notes without changing its saved layout.
+    widget.addEventListener('pointerdown',()=>this.bringToFront(id),{signal:this.events.signal});
     const grip=widget.querySelector('.widget-grip');
     grip.addEventListener('keydown',e=>this.moveViaKeyboard(e,id),{signal:this.events.signal});
     const heading=widget.querySelector('.widget-heading');
@@ -182,6 +184,10 @@ export class SpatialBoard {
     resizer.setAttribute('aria-label','Resize '+id+' widget. Arrow keys change width or height.');
     resizer.title='Drag corner to resize · Arrow keys resize';
     resizer.innerHTML='<span aria-hidden="true">╱</span>';
+    if(id==='journal'){
+      resizer.innerHTML='<span aria-hidden="true">⤢</span>';
+      resizer.setAttribute('aria-label','Resize journal widget. Drag to make the page wider or taller; arrow keys resize.');
+    }
     widget.append(resizer);
     if(this.readOnly){resizer.disabled=true;grip.disabled=true;}
     resizer.addEventListener('pointerdown',e=>this.resizeStart(e,id,resizer),{signal:this.events.signal});
@@ -443,8 +449,12 @@ export class SpatialBoard {
     this.animate({scale:saved.scale,x:saved.pan.x,y:saved.pan.y},0);
     return true;
   }
+  bringToFront(id){
+    for(const [key,widget] of this.widgets)widget.classList.toggle('spatial-front',key===id);
+  }
   focus(id,{initial=false}={}){
     const item=this.widgets.get(id),p=this.positions[id];if(!item)return;
+    this.bringToFront(id);
     if(item.hidden&&this.extraIds.has(id))this.setWidgetVisible(id,true);
     const {w,h}=this.viewportSize(),sw=item.offsetWidth,sh=item.offsetHeight;
     let scale;
