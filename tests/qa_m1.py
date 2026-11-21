@@ -439,6 +439,23 @@ def viewport_flow(browser, label, size):
               const dock=document.querySelector('#orbit-quickbar').getBoundingClientRect();
               return dock.top>=viewport.bottom-1 && dock.bottom<=innerHeight+1;
             }"""), 'Mobile HUD overlays spatial-world pointer targets (#220)'
+
+        # FB-219: real, modal, non-persistent guided tutorial with reversible focus.
+        help_button=hud.locator('#hud-help')
+        expect(help_button).to_be_visible()
+        help_button.click()
+        tour=page.locator('#orbit-help-dialog')
+        expect(tour).to_be_visible()
+        tour.get_by_role('button',name='Create a task tutorial').click()
+        expect(tour.locator('#orbit-help-step-title')).to_have_text('Start from the HUD')
+        tour.get_by_role('button',name='Next step').click()
+        expect(tour.locator('#orbit-help-step-title')).to_have_text('Name your action')
+        assert page.locator('#capture-name').evaluate("e=>e.classList.contains('orbit-help-target')")
+        tour.get_by_role('button',name='Previous step').click()
+        expect(tour.locator('#orbit-help-step-title')).to_have_text('Start from the HUD')
+        tour.get_by_role('button',name='Close tutorial').click()
+        expect(tour).to_be_hidden()
+        expect(help_button).to_be_focused()
         current=page.evaluate('window.orbitDebug.state.mode')
         hud.locator('#color-mode').click()
         assert page.evaluate('window.orbitDebug.state.mode')!=current
