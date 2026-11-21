@@ -407,6 +407,8 @@ def viewport_flow(browser, label, size):
         assert page.locator('body > .world-nav').count()==0
         if size[0]<=700:
             navigator.locator('#space-nav-toggle').click()
+            # Collapsed minimap still leaves the three zoom/home controls reachable.
+            expect(controls).to_be_visible()
         expect(controls).to_be_visible()
         assert controls.locator('button').count()==3
         assert page.evaluate("""() => {
