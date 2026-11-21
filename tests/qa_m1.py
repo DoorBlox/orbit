@@ -88,8 +88,10 @@ def bp08_viewport_rotation_recovery(browser):
         def resized(width,height):
             page.set_viewport_size({'width':width,'height':height})
             page.wait_for_function("""({w,h}) => {
-              const size=window.orbitDebug.board.lastViewportSize;
-              return size && size.w===w && size.h===h;
+              const b=window.orbitDebug.board,rect=b.viewport;
+              const size=b.lastViewportSize;
+              return size && innerWidth===w && innerHeight===h &&
+                size.w===rect.clientWidth && size.h===rect.clientHeight;
             }""",arg={'w':width,'h':height})
 
         def same_world_center(left,right):
