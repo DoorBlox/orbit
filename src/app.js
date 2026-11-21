@@ -13,6 +13,8 @@ import { normalizeExtensions,renderScene,releaseScenePreview } from './scene.js'
 import { mountInlineCanvas } from './inline-canvas.js';
 import { setBranchProject, normalizeProjects } from './projects.js';
 import { ProjectsShelf } from './project-shelf.js';
+import { MoneyWidget } from './money-widget.js';
+import { addMoneyTransaction,removeMoneyTransaction,setMoneyBudget,setMoneyCurrency } from './money.js';
 import { FocusWidget } from './focus.js';
 import { createQuickJump } from './quick-jump.js';
 
@@ -252,6 +254,60 @@ board.registerWidget({
   id:'focus-timer',position:{x:3210,y:240},
   limits:{minW:340,minH:390,maxW:1400,maxH:1200},icon:'◷'
 },focusWidget.element);
+// #213: first-party Money widget is lazy, preserving the eight-window baseline.
+let moneyWidget=null;
+const openMoney=document.createElement('button');openMoney.type='button';
+openMoney.id='open-money';openMoney.className='glass-button';openMoney.textContent='Money tracker';
+openMoney.addEventListener('click',()=>{
+  if(!moneyWidget){
+    moneyWidget=new MoneyWidget({readOnly,
+      onAdd:transaction=>{
+        if(readOnly||disposed)return false;
+        try{state.extensions.moneyLedger=addMoneyTransaction(state.extensions.moneyLedger||{},transaction);}
+        catch(error){message(error.message,6500);return false;}
+        sync();message('Private transaction saved.');return true;
+      },
+      onRemove:id=>{
+        if(readOnly||disposed)return false;
+        const current=state.extensions.moneyLedger||{};
+        const entry=current.transactions?.find(tx=>tx.id===id);
+        if(!entry)return false;
+        try{state.extensions.moneyLedger=removeMoneyTransaction(current,id);}
+        catch(error){message(error.message,6500);return false;}
+        sync();
+        message('Transaction removed.',10000,{label:'Undo',run:()=>{
+          if(disposed||readOnly)return;
+          try{state.extensions.moneyLedger=addMoneyTransaction(state.extensions.moneyLedger||{},entry);
+            sync();message('Transaction restored.');}
+          catch(error){message('Could not restore: '+error.message,6500);}
+        }});
+        return true;
+      },
+      onBudget:minor=>{
+        if(readOnly||disposed)return false;
+        try{state.extensions.moneyLedger=setMoneyBudget(state.extensions.moneyLedger||{},minor);}
+        catch(error){message(error.message,6500);return false;}
+        sync();message('Monthly expense limit saved.');return true;
+      },
+      onCurrency:currency=>{
+        if(readOnly||disposed)return false;
+        try{state.extensions.moneyLedger=setMoneyCurrency(state.extensions.moneyLedger||{},currency);}
+        catch(error){message(error.message,6500);return false;}
+        sync();message('Currency updated without converting amounts.');return true;
+      }
+    });
+    moneyWidget.setData(state.extensions.moneyLedger);
+    board.registerWidget({id:'money',position:{x:3230,y:1050},
+      limits:{minW:330,minH:350,maxW:5000,maxH:5000},icon:'¤'},moneyWidget.element);
+    const picker=document.getElementById('bp08-focus-picker');
+    if(picker&&!picker.querySelector('option[value="money"]')){
+      const option=document.createElement('option');option.value='money';option.textContent='Money';
+      picker.append(option);
+    }
+  }
+  board.focus('money');
+},{signal:events.signal});
+document.querySelector('.space-primary-actions')?.append(openMoney);
 const helpTour=setupHelpTour();
 const openFocusTimer=document.createElement('button');
 openFocusTimer.type='button';openFocusTimer.id='open-focus-timer';
@@ -536,6 +592,7 @@ function sync({persist=true}={}){
   scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'||Object.hasOwn(state.extensions.taskRoutines||{},t.id)),state.preferences.colorMode,state.profile.displayName,state.collapsedBranchIds,Object.keys(state.extensions.projects),state.extensions.taskRoutines);
   widgets.setData(state.branches,state.tasks,state.preferences.colorMode,milestones,state.extensions.taskRoutines);
   projectsShelf.setData(state.branches,state.tasks,state.extensions.projects);
+  moneyWidget?.setData(state.extensions.moneyLedger);
   if(state.captureMode==='find')updateSearch();
   const s=taskSummary(state.tasks);
   $('task-summary').textContent=`${s.active} active · ${s.completed} finished${s.dueSoon?` · ${s.dueSoon} approaching`:''}${s.overdue?` · ${s.overdue} overdue`:''}`;
@@ -1153,7 +1210,7 @@ function hasPendingEditor(){return Boolean(activeJournalCanvas?.isDirty()||stick
    if(stickies.activeCanvas)await stickies.activeCanvas.save();
    return journal.commit();
  }
- function dispose(){if(disposed)return;leaveWidgetFocus();disposed=true;activeJournalCanvas?.dispose();activeJournalCanvas=null;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);++journalImageRequest;const journalImage=$('journal-image-preview');journalImage?.removeAttribute('src');journalImageLease?.release();journalImageLease=null;releaseScenePreview($('journal-drawing-preview'));jump.dispose();helpTour.dispose();projectsShelf.dispose();focusWidget.dispose({clearSession:!persistLocally});board.dispose();journal.dispose();stickies.dispose();scene.dispose();media?.dispose?.();document.documentElement.dataset.theme='parchment';document.documentElement.dataset.motion='system';document.documentElement.dataset.ambient='off';window.orbitDebug=null;}
+ function dispose(){if(disposed)return;leaveWidgetFocus();disposed=true;activeJournalCanvas?.dispose();activeJournalCanvas=null;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);++journalImageRequest;const journalImage=$('journal-image-preview');journalImage?.removeAttribute('src');journalImageLease?.release();journalImageLease=null;releaseScenePreview($('journal-drawing-preview'));jump.dispose();helpTour.dispose();moneyWidget?.dispose();projectsShelf.dispose();focusWidget.dispose({clearSession:!persistLocally});board.dispose();journal.dispose();stickies.dispose();scene.dispose();media?.dispose?.();document.documentElement.dataset.theme='parchment';document.documentElement.dataset.motion='system';document.documentElement.dataset.ambient='off';window.orbitDebug=null;}
 return {getSnapshot,applySnapshot,setCloudStatus,dispose,
   flushEditor,hasPendingEditor,journalCommit:()=>journal.commit(),exportBackup:backupJson};
 }

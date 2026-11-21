@@ -5,6 +5,7 @@
 import { normalizeTaskChecklist, normalizeTaskRoutines } from './model.js';
 import { normalizeExtraWidgetLayout } from './widget-registry.js';
 import { normalizeProjects } from './projects.js';
+import { normalizeMoneyLedger } from './money.js';
 const object = value => !!value && typeof value==='object' && !Array.isArray(value);
 const validId = value => typeof value==='string' && /^[A-Za-z0-9_-]{1,100}$/.test(value) && !['__proto__','constructor','prototype'].includes(value);
 const coord = value => Number.isFinite(value) && Math.abs(value)<=10000;
@@ -55,6 +56,8 @@ export function normalizeExtensions(raw={}){
   const taskRoutines=normalizeTaskRoutines(raw.taskRoutines??{});
   const spatialWidgets=normalizeExtraWidgetLayout(raw.spatialWidgets);
   const projects=normalizeProjects(raw.projects);
+  // Private financial records are absent from legacy workspaces and public projections.
+  const moneyLedger=raw.moneyLedger===undefined?null:normalizeMoneyLedger(raw.moneyLedger);
   const rawAppearance=raw.appearance??{};
   if(!object(rawAppearance)||!['parchment','garden','frost','celestial','ember','tidepool','sundown','sakura','graphite','linen'].includes(rawAppearance.theme??'parchment')||
      !['system','off'].includes(rawAppearance.motion??'system')||
@@ -125,7 +128,8 @@ export function normalizeExtensions(raw={}){
     images[id]=assertImagePath(path);
   }
   return {notes:cleanNotes,taskLinks:links,taskChecklists:checklists,
-    ...(Object.keys(taskRoutines).length?{taskRoutines}:{}),journalScenes:scenes,journalImages:images,
+    ...(Object.keys(taskRoutines).length?{taskRoutines}:{}),
+    ...(moneyLedger?{moneyLedger}:{}),journalScenes:scenes,journalImages:images,
     ...(Object.keys(pageModes).length?{journalModes:pageModes}:{}),
     ...(Object.keys(pagePaper).length?{journalPaperStyles:pagePaper}:{}),
     ...(Object.keys(pageLocks).length?{journalCanvasLocks:pageLocks}:{}),spatialWidgets,projects,appearance};
