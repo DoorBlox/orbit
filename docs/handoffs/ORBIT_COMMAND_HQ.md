@@ -1,6 +1,17 @@
 # ORBIT — Command HQ continuity and integration checkpoint
 
-## 22 November 2026 — C1H accelerated Production gate 2/3 live checkpoint (latest)
+## 22 November 2026 — C1H exact-source crash recovery merged and unpromoted release candidate READY (latest)
+
+- **SOURCE main:** `c7a9ad6b792d983028f27ca021d621d8e3dc89ad`. [PR #277](https://github.com/DoorBlox/orbit/pull/277) #171 encrypted owner crash-draft recovery **SOURCE MERGED** at this exact SHA. Corrected reviewed head `9dc335cdc4226fd5895608a95b169210b1b39e2c` passed all four required exact-head GitHub Actions checks: `static-quality`, `local-postgres-rls`, `production-artifact-dry-run`, `unauthenticated-protection`. Includes Chromium mock-owner crash/recovery and private-cloud tests; this is **not** real two-account hosted privacy or owner device confirmation. Initial failed head and one-snapshot coalescing correction retained in prior C1H checkpoint.
+- **Initial protected Production-format stage:** `dpl_CDp74eS1CqCYC5jkjt6oL6WF9HhN` / `dc59a571` remains READY but is **stale**; never promote.
+- **NEW exact-source Production-target build:** `dpl_Ay2zbe9CgskF7VwyXzY3XWMVxSCr` / https://orbit-cqtjwwzde-doorbloxs-projects.vercel.app / **READY**, metadata exact `c7a9ad6b792d983028f27ca021d621d8e3dc89ad`. Vercel deployment records independently confirm target `production`, protected raw deployment URLs under project SSO. This was created through the connected deployment API instead of the documented GitHub staging workflow; the API does **not** provide an explicit `--skip-domain` option. Follow-up verified only `orbit-git-main-doorbloxs-projects.vercel.app` aliases this NEW deployment, **not** the public canonical domain. An unauthenticated raw HTTP smoke attempt from the container failed locally with DNS resolver unavailable; record **NOT RUN**, not PASS. No authenticated stage smoke or rollback simulation executed.
+- **Public Production unchanged:** independent Vercel alias listing still maps `orbit.starscene.com` to READY `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4` / ORBIT 2.4 `4e57aca785259192b92010c5d0e1634a4c1efe14`. Preserve as rollback candidate. No domain promotion, hosted SQL/Auth/RLS/Storage mutation, private deletion or paid integration performed.
+- **Release GO/NO-GO:** gate #1 owner-reported VERIFIED, gate #2 source fix **4/4 CI GREEN and MERGED**, gate #3 exact-source build **READY but raw/owner smoke + independent review and release GO pending**. Do not confuse build READY with acceptance. Before promotion, verify its SAME deployment protected HTTP, signed-in Task/Journal/Sticky/Canvas/backup reload, privacy isolation, responsive behavior and rollback control; then promote this exact deployment without rebuilding only on explicit release GO and monitor canonical alias and errors. #225 remains OPEN.
+- **Handoff:** This checkpoint supersedes the earlier in-progress #277 status while preserving it below; do not repeat the source change. If further source changes merge, freeze and stage a NEW exact current main instead of promoting a stale candidate.
+
+---
+
+## 22 November 2026 — C1H accelerated Production gate 2/3 live checkpoint (latest) (historical)
 
 **Owner decision:** Signed-in private-data gate #1 reported VERIFIED by owner; continue protected stage/same-build Production delivery, not new feature scope. Preserve independent evidence boundaries.
 
