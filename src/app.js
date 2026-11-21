@@ -1,5 +1,5 @@
 import { branchPath,descendantsOf,createBranch,removeBranchPreservingContents } from './data.js';
-import { cleanTask,taskSummary,normalizeTaskChecklist } from './model.js';
+import { cleanTask,taskSummary,normalizeTaskChecklist,normalizeTaskRoutines,routineDayKey,getDailyOccurrence,setDailyRoutine,setDailyCompletion } from './model.js';
 import { readTasks,saveTasks,readPreferences,savePreferences,readBranches,saveBranches,readProfile,saveProfile,readExtensions,saveExtensions,STORAGE_KEYS,getStorageStatus,getRecoveryData,markStorageIssue,isStorageWriteBlocked,clearStorageIssues } from './storage.js';
 import { importCsv,exportCsv,parseCsv,importBranchesCsv,exportBranchesCsv } from './csv.js';
 import { Constellation } from './constellation.js';
@@ -37,7 +37,7 @@ const collapsedStorageKey='orbit.v7.collapsed-branches.'+viewScope;
 function normalizeCollapsedBranches(ids,branches=state.branches){
   if(!Array.isArray(ids))return [];
   const known=new Set(branches.map(b=>b.id)),parents=new Set(branches.map(b=>b.parentId).filter(id=>id!=='root'));
-  const directTaskParents=new Set(state.tasks.filter(t=>t.status!=='completed').map(t=>t.projectId));
+  const directTaskParents=new Set(state.tasks.filter(t=>t.status!=='completed'||Object.hasOwn(state.extensions.taskRoutines,t.id)).map(t=>t.projectId));
   return [...new Set(ids.filter(id=>typeof id==='string'&&known.has(id)&&
     (parents.has(id)||directTaskParents.has(id))))];
 }
@@ -137,15 +137,44 @@ const scene=new Constellation({viewport:$('map-viewport'),world:$('map-world'),e
     const index=state.tasks.findIndex(t=>t.id===id);if(index<0)return false;
     const prev=state.tasks[index];
     try{
-      const next=cleanTask({...prev,...patch},prev.projectId);
+      let routines=state.extensions.taskRoutines;
+      const wasDaily=Object.hasOwn(routines,id),requested=Object.hasOwn(patch,'repeatDaily')?patch.repeatDaily:null;
+      if(requested===true&&!wasDaily)
+        routines=setDailyRoutine(routines,id,{startDate:routineDayKey(new Date())});
+      else if(requested===false&&wasDaily){
+        if(routines[id].completedDates.length)throw Error('Daily completion history is preserved. Disable after archiving the history separately.');
+        const copy={...routines};delete copy[id];routines=normalizeTaskRoutines(copy);
+      }
+      if(Object.hasOwn(patch,'routineCompleted')){
+        const occurrence=getDailyOccurrence(prev,routines);
+        if(!occurrence?.active)throw Error('No active daily occurrence exists for this task.');
+        routines=setDailyCompletion(routines,id,occurrence.dayKey,patch.routineCompleted===true);
+        state.extensions.taskRoutines=routines;sync();
+        message(patch.routineCompleted?'Marked done for today. The task returns tomorrow.':'Today reopened.');return true;
+      }
+      const nextPatch={...patch};delete nextPatch.repeatDaily;delete nextPatch.routineCompleted;
+      let dailyDone=false;
+      if(routines[id]&&nextPatch.status==='completed'&&(wasDaily||requested!==true)){
+        const occurrence=getDailyOccurrence(prev,routines);
+        if(!occurrence?.active)throw Error('Daily task is not active yet.');
+        routines=setDailyCompletion(routines,id,occurrence.dayKey,true);
+        nextPatch.status=prev.status==='completed'?'ready':prev.status;nextPatch.completedAt='';
+        dailyDone=true;
+      }
+      if(requested===true&&!wasDaily&&prev.status==='completed'){
+        nextPatch.status='ready';nextPatch.completedAt='';
+      }
+      const next=cleanTask({...prev,...nextPatch},prev.projectId);
       next.checklist=normalizeTaskChecklist(patch.checklist??prev.checklist??[]);
       if(!state.branches.some(b=>b.id===next.projectId))throw Error('Choose an existing branch.');
-      state.tasks[index]=next;scene.expandedTaskId=id;sync();
-      if(patch.status==='completed')message('Finished. That counts.');
-      else if(patch.projectId&&patch.projectId!==prev.projectId){setBranch(next.projectId);scene.focusTask(next);message('Task moved to its new branch.');}
-      else message('Saved.');
+      state.tasks[index]=next;state.extensions.taskRoutines=routines;
+      scene.expandedTaskId=id;sync();
+      if(dailyDone)message('Completed today. This repeats tomorrow.');
+      else if(nextPatch.status==='completed')message('Finished. That counts.');
+      else if(nextPatch.projectId&&nextPatch.projectId!==prev.projectId){setBranch(next.projectId);scene.focusTask(next);message('Task moved to its new branch.');}
+      else message(requested===true&&!wasDaily?'Daily routine created.':'Saved.');
       return true;
-    }catch(err){message(`Could not update: ${err.message}`);return false;}
+    }catch(err){message(`Could not update: ${err.message}`,6500);return false;}
   },
   onTaskDelete(id){if(readOnly||disposed)return false;
     const index=state.tasks.findIndex(t=>t.id===id);if(index<0)return;
@@ -161,24 +190,34 @@ const widgets=new ScrapWidgets({
     if(task.status==='completed'){board.focus('completed');return;}
     board.focus('constellation');
     expandBranchPath(task.projectId);setBranch(task.projectId);scene.expandedTaskId=task.id;scene.selectedTaskId=task.id;
-    scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'),state.preferences.colorMode,state.profile.displayName,state.collapsedBranchIds,Object.keys(state.extensions.projects));
+    scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'||Object.hasOwn(state.extensions.taskRoutines,t.id)),state.preferences.colorMode,state.profile.displayName,state.collapsedBranchIds,Object.keys(state.extensions.projects),state.extensions.taskRoutines);
     scene.focusTask(task);
   },
   onComplete(id){if(readOnly||disposed)return false;const t=state.tasks.find(x=>x.id===id);if(!t)return;
+    const occurrence=getDailyOccurrence(t,state.extensions.taskRoutines);
+    if(occurrence?.active){
+      state.extensions.taskRoutines=setDailyCompletion(state.extensions.taskRoutines,id,occurrence.dayKey,true);
+      sync();message('Daily routine completed for today.');return true;
+    }
     t.status='completed';t.completedAt=new Date().toISOString();
     if(scene.expandedTaskId===id)scene.expandedTaskId='';sync();message('Moved to Already done.');
   },
   onRestore(id){if(readOnly||disposed)return false;const t=state.tasks.find(x=>x.id===id);if(!t)return;
+    const occurrence=getDailyOccurrence(t,state.extensions.taskRoutines);
+    if(occurrence?.active){
+      state.extensions.taskRoutines=setDailyCompletion(state.extensions.taskRoutines,id,occurrence.dayKey,false);
+      sync();message('Daily routine reopened for today.');return true;
+    }
     t.status='ready';t.completedAt='';sync();message('Back on the constellation.');
   },
   onOpenJournal(entryId){if(journal.openEntry(entryId))board.focus('journal');},
   onChangeMilestones(next){if(readOnly||disposed)return false;
     milestones=next.slice(0,500);let ok=false;
-    if(!persistLocally){widgets.setData(state.branches,state.tasks,state.preferences.colorMode,milestones);emitChange();return false;}
+    if(!persistLocally){widgets.setData(state.branches,state.tasks,state.preferences.colorMode,milestones,state.extensions.taskRoutines);emitChange();return false;}
     try{if(!isStorageWriteBlocked(milestoneKey)){localStorage.setItem(milestoneKey,JSON.stringify(milestones));ok=true;}}catch{}
     if(ok)pendingWrites.delete(milestoneKey);else pendingWrites.add(milestoneKey);
     if(!ok)message('Milestone not saved. Export a backup to keep this session.',6500);
-    widgets.setData(state.branches,state.tasks,state.preferences.colorMode,milestones);return ok;
+    widgets.setData(state.branches,state.tasks,state.preferences.colorMode,milestones,state.extensions.taskRoutines);return ok;
   }
 });
 
@@ -433,7 +472,7 @@ function updateSearch(){
 function setCollapsedBranches(ids,{focusId=null,persist=true}={}){
   state.collapsedBranchIds=normalizeCollapsedBranches(ids);
   if(persist&&!saveCollapsedBranches())message('Branch view could not be saved on this device; it remains available for this session.',6500);
-  scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'),state.preferences.colorMode,state.profile.displayName,state.collapsedBranchIds,Object.keys(state.extensions.projects));
+  scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'||Object.hasOwn(state.extensions.taskRoutines,t.id)),state.preferences.colorMode,state.profile.displayName,state.collapsedBranchIds,Object.keys(state.extensions.projects),state.extensions.taskRoutines);
   if(focusId&&scene.nodeMap.has(focusId))scene.focusNode(focusId,{instant:true});
 }
 function toggleBranch(id){
@@ -493,8 +532,8 @@ function sync({persist=true}={}){
       for(const [key,ok] of [[STORAGE_KEYS.tasks,tasksOk],[STORAGE_KEYS.branches,branchesOk],[STORAGE_KEYS.profile,profileOk],[STORAGE_KEYS.extensions,extensionsOk]]){if(ok)pendingWrites.delete(key);else pendingWrites.add(key);}
     }
   }
-  scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'),state.preferences.colorMode,state.profile.displayName,state.collapsedBranchIds,Object.keys(state.extensions.projects));
-  widgets.setData(state.branches,state.tasks,state.preferences.colorMode,milestones);
+  scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'||Object.hasOwn(state.extensions.taskRoutines,t.id)),state.preferences.colorMode,state.profile.displayName,state.collapsedBranchIds,Object.keys(state.extensions.projects),state.extensions.taskRoutines);
+  widgets.setData(state.branches,state.tasks,state.preferences.colorMode,milestones,state.extensions.taskRoutines);
   projectsShelf.setData(state.branches,state.tasks,state.extensions.projects);
   if(state.captureMode==='find')updateSearch();
   const s=taskSummary(state.tasks);
@@ -960,8 +999,17 @@ function initKeyboard(){
     }
   },{signal:events.signal});
 }
+let lastRoutineCalendar='';
 function showClock(){
-  $('clock').textContent=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Jakarta',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date());
+  const now=new Date();
+  $('clock').textContent=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Jakarta',hour:'2-digit',minute:'2-digit',hour12:false}).format(now);
+  // Reproject civil days in pinned IANA zones across DST/midnight without
+  // fabricating or automatically completing any recurring occurrence.
+  const zones=[...new Set(Object.values(state.extensions.taskRoutines||{}).map(rule=>rule.timeZone))].sort();
+  const days=zones.map(zone=>zone+':'+routineDayKey(now,zone)).join('|');
+  if(lastRoutineCalendar!==days){const previous=lastRoutineCalendar;lastRoutineCalendar=days;
+    if(previous)sync({persist:false});
+  }
 }
 initTools();initKeyboard();sync({persist:false});
 if(persistLocally&&getStorageStatus().recoveryRequired)message('Saved data needs recovery. Use Backup to export the original data before restoring a valid backup.',15000);

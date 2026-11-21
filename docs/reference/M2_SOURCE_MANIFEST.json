@@ -12,8 +12,8 @@
       "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service; FB-218 discoverable task entry with existing save/branch behavior.; #224 colored milestones and compact journal lanes.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; #220 responsive HUD integrated after #262 expanded windows.; #223 de-duplicate Space JSON export and remove Projects shortcut, clarify safe backup labels.; #222 keyboard/touch zoom/home integrated with the minimap on mobile after #223 cleanup."
     },
     "src/app.js": {
-      "sha256": "59d00320cb3d63bb2b4693cf0998019d0ecf6b8afc65a97bdb39149901359969",
-      "reason": "W3 BP-09 opt-in deferred owner snapshot producer with legacy eager onSnapshotChange semantics preserved; FO-01 retained.; #217 task-aware leaf branch disclosure and connector suppression while retaining deferred sync; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; #220 responsive HUD integrated after #262 expanded windows.; #223 de-duplicate Space JSON export and remove Projects shortcut, clarify safe backup labels."
+      "sha256": "11d2863ad91cd46e7d944f0151ed4a172db01b832c009e6db5d123763e64f0d8",
+      "reason": "W3 BP-09 opt-in deferred owner snapshot producer with legacy eager onSnapshotChange semantics preserved; FO-01 retained.; #217 task-aware leaf branch disclosure and connector suppression while retaining deferred sync; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; #220 responsive HUD integrated after #262 expanded windows.; #223 de-duplicate Space JSON export and remove Projects shortcut, clarify safe backup labels.; #212 daily task occurrence UI, civil-day completion and constellation/timeline/list presentation."
     },
     "src/auth/controller.js": {
       "sha256": "af8cde170ef58e61df8c464ee34249df4267812991392a95dae5c4d69f47ba20",
@@ -76,8 +76,8 @@
       "reason": "W1 BP-09: defensive save clone rechecks pending owner draft after getter-driven synchronous supersession; unstable cloning bounded to 16 attempts, with latest pending draft and revision-CAS protected."
     },
     "src/constellation.js": {
-      "sha256": "c63a05f7c5bfac38a9b4f9e9649a71f47044f0bd106c70cbe0431700d3dcc5b3",
-      "reason": "BP-06: viewport-native task inspector with scroll, keyboard, cancel, validation and preserved checklist/links.; #217 task-aware leaf branch disclosure and connector suppression while retaining deferred sync."
+      "sha256": "e63cf261d9447ea3384e6f7a0b92039683d5bacafcacdc2fdfb8dd8a2fc698f0",
+      "reason": "BP-06: viewport-native task inspector with scroll, keyboard, cancel, validation and preserved checklist/links.; #217 task-aware leaf branch disclosure and connector suppression while retaining deferred sync.; #212 daily task occurrence UI, civil-day completion and constellation/timeline/list presentation."
     },
     "src/csv.js": {
       "sha256": "e5de107e78d76d26553d25dca1b200765aaafeb2b836216b1ae11f57e5499178",
@@ -144,16 +144,16 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "23a6bf95088a2cd1436b73a09216654770adc7190c77b63cd4153fdcd2d303bd",
-      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #210 ambient OFF and reduced-motion fix after Journal source.; #216 foreground Journal pointer/resize affordance and saved dimensions.; #224 colored milestones and compact journal lanes.; #223 ten-theme contrast Sakura AA correction.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; #220 responsive HUD integrated after #262 expanded windows.; #223 de-duplicate Space JSON export and remove Projects shortcut, clarify safe backup labels.; #222 keyboard/touch zoom/home integrated with the minimap on mobile after #223 cleanup.; #222 mobile collapsed minimap exposes zoom through explicit disclosure, no Journal/task overlap."
+      "sha256": "5a6ca0f2bf5ccfcc8635c0779b0544d63f5f76b357c9ccce1efa61611469c704",
+      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #210 ambient OFF and reduced-motion fix after Journal source.; #216 foreground Journal pointer/resize affordance and saved dimensions.; #224 colored milestones and compact journal lanes.; #223 ten-theme contrast Sakura AA correction.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; #220 responsive HUD integrated after #262 expanded windows.; #223 de-duplicate Space JSON export and remove Projects shortcut, clarify safe backup labels.; #222 keyboard/touch zoom/home integrated with the minimap on mobile after #223 cleanup.; #222 mobile collapsed minimap exposes zoom through explicit disclosure, no Journal/task overlap.; #212 daily task occurrence UI, civil-day completion and constellation/timeline/list presentation."
     },
     "src/widget-registry.js": {
       "sha256": "c5667d4c63980884aefb7df69684ba84ff5350b017c6d40d6c487fab78c44a5c",
       "reason": "Increase Journal maximum resize to existing database-supported 4000px.; #223 all six spatial core windows bounded at safe 5000px resize max."
     },
     "src/widgets.js": {
-      "sha256": "059c26d42ab09e79be250f0f242d3f6897b22282b223f316ccd09c3ea38f5d00",
-      "reason": "Preserve task/timeline projection over canonical owner snapshots and read-only controls.; #224 colored milestones and compact journal lanes."
+      "sha256": "045a103badd2270f0679f79eae5cf1105aeb8e45478d8de7c5c57eeea180a168",
+      "reason": "Preserve task/timeline projection over canonical owner snapshots and read-only controls.; #224 colored milestones and compact journal lanes.; #212 daily task occurrence UI, civil-day completion and constellation/timeline/list presentation."
     },
     "src/quick-jump.js": {
       "sha256": "52d9592e71edeb700b70bec3b79d792620d36a172af14f80ad79935c95f7a23e",
