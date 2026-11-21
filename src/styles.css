@@ -1740,7 +1740,6 @@ body.cloud-space-mounted #space-widget>.cloud-toolbar[data-sync-state="conflict"
 :root #journal-widget[data-journal-view="preview"] .journal-formatbar,
 :root #journal-widget[data-journal-view="preview"] .journal-paper-choices,
 :root #journal-widget[data-journal-view="preview"] .journal-more,
-:root #journal-widget[data-journal-view="preview"] #journal-new,
 :root #journal-widget[data-journal-view="preview"] .journal-date-edit-label,
 :root #journal-widget[data-journal-view="preview"] #journal-entry-date{
   display:none!important;
