@@ -987,7 +987,8 @@ def daily_routine_flow(browser):
         task=page.locator('.task-row').filter(has_text='Synthetic everyday check-in').first
         expect(task.locator('.task-routine-badge')).to_have_text('Daily')
         expect(page.locator('.timeline-routine-summary')).to_contain_text('0 / 1 complete')
-        task.click()
+        if task.get_attribute('aria-expanded')!='true':
+            task.click()
         task.get_by_role('button',name='Done today').click()
         task=page.locator('.task-row').filter(has_text='Synthetic everyday check-in').first
         expect(task.locator('.task-routine-badge')).to_have_text('✓ today')
