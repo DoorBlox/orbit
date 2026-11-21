@@ -8,12 +8,12 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "index.html": {
-      "sha256": "d9b7b5d348b2d15288be74ccac242121d3fbc85f3a86a07b215aca6034dcf6fd",
-      "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service; FB-218 discoverable task entry with existing save/branch behavior."
+      "sha256": "4da821ef0b8d0c2ec6b597182c6faba0b4516934ea73cb94e47b9d9fb608ecc6",
+      "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service; FB-218 discoverable task entry with existing save/branch behavior.; #216 page-specific optional Canvas 4:3 frame lock."
     },
     "src/app.js": {
-      "sha256": "6dc38fb1c23bac6d6b49e4312b13eb2d33236af7d32d5e29f76bda8fddb611e4",
-      "reason": "W3 BP-09 opt-in deferred owner snapshot producer with legacy eager onSnapshotChange semantics preserved; FO-01 retained.; #217 task-aware leaf branch disclosure and connector suppression while retaining deferred sync; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview."
+      "sha256": "adf30d3c7e7ae7107359f25ace72ee3ecf61adc2c453e39c52a55f9463409524",
+      "reason": "W3 BP-09 opt-in deferred owner snapshot producer with legacy eager onSnapshotChange semantics preserved; FO-01 retained.; #217 task-aware leaf branch disclosure and connector suppression while retaining deferred sync; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #216 page-specific optional Canvas 4:3 frame lock."
     },
     "src/auth/controller.js": {
       "sha256": "af8cde170ef58e61df8c464ee34249df4267812991392a95dae5c4d69f47ba20",
@@ -132,8 +132,8 @@
       "reason": "Null local default; only build-generated allowlisted public configuration activates cloud."
     },
     "src/scene.js": {
-      "sha256": "76193f6059bf90ac89805ef8b9f633e85524d92eca928dc1af1b13ad2c9144e3",
-      "reason": "W1 #212: additive owner-private extension normalization preserves validated daily routine history through cloud snapshots and portable backup without changing old one-off schemas."
+      "sha256": "d5def8716aa14d2b6692ee162e6e1afa4f64f314283631657d4329816417d98e",
+      "reason": "W1 #212: additive owner-private extension normalization preserves validated daily routine history through cloud snapshots and portable backup without changing old one-off schemas.; #216 page-specific optional Canvas 4:3 frame lock."
     },
     "src/stickies.js": {
       "sha256": "f24265a8cbae8fc278ee230088a83a012c72e9c231e3c962dd62e912d17490f8",
@@ -144,8 +144,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "5c85d9a9773fbe7446266c907cdf02a0952608ec4ab744c9e4e5ae1f331b47bb",
-      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #210 ambient OFF and reduced-motion fix after Journal source.; #216 foreground Journal pointer/resize affordance and saved dimensions."
+      "sha256": "43ad081b06b98012269c1c9682f8bd62395ee04820a65dfbf5ccc9224612ea77",
+      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #210 ambient OFF and reduced-motion fix after Journal source.; #216 foreground Journal pointer/resize affordance and saved dimensions.; #216 page-specific optional Canvas 4:3 frame lock."
     },
     "src/widget-registry.js": {
       "sha256": "097767f8dd9c6c1e94504ec571c29ca2f1d0684955d2f8c87231d15db1a427f0",
