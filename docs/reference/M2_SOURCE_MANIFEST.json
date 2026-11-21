@@ -8,7 +8,7 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "index.html": {
-      "sha256": "65fdfb1e294ff30872ecfa40ce9ae8373e7a12d32f8be2c227307b5c6a92e0be",
+      "sha256": "a26db38548e358b90f66ae5d0166f648b443e2941a1d7453456dcb296255c59d",
       "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service; FB-218 discoverable task entry with existing save/branch behavior.; #220 global HUD actions preserving private handlers."
     },
     "src/app.js": {
