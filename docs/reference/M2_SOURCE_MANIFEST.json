@@ -148,8 +148,8 @@
       "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #210 ambient OFF and reduced-motion fix after Journal source.; #216 foreground Journal pointer/resize affordance and saved dimensions.; #224 colored milestones and compact journal lanes.; #223 ten-theme contrast Sakura AA correction.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge."
     },
     "src/widget-registry.js": {
-      "sha256": "097767f8dd9c6c1e94504ec571c29ca2f1d0684955d2f8c87231d15db1a427f0",
-      "reason": "Increase Journal maximum resize to existing database-supported 4000px."
+      "sha256": "c5667d4c63980884aefb7df69684ba84ff5350b017c6d40d6c487fab78c44a5c",
+      "reason": "Increase Journal maximum resize to existing database-supported 4000px.; #223 all six spatial core windows bounded at safe 5000px resize max."
     },
     "src/widgets.js": {
       "sha256": "059c26d42ab09e79be250f0f242d3f6897b22282b223f316ccd09c3ea38f5d00",
