@@ -746,7 +746,7 @@ def normal_flows(browser):
     page.locator('#journal-edit-toggle').click()
     assert page.evaluate("Object.keys(JSON.parse(localStorage.getItem('orbit.v8.extensions')).journalScenes).length") == 1
     # Export/restore UI path, including V6 dimensions and dated journal.
-    with page.expect_download() as download: page.locator('#backup-json').evaluate('e=>e.click()')
+    with page.expect_download() as download: (page.locator('#export-kind').evaluate("e=>e.value='space'"), page.locator('#export-csv').evaluate('e=>e.click()'))
     path=OUT/'m1-synthetic-backup.json'; download.value.save_as(path)
     backup=json.loads(path.read_text());assert backup['version']==6
     before=page.evaluate('window.orbitDebug.state.tasks')
@@ -865,7 +865,7 @@ def failure_security_flows(browser):
     ensure_journal_edit(page);page.locator('#journal-new').click()
     expect(page.locator('#journal-save-state')).to_contain_text('not saved')
     assert page.evaluate('(k)=>localStorage.getItem(k)',JOURNAL)=='{broken'
-    with page.expect_download() as download: page.locator('#backup-json').evaluate('e=>e.click()')
+    with page.expect_download() as download: (page.locator('#export-kind').evaluate("e=>e.value='space'"), page.locator('#export-csv').evaluate('e=>e.click()'))
     path=OUT/'m1-recovery.json';download.value.save_as(path)
     recovery=json.loads(path.read_text())['recoveryData'];assert recovery[TASKS]==raw and recovery[JOURNAL]=='{broken'
     path.unlink();assert not errors,errors;context.close()
