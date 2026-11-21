@@ -1,5 +1,15 @@
 # ORBIT — Command HQ continuity and integration checkpoint
 
+## 21 Nov 2026 — post-CI correction and Journal source merge
+
+**Most recent state for this bounded pass.** [Journal functional #248](https://github.com/DoorBlox/orbit/pull/248) passed all four exact-head CI checks at `a2df6ba3a8f43bf1d4c0b02acaf7bb556561ed1b` and SOURCE MERGED to `main` as `cb286fc31c0a9866e509ddfc38da8d6325e0bf33`. Scope: one new page from active Canvas after awaiting Excalidraw save, or from Preview, with keyboard activation; source, CI and manifest reviewed. **Do not claim #216 fully complete:** actual mouse click can be intercepted by an overlapping sticky/header from another floating widget; larger Journal resizing and optional fixed-size artboards remain unimplemented. Real signed-in account and Production acceptance NOT RUN.
+
+Original [ambient #249](https://github.com/DoorBlox/orbit/pull/249) head `5f6fa5d58f5ea064897b45cb45ad4b958b492f89` passed 4/4 exact-head checks after correcting CSS specificity (system reduced motion must defeat ambient ON), but became **merge-conflicted** after Journal CSS/manifest integration. HQ preserved Journal changes and rebuilt ambient on the newest main as [draft #251](https://github.com/DoorBlox/orbit/pull/251), head `1fac70d3a09b05f1a9ca52312562f75f28ccf056`, with test-first Chromium expectations + the same GPU-only CSS fix + recalculated integrity hash. At checkpoint, #251 anonymous protection and local RLS checks SUCCESS, artifact and quality IN PROGRESS. **Do not merge #249**; close it as superseded only after verified #251 source merge. For #251, require four successful exact-head checks, diff review, clean mergeability and then stage a new protected Preview on the exact implementation SHA. This continuation is bounded; no background work is scheduled.
+
+**Release remains unchanged:** `orbit.starscene.com` last verified on ORBIT 2.4 deployment `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`. Modern source contains >187 commits since that Production build, with owner-private sync/media and known synthetic abrupt-draft recovery RED #171/#175. No alias/Production promotion, hosted Auth/RLS/SQL/Storage edit, paid service, private deletion, or unprotected Preview. Owner is a sole developer; do not insist on second human reviewer, but retain automated protection and bounded signed-in acceptance. [HQ #225](https://github.com/DoorBlox/orbit/issues/225) holds the release trail.
+
+---
+
 ## 21 November 2026 — bounded continuation: Journal #216 and ambient #210
 
 **This entry supersedes older W3 #214/#217/#218 execution instructions below.** Owner requested continued direct development because W1–W6 conversations were off, with a 15-minute-unit cutoff, actual PRs/tests, and durable handoff. No claim of asynchronous agents or automatic worker launch.
