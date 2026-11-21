@@ -1,5 +1,19 @@
 # ORBIT — Command HQ continuity and integration checkpoint
 
+## 22 November 2026 — final bounded source/Preview checkpoint after #253
+
+**Verified source HEAD** `0ed66be004a7ee33ccfde4ac85c1c82e37ce312e`, [PR #253](https://github.com/DoorBlox/orbit/pull/253) SOURCE MERGED at exact reviewed head `666d6d8ef3d25e090d6ae8b4edef6c311b62cdef`, four required exact-head GitHub checks SUCCESS: full Node and real-origin Chromium quality, local Supabase RLS, private Production-artifact dry run, anonymous sign-in/deployment protection. This supplements prior #216 Canvas→new-page [#248](https://github.com/DoorBlox/orbit/pull/248) and #210 ambient [#251](https://github.com/DoorBlox/orbit/pull/251), each 4/4 source-merged. Old conflicted ambient #249 closed unmerged.
+
+**#253 implementation:** `SpatialBoard.bringToFront` gives focused/pointed widget temporary CSS z-index above separately floating sticky layer, visible 48px Journal resize grip, actual browser mouse click on New page while sticky overlaps, pointer drag to enlarge both dimensions and reload persistence. Initial CI caught unit-test mock compatibility `this.bringToFront is not a function`; corrected to `this.bringToFront?.(id)` with fresh M2 source hash and 4/4 rerun. Reviewed four file diff (board, CSS, real-origin regression, M2 manifest) before exact-SHA squash. No owner data or SQL/RLS/Auth/Storage mutations.
+
+**Protected exact-source Preview is READY:** `dpl_CnR8bPKcpoLG5m8xksDj8fHQLJwr`, https://orbit-lw36qkusd-doorbloxs-projects.vercel.app/; source exactly `0ed66be004a7ee33ccfde4ac85c1c82e37ce312e`, target Preview/null, not Production. Vercel `orbit.starscene.com` alias independently reverified still points to ORBIT **2.4** READY deployment `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`. **Do not call green source/Preview a Production release.**
+
+**Open product scope:** User #216 requested OPTIONAL fixed-size per-page artboards for Canvas; this remains UNIMPLEMENTED and requires safe model extension/normalization/backup/cloud compatibility and real owner UX evidence before marking #216 Done. Also #223 AA contrast, HUD/nav #220/#222, timeline #224 and other owner items remain open; W6 #242 RED contrast test and #175 crash-recovery RED stay unmerged. No second human reviewer should be required for a solo project; keep real-account privacy/backup/cross-account and same Production build staging+rollback as legitimate gates. No hosted settings or alias changes performed.
+
+**Docs synced:** existing single `plans/ORBIT_POST_2_4_EXECUTION.md` + `docs/PROGRESS.md` in current documentation PR reflect #253 source and remaining canvas scope. Keep six-worker handoffs and Command HQ issue [#225](https://github.com/DoorBlox/orbit/issues/225) as continuity. At the next bounded turn, requery live main, update active PR list, take fixed-artboard (#216) OR #223 readability as one dominant risk; validate exact-head four checks, protected Preview and release boundary. No background execution promised.
+
+---
+
 ## 22 November 2026 — solo-owner implementation + source merge checkpoint
 
 **Latest verified main source at this checkpoint:** `e6efb811c0a8edab4614aeacad46495fdff31f45`, after **#251** ambient ON/OFF + reduced-motion CSS **SOURCE MERGED** on top of **#248** Journal page creation. #251 exact head `1fac70d3a09b05f1a9ca52312562f75f28ccf056`, 4 required CI checks success, reviewed CSS/test/M2 manifest diff; #249 conflict closed WITHOUT merging. Earlier #214 #233, #217 #245, #218 #246 all source-merged with 4/4 checks. Keep all owner issue labels source vs Preview vs Production distinct.
