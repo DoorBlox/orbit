@@ -8,12 +8,12 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "index.html": {
-      "sha256": "0e9dc7e38e7d7296feb37b409cf4dbddf14cc42875198e76779469b41eab5a42",
-      "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service; FB-218 discoverable task entry with existing save/branch behavior.; #224 colored milestones and compact journal lanes.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge."
+      "sha256": "ce1ca8fc3b562718e47b730f8513ced08efc586459fb556d173226e600ca59ca",
+      "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service; FB-218 discoverable task entry with existing save/branch behavior.; #224 colored milestones and compact journal lanes.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; #220 responsive HUD integrated after #262 expanded windows."
     },
     "src/app.js": {
-      "sha256": "adf30d3c7e7ae7107359f25ace72ee3ecf61adc2c453e39c52a55f9463409524",
-      "reason": "W3 BP-09 opt-in deferred owner snapshot producer with legacy eager onSnapshotChange semantics preserved; FO-01 retained.; #217 task-aware leaf branch disclosure and connector suppression while retaining deferred sync; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge."
+      "sha256": "8bd7cefac6e68d03e91c3f5c077b517d48448e4f6d4c45cf07890685f11a5f9d",
+      "reason": "W3 BP-09 opt-in deferred owner snapshot producer with legacy eager onSnapshotChange semantics preserved; FO-01 retained.; #217 task-aware leaf branch disclosure and connector suppression while retaining deferred sync; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; #220 responsive HUD integrated after #262 expanded windows."
     },
     "src/auth/controller.js": {
       "sha256": "af8cde170ef58e61df8c464ee34249df4267812991392a95dae5c4d69f47ba20",
@@ -144,8 +144,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "55737013d0d76839a97c23556833090ea65a0cceec06c271ea902233d2a03f1a",
-      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #210 ambient OFF and reduced-motion fix after Journal source.; #216 foreground Journal pointer/resize affordance and saved dimensions.; #224 colored milestones and compact journal lanes.; #223 ten-theme contrast Sakura AA correction.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge."
+      "sha256": "b1c32248b82fd9691b6e60b63fbbe506d5c2a74c0ac4c3a932dfc28af3a00363",
+      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #210 ambient OFF and reduced-motion fix after Journal source.; #216 foreground Journal pointer/resize affordance and saved dimensions.; #224 colored milestones and compact journal lanes.; #223 ten-theme contrast Sakura AA correction.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; #220 responsive HUD integrated after #262 expanded windows."
     },
     "src/widget-registry.js": {
       "sha256": "c5667d4c63980884aefb7df69684ba84ff5350b017c6d40d6c487fab78c44a5c",
