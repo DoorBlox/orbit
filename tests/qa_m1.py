@@ -467,6 +467,11 @@ def normal_flows(browser):
     assert page.locator('.private-caption').count()==0, 'Prototype caption must be removed'
     assert page.locator('#clock').count()==1 and page.locator('#clock').inner_text().strip(), 'Clock remains visible'
     focus(page,'constellation')
+    # Owner #218: direct, named New task action, no branch-click prerequisite.
+    quick_start=page.get_by_role('button',name='New task',exact=True)
+    expect(quick_start).to_be_visible()
+    quick_start.click()
+    expect(page.locator('#capture-name')).to_be_focused()
     page.locator('#capture-name').fill('M1 captured task')
     page.locator('#capture-name').press('Enter')
     task=page.locator('.task-row').filter(has_text='M1 captured task')
