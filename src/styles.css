@@ -2365,6 +2365,14 @@ body.cloud-space-mounted .orbit-quickbar{
 }
 body.map-immersive .orbit-quickbar{opacity:.15;pointer-events:none}
 
+/* FB-223: explicit text-only export affordances and readable disclosure. */
+:root .space-more-tools .space-data-note{margin:7px 0 12px;
+  color:var(--orbit-widget-ink,#26354b);
+  font:500 12px/1.55 var(--orbit-font-ui,system-ui);overflow-wrap:anywhere}
+:root .space-more-tools .space-data-note strong{font-weight:750}
+:root .space-secondary-actions{align-items:center;gap:9px}
+:root .space-secondary-actions .space-export-picker{flex:1 1 190px;min-width:0;max-width:100%}
+:root .space-secondary-actions .glass-button{min-height:44px;font-size:12px}
 /* FB-222: zoom/home live in the same navigational surface as the minimap.
    Keep the keyboard-sized controls outside the scrollable map, not over it. */
 :root .space-navigator{width:242px;height:228px;grid-template-rows:auto auto minmax(72px,1fr) auto;gap:6px}

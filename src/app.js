@@ -222,11 +222,6 @@ openFocusTimer.addEventListener('click',()=>{
   board.focus('focus-timer');
 },{signal:events.signal});
 document.querySelector('.space-primary-actions')?.append(openFocusTimer);
-const openProjects=document.createElement('button');
-openProjects.type='button';openProjects.className='glass-button';
-openProjects.id='open-projects';openProjects.textContent='◆ My projects';
-openProjects.addEventListener('click',()=>board.focus('projects'),{signal:events.signal});
-document.querySelector('.space-primary-actions')?.append(openProjects);
 // BP-08: a camera bookmark, not a different layout or another dashboard.
 // The picker lives in Space; the Return control is viewport-fixed and reachable
 // even when Space and every other widget are dimmed/inert.
@@ -618,7 +613,6 @@ function initTools(){
   $('zoom-out').addEventListener('click',()=>scene.zoomBy(1/1.35));
   $('fit-all').addEventListener('click',()=>scene.fitAll());
   $('import-csv').addEventListener('click',()=>$('csv-file').click());
-  $('backup-json').addEventListener('click',backupJson);
   $('new-sticky').addEventListener('click',()=>{
     if(disposed||readOnly)return;
     if(!stickies.add())return;

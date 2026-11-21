@@ -450,6 +450,14 @@ def viewport_flow(browser, label, size):
         focus(page,'space')
         before=page.evaluate('''() => ({camera:{scale:window.orbitDebug.board.scale,
           pan:{...window.orbitDebug.board.pan}},layout:window.orbitDebug.board.getLayout()})''')
+        # FB-223: no duplicate Space snapshot export or misplaced Projects control.
+        assert page.locator('#open-projects').count()==0
+        assert page.locator('#backup-json').count()==0
+        page.locator('.space-more-tools > summary').click()
+        expect(page.locator('#export-kind')).to_be_visible()
+        assert 'no image files' in page.locator('#export-kind option[value="space"]').inner_text()
+        expect(page.locator('#export-csv')).to_have_text('Download selected format')
+        page.locator('.space-more-tools > summary').click()
         page.locator('.space-manage > summary').click()
         page.locator('#bp08-focus-picker').select_option('journal')
         expect(page.locator('#bp08-focus-exit')).to_be_visible()
@@ -759,7 +767,7 @@ def normal_flows(browser):
     page.locator('#journal-edit-toggle').click()
     assert page.evaluate("Object.keys(JSON.parse(localStorage.getItem('orbit.v8.extensions')).journalScenes).length") == 1
     # Export/restore UI path, including V6 dimensions and dated journal.
-    with page.expect_download() as download: page.locator('#backup-json').evaluate('e=>e.click()')
+    with page.expect_download() as download: (page.locator('#export-kind').evaluate("e=>e.value='space'"), page.locator('#export-csv').evaluate('e=>e.click()'))
     path=OUT/'m1-synthetic-backup.json'; download.value.save_as(path)
     backup=json.loads(path.read_text());assert backup['version']==6
     before=page.evaluate('window.orbitDebug.state.tasks')
@@ -878,7 +886,7 @@ def failure_security_flows(browser):
     ensure_journal_edit(page);page.locator('#journal-new').click()
     expect(page.locator('#journal-save-state')).to_contain_text('not saved')
     assert page.evaluate('(k)=>localStorage.getItem(k)',JOURNAL)=='{broken'
-    with page.expect_download() as download: page.locator('#backup-json').evaluate('e=>e.click()')
+    with page.expect_download() as download: (page.locator('#export-kind').evaluate("e=>e.value='space'"), page.locator('#export-csv').evaluate('e=>e.click()'))
     path=OUT/'m1-recovery.json';download.value.save_as(path)
     recovery=json.loads(path.read_text())['recoveryData'];assert recovery[TASKS]==raw and recovery[JOURNAL]=='{broken'
     path.unlink();assert not errors,errors;context.close()
