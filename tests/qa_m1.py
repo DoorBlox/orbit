@@ -748,7 +748,9 @@ def normal_flows(browser):
     existing=page.evaluate('window.orbitDebug.journal.entries.length')
     previous_id=page.evaluate('window.orbitDebug.journal.entries[window.orbitDebug.journal.index].id')
     expect(page.locator('#journal-new')).to_be_visible()
-    page.locator('#journal-new').click()
+    # Keyboard activation remains usable even when other floating widgets overlap.
+    page.locator('#journal-new').focus()
+    page.locator('#journal-new').press('Enter')
     page.wait_for_function('(n)=>window.orbitDebug.journal.entries.length===n+1',arg=existing)
     assert page.evaluate('window.orbitDebug.journal.entries[window.orbitDebug.journal.index].id')!=previous_id
     expect(page.locator('#journal-widget')).to_have_attribute('data-journal-view','edit')
@@ -757,7 +759,8 @@ def normal_flows(browser):
     page.locator('#journal-edit-toggle').click()
     expect(page.locator('#journal-widget')).to_have_attribute('data-journal-view','preview')
     expect(page.locator('#journal-new')).to_be_visible()
-    page.locator('#journal-new').click()
+    page.locator('#journal-new').focus()
+    page.locator('#journal-new').press('Enter')
     page.wait_for_function('(n)=>window.orbitDebug.journal.entries.length===n+2',arg=existing)
     expect(page.locator('#journal-widget')).to_have_attribute('data-journal-view','edit')
     assert not errors,errors
