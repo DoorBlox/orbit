@@ -32,7 +32,7 @@
       "reason": "Normalize imported core widget dimensions into supported database-safe integers."
     },
     "src/board.js": {
-      "sha256": "c0d5710ad0d0195a88ba1c53ac66e17711c8b3d74f2b952c5f9d188635067c8f",
+      "sha256": "821df7cfecc7ec7c4682fb834d1e648e66608bbc74e98e9277f9d0aeeaf102da",
       "reason": "W3 BP-08: preserve centered world coordinate and reversible Focus camera bookmark through portrait, short-landscape, browser chrome and keyboard viewport changes without editing saved widget geometry.; #216 foreground Journal pointer/resize affordance and saved dimensions."
     },
     "src/bootstrap.js": {
