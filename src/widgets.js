@@ -73,8 +73,10 @@ export class ScrapWidgets {
     form.addEventListener('submit',e=>{e.preventDefault();
       const title=document.getElementById('milestone-title').value.trim().slice(0,110);
       const date=document.getElementById('milestone-date').value;
+      const chosenColor=document.getElementById('milestone-color').value;
       if(!title||!Number.isFinite(utcDate(date)))return;
-      const entry={id:`mark-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,title,date};
+      const color=/^#[0-9a-fA-F]{6}$/.test(chosenColor)?chosenColor:'#6578c4';
+      const entry={id:`mark-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,title,date,color};
       this.onChangeMilestones([...this.milestones,entry]);form.reset();form.hidden=true;
     });
     this.scroll.addEventListener('wheel',e=>{if(e.ctrlKey||e.metaKey){e.preventDefault();this.adjustZoom(e.deltaY<0?1.25:.8);}}, {passive:false});
@@ -127,15 +129,17 @@ export class ScrapWidgets {
       marker.addEventListener('click',()=>this.onFocus(task));this.surface.append(marker);
     }
     const milestoneEnds=Array(3).fill(-Infinity),miniMilestones=this.pxPerDay<3.3;
+    let deepestMilestoneLane=-1;
     const orderedMilestones=[...this.milestones].filter(m=>Number.isFinite(utcDate(m.date))).sort((a,b)=>a.date.localeCompare(b.date));
     for(const entry of orderedMilestones){
       const ts=utcDate(entry.date);if(ts<start||ts>start+days*UTC_DAY)continue;
       const x=(ts-start)/UTC_DAY*this.pxPerDay+65,needed=miniMilestones?24:Math.min(205,Math.max(75,entry.title.length*6.8+22));
       let lane=milestoneEnds.findIndex(end=>x-end>needed+9);
       if(lane<0)lane=milestoneEnds.indexOf(Math.min(...milestoneEnds));
-      milestoneEnds[lane]=x;
+      milestoneEnds[lane]=x;deepestMilestoneLane=Math.max(deepestMilestoneLane,lane);
       const marker=el('button','timeline-milestone',miniMilestones?'◆':entry.title);marker.type='button';
-      marker.style.left=`${x}px`;marker.style.top=`${203+lane*29}px`;
+      marker.style.left=`${x}px`;marker.style.top=`${170+lane*27}px`;
+      marker.style.setProperty('--milestone-accent',/^#[0-9a-fA-F]{6}$/.test(entry.color??'')?entry.color:'#6578c4');
       if(miniMilestones)marker.classList.add('is-condensed');
       marker.title=`Milestone: ${entry.title}, ${entry.date}. Activate for removal options.`;
       marker.setAttribute('aria-label',marker.title);
@@ -159,7 +163,10 @@ export class ScrapWidgets {
       const marker=el('button','timeline-journal');marker.type='button';
       const glyph=el('span','journal-page-glyph');glyph.setAttribute('aria-hidden','true');marker.append(glyph);
       if(!mini)marker.append(el('span','journal-chip-label',`${monthLabel(new Date(utcDate(date)))}${entries.length>1?` · ${entries.length}`:''}`));
-      marker.style.left=`${x}px`;marker.style.top=`${295+lane*25}px`;
+      // Pages sit just below the occupied milestone lanes, not in a fixed
+      // empty band far from the main timeline.
+      const pageTop=218+Math.max(0,deepestMilestoneLane)*27;
+      marker.style.left=`${x}px`;marker.style.top=`${pageTop+lane*27}px`;
       if(mini)marker.classList.add('is-condensed');
       marker.title=`Journal, ${date}: ${entries.length} ${entries.length===1?'page':'pages'}${latest.title?` · ${latest.title}`:''}`;
       marker.setAttribute('aria-label',`Open journal page for ${date}${entries.length>1?`, ${entries.length} pages`:''}`);
