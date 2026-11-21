@@ -9,7 +9,7 @@ export const browserModules = [
   'app.js','focus.js','quick-jump.js','board.js','widget-registry.js','constellation.js','csv.js','data.js','journal.js','scene.js','excalidraw-adapter.js','inline-canvas.js','stickies.js',
   'backup.js','dates.js','layout.js','model.js','projects.js','project-shelf.js','money.js','money-widget.js','storage.js','widgets.js','styles.css',
   'bootstrap.js','auth/controller.js','auth/shell.js','cloud/media.js','cloud/client-config.js',
-  'cloud/mappers.js','cloud/repository.js','cloud/sync.js','cloud/owner-tools.js',
+  'cloud/mappers.js','cloud/repository.js','cloud/sync.js','cloud/durable-draft.js','cloud/owner-tools.js',
   'cloud/portable-backup.js',
 ];
 /** Validate the complete native import graph of the actual distribution.
