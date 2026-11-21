@@ -2404,3 +2404,12 @@ body.map-immersive .orbit-quickbar{opacity:.15;pointer-events:none}
     flex:0 0 44px;width:44px;height:44px;order:0
   }
 }
+
+/* Keep the compact control group away from the active Journal's top actions.
+   The mobile HUD owns the footer strip; place navigation just above it. */
+@media(max-width:700px){
+  :root .space-navigator{
+    top:auto!important;
+    bottom:calc(95px + var(--cloud-dock-height,0px) + env(safe-area-inset-bottom,0px))!important;
+  }
+}

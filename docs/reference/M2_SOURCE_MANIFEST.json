@@ -144,8 +144,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "d2d3a236b70a03b51b78b2809c36ce174e40cd672974ba91763a0c247d3d5e98",
-      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #210 ambient OFF and reduced-motion fix after Journal source.; #216 foreground Journal pointer/resize affordance and saved dimensions.; #224 colored milestones and compact journal lanes.; #223 ten-theme contrast Sakura AA correction.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; #220 responsive HUD integrated after #262 expanded windows.; #222 minimap-integrated accessible zoom/home toolbar.; #222 mobile compact minimap keeps zoom/home available while collapsed."
+      "sha256": "979913ad7095e102577b1beb692e20009a69fabb999f5899afe47cb9c8c7416d",
+      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #210 ambient OFF and reduced-motion fix after Journal source.; #216 foreground Journal pointer/resize affordance and saved dimensions.; #224 colored milestones and compact journal lanes.; #223 ten-theme contrast Sakura AA correction.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; #220 responsive HUD integrated after #262 expanded windows.; #222 minimap-integrated accessible zoom/home toolbar.; #222 mobile compact minimap keeps zoom/home available while collapsed.; #222 mobile navigator moved away from Journal top-action hit target."
     },
     "src/widget-registry.js": {
       "sha256": "c5667d4c63980884aefb7df69684ba84ff5350b017c6d40d6c487fab78c44a5c",
