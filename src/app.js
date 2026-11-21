@@ -302,7 +302,7 @@ function refreshJournalMode(){
   $('journal-paper-choices').hidden=!editing;
   widget.querySelector('.journal-formatbar').hidden=!(editing&&mode==='write');
   journalMore.hidden=!editing;
-  $('journal-new').hidden=!editing;
+  $('journal-new').hidden=readOnly;
   $('journal-date-label').hidden=editing;
   widget.querySelector('.journal-date-edit-label').hidden=!editing;
   $('journal-entry-date').hidden=!editing;
@@ -657,6 +657,20 @@ function initTools(){
     handle.dispose();
     if(activeJournalCanvas===handle)activeJournalCanvas=null;
   }
+  // A new journal page is allowed from Preview or Canvas edit. Finish the
+  // active Excalidraw save before changing identity; one click adds one page.
+  journal.onNewPage=async()=>{
+    if(readOnly||disposed||journalBusy)return;
+    journalBusy=true;
+    const add=$('journal-new');add.disabled=true;
+    try{
+      await leaveJournalCanvas();if(disposed)return;
+      journal.commit();journal.newPage();
+      journal.setEditing(true);refreshJournalMode();
+      $('journal-entry-title').focus({preventScroll:true});
+    }catch(error){message('Page was not added: '+error.message,6500);}
+    finally{journalBusy=false;add.disabled=readOnly;}
+  };
   $('journal-edit-toggle').addEventListener('click',async()=>{
     if(readOnly||disposed||journalBusy)return;
     journalBusy=true;
