@@ -57,6 +57,21 @@ export function navigatorGrabOffset(pointer,center,size){
   if(Math.abs(dx)>width/2+2||Math.abs(dy)>height/2+2)return null;
   return {x:dx,y:dy};
 }
+
+/** FB-221: project real widget/note dimensions into the minimap. The existing
+ * viewport cursor remains independently draggable; this is visual focus only. */
+export function navigatorFocusGeometry(target,bounds,width,height){
+  if(!target||!bounds||![target.x,target.y,target.width,target.height,width,height,
+    bounds.x0,bounds.x1,bounds.y0,bounds.y1].every(Number.isFinite)||
+    width<=0||height<=0||target.width<=0||target.height<=0||
+    bounds.x1<=bounds.x0||bounds.y1<=bounds.y0)return null;
+  const spanX=bounds.x1-bounds.x0,spanY=bounds.y1-bounds.y0;
+  return {left:(target.x+target.width/2-bounds.x0)/spanX*100,
+    top:(target.y+target.height/2-bounds.y0)/spanY*100,
+    width:clamp(target.width/spanX*width,8,width-6),
+    height:clamp(target.height/spanY*height,8,height-6)};
+}
+
 export class SpatialBoard {
   constructor({notify=()=>{},initialLayout,readOnly=false,persistLocally=true,onLayoutChange=()=>{},
     optionalWidgetLayout={},onOptionalLayoutChange=()=>{},widgetRegistry=DEFAULT_WIDGET_REGISTRY}={}){
@@ -87,7 +102,7 @@ export class SpatialBoard {
     // Keep the same world point under the viewport center across phone rotations
     // and mobile browser-chrome / soft-keyboard viewport changes.
     this.lastViewportSize=this.viewportSize();
-    this.widgets=new Map();this.stickyNotes=[];this.navPointer=null;this.navDragStart=null;
+    this.widgets=new Map();this.stickyNotes=[];this.navFocusTarget=null;this.navPointer=null;this.navDragStart=null;
     this.nav=document.getElementById('space-nav-map');
     this.navPinStart=null;this.navSuppressClick=false;
     // Keep touch drag gestures in the map even if style bundles or theme overrides lag.
@@ -337,11 +352,15 @@ export class SpatialBoard {
       })):[];
     this.buildNavigator();
   }
-  focusCoordinate(x,y,{scale=Math.max(.7,Math.min(1.12,this.scale))}={}){
+  focusCoordinate(x,y,{scale=Math.max(.7,Math.min(1.12,this.scale)),noteId=null}={}){
+    const note=noteId?this.stickyNotes.find(n=>n.id===noteId):
+      this.stickyNotes.find(n=>Math.abs(n.x+n.width/2-x)<.5&&Math.abs(n.y+n.height/2-y)<.5);
+    this.navFocusTarget=note?{kind:'sticky',id:note.id}:null;
     const {w,h}=this.viewportSize();
     this.animate({scale,x:w/2-x*scale,y:h/2-y*scale},420);
   }
   navigatorToWorld(e){
+    this.navFocusTarget=null;
     if(!this.navBounds)return;
     const rect=this.nav.getBoundingClientRect();
     if(!rect.width||!rect.height)return;
@@ -455,6 +474,7 @@ export class SpatialBoard {
   focus(id,{initial=false}={}){
     const item=this.widgets.get(id),p=this.positions[id];if(!item)return;
     this.bringToFront?.(id);
+    this.navFocusTarget={kind:'widget',id};
     if(item.hidden&&this.extraIds.has(id))this.setWidgetVisible(id,true);
     const {w,h}=this.viewportSize(),sw=item.offsetWidth,sh=item.offsetHeight;
     let scale;
@@ -603,7 +623,7 @@ export class SpatialBoard {
     this.nav.replaceChildren();
     const spots=[...this.widgets.keys()].map(id=>{const p=this.positions[id],el=this.widgets.get(id);
       return {id,x:p.x+el.offsetWidth/2,y:p.y+el.offsetHeight/2,hidden:el.hidden};});
-    const notes=this.stickyNotes.map(n=>({id:n.id,title:n.title,x:n.x+n.width/2,y:n.y+n.height/2}));
+    const notes=this.stickyNotes.map(n=>({id:n.id,title:n.title,x:n.x+n.width/2,y:n.y+n.height/2,width:n.width,height:n.height}));
     const all=[...spots,...notes];
     if(!all.length)return;
     const x0=Math.min(...all.map(s=>s.x))-350,x1=Math.max(...all.map(s=>s.x))+350;
@@ -628,18 +648,40 @@ export class SpatialBoard {
       const btn=document.createElement('button');btn.type='button';btn.className='space-point space-point-sticky';
       btn.textContent='▤';place(note.x,note.y,btn);btn.title=`Go to sticky note: ${note.title}`;
       btn.setAttribute('aria-label',`Go to sticky note: ${note.title}`);
-      btn.addEventListener('click',()=>this.focusCoordinate(note.x,note.y));
+      btn.addEventListener('click',()=>this.focusCoordinate(note.x,note.y,{noteId:note.id}));
       btn.addEventListener('pointerenter',()=>{caption.textContent=note.title;});
       btn.addEventListener('pointerleave',()=>{caption.textContent='drag the outline to travel';});
       this.nav.append(btn);
     }
+    const target=document.createElement('div');target.id='space-nav-target';
+    target.className='space-nav-target';target.setAttribute('aria-hidden','true');target.hidden=true;this.nav.append(target);
     const cursor=document.createElement('div');cursor.id='space-nav-cursor';cursor.className='space-nav-cursor';
     cursor.setAttribute('aria-hidden','true');this.nav.append(cursor);this.drawNavigatorCursor();
   }
-  drawNavigatorCursor(){if(!this.navBounds)return;const el=document.getElementById('space-nav-cursor');if(!el)return;
+  drawNavigatorCursor(){if(!this.navBounds)return;const el=this.nav.querySelector('#space-nav-cursor');if(!el)return;
     const {w,h}=this.viewportSize(),wx=(w/2-this.pan.x)/this.scale,wy=(h/2-this.pan.y)/this.scale,{x0,x1,y0,y1}=this.navBounds;
     el.style.left=`${clampNavigatorPercent((wx-x0)/(x1-x0)*100,this.nav.clientWidth||180)}%`;
     el.style.top=`${clampNavigatorPercent((wy-y0)/(y1-y0)*100,this.nav.clientHeight||90)}%`;
+    const focus=this.nav.querySelector('#space-nav-target'),selected=this.navFocusTarget;
+    if(!focus)return;
+    let target=null,shape='rounded';
+    if(selected?.kind==='widget'){
+      const widget=this.widgets.get(selected.id),pos=this.positions[selected.id];
+      if(widget&&pos&&!widget.hidden){
+        target={x:pos.x,y:pos.y,width:widget.offsetWidth,height:widget.offsetHeight};
+        shape=getComputedStyle(widget).borderRadius.includes('50%')?'circle':'rounded';
+      }
+    }else if(selected?.kind==='sticky'){
+      const note=this.stickyNotes.find(n=>n.id===selected.id);
+      if(note){target=note;shape='note';}
+    }
+    const frame=navigatorFocusGeometry(target,this.navBounds,this.nav.clientWidth||180,this.nav.clientHeight||90);
+    focus.hidden=!frame;el.classList.toggle('has-focus-target',Boolean(frame));
+    if(!frame)return;
+    focus.style.left=`${frame.left}%`;focus.style.top=`${frame.top}%`;
+    focus.style.width=`${frame.width}px`;focus.style.height=`${frame.height}px`;
+    focus.style.borderRadius=shape==='circle'?'50%':shape==='note'?'5px':'12px';
+    focus.dataset.kind=selected.kind;
   }
   dispose(){this.exitWidgetFocus();this.disposed=true;this.cancelNavigatorPan();this.navigatorObserver?.disconnect();this.viewportObserver?.disconnect();cancelAnimationFrame(this.raf);this.raf=0;this.events.abort();this.pointers.clear();this.widgets.clear();}
 

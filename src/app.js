@@ -252,6 +252,7 @@ board.registerWidget({
   id:'focus-timer',position:{x:3210,y:240},
   limits:{minW:340,minH:390,maxW:1400,maxH:1200},icon:'◷'
 },focusWidget.element);
+const helpTour=setupHelpTour();
 const openFocusTimer=document.createElement('button');
 openFocusTimer.type='button';openFocusTimer.id='open-focus-timer';
 openFocusTimer.className='glass-button';openFocusTimer.textContent='◷ Focus timer';
@@ -594,6 +595,96 @@ function restoreBackup(contents){
   state.selectedBranchId='inbox';sync({persist:false});scene.fitAll();
   message('Backup restored, including journal and widget positions (when available).');
 }
+
+/** FB-219: owner-private, non-persistent, keyboard-accessible HUD guide.
+ * Browsing steps never edits a task or touches a cloud record. */
+function setupHelpTour(){
+  const trigger=$('hud-help');
+  const create=(tag,css,txt)=>{
+    const e=document.createElement(tag);if(css)e.className=css;
+    if(txt!==undefined)e.textContent=txt;return e;
+  };
+  const topics=[
+    {id:'task',label:'Create a task',action:'hud-new-task',writes:true,steps:[
+      ['Start from the HUD','Use + Task from anywhere to open the Constellation capture form.','hud-new-task',null],
+      ['Name your action','Give the task a short, actionable title. It will be attached to your selected branch.','capture-name','constellation'],
+      ['Save it','Press Enter or use Add. Your task appears on the Constellation and task list.','capture-submit','constellation']]},
+    {id:'note',label:'Add a note',action:'new-sticky',writes:true,steps:[
+      ['Use + Note','The HUD creates a movable sticky note in your space.','new-sticky',null],
+      ['Keep the note','Move or resize it on the canvas. Notes stay private in your workspace.','space-nav-map',null]]},
+    {id:'journal',label:'Write in Journal',action:'hud-journal',steps:[
+      ['Open Journal','Select Journal in your HUD; it brings the page to the front.','hud-journal',null],
+      ['Create a page','Use + new page in the Journal to begin a fresh dated entry.','journal-new','journal']]},
+    {id:'timeline',label:'Explore Timeline',action:'hud-timeline',steps:[
+      ['Open Timeline','Select Timeline in your HUD.','hud-timeline',null],
+      ['See today','Use Today to return to the current date and add milestones as you plan.','timeline-today','timeline']]},
+    {id:'search',label:'Find your tasks',action:'hud-search',steps:[
+      ['Open search','Select Search from the HUD to search within your own tasks and branches.','hud-search',null],
+      ['Enter a search','Type any task or branch name; matching tasks are highlighted locally.','capture-name','constellation']]}
+  ];
+  const dialog=create('dialog','orbit-help-dialog');dialog.id='orbit-help-dialog';
+  dialog.setAttribute('aria-labelledby','orbit-help-title');
+  const head=create('div','orbit-help-heading'),heading=create('h2','', 'ORBIT help');
+  heading.id='orbit-help-title';
+  const close=create('button','orbit-help-close','×');close.type='button';
+  close.setAttribute('aria-label','Close tutorial');head.append(heading,close);
+  const subtitle=create('p','orbit-help-subtitle','Choose something to learn. Nothing changes until you take an action.');
+  const list=create('div','orbit-help-topics');
+  const panel=create('section','orbit-help-step');
+  const counter=create('p','orbit-help-counter'),stepTitle=create('h3',''),body=create('p','');
+  stepTitle.id='orbit-help-step-title';panel.append(counter,stepTitle,body);
+  const buttons=create('div','orbit-help-actions');
+  const back=create('button','orbit-help-back','All topics'),next=create('button','orbit-help-next','Next step'),
+    tryAction=create('button','orbit-help-try','Try it');
+  for(const btn of [back,next,tryAction])btn.type='button';
+  buttons.append(back,next,tryAction);dialog.append(head,subtitle,list,panel,buttons);
+  document.body.append(dialog);
+  let selected=null,step=0,highlighted=null,launching=false;
+  const clearHighlight=()=>{highlighted?.classList.remove('orbit-help-target');highlighted=null;};
+  function render(){
+    clearHighlight();list.hidden=Boolean(selected);panel.hidden=!selected;
+    back.hidden=!selected;next.hidden=!selected;tryAction.hidden=!selected;
+    if(!selected){
+      heading.textContent='ORBIT help';subtitle.textContent='Pick a guide. No private data is collected or sent.';
+      return;
+    }
+    const current=selected.steps[step];
+    heading.textContent=selected.label;subtitle.textContent='Follow the highlighted controls, then try it yourself.';
+    counter.textContent=`Step ${step+1} of ${selected.steps.length}`;
+    stepTitle.textContent=current[0];body.textContent=current[1];
+    back.textContent=step?'Previous step':'All topics';
+    next.hidden=step===selected.steps.length-1;
+    tryAction.disabled=Boolean(selected.writes&&readOnly);
+    tryAction.title=tryAction.disabled?'Sign in to edit your private space':'Continue in your space';
+    if(current[3])board.focus(current[3]);
+    highlighted=$(current[2]);highlighted?.classList.add('orbit-help-target');
+  }
+  for(const topic of topics){
+    const button=create('button','orbit-help-topic',topic.label);button.type='button';
+    button.setAttribute('aria-label',topic.label+' tutorial');
+    button.addEventListener('click',()=>{selected=topic;step=0;render();},{signal:events.signal});
+    list.append(button);
+  }
+  function open(){
+    if(disposed||dialog.open)return;
+    selected=null;step=0;render();dialog.showModal();close.focus({preventScroll:true});
+  }
+  trigger.addEventListener('click',open,{signal:events.signal});
+  close.addEventListener('click',()=>dialog.close(),{signal:events.signal});
+  back.addEventListener('click',()=>{if(!selected)return;if(step){step--;}else selected=null;render();},{signal:events.signal});
+  next.addEventListener('click',()=>{if(selected&&step<selected.steps.length-1){step++;render();}},{signal:events.signal});
+  tryAction.addEventListener('click',()=>{
+    if(!selected||tryAction.disabled)return;
+    const actionId=selected.action;launching=true;dialog.close();
+    requestAnimationFrame(()=>{if(!disposed)$(actionId)?.click();});
+  },{signal:events.signal});
+  dialog.addEventListener('close',()=>{
+    clearHighlight();const returnToHelp=!launching;launching=false;
+    if(returnToHelp&&!disposed)trigger.focus({preventScroll:true});
+  },{signal:events.signal});
+  return {dispose(){clearHighlight();if(dialog.open)dialog.close();dialog.remove();}};
+}
+
 function initTools(){
   // A per-account center name can be edited without changing other users' profiles.
   const rename=$('rename-space'),nameForm=$('space-name-form'),nameField=$('space-name-input');
@@ -1062,7 +1153,7 @@ function hasPendingEditor(){return Boolean(activeJournalCanvas?.isDirty()||stick
    if(stickies.activeCanvas)await stickies.activeCanvas.save();
    return journal.commit();
  }
- function dispose(){if(disposed)return;leaveWidgetFocus();disposed=true;activeJournalCanvas?.dispose();activeJournalCanvas=null;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);++journalImageRequest;const journalImage=$('journal-image-preview');journalImage?.removeAttribute('src');journalImageLease?.release();journalImageLease=null;releaseScenePreview($('journal-drawing-preview'));jump.dispose();projectsShelf.dispose();focusWidget.dispose({clearSession:!persistLocally});board.dispose();journal.dispose();stickies.dispose();scene.dispose();media?.dispose?.();document.documentElement.dataset.theme='parchment';document.documentElement.dataset.motion='system';document.documentElement.dataset.ambient='off';window.orbitDebug=null;}
+ function dispose(){if(disposed)return;leaveWidgetFocus();disposed=true;activeJournalCanvas?.dispose();activeJournalCanvas=null;events.abort();clearInterval(clockTimer);clearTimeout(toastTimer);clearTimeout(clearDemoTimer);++journalImageRequest;const journalImage=$('journal-image-preview');journalImage?.removeAttribute('src');journalImageLease?.release();journalImageLease=null;releaseScenePreview($('journal-drawing-preview'));jump.dispose();helpTour.dispose();projectsShelf.dispose();focusWidget.dispose({clearSession:!persistLocally});board.dispose();journal.dispose();stickies.dispose();scene.dispose();media?.dispose?.();document.documentElement.dataset.theme='parchment';document.documentElement.dataset.motion='system';document.documentElement.dataset.ambient='off';window.orbitDebug=null;}
 return {getSnapshot,applySnapshot,setCloudStatus,dispose,
   flushEditor,hasPendingEditor,journalCommit:()=>journal.commit(),exportBackup:backupJson};
 }
