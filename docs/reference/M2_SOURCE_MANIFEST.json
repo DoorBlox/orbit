@@ -8,12 +8,12 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "index.html": {
-      "sha256": "ce1ca8fc3b562718e47b730f8513ced08efc586459fb556d173226e600ca59ca",
-      "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service; FB-218 discoverable task entry with existing save/branch behavior.; #224 colored milestones and compact journal lanes.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; #220 responsive HUD integrated after #262 expanded windows."
+      "sha256": "25a7b7a7701870b75ce36dbe4d049f06a16a1ca2bad930153c9b0499b2b0dcc4",
+      "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service; FB-218 discoverable task entry with existing save/branch behavior.; #224 colored milestones and compact journal lanes.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; #220 responsive HUD integrated after #262 expanded windows.; #223 de-duplicate Space JSON export and remove Projects shortcut, clarify safe backup labels."
     },
     "src/app.js": {
-      "sha256": "8bd7cefac6e68d03e91c3f5c077b517d48448e4f6d4c45cf07890685f11a5f9d",
-      "reason": "W3 BP-09 opt-in deferred owner snapshot producer with legacy eager onSnapshotChange semantics preserved; FO-01 retained.; #217 task-aware leaf branch disclosure and connector suppression while retaining deferred sync; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; #220 responsive HUD integrated after #262 expanded windows."
+      "sha256": "59d00320cb3d63bb2b4693cf0998019d0ecf6b8afc65a97bdb39149901359969",
+      "reason": "W3 BP-09 opt-in deferred owner snapshot producer with legacy eager onSnapshotChange semantics preserved; FO-01 retained.; #217 task-aware leaf branch disclosure and connector suppression while retaining deferred sync; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; #220 responsive HUD integrated after #262 expanded windows.; #223 de-duplicate Space JSON export and remove Projects shortcut, clarify safe backup labels."
     },
     "src/auth/controller.js": {
       "sha256": "af8cde170ef58e61df8c464ee34249df4267812991392a95dae5c4d69f47ba20",
@@ -144,8 +144,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "b1c32248b82fd9691b6e60b63fbbe506d5c2a74c0ac4c3a932dfc28af3a00363",
-      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #210 ambient OFF and reduced-motion fix after Journal source.; #216 foreground Journal pointer/resize affordance and saved dimensions.; #224 colored milestones and compact journal lanes.; #223 ten-theme contrast Sakura AA correction.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; #220 responsive HUD integrated after #262 expanded windows."
+      "sha256": "7c01c250e14ec80fe703fa9c782b4cca8561df7961be10e67b829d809fe2f0f2",
+      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #210 ambient OFF and reduced-motion fix after Journal source.; #216 foreground Journal pointer/resize affordance and saved dimensions.; #224 colored milestones and compact journal lanes.; #223 ten-theme contrast Sakura AA correction.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; #220 responsive HUD integrated after #262 expanded windows.; #223 de-duplicate Space JSON export and remove Projects shortcut, clarify safe backup labels."
     },
     "src/widget-registry.js": {
       "sha256": "c5667d4c63980884aefb7df69684ba84ff5350b017c6d40d6c487fab78c44a5c",
