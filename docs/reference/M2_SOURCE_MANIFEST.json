@@ -12,8 +12,8 @@
       "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service; FB-218 discoverable task entry with existing save/branch behavior."
     },
     "src/app.js": {
-      "sha256": "c70411f9260950893d136ff775b8e955b239c6e2d4f2cfcfadedee6aa88705b2",
-      "reason": "W3 BP-09 opt-in deferred owner snapshot producer with legacy eager onSnapshotChange semantics preserved; FO-01 retained.; #217 task-aware leaf branch disclosure and connector suppression while retaining deferred sync; FB-218 discoverable task entry with existing save/branch behavior."
+      "sha256": "6dc38fb1c23bac6d6b49e4312b13eb2d33236af7d32d5e29f76bda8fddb611e4",
+      "reason": "W3 BP-09 opt-in deferred owner snapshot producer with legacy eager onSnapshotChange semantics preserved; FO-01 retained.; #217 task-aware leaf branch disclosure and connector suppression while retaining deferred sync; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview."
     },
     "src/auth/controller.js": {
       "sha256": "af8cde170ef58e61df8c464ee34249df4267812991392a95dae5c4d69f47ba20",
@@ -108,8 +108,8 @@
       "reason": "BP-07: lazy owner-private Excalidraw island, true-content signature, guards and explicit save/flush with unit regression."
     },
     "src/journal.js": {
-      "sha256": "bb7840002fa59934bc470d734287112d72fa5fedabb8b351f2ae9bcdc6f6a1bb",
-      "reason": "W3 BP-11: safely use clipboard plain text when untrusted rich HTML is fully rejected; preserve selection on empty payload and native undo/redo."
+      "sha256": "f7015efd87a53e7c077b007e5ea270ed6dbb3b8c9323ba6d1f92acb183df463a",
+      "reason": "W3 BP-11: safely use clipboard plain text when untrusted rich HTML is fully rejected; preserve selection on empty payload and native undo/redo.; #216 atomic new-page transition from Canvas or Preview."
     },
     "src/layout.js": {
       "sha256": "c62f15af823fd0b1e4d9abfcf680f7257fbd67af850adf9be6703a269f9d9676",
@@ -144,8 +144,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "22b328bf49e7d07bc30fc8e0ded824080887a907dcec30d078cc0409f227185e",
-      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior."
+      "sha256": "3deea5f1a94f7426f3bfe07f409c2854eeedc82914f3f438576e112a2e6e6cca",
+      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview."
     },
     "src/widget-registry.js": {
       "sha256": "097767f8dd9c6c1e94504ec571c29ca2f1d0684955d2f8c87231d15db1a427f0",

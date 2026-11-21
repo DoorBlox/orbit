@@ -740,6 +740,29 @@ def normal_flows(browser):
     expect(page.locator('#toast button')).to_be_visible()
     page.locator('#toast button').click()
     assert page.evaluate('window.orbitDebug.state.journalPages')==pages
+    # Owner #216: creating a page while Excalidraw is mounted must save,
+    # navigate exactly once and remain editable, without a Preview dead end.
+    ensure_journal_edit(page)
+    page.locator('.journal-mode-tab[data-journal-mode="canvas"]').click()
+    expect(page.locator('#journal-inline-canvas-host .excalidraw')).to_be_visible(timeout=30000)
+    existing=page.evaluate('window.orbitDebug.journal.entries.length')
+    previous_id=page.evaluate('window.orbitDebug.journal.entries[window.orbitDebug.journal.index].id')
+    expect(page.locator('#journal-new')).to_be_visible()
+    # Keyboard activation remains usable even when other floating widgets overlap.
+    page.locator('#journal-new').focus()
+    page.locator('#journal-new').press('Enter')
+    page.wait_for_function('(n)=>window.orbitDebug.journal.entries.length===n+1',arg=existing)
+    assert page.evaluate('window.orbitDebug.journal.entries[window.orbitDebug.journal.index].id')!=previous_id
+    expect(page.locator('#journal-widget')).to_have_attribute('data-journal-view','edit')
+    expect(page.locator('#journal-editor')).to_be_visible()
+    # New page remains discoverable and usable from Preview as well.
+    page.locator('#journal-edit-toggle').click()
+    expect(page.locator('#journal-widget')).to_have_attribute('data-journal-view','preview')
+    expect(page.locator('#journal-new')).to_be_visible()
+    page.locator('#journal-new').focus()
+    page.locator('#journal-new').press('Enter')
+    page.wait_for_function('(n)=>window.orbitDebug.journal.entries.length===n+2',arg=existing)
+    expect(page.locator('#journal-widget')).to_have_attribute('data-journal-view','edit')
     assert not errors,errors
     context.close()
 
