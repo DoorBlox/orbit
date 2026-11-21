@@ -2489,3 +2489,34 @@ body.map-immersive .orbit-quickbar{opacity:.15;pointer-events:none}
   color:var(--orbit-chrome-ink,#243e5b);font:700 12px/1.25 var(--orbit-font-ui,system-ui)}
 .timeline-routine-summary:hover{background:var(--orbit-hover-surface,#dce8f5)}
 .timeline-routine-summary:focus-visible{outline:3px solid var(--focus,#5175ac)}
+/* FB-223: show all theme choices using the Space panel's own scrolling.
+   Typography and selection tokens adapt to all ten existing palettes. */
+:root #space-widget .space-appearance .appearance-choices {
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));
+  gap:9px;max-height:none;overflow:visible;padding:5px 3px 8px;
+}
+:root #space-widget .space-appearance .appearance-option {
+  min-height:56px;padding:9px 11px;gap:10px;
+  background:var(--orbit-widget-surface);color:var(--orbit-widget-ink);
+  border:1.5px solid var(--orbit-outline);
+}
+:root #space-widget .space-appearance .appearance-option>span:not(.appearance-swatch) {
+  color:inherit;font-size:13px;font-weight:700;line-height:1.4;overflow-wrap:anywhere;
+}
+:root #space-widget .space-appearance .appearance-option:has(input:checked){
+  background:var(--orbit-choice-active);color:var(--orbit-choice-text);
+  border-width:2px;border-color:var(--orbit-accent);
+}
+:root #space-widget .space-appearance .appearance-option:has(input:focus-visible){
+  outline:3px solid var(--focus);outline-offset:3px;
+}
+:root #space-widget .space-appearance .appearance-switches{
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:12px;
+}
+:root #space-widget .space-manage>summary>span,
+:root #space-widget .space-appearance>summary>span,
+:root #space-widget .space-more-tools>summary>span{
+  opacity:1;color:var(--orbit-widget-ink);font-size:12px;font-weight:560;
+  line-height:1.4;overflow-wrap:anywhere;
+}
+:root #space-widget .space-data-note{font-size:13px;line-height:1.55}

@@ -469,6 +469,21 @@ def viewport_flow(browser, label, size):
         focus(page,'space')
         before=page.evaluate('''() => ({camera:{scale:window.orbitDebug.board.scale,
           pan:{...window.orbitDebug.board.pan}},layout:window.orbitDebug.board.getLayout()})''')
+        # FB-223: full ten-theme gallery uses one scroll container and readable labels.
+        focus(page,'space')
+        appearance=page.locator('.space-appearance')
+        appearance.locator('summary').click()
+        options=appearance.locator('.appearance-option')
+        assert options.count()==10
+        assert appearance.locator('.appearance-choices').evaluate("""el => {
+            const css=getComputedStyle(el);
+            return css.maxHeight==='none' && css.overflowY==='visible' &&
+              el.scrollHeight<=el.clientHeight+2;
+        }"""), 'Theme picker must not clip or nest scrolling'
+        assert all(options.nth(i).evaluate("""el =>
+          parseFloat(getComputedStyle(el.querySelector('span:not(.appearance-swatch)')).fontSize)>=13
+        """) for i in range(10)), 'Theme captions must remain readable'
+        appearance.locator('summary').click()
         # FB-223: no duplicate Space snapshot export or misplaced Projects control.
         assert page.locator('#open-projects').count()==0
         assert page.locator('#backup-json').count()==0
