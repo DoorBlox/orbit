@@ -454,7 +454,7 @@ export class SpatialBoard {
   }
   focus(id,{initial=false}={}){
     const item=this.widgets.get(id),p=this.positions[id];if(!item)return;
-    this.bringToFront(id);
+    this.bringToFront?.(id);
     if(item.hidden&&this.extraIds.has(id))this.setWidgetVisible(id,true);
     const {w,h}=this.viewportSize(),sw=item.offsetWidth,sh=item.offsetHeight;
     let scale;
