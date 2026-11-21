@@ -2364,3 +2364,24 @@ body.cloud-space-mounted .orbit-quickbar{
     top:auto;bottom:calc(9px + var(--cloud-dock-height,0px) + env(safe-area-inset-bottom,0px))}
 }
 body.map-immersive .orbit-quickbar{opacity:.15;pointer-events:none}
+
+/* FB-222: zoom/home live in the same navigational surface as the minimap.
+   Keep the keyboard-sized controls outside the scrollable map, not over it. */
+:root .space-navigator{width:242px;height:228px;grid-template-rows:auto auto minmax(72px,1fr) auto;gap:6px}
+:root .space-navigator .world-nav{
+  position:static;inset:auto;z-index:auto;display:flex;justify-content:center;
+  align-items:center;gap:4px;min-height:48px;margin:0;padding:2px;
+  width:100%;box-shadow:none!important;backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;border:0!important;background:transparent!important;
+}
+:root .space-navigator .world-nav button{width:44px;height:44px;min-width:44px;min-height:44px;
+  border-radius:12px}
+:root .space-navigator .world-nav button:focus-visible{outline:3px solid var(--orbit-accent,#507bb6);
+  outline-offset:-2px}
+:root .space-navigator .space-nav-map{min-height:72px}
+@media(max-width:700px){
+  :root .space-navigator:not(.is-open) .world-nav{display:none!important}
+  :root .space-navigator.is-open{width:226px;height:226px;
+    grid-template-rows:17px 48px minmax(70px,1fr) 16px;gap:5px;padding:10px}
+  :root .space-navigator.is-open .space-nav-top{padding-right:30px}
+}

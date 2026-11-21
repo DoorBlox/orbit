@@ -400,6 +400,25 @@ def viewport_flow(browser, label, size):
         core=('timeline','constellation','active','completed','space','journal')
         assert all(page.locator(f'[data-widget="{wid}"]').count()==1 for wid in core)
         assert all(page.locator(f'[data-widget="{wid}"] .widget-grip').count()==1 for wid in core)
+        # FB-222: world zoom actions are above the minimap in one surface, not an overlay.
+        navigator=page.locator('.space-navigator')
+        controls=navigator.locator('.world-nav')
+        assert controls.count()==1
+        assert page.locator('body > .world-nav').count()==0
+        if size[0]<=700:
+            navigator.locator('#space-nav-toggle').click()
+        expect(controls).to_be_visible()
+        assert controls.locator('button').count()==3
+        assert page.evaluate("""() => {
+          const parent=document.querySelector('.space-navigator');
+          const toolbar=parent.querySelector('.world-nav').getBoundingClientRect();
+          const map=parent.querySelector('#space-nav-map').getBoundingClientRect();
+          const surface=parent.getBoundingClientRect();
+          return toolbar.top>=surface.top-1 && toolbar.bottom<=map.top+3 &&
+                 toolbar.left>=surface.left-1 && toolbar.right<=surface.right+1;
+        }"""), 'Zoom/home controls must be inside navigator and above map (#222)'
+        if size[0]<=700:
+            navigator.locator('#space-nav-toggle').click()
         # FB-220 universal HUD is reachable without visiting the Space or map widget.
         hud=page.locator('#orbit-quickbar')
         expect(hud).to_be_visible()

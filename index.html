@@ -209,12 +209,12 @@
   <button type="button" id="hud-timeline" aria-label="Go to Timeline widget">Timeline</button>
   <button type="button" id="color-mode" class="hud-sort" title="Switch task coloring between deadline and urgency" aria-label="Change sorting between deadline and urgency">Sort: <span id="mode-label">deadline</span></button>
 </nav>
-<div class="world-nav" aria-label="Spatial navigation">
+
+  <nav class="space-navigator glass-widget" aria-label="Places in your scrapbook"><button type="button" class="space-nav-toggle" id="space-nav-toggle" aria-label="Open places map" aria-expanded="false" title="Places"><svg class="icon" aria-hidden="true"><use href="#i-compass"></use></svg></button><div class="space-nav-top"><span>YOUR SPACE</span><span id="board-scale-label">100%</span></div><div class="world-nav" role="toolbar" aria-label="Spatial navigation controls">
     <button type="button" id="board-zoom-out" aria-label="Zoom scrapbook out" title="Zoom out"><svg class="icon"><use href="#i-minus"/></svg></button>
     <button type="button" id="board-home" aria-label="See all widgets" title="See all widgets"><svg class="icon"><use href="#i-compass"/></svg></button>
     <button type="button" id="board-zoom-in" aria-label="Zoom scrapbook in" title="Zoom in"><svg class="icon"><use href="#i-plus"/></svg></button>
-  </div>
-  <nav class="space-navigator glass-widget" aria-label="Places in your scrapbook"><button type="button" class="space-nav-toggle" id="space-nav-toggle" aria-label="Open places map" aria-expanded="false" title="Places"><svg class="icon" aria-hidden="true"><use href="#i-compass"></use></svg></button><div class="space-nav-top"><span>YOUR SPACE</span><span id="board-scale-label">100%</span></div><div id="space-nav-map" class="space-nav-map" aria-label="Drag or click the miniature map to navigate widgets and sticky notes"></div><div class="space-nav-caption" id="space-nav-caption">drag the outline to travel</div></nav>
+  </div><div id="space-nav-map" class="space-nav-map" aria-label="Drag or click the miniature map to navigate widgets and sticky notes"></div><div class="space-nav-caption" id="space-nav-caption">drag the outline to travel</div></nav>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <input type="file" id="csv-file" accept=".csv,text/csv,.json,application/json" class="visually-hidden" />
 </div></body></html>
