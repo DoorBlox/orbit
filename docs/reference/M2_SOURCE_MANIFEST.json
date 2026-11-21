@@ -12,8 +12,8 @@
       "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service."
     },
     "src/app.js": {
-      "sha256": "698927686214505a24df3b3219a2ff09487cb13fdee16c3c139e25abf49b67db",
-      "reason": "W3 BP-09 opt-in deferred owner snapshot producer with legacy eager onSnapshotChange semantics preserved; FO-01 retained."
+      "sha256": "3f363ff2e947131d93df1beda841554bd3a34575cdc9ae27ee2ca46053471a78",
+      "reason": "W3 BP-09 opt-in deferred owner snapshot producer with legacy eager onSnapshotChange semantics preserved; FO-01 retained.; #217 task-aware leaf branch disclosure and connector suppression while retaining deferred sync."
     },
     "src/auth/controller.js": {
       "sha256": "af8cde170ef58e61df8c464ee34249df4267812991392a95dae5c4d69f47ba20",
@@ -76,8 +76,8 @@
       "reason": "W1 BP-09: defensive save clone rechecks pending owner draft after getter-driven synchronous supersession; unstable cloning bounded to 16 attempts, with latest pending draft and revision-CAS protected."
     },
     "src/constellation.js": {
-      "sha256": "6d17fe195d35d9e0de6b712855e5f4634d284c7368457b9676cea8d55d8f3c1b",
-      "reason": "BP-06: viewport-native task inspector with scroll, keyboard, cancel, validation and preserved checklist/links."
+      "sha256": "c63a05f7c5bfac38a9b4f9e9649a71f47044f0bd106c70cbe0431700d3dcc5b3",
+      "reason": "BP-06: viewport-native task inspector with scroll, keyboard, cancel, validation and preserved checklist/links.; #217 task-aware leaf branch disclosure and connector suppression while retaining deferred sync."
     },
     "src/csv.js": {
       "sha256": "e5de107e78d76d26553d25dca1b200765aaafeb2b836216b1ae11f57e5499178",
@@ -112,8 +112,8 @@
       "reason": "W3 BP-11: safely use clipboard plain text when untrusted rich HTML is fully rejected; preserve selection on empty payload and native undo/redo."
     },
     "src/layout.js": {
-      "sha256": "1895015e94741e987e696be8ab1d77ab348560dc847a70a41bd7c6ca74626ee3",
-      "reason": "2.1 reviewed: branch collapse/expand, keyboard disclosure and per-account local view state with backup support"
+      "sha256": "c62f15af823fd0b1e4d9abfcf680f7257fbd67af850adf9be6703a269f9d9676",
+      "reason": "2.1 reviewed: branch collapse/expand, keyboard disclosure and per-account local view state with backup support; #217 task-aware leaf branch disclosure and connector suppression while retaining deferred sync."
     },
     "src/model.js": {
       "sha256": "569ccef567b94fad60420e6088a4b9973a240c07cd2fa5b59c6de2ae6f511c0a",
