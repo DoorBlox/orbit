@@ -52,9 +52,7 @@
 <div><span class="eyebrow">ALL THE BRANCHES OF YOU</span><h2 id="constellation-title">The constellation<span class="heading-period">.</span></h2></div>
 <button aria-label="New task" class="constellation-new-task" id="constellation-new-task" title="Create a task in the selected branch" type="button">+ New task</button>
 <div aria-label="Constellation controls" class="utility-bar" role="toolbar">
-<button aria-label="Colors show deadline proximity. Click to show urgency." class="mode-chip" id="color-mode" title="Switch task color and sort order: deadline or urgency" type="button">
-<span aria-hidden="true" class="spectrum-indicator"></span><span id="mode-label">deadline</span><svg aria-hidden="true" class="icon small"><use href="#i-chevron"></use></svg></button>
-<span aria-hidden="true" class="utility-separator"></span>
+
 <button aria-label="Zoom out" class="icon-button" id="zoom-out" title="Zoom out" type="button"><svg class="icon"><use href="#i-minus"></use></svg></button>
 <button aria-label="Fit complete constellation" class="icon-button" id="fit-all" title="Fit all" type="button"><svg class="icon"><use href="#i-compass"></use></svg></button>
 <button aria-label="Zoom in" class="icon-button" id="zoom-in" title="Zoom in" type="button"><svg class="icon"><use href="#i-plus"></use></svg></button>
@@ -101,9 +99,7 @@
 <button class="glass-button subtle" id="cancel-space-name" type="button">Cancel</button>
 </div>
 </form>
-<div class="space-actions space-primary-actions">
-<button class="glass-button" id="new-sticky" type="button">+ New note</button>
-</div>
+
 <details class="space-manage">
 <summary>Manage space <span>Rename and organize branches</span></summary>
 <div class="space-actions space-manage-actions">
@@ -202,7 +198,15 @@
       </article>
     </div>
   </main>
-  <div class="world-nav" aria-label="Spatial navigation">
+  <nav class="orbit-quickbar" id="orbit-quickbar" aria-label="Quick actions">
+  <button type="button" id="hud-new-task" aria-label="New task">+ Task</button>
+  <button type="button" id="new-sticky" aria-label="New sticky note">+ Note</button>
+  <button type="button" id="hud-search" aria-label="Search tasks and branches">Search</button>
+  <button type="button" id="hud-journal" aria-label="Go to Journal widget">Journal</button>
+  <button type="button" id="hud-timeline" aria-label="Go to Timeline widget">Timeline</button>
+  <button type="button" id="color-mode" class="hud-sort" title="Switch task coloring between deadline and urgency" aria-label="Change sorting between deadline and urgency">Sort: <span id="mode-label">deadline</span></button>
+</nav>
+<div class="world-nav" aria-label="Spatial navigation">
     <button type="button" id="board-zoom-out" aria-label="Zoom scrapbook out" title="Zoom out"><svg class="icon"><use href="#i-minus"/></svg></button>
     <button type="button" id="board-home" aria-label="See all widgets" title="See all widgets"><svg class="icon"><use href="#i-compass"/></svg></button>
     <button type="button" id="board-zoom-in" aria-label="Zoom scrapbook in" title="Zoom in"><svg class="icon"><use href="#i-plus"/></svg></button>
