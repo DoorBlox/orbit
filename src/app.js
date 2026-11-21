@@ -37,7 +37,9 @@ const collapsedStorageKey='orbit.v7.collapsed-branches.'+viewScope;
 function normalizeCollapsedBranches(ids,branches=state.branches){
   if(!Array.isArray(ids))return [];
   const known=new Set(branches.map(b=>b.id)),parents=new Set(branches.map(b=>b.parentId).filter(id=>id!=='root'));
-  return [...new Set(ids.filter(id=>typeof id==='string'&&known.has(id)&&parents.has(id)))];
+  const directTaskParents=new Set(state.tasks.filter(t=>t.status!=='completed').map(t=>t.projectId));
+  return [...new Set(ids.filter(id=>typeof id==='string'&&known.has(id)&&
+    (parents.has(id)||directTaskParents.has(id))))];
 }
 function readCollapsedBranches(){
   try{const value=JSON.parse(localStorage.getItem(collapsedStorageKey)||'[]');
@@ -698,7 +700,8 @@ function initTools(){
   $('journal-canvas-edit').disabled=true;
   $('expand-all-branches').addEventListener('click',()=>{setCollapsedBranches([]);scene.fitAll();message('All branches expanded.');});
   $('collapse-all-branches').addEventListener('click',()=>{
-    const parents=state.branches.filter(branch=>state.branches.some(child=>child.parentId===branch.id)).map(branch=>branch.id);
+    const parents=state.branches.filter(branch=>state.branches.some(child=>child.parentId===branch.id)||
+      state.tasks.some(task=>task.projectId===branch.id&&task.status!=='completed')).map(branch=>branch.id);
     setCollapsedBranches(parents);scene.fitAll();message('All branch groups collapsed.');
   });
   $('clear-demo').addEventListener('click',()=>{if(readOnly||disposed)return;
