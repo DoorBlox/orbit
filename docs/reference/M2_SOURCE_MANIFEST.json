@@ -32,8 +32,8 @@
       "reason": "Normalize imported core widget dimensions into supported database-safe integers."
     },
     "src/board.js": {
-      "sha256": "a823ad767cfd5d1112bb4898ad00e52a230d2b7047b6b13db5ab1f7ce848a705",
-      "reason": "W3 BP-08: preserve centered world coordinate and reversible Focus camera bookmark through portrait, short-landscape, browser chrome and keyboard viewport changes without editing saved widget geometry."
+      "sha256": "821df7cfecc7ec7c4682fb834d1e648e66608bbc74e98e9277f9d0aeeaf102da",
+      "reason": "W3 BP-08: preserve centered world coordinate and reversible Focus camera bookmark through portrait, short-landscape, browser chrome and keyboard viewport changes without editing saved widget geometry.; #216 foreground Journal pointer/resize affordance and saved dimensions."
     },
     "src/bootstrap.js": {
       "sha256": "6c3e49574936f4b8e4c16602e362d48ad5992c6b5e120f9e57c727b0fdff03df",
@@ -144,8 +144,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "e5488c4f39c7e136bf8156aabe69db1eb62d5d29facd9724190641e0ad154cfb",
-      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #210 ambient OFF and reduced-motion fix after Journal source."
+      "sha256": "5c85d9a9773fbe7446266c907cdf02a0952608ec4ab744c9e4e5ae1f331b47bb",
+      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #210 ambient OFF and reduced-motion fix after Journal source.; #216 foreground Journal pointer/resize affordance and saved dimensions."
     },
     "src/widget-registry.js": {
       "sha256": "097767f8dd9c6c1e94504ec571c29ca2f1d0684955d2f8c87231d15db1a427f0",

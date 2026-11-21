@@ -770,6 +770,32 @@ def normal_flows(browser):
     page.locator('#journal-new').press('Enter')
     page.wait_for_function('(n)=>window.orbitDebug.journal.entries.length===n+2',arg=existing)
     expect(page.locator('#journal-widget')).to_have_attribute('data-journal-view','edit')
+    # FB-216: after focusing Journal, overlapping floating sticky notes must
+    # not steal New page or its top-right resize handle pointer events.
+    focus(page,'journal')
+    journal_widget=page.locator('#journal-widget')
+    assert journal_widget.evaluate("e=>e.classList.contains('spatial-front')"), 'Journal should be in front after navigation'
+    count_before=page.evaluate('window.orbitDebug.journal.entries.length')
+    page.locator('#journal-new').click()
+    page.wait_for_function('(n)=>window.orbitDebug.journal.entries.length===n+1',arg=count_before)
+    resize=journal_widget.locator('.widget-resizer')
+    assert resize.is_visible()
+    before_size=journal_widget.evaluate('e=>({w:e.offsetWidth,h:e.offsetHeight})')
+    grip=resize.bounding_box()
+    assert grip, 'Journal resize handle is not reachable'
+    cx=grip['x']+grip['width']/2
+    cy=grip['y']+grip['height']/2
+    page.mouse.move(cx,cy)
+    page.mouse.down()
+    page.mouse.move(cx+140,cy+110,steps=8)
+    page.mouse.up()
+    after_size=journal_widget.evaluate('e=>({w:e.offsetWidth,h:e.offsetHeight})')
+    assert after_size['w']>before_size['w']+60 and after_size['h']>before_size['h']+45, (
+        'Dragging Journal handle must expand real width and height (#216)',before_size,after_size)
+    layout_after=page.evaluate('window.orbitDebug.board.getLayout().journal')
+    reload_page(page)
+    assert page.evaluate('window.orbitDebug.board.getLayout().journal')==layout_after, (
+        'Journal dimensions must survive reload without changing journal content')
     assert not errors,errors
     context.close()
 
