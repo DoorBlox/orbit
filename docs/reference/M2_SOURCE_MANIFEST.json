@@ -144,8 +144,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "7f59e62b1d9415c762e478888199238769a69b0c800ae534cdf239d98c74f215",
-      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #210 ambient OFF and reduced-motion fix after Journal source.; #216 foreground Journal pointer/resize affordance and saved dimensions.; #224 colored milestones and compact journal lanes.; #223 ten-theme contrast Sakura AA correction.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; #220 global HUD integrated with per-page Canvas, milestone and contrast fixes."
+      "sha256": "9ec16c659d4ca074232b81b5338b8bd794e3ed1aadd385d17781e61965cf0327",
+      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #210 ambient OFF and reduced-motion fix after Journal source.; #216 foreground Journal pointer/resize affordance and saved dimensions.; #224 colored milestones and compact journal lanes.; #223 ten-theme contrast Sakura AA correction.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; #220 global HUD integrated with per-page Canvas, milestone and contrast fixes.; #220 small-phone HUD docks above task capture instead of intercepting it."
     },
     "src/widget-registry.js": {
       "sha256": "097767f8dd9c6c1e94504ec571c29ca2f1d0684955d2f8c87231d15db1a427f0",
