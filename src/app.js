@@ -294,6 +294,11 @@ function refreshJournalMode(){
   const widget=$('journal-widget');
   widget.dataset.journalMode=mode;widget.dataset.journalView=editing?'edit':'preview';
   widget.dataset.paperStyle=state.extensions.journalPaperStyles?.[journal.entries[journal.index]?.id]||'lined';
+  const frameLocked=state.extensions.journalCanvasLocks?.[journal.entries[journal.index]?.id]===true;
+  widget.dataset.canvasFrame=frameLocked?'locked':'fluid';
+  $('journal-frame-control').hidden=!(editing&&mode==='canvas');
+  $('journal-frame-lock').checked=frameLocked;
+  $('journal-frame-lock').disabled=readOnly;
   for(const button of widget.querySelectorAll('[data-journal-mode]'))
     button.setAttribute('aria-pressed',String(button.dataset.journalMode===mode));
   for(const button of widget.querySelectorAll('[data-paper-style]'))
@@ -733,6 +738,21 @@ function initTools(){
        else state.extensions.journalPaperStyles[page.id]=oldStyle;
     });
   }
+  $('journal-frame-lock').addEventListener('change',event=>{
+    if(readOnly||disposed||journalBusy||!journal.editing||journalMode()!=='canvas')return;
+    const page=journal.entries[journal.index];if(!page)return;
+    state.extensions.journalCanvasLocks??={};
+    const wasLocked=state.extensions.journalCanvasLocks[page.id]===true;
+    if(event.currentTarget.checked)state.extensions.journalCanvasLocks[page.id]=true;
+    else delete state.extensions.journalCanvasLocks[page.id];
+    if(extensionsChanged()===false){
+      if(wasLocked)state.extensions.journalCanvasLocks[page.id]=true;
+      else delete state.extensions.journalCanvasLocks[page.id];
+      event.currentTarget.checked=wasLocked;
+      message('Page frame preference was not saved.',6500);return;
+    }
+    refreshJournalMode();
+  });
   $('journal-draw').addEventListener('click',()=>{if(!journal.editing)return;
     document.querySelector('.journal-mode-tab[data-journal-mode="canvas"]')?.click();});
   $('journal-canvas-edit').disabled=true;

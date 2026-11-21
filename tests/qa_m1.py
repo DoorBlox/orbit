@@ -590,8 +590,12 @@ def normal_flows(browser):
     page.locator('#timeline-add').click()
     page.locator('#milestone-title').fill('M1 marker')
     page.locator('#milestone-date').fill('2026-11-18')
+    page.locator('#milestone-color').fill('#285e96')
     page.locator('#milestone-form button[type=submit]').click()
     marker=page.locator('.timeline-milestone')
+    assert marker.evaluate("e=>e.style.getPropertyValue('--milestone-accent')")=='#285e96'
+    assert marker.evaluate("e=>parseFloat(e.style.top)")<=190, 'Milestone should meet the central timeline baseline (#224)'
+    assert page.evaluate("""() => JSON.parse(localStorage.getItem('orbit-v4-milestones'))[0].color""")=='#285e96'
     marker.focus();marker.press('Enter')
     expect(page.locator('#toast button')).to_have_text('Remove')
     page.locator('#toast button').press('Enter')
@@ -766,6 +770,16 @@ def normal_flows(browser):
     ensure_journal_edit(page)
     page.locator('.journal-mode-tab[data-journal-mode="canvas"]').click()
     expect(page.locator('#journal-inline-canvas-host .excalidraw')).to_be_visible(timeout=30000)
+    # FB-216: independent page-by-page locked aspect ratio; never rewrite drawing.
+    lock=page.locator('#journal-frame-lock')
+    expect(lock).to_be_visible()
+    assert not lock.is_checked()
+    before_scene=page.evaluate("JSON.stringify(JSON.parse(localStorage.getItem('orbit.v8.extensions')).journalScenes)")
+    lock.check()
+    expect(page.locator('#journal-widget')).to_have_attribute('data-canvas-frame','locked')
+    assert page.locator('#journal-inline-canvas-host').evaluate(
+        "e=>getComputedStyle(e).aspectRatio") in ('4 / 3','4/3')
+    assert page.evaluate("JSON.stringify(JSON.parse(localStorage.getItem('orbit.v8.extensions')).journalScenes)")==before_scene
     existing=page.evaluate('window.orbitDebug.journal.entries.length')
     previous_id=page.evaluate('window.orbitDebug.journal.entries[window.orbitDebug.journal.index].id')
     expect(page.locator('#journal-new')).to_be_visible()
@@ -776,6 +790,7 @@ def normal_flows(browser):
     assert page.evaluate('window.orbitDebug.journal.entries[window.orbitDebug.journal.index].id')!=previous_id
     expect(page.locator('#journal-widget')).to_have_attribute('data-journal-view','edit')
     expect(page.locator('#journal-editor')).to_be_visible()
+    assert not page.locator('#journal-frame-lock').is_checked(), 'Canvas lock must be per page'
     # New page remains discoverable and usable from Preview as well.
     page.locator('#journal-edit-toggle').click()
     expect(page.locator('#journal-widget')).to_have_attribute('data-journal-view','preview')

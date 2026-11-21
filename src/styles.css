@@ -1049,9 +1049,9 @@ body.cloud-space-mounted .app-shell{height:100dvh!important}
   --orbit-chrome:#fdf0f2;--orbit-solid-chrome:#fdf0f2;--orbit-chrome-ink:#623f52;
   --orbit-chrome-muted:#815e71;--orbit-widget-surface:#fff4f5;--orbit-widget-ink:#603e52;
   --orbit-paper:#fff9f3;--orbit-map-paper:#f9f0f0;--orbit-paper-ink:#3d3a32;
-  --orbit-accent:#9c586f;--orbit-grid:#dfc4ce;--orbit-orb:#dfb1be;
+  --orbit-accent:#88465e;--orbit-grid:#dfc4ce;--orbit-orb:#dfb1be;
   --orbit-paper-rule:#edd8cf;--orbit-hover-surface:#fff9fa;
-  --orbit-choice-active:#9c586f;--orbit-choice-text:#f2e5e9;
+  --orbit-choice-active:#88465e;--orbit-choice-text:#f2e5e9;
   --orbit-outline:#dfc4ce;--orbit-field:#fdf0f2;
   --orbit-caption:#815e71;--orbit-font-ui:"Avenir Next","Segoe UI",Arial,sans-serif;
   --orbit-font-paper:"Iowan Old Style","Palatino Linotype",Georgia,serif;
@@ -2287,6 +2287,45 @@ body.cloud-space-mounted #space-widget .cloud-sync-state{position:absolute!impor
 @media(prefers-reduced-motion:reduce){
   /* The global reduced-motion duration has !important; disable this timer transition entirely. */
   .focus-timer-progress-fill{transition:none!important}
+}
+
+/* FB-224: milestones cross the central axis and read as events, not tick dust. */
+:root .milestone-form .milestone-color-label{font:700 12px/1.3 var(--orbit-font-ui,system-ui);
+  color:var(--orbit-widget-ink,#314b5d)}
+:root #milestone-color{width:46px;min-width:46px;height:44px;padding:4px;
+  border:1px solid var(--orbit-outline,#b5c5d6);border-radius:10px;
+  background:var(--orbit-field,#eef3f8);cursor:pointer}
+:root #milestone-color:focus-visible{outline:3px solid var(--orbit-accent,#5175aa);outline-offset:2px}
+:root .timeline-milestone{--milestone-accent:#6578c4;
+  min-height:34px;max-width:206px;padding:7px 12px;
+  border:1px solid var(--milestone-accent);border-left:5px solid var(--milestone-accent);
+  border-radius:12px;background:var(--orbit-widget-surface,#fff)!important;
+  color:var(--orbit-widget-ink,#293b52)!important;font-size:12px;font-weight:750;
+  box-shadow:0 6px 20px rgba(44,56,87,.13);overflow:visible}
+:root .timeline-milestone::after{content:"";position:absolute;
+  left:calc(50% - 1px);bottom:100%;height:29px;width:2px;
+  background:var(--milestone-accent);opacity:.85;pointer-events:none}
+:root .timeline-milestone.is-condensed{padding:4px;min-height:30px;
+  border-left-width:3px;font-size:14px}
+:root .timeline-milestone:focus-visible{outline:3px solid var(--orbit-accent,#507bb6);outline-offset:2px}
+
+/* FB-216: optional per-page fixed 4:3 Canvas proportions; the private
+   Excalidraw scene is never cropped or rewritten when the widget is resized. */
+:root .journal-frame-control{display:inline-flex;gap:9px;align-items:center;
+  min-height:44px;margin:6px 0 3px;padding:7px 11px;width:max-content;max-width:100%;
+  border:1px solid var(--orbit-paper-rule,#d7c6b5);border-radius:12px;
+  color:var(--orbit-paper-ink,#514439);background:var(--orbit-paper,#fff9ef);
+  font:700 12px/1.4 var(--orbit-font-ui,system-ui);cursor:pointer}
+:root .journal-frame-control[hidden]{display:none!important}
+:root .journal-frame-control input{flex:none;width:18px;height:18px;accent-color:var(--orbit-accent,#5079b0)}
+:root .journal-frame-control:focus-within{outline:2px solid var(--orbit-accent,#5079b0);outline-offset:2px}
+:root #journal-widget[data-canvas-frame="locked"] .journal-canvas-view{
+  min-height:0;overflow:auto;overscroll-behavior:contain;
+}
+:root #journal-widget[data-canvas-frame="locked"] .journal-inline-canvas,
+:root #journal-widget[data-canvas-frame="locked"] .journal-drawing-preview{
+  flex:0 0 auto!important;align-self:stretch;width:100%;height:auto!important;
+  min-height:0!important;max-height:none;aspect-ratio:4 / 3;
 }
 
 /* FB-220 — a single discoverable command surface outside the spatial widgets.

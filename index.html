@@ -41,6 +41,7 @@
 <form autocomplete="off" class="milestone-form" hidden="" id="milestone-form">
 <label class="visually-hidden" for="milestone-title">Milestone</label><input id="milestone-title" maxlength="110" placeholder="Something worth remembering…" required=""/>
 <label class="visually-hidden" for="milestone-date">Date</label><input id="milestone-date" required="" type="date"/>
+<label class="milestone-color-label" for="milestone-color">Marker color</label><input id="milestone-color" aria-label="Milestone marker color" type="color" value="#6578C4"/>
 <button class="glass-button" type="submit">Add marker</button><button class="glass-button subtle" id="milestone-cancel" type="button">Cancel</button>
 </form>
 <div aria-label="Horizontally scrollable timeline with deadlines and milestones" class="timeline-scroll" id="timeline-scroll" tabindex="0">
@@ -167,6 +168,7 @@
                 <button type="button" class="journal-mode-tab" data-journal-mode="canvas" aria-pressed="false">Canvas</button>
               </div>
               <div class="journal-paper-choices" id="journal-paper-choices" aria-label="Journal paper texture" role="group" hidden><button type="button" data-paper-style="lined" aria-pressed="true">Lined</button><button type="button" data-paper-style="plain" aria-pressed="false">Plain</button><button type="button" data-paper-style="grid" aria-pressed="false">Grid</button></div>
+              <label class="journal-frame-control" id="journal-frame-control" hidden><input type="checkbox" id="journal-frame-lock" /> Lock 4:3 Canvas page proportions</label>
               <div class="journal-formatbar" role="toolbar" aria-label="Journal formatting" hidden>
                 <button type="button" class="journal-tool" data-format="bold" aria-label="Bold" title="Bold (Ctrl/⌘ B)"><b>B</b></button>
                 <button type="button" class="journal-tool italic" data-format="italic" aria-label="Italic" title="Italic (Ctrl/⌘ I)">I</button>
