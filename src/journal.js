@@ -107,7 +107,9 @@ export class Journal {
       if(key==='s'){e.preventDefault();this.commit();return;}
       if(!format)return;e.preventDefault();this.format(format);
     });
-    document.getElementById('journal-new').addEventListener('click',()=>this.newPage());
+    document.getElementById('journal-new').addEventListener('click',()=>{
+      if(this.onNewPage)this.onNewPage();else this.newPage();
+    });
     document.getElementById('journal-prev').addEventListener('click',()=>this.go(-1));
     document.getElementById('journal-next').addEventListener('click',()=>this.go(1));
     document.getElementById('journal-export').addEventListener('click',()=>this.exportPage());
