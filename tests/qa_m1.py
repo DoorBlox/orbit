@@ -405,6 +405,15 @@ def viewport_flow(browser, label, size):
         assert page.locator('#space-widget #new-sticky').count()==0
         assert page.locator('#space-widget #open-focus-timer').count()==1, 'Focus must remain discoverable after HUD migration'
         assert hud.locator('#color-mode').count()==1
+        if label in ('phone','small'):
+            # The global HUD must not sit on top of arbitrary spatial controls.
+            # Reserve a real viewport strip, not a repositioned overlay which
+            # can block Journal on one camera and Task capture on another.
+            assert page.evaluate("""() => {
+              const viewport=document.querySelector('#spatial-viewport').getBoundingClientRect();
+              const dock=document.querySelector('#orbit-quickbar').getBoundingClientRect();
+              return dock.top>=viewport.bottom-1 && dock.bottom<=innerHeight+1;
+            }"""), 'Mobile HUD overlays spatial-world pointer targets (#220)'
         current=page.evaluate('window.orbitDebug.state.mode')
         hud.locator('#color-mode').click()
         assert page.evaluate('window.orbitDebug.state.mode')!=current
