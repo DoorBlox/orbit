@@ -2428,3 +2428,11 @@ body.map-immersive .orbit-quickbar{opacity:.15;pointer-events:none}
 @media(max-width:365px){.orbit-help-topics{grid-template-columns:1fr}}
 :root[data-motion="off"] .orbit-help-dialog *{transition:none!important}
 @media(prefers-reduced-motion:reduce){.orbit-help-dialog *{transition:none!important}}
+/* FB-221: true-size selected object outline in the minimap. The faint camera
+   outline is still independently draggable and keeps its original semantics. */
+.space-nav-target{position:absolute;transform:translate(-50%,-50%);pointer-events:none;z-index:3;
+  border:2px solid var(--orbit-chrome-ink,#385b85);background:color-mix(in srgb,var(--orbit-chrome-ink,#385b85) 8%,transparent);
+  box-shadow:0 0 0 2px var(--orbit-solid-chrome,#fff);max-width:calc(100% - 6px);max-height:calc(100% - 6px)}
+.space-nav-cursor.has-focus-target{opacity:.3;box-shadow:none;border-style:dashed}
+:root[data-motion="off"] .space-nav-target{transition:none}
+@media(prefers-reduced-motion:reduce){.space-nav-target{transition:none}}
