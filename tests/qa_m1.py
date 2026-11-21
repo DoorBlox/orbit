@@ -398,6 +398,20 @@ def viewport_flow(browser, label, size):
         core=('timeline','constellation','active','completed','space','journal')
         assert all(page.locator(f'[data-widget="{wid}"]').count()==1 for wid in core)
         assert all(page.locator(f'[data-widget="{wid}"] .widget-grip').count()==1 for wid in core)
+        # FB-220 universal HUD is reachable without visiting the Space or map widget.
+        hud=page.locator('#orbit-quickbar')
+        expect(hud).to_be_visible()
+        expect(hud.locator('#new-sticky')).to_be_visible()
+        assert page.locator('#space-widget #new-sticky').count()==0
+        assert page.locator('#space-widget #open-focus-timer').count()==1, 'Focus must remain discoverable after HUD migration'
+        assert hud.locator('#color-mode').count()==1
+        current=page.evaluate('window.orbitDebug.state.mode')
+        hud.locator('#color-mode').click()
+        assert page.evaluate('window.orbitDebug.state.mode')!=current
+        hud.locator('#hud-journal').click()
+        assert page.locator('#journal-widget').evaluate("e=>e.classList.contains('spatial-front')")
+        hud.locator('#hud-new-task').click()
+        expect(page.locator('#capture-name')).to_be_focused()
         page.screenshot(path=str(OUT/f'm1-{label}-initial.png'))
 
         # BP-08: optional focus is camera-only, reversible and accessible.
