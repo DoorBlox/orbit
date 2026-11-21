@@ -37,7 +37,7 @@ const collapsedStorageKey='orbit.v7.collapsed-branches.'+viewScope;
 function normalizeCollapsedBranches(ids,branches=state.branches){
   if(!Array.isArray(ids))return [];
   const known=new Set(branches.map(b=>b.id)),parents=new Set(branches.map(b=>b.parentId).filter(id=>id!=='root'));
-  const directTaskParents=new Set(state.tasks.filter(t=>t.status!=='completed'||Object.hasOwn(state.extensions.taskRoutines,t.id)).map(t=>t.projectId));
+  const directTaskParents=new Set(state.tasks.filter(t=>t.status!=='completed'||Object.hasOwn(state.extensions.taskRoutines||{},t.id)).map(t=>t.projectId));
   return [...new Set(ids.filter(id=>typeof id==='string'&&known.has(id)&&
     (parents.has(id)||directTaskParents.has(id))))];
 }
@@ -137,7 +137,7 @@ const scene=new Constellation({viewport:$('map-viewport'),world:$('map-world'),e
     const index=state.tasks.findIndex(t=>t.id===id);if(index<0)return false;
     const prev=state.tasks[index];
     try{
-      let routines=state.extensions.taskRoutines;
+      let routines=state.extensions.taskRoutines||{};
       const wasDaily=Object.hasOwn(routines,id),requested=Object.hasOwn(patch,'repeatDaily')?patch.repeatDaily:null;
       if(requested===true&&!wasDaily)
         routines=setDailyRoutine(routines,id,{startDate:routineDayKey(new Date())});
@@ -190,22 +190,22 @@ const widgets=new ScrapWidgets({
     if(task.status==='completed'){board.focus('completed');return;}
     board.focus('constellation');
     expandBranchPath(task.projectId);setBranch(task.projectId);scene.expandedTaskId=task.id;scene.selectedTaskId=task.id;
-    scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'||Object.hasOwn(state.extensions.taskRoutines,t.id)),state.preferences.colorMode,state.profile.displayName,state.collapsedBranchIds,Object.keys(state.extensions.projects),state.extensions.taskRoutines);
+    scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'||Object.hasOwn(state.extensions.taskRoutines||{},t.id)),state.preferences.colorMode,state.profile.displayName,state.collapsedBranchIds,Object.keys(state.extensions.projects),state.extensions.taskRoutines);
     scene.focusTask(task);
   },
   onComplete(id){if(readOnly||disposed)return false;const t=state.tasks.find(x=>x.id===id);if(!t)return;
-    const occurrence=getDailyOccurrence(t,state.extensions.taskRoutines);
+    const occurrence=getDailyOccurrence(t,state.extensions.taskRoutines||{});
     if(occurrence?.active){
-      state.extensions.taskRoutines=setDailyCompletion(state.extensions.taskRoutines,id,occurrence.dayKey,true);
+      state.extensions.taskRoutines=setDailyCompletion(state.extensions.taskRoutines||{},id,occurrence.dayKey,true);
       sync();message('Daily routine completed for today.');return true;
     }
     t.status='completed';t.completedAt=new Date().toISOString();
     if(scene.expandedTaskId===id)scene.expandedTaskId='';sync();message('Moved to Already done.');
   },
   onRestore(id){if(readOnly||disposed)return false;const t=state.tasks.find(x=>x.id===id);if(!t)return;
-    const occurrence=getDailyOccurrence(t,state.extensions.taskRoutines);
+    const occurrence=getDailyOccurrence(t,state.extensions.taskRoutines||{});
     if(occurrence?.active){
-      state.extensions.taskRoutines=setDailyCompletion(state.extensions.taskRoutines,id,occurrence.dayKey,false);
+      state.extensions.taskRoutines=setDailyCompletion(state.extensions.taskRoutines||{},id,occurrence.dayKey,false);
       sync();message('Daily routine reopened for today.');return true;
     }
     t.status='ready';t.completedAt='';sync();message('Back on the constellation.');
@@ -472,7 +472,7 @@ function updateSearch(){
 function setCollapsedBranches(ids,{focusId=null,persist=true}={}){
   state.collapsedBranchIds=normalizeCollapsedBranches(ids);
   if(persist&&!saveCollapsedBranches())message('Branch view could not be saved on this device; it remains available for this session.',6500);
-  scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'||Object.hasOwn(state.extensions.taskRoutines,t.id)),state.preferences.colorMode,state.profile.displayName,state.collapsedBranchIds,Object.keys(state.extensions.projects),state.extensions.taskRoutines);
+  scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'||Object.hasOwn(state.extensions.taskRoutines||{},t.id)),state.preferences.colorMode,state.profile.displayName,state.collapsedBranchIds,Object.keys(state.extensions.projects),state.extensions.taskRoutines);
   if(focusId&&scene.nodeMap.has(focusId))scene.focusNode(focusId,{instant:true});
 }
 function toggleBranch(id){
@@ -532,7 +532,7 @@ function sync({persist=true}={}){
       for(const [key,ok] of [[STORAGE_KEYS.tasks,tasksOk],[STORAGE_KEYS.branches,branchesOk],[STORAGE_KEYS.profile,profileOk],[STORAGE_KEYS.extensions,extensionsOk]]){if(ok)pendingWrites.delete(key);else pendingWrites.add(key);}
     }
   }
-  scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'||Object.hasOwn(state.extensions.taskRoutines,t.id)),state.preferences.colorMode,state.profile.displayName,state.collapsedBranchIds,Object.keys(state.extensions.projects),state.extensions.taskRoutines);
+  scene.setData(state.branches,state.tasks.filter(t=>t.status!=='completed'||Object.hasOwn(state.extensions.taskRoutines||{},t.id)),state.preferences.colorMode,state.profile.displayName,state.collapsedBranchIds,Object.keys(state.extensions.projects),state.extensions.taskRoutines);
   widgets.setData(state.branches,state.tasks,state.preferences.colorMode,milestones,state.extensions.taskRoutines);
   projectsShelf.setData(state.branches,state.tasks,state.extensions.projects);
   if(state.captureMode==='find')updateSearch();
