@@ -38,7 +38,7 @@ test('journal pages sort chronologically with stable order on equal dates',()=>{
   assert.equal(before[0].id,'later');
 });
 
-test('collapsing a branch hides descendants but keeps its own tasks and an expansion target',()=>{
+test('collapsing a branch hides its own task stack and descendants but preserves an expansion target',()=>{
   const branches=tree(),tasks=[{id:'direct',projectId:'topic'},{id:'nested',projectId:'sub'},{id:'deep-task',projectId:'deep'}];
   const expanded=createLayout(branches,tasks,'My space');
   assert.ok(expanded.nodes.some(n=>n.id==='sub'));
@@ -46,8 +46,8 @@ test('collapsing a branch hides descendants but keeps its own tasks and an expan
   const collapsed=createLayout(branches,tasks,'My space',['topic']);
   assert.ok(collapsed.nodes.some(n=>n.id==='topic'&&n.collapsed&&n.hasChildren));
   assert.ok(!collapsed.nodes.some(n=>n.id==='sub'||n.id==='deep'));
-  assert.ok(collapsed.stacks.some(s=>s.branchId==='topic'));
-  assert.ok(!collapsed.stacks.some(s=>s.branchId==='sub'||s.branchId==='deep'));
+  assert.ok(!collapsed.stacks.some(s=>s.branchId==='topic'||s.branchId==='sub'||s.branchId==='deep'));
+  assert.deepEqual(collapsed.edges.filter(([parent])=>parent==='topic'),[]);
   assert.deepEqual(collapsed.children.get('topic'),['sub']);
 });
 test('nested collapse is independent and expanding a parent reveals still-collapsed children',()=>{
@@ -64,4 +64,32 @@ test('unknown and leaf IDs are ignored as collapsed view state',()=>{
   const layout=createLayout(tree(),[],'My space',['missing','deep']);
   assert.deepEqual([...layout.collapsed],[]);
   assert.ok(layout.nodes.some(n=>n.id==='deep'));
+});
+
+test('a terminal branch with direct tasks can collapse its own list without an orphan connector',()=>{
+  const branches=tree(),tasks=[{id:'on-leaf',projectId:'deep'},{id:'sibling',projectId:'inbox'}];
+  const expanded=createLayout(branches,tasks,'My space',[]);
+  const leaf=expanded.nodes.find(n=>n.id==='deep');
+  assert.equal(leaf?.hasChildren,false);
+  assert.equal(leaf?.canCollapse,true,'terminal task-bearing branch must offer a collapse control');
+  assert.ok(expanded.stacks.some(s=>s.branchId==='deep'));
+  const collapsed=createLayout(branches,tasks,'My space',['deep']);
+  assert.ok(collapsed.collapsed.has('deep'));
+  assert.ok(collapsed.nodes.some(n=>n.id==='deep'&&n.collapsed&&n.canCollapse));
+  assert.ok(!collapsed.stacks.some(s=>s.branchId==='deep'),
+    'hidden direct tasks must not leave a terminal connector to empty space');
+  assert.ok(collapsed.stacks.some(s=>s.branchId==='inbox'),
+    'collapsing one branch cannot hide a sibling task list');
+  assert.equal(tasks.find(t=>t.id==='on-leaf').projectId,'deep','presentation must not edit tasks');
+  const reopened=createLayout(branches,tasks,'My space',[]);
+  assert.ok(reopened.stacks.some(s=>s.branchId==='deep'));
+});
+test('collapsing a nonterminal branch hides both its task stack and descendants',()=>{
+  const branches=tree(),tasks=[{id:'direct',projectId:'topic'},{id:'nested',projectId:'sub'}];
+  const collapsed=createLayout(branches,tasks,'My space',['topic']);
+  assert.ok(collapsed.nodes.some(n=>n.id==='topic'&&n.collapsed&&n.canCollapse));
+  assert.ok(!collapsed.stacks.some(s=>s.branchId==='topic'));
+  assert.ok(!collapsed.nodes.some(n=>n.id==='sub'));
+  assert.ok(!collapsed.stacks.some(s=>s.branchId==='sub'));
+  assert.deepEqual(collapsed.edges.filter(([parent])=>parent==='topic'),[]);
 });

@@ -274,13 +274,13 @@ export class Constellation {
     const path=item.id==='root'?item.label:branchPath(item.id,this.branches);
     const isProject=item.id!=='root'&&this.projectIds.has(item.id);
     el.classList.toggle('is-project',isProject);
-    el.title=path;el.setAttribute('aria-label',item.id==='root'? `${item.label}, center of the constellation; focus`:`${path}${isProject?'; private project':''}; focus, edit or add a branch${item.hasChildren?'; '+(item.collapsed?'collapsed':'expanded'):''}`);
-    if(item.hasChildren)el.setAttribute('aria-expanded',String(!item.collapsed));
+    el.title=path;el.setAttribute('aria-label',item.id==='root'? `${item.label}, center of the constellation; focus`:`${path}${isProject?'; private project':''}; focus, edit or add a branch${item.canCollapse?'; '+(item.collapsed?'collapsed':'expanded'):''}`);
+    if(item.canCollapse)el.setAttribute('aria-expanded',String(!item.collapsed));
     el.addEventListener('keydown',e=>{
       if(e.target!==el)return;
       if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();this.focusNode(item.id);this.onBranchSelected?.(item.id);}
-      if(item.hasChildren&&e.key==='ArrowRight'&&item.collapsed){e.preventDefault();e.stopPropagation();this.onBranchToggle?.(item.id);}
-      if(item.hasChildren&&e.key==='ArrowLeft'&&!item.collapsed){e.preventDefault();e.stopPropagation();this.onBranchToggle?.(item.id);}
+      if(item.canCollapse&&e.key==='ArrowRight'&&item.collapsed){e.preventDefault();e.stopPropagation();this.onBranchToggle?.(item.id);}
+      if(item.canCollapse&&e.key==='ArrowLeft'&&!item.collapsed){e.preventDefault();e.stopPropagation();this.onBranchToggle?.(item.id);}
       if(item.id!=='root'&&!this.readOnly&&((e.key==='F10'&&e.shiftKey)||e.key==='ContextMenu')){
         e.preventDefault();e.stopPropagation();this.openBranchMenu(el,item,{trigger:el});return;
       }
@@ -309,10 +309,10 @@ export class Constellation {
       b.addEventListener('pointerdown',e=>e.stopPropagation());
       b.addEventListener('click',e=>{e.stopPropagation();this.focusNode(item.id);this.openBranchEditor(el,item,mode);});controls.append(b);};
     action('Add a child branch','+','add');
-    if(item.hasChildren){
+    if(item.canCollapse){
       const toggle=node('button','node-action node-toggle',item.collapsed?'▸':'▾');toggle.type='button';
       toggle.setAttribute('aria-label',item.collapsed?'Expand branch':'Collapse branch');toggle.setAttribute('aria-expanded',String(!item.collapsed));
-      toggle.title=item.collapsed?'Show child branches':'Hide child branches';
+      toggle.title=item.collapsed?'Show tasks and child branches':'Hide tasks and child branches';
       toggle.addEventListener('pointerdown',e=>e.stopPropagation());
       toggle.addEventListener('click',e=>{e.stopPropagation();this.focusNode(item.id);this.onBranchToggle?.(item.id);});el.append(toggle);
     }
@@ -364,7 +364,7 @@ export class Constellation {
     action('Add child branch',()=>this.openBranchEditor(el,item,'add'));
     action('Rename branch',()=>this.openBranchEditor(el,item,'rename'));
     action('Move branch',()=>this.openBranchEditor(el,item,'move'));
-    if(item.hasChildren)action(item.collapsed?'Expand branch':'Collapse branch',
+    if(item.canCollapse)action(item.collapsed?'Expand branch':'Collapse branch',
       ()=>this.onBranchToggle?.(item.id));
     if(!['inbox','just-because'].includes(item.id))
       action('Remove branch',()=>this.onBranchDelete?.(item.id),'danger');
