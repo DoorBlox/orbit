@@ -88,8 +88,10 @@ def bp08_viewport_rotation_recovery(browser):
         def resized(width,height):
             page.set_viewport_size({'width':width,'height':height})
             page.wait_for_function("""({w,h}) => {
-              const size=window.orbitDebug.board.lastViewportSize;
-              return size && size.w===w && size.h===h;
+              const b=window.orbitDebug.board,rect=b.viewport;
+              const size=b.lastViewportSize;
+              return size && innerWidth===w && innerHeight===h &&
+                size.w===rect.clientWidth && size.h===rect.clientHeight;
             }""",arg={'w':width,'h':height})
 
         def same_world_center(left,right):
@@ -398,6 +400,29 @@ def viewport_flow(browser, label, size):
         core=('timeline','constellation','active','completed','space','journal')
         assert all(page.locator(f'[data-widget="{wid}"]').count()==1 for wid in core)
         assert all(page.locator(f'[data-widget="{wid}"] .widget-grip').count()==1 for wid in core)
+        # FB-220 universal HUD is reachable without visiting the Space or map widget.
+        hud=page.locator('#orbit-quickbar')
+        expect(hud).to_be_visible()
+        expect(hud.locator('#new-sticky')).to_be_visible()
+        assert page.locator('#space-widget #new-sticky').count()==0
+        assert page.locator('#space-widget #open-focus-timer').count()==1, 'Focus must remain discoverable after HUD migration'
+        assert hud.locator('#color-mode').count()==1
+        if label in ('phone','small'):
+            # The global HUD must not sit on top of arbitrary spatial controls.
+            # Reserve a real viewport strip, not a repositioned overlay which
+            # can block Journal on one camera and Task capture on another.
+            assert page.evaluate("""() => {
+              const viewport=document.querySelector('#spatial-viewport').getBoundingClientRect();
+              const dock=document.querySelector('#orbit-quickbar').getBoundingClientRect();
+              return dock.top>=viewport.bottom-1 && dock.bottom<=innerHeight+1;
+            }"""), 'Mobile HUD overlays spatial-world pointer targets (#220)'
+        current=page.evaluate('window.orbitDebug.state.mode')
+        hud.locator('#color-mode').click()
+        assert page.evaluate('window.orbitDebug.state.mode')!=current
+        hud.locator('#hud-journal').click()
+        assert page.locator('#journal-widget').evaluate("e=>e.classList.contains('spatial-front')")
+        hud.locator('#hud-new-task').click()
+        expect(page.locator('#capture-name')).to_be_focused()
         page.screenshot(path=str(OUT/f'm1-{label}-initial.png'))
 
         # BP-08: optional focus is camera-only, reversible and accessible.
