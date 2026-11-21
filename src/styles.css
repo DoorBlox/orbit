@@ -2393,3 +2393,38 @@ body.map-immersive .orbit-quickbar{opacity:.15;pointer-events:none}
     grid-template-rows:17px 48px minmax(70px,1fr) 16px;gap:5px;padding:10px}
   :root .space-navigator.is-open .space-nav-top{padding-right:30px}
 }
+/* FB-219: real contextual help in the HUD; modal controls retain contrast in
+   all themes and never intercept the spatial canvas when dismissed. */
+:root #hud-help{min-width:44px;font-size:19px;font-weight:800;border-radius:12px}
+.orbit-help-dialog{position:fixed;top:calc(83px + env(safe-area-inset-top,0px));right:18px;left:auto;
+  margin:0;width:min(410px,calc(100dvw - 26px));max-height:calc(100dvh - 105px);overflow:auto;
+  padding:20px;border:1px solid var(--orbit-outline,#71849a);border-radius:22px;
+  background:var(--orbit-solid-chrome,#f6f9fb);color:var(--orbit-chrome-ink,#213247);
+  box-shadow:0 20px 75px rgba(9,24,44,.28);font-family:var(--orbit-font-ui,system-ui);
+  line-height:1.45;z-index:210}
+.orbit-help-dialog::backdrop{background:rgba(12,24,42,.32)}
+.orbit-help-heading{display:flex;align-items:center;justify-content:space-between;gap:15px}
+.orbit-help-heading h2{font-size:21px;line-height:1.2;margin:0;color:inherit}
+.orbit-help-close,.orbit-help-dialog button{color:inherit;font:inherit;cursor:pointer}
+.orbit-help-close{border:1px solid var(--orbit-outline,#71849a);border-radius:12px;
+  background:transparent;width:44px;height:44px;font-size:23px!important}
+.orbit-help-subtitle,.orbit-help-step p{font-size:14px;line-height:1.55;margin:10px 0 15px}
+.orbit-help-topics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.orbit-help-topic{min-height:54px;text-align:left;padding:10px 12px;border-radius:13px;
+  border:1px solid var(--orbit-outline,#71849a);background:var(--orbit-paper-glass,#fff)}
+.orbit-help-topic:hover,.orbit-help-dialog button:hover{background:var(--orbit-hover-surface,#dce8f5)}
+.orbit-help-step h3{margin:6px 0;font-size:18px;color:inherit}
+.orbit-help-counter{font-size:12px!important;font-weight:700;letter-spacing:.02em}
+.orbit-help-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.orbit-help-actions button{min-height:44px;padding:9px 13px;border:1px solid var(--orbit-outline,#71849a);
+  border-radius:12px;background:var(--orbit-paper-glass,#fff)}
+.orbit-help-actions .orbit-help-try{font-weight:750;border-width:2px}
+.orbit-help-actions button:disabled{opacity:.55;cursor:not-allowed}
+.orbit-help-dialog button:focus-visible{outline:3px solid var(--focus,#426bb2);outline-offset:2px}
+.orbit-help-target{outline:3px solid var(--focus,#426bb2)!important;outline-offset:5px!important}
+@media(max-width:700px){.orbit-help-dialog{top:auto;left:10px;right:10px;
+  bottom:calc(96px + env(safe-area-inset-bottom,0px));width:auto;
+  max-height:calc(100dvh - 160px);padding:16px;border-radius:18px}}
+@media(max-width:365px){.orbit-help-topics{grid-template-columns:1fr}}
+:root[data-motion="off"] .orbit-help-dialog *{transition:none!important}
+@media(prefers-reduced-motion:reduce){.orbit-help-dialog *{transition:none!important}}
