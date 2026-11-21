@@ -576,8 +576,12 @@ def normal_flows(browser):
     page.locator('#timeline-add').click()
     page.locator('#milestone-title').fill('M1 marker')
     page.locator('#milestone-date').fill('2026-11-18')
+    page.locator('#milestone-color').fill('#285e96')
     page.locator('#milestone-form button[type=submit]').click()
     marker=page.locator('.timeline-milestone')
+    assert marker.evaluate("e=>e.style.getPropertyValue('--milestone-accent')")=='#285e96'
+    assert marker.evaluate("e=>parseFloat(e.style.top)")<=190, 'Milestone should meet the central timeline baseline (#224)'
+    assert page.evaluate("""() => JSON.parse(localStorage.getItem('orbit-v4-milestones'))[0].color""")=='#285e96'
     marker.focus();marker.press('Enter')
     expect(page.locator('#toast button')).to_have_text('Remove')
     page.locator('#toast button').press('Enter')

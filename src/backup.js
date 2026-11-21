@@ -65,8 +65,10 @@ export function validateBackup(input, { sanitizeHtml } = {}) {
   if (value.milestones !== undefined) {
     const milestones = list(value.milestones,500,'milestone'); unique(milestones,'milestone');
     normalized.milestones = milestones.map(m => {
-      if (typeof m.title !== 'string' || !m.title.trim() || m.title.length>110 || !validDateKey(m.date)) throw Error('Invalid milestone.');
-      return {id:m.id,title:m.title,date:m.date};
+      if (typeof m.title !== 'string' || !m.title.trim() || m.title.length>110 || !validDateKey(m.date) ||
+          (m.color!==undefined&&(typeof m.color!=='string'||!/^#[0-9a-fA-F]{6}$/.test(m.color))))
+        throw Error('Invalid milestone.');
+      return {id:m.id,title:m.title,date:m.date,...(m.color?{color:m.color}:{})};
     });
   }
   if (value.journalEntries !== undefined) {

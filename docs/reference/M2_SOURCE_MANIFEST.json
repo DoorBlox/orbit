@@ -8,12 +8,12 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "index.html": {
-      "sha256": "4da821ef0b8d0c2ec6b597182c6faba0b4516934ea73cb94e47b9d9fb608ecc6",
-      "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service; FB-218 discoverable task entry with existing save/branch behavior.; #216 page-specific optional Canvas 4:3 frame lock."
+      "sha256": "0e9dc7e38e7d7296feb37b409cf4dbddf14cc42875198e76779469b41eab5a42",
+      "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service; FB-218 discoverable task entry with existing save/branch behavior.; #224 colored milestones and compact journal lanes.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge."
     },
     "src/app.js": {
       "sha256": "adf30d3c7e7ae7107359f25ace72ee3ecf61adc2c453e39c52a55f9463409524",
-      "reason": "W3 BP-09 opt-in deferred owner snapshot producer with legacy eager onSnapshotChange semantics preserved; FO-01 retained.; #217 task-aware leaf branch disclosure and connector suppression while retaining deferred sync; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #216 page-specific optional Canvas 4:3 frame lock."
+      "reason": "W3 BP-09 opt-in deferred owner snapshot producer with legacy eager onSnapshotChange semantics preserved; FO-01 retained.; #217 task-aware leaf branch disclosure and connector suppression while retaining deferred sync; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge."
     },
     "src/auth/controller.js": {
       "sha256": "af8cde170ef58e61df8c464ee34249df4267812991392a95dae5c4d69f47ba20",
@@ -28,8 +28,8 @@
       "reason": "BP-07: reviewed inline Edit/Preview and responsive spatial UI changes; preserve private drawings and source provenance."
     },
     "src/backup.js": {
-      "sha256": "c5c84b0aa4b77f7f82f76c2c4a1d850af2f0c1ef272febc91fbe5f98655e422a",
-      "reason": "Normalize imported core widget dimensions into supported database-safe integers."
+      "sha256": "684aed5fc909a6ddb870f1baad05fee94d401028bc66411b7df4a61c46702b14",
+      "reason": "Normalize imported core widget dimensions into supported database-safe integers.; #224 colored milestones and compact journal lanes."
     },
     "src/board.js": {
       "sha256": "821df7cfecc7ec7c4682fb834d1e648e66608bbc74e98e9277f9d0aeeaf102da",
@@ -133,7 +133,7 @@
     },
     "src/scene.js": {
       "sha256": "d5def8716aa14d2b6692ee162e6e1afa4f64f314283631657d4329816417d98e",
-      "reason": "W1 #212: additive owner-private extension normalization preserves validated daily routine history through cloud snapshots and portable backup without changing old one-off schemas.; #216 page-specific optional Canvas 4:3 frame lock."
+      "reason": "W1 #212: additive owner-private extension normalization preserves validated daily routine history through cloud snapshots and portable backup without changing old one-off schemas.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge."
     },
     "src/stickies.js": {
       "sha256": "f24265a8cbae8fc278ee230088a83a012c72e9c231e3c962dd62e912d17490f8",
@@ -144,16 +144,16 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "43ad081b06b98012269c1c9682f8bd62395ee04820a65dfbf5ccc9224612ea77",
-      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #210 ambient OFF and reduced-motion fix after Journal source.; #216 foreground Journal pointer/resize affordance and saved dimensions.; #216 page-specific optional Canvas 4:3 frame lock."
+      "sha256": "55737013d0d76839a97c23556833090ea65a0cceec06c271ea902233d2a03f1a",
+      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #210 ambient OFF and reduced-motion fix after Journal source.; #216 foreground Journal pointer/resize affordance and saved dimensions.; #224 colored milestones and compact journal lanes.; #223 ten-theme contrast Sakura AA correction.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge."
     },
     "src/widget-registry.js": {
       "sha256": "097767f8dd9c6c1e94504ec571c29ca2f1d0684955d2f8c87231d15db1a427f0",
       "reason": "Increase Journal maximum resize to existing database-supported 4000px."
     },
     "src/widgets.js": {
-      "sha256": "aee68a4ce8a37edbb2de2fa1b0a2fc4589fcaf28a00603db2b148c6875a8ec58",
-      "reason": "Preserve task/timeline projection over canonical owner snapshots and read-only controls."
+      "sha256": "059c26d42ab09e79be250f0f242d3f6897b22282b223f316ccd09c3ea38f5d00",
+      "reason": "Preserve task/timeline projection over canonical owner snapshots and read-only controls.; #224 colored milestones and compact journal lanes."
     },
     "src/quick-jump.js": {
       "sha256": "52d9592e71edeb700b70bec3b79d792620d36a172af14f80ad79935c95f7a23e",
