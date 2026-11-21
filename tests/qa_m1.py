@@ -1000,6 +1000,55 @@ def preferences_and_dates(browser):
     context.close()
 
 
+
+def daily_routine_flow(browser):
+    """#212: actual local UI save, today's idempotent completion and reload."""
+    context,page,errors=open_page(browser,(1000,900))
+    try:
+        focus(page,'constellation')
+        page.locator('#capture-name').fill('Synthetic everyday check-in')
+        page.locator('#capture-name').press('Enter')
+        task=page.locator('.task-row').filter(has_text='Synthetic everyday check-in').first
+        task.click()
+        task.get_by_role('button',name='Edit').click()
+        editor=page.locator('.orbit-task-dialog')
+        expect(editor).to_be_visible()
+        editor.get_by_label('Repeat every day').check()
+        editor.get_by_role('button',name='Save changes').click()
+        expect(editor).to_be_hidden()
+        task=page.locator('.task-row').filter(has_text='Synthetic everyday check-in').first
+        expect(task.locator('.task-routine-badge')).to_have_text('Daily')
+        expect(page.locator('.timeline-routine-summary')).to_contain_text('0 / 1 complete')
+        if task.get_attribute('aria-expanded')!='true':
+            task.click()
+        task.get_by_role('button',name='Done today').click()
+        task=page.locator('.task-row').filter(has_text='Synthetic everyday check-in').first
+        expect(task.locator('.task-routine-badge')).to_have_text('✓ today')
+        expect(page.locator('.timeline-routine-summary')).to_contain_text('1 / 1 complete')
+        assert page.locator('#active-task-list .rail-task').filter(has_text='Synthetic everyday check-in').count()==1
+        assert page.locator('#completed-task-list .rail-task').filter(has_text='Synthetic everyday check-in').count()==0
+        def routine_days():
+            return page.evaluate("""() => {
+              const snapshot=JSON.parse(localStorage.getItem('orbit.v8.extensions')||'{}');
+              const rules=Object.values(snapshot.taskRoutines||{});
+              return rules.flatMap(rule=>rule.completedDates||[]);
+            }""")
+        recorded=routine_days()
+        assert len(recorded)==1,recorded
+        reload_page(page)
+        task=page.locator('.task-row').filter(has_text='Synthetic everyday check-in').first
+        expect(task.locator('.task-routine-badge')).to_have_text('✓ today')
+        assert routine_days()==recorded,'Daily history lost on reload'
+        focus(page,'constellation');task.click()
+        task.get_by_role('button',name='Undo today').click()
+        task=page.locator('.task-row').filter(has_text='Synthetic everyday check-in').first
+        expect(task.locator('.task-routine-badge')).to_have_text('Daily')
+        assert routine_days()==[],'Undo today must be idempotent and not delete the task'
+        assert not errors,errors
+    finally:
+        context.close()
+
+
 def density(browser):
     timings={}
     for count in [100,500,2000]:
@@ -1033,6 +1082,8 @@ def main():
         results['bp11_date_reorder']='PASS';print('PASS BP-11 date reorder preserves editor undo',flush=True)
         for name,fn in [('core flows',normal_flows),('failure and security',failure_security_flows),('preferences and dates',preferences_and_dates)]:
             fn(browser);results[name]='PASS';print('PASS',name,flush=True)
+        daily_routine_flow(browser)
+        results['daily_routine_ui']='PASS'
         results['density_load_ms']=density(browser)
         from qa_spatial_baseline import run_baseline
         results['bp06_spatial_baseline']=run_baseline(browser,open_page,focus,reload_page,OUT)

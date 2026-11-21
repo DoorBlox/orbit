@@ -1,6 +1,6 @@
 import { createLayout,getDisplayBounds } from './layout.js';
 import { branchPath,descendantsOf } from './data.js';
-import { taskColor,sortedProjectTasks,dueLabel,formatDate,STATUS,STATUS_LABEL,validateHttpUrl,parseTaskLinks,parseTaskChecklist,taskChecklistLines } from './model.js';
+import { taskColor,sortedProjectTasks,dueLabel,formatDate,STATUS,STATUS_LABEL,validateHttpUrl,parseTaskLinks,parseTaskChecklist,taskChecklistLines,getDailyOccurrence } from './model.js';
 
 const node=(tag,className='',text=null)=>{const el=document.createElement(tag);if(className)el.className=className;if(text!==null)el.textContent=text;return el;};
 const clamp=(n,low,high)=>Math.min(high,Math.max(low,n));
@@ -12,7 +12,7 @@ const NS='http://www.w3.org/2000/svg';
 export class Constellation {
   constructor({viewport,world,edgesEl,nodesEl,decorEl,onBranchSelected,onBranchAdd,onBranchRename,onBranchMove,onBranchDelete,onBranchToggle,onBranchProjectToggle,readOnly=false,onTaskSelected,onTaskUpdate,onTaskDelete,onTaskError}) {
     Object.assign(this,{viewport,world,edgesEl,nodesEl,decorEl,onBranchSelected,onBranchAdd,onBranchRename,onBranchMove,onBranchDelete,onBranchToggle,onBranchProjectToggle,readOnly,onTaskSelected,onTaskUpdate,onTaskDelete,onTaskError});
-    this.branches=[];this.tasks=[];this.projectIds=new Set();this.closeBranchMenu=null;this.mode='deadline';this.displayName='My space';this.collapsedBranchIds=[];this.layout=createLayout([],[],this.displayName);this.bounds=getDisplayBounds(this.layout);
+    this.branches=[];this.tasks=[];this.routines={};this.projectIds=new Set();this.closeBranchMenu=null;this.mode='deadline';this.displayName='My space';this.collapsedBranchIds=[];this.layout=createLayout([],[],this.displayName);this.bounds=getDisplayBounds(this.layout);
     this.nodeMap=new Map();this.stackMap=new Map();this.domNodes=new Map();this.domStacks=new Map();this.edgeEntries=[];
     this.camera={x:0,y:0,scale:.2};this.cameraAnimation=0;this.springAnimation=0;
     this.focusedNode='';this.expandedTaskId='';this.selectedTaskId='';this.taskDialog=null;this.offsets=new Map();
@@ -26,9 +26,9 @@ export class Constellation {
     const ring=node('div','world-ring inner');this.decorEl.append(ring);
     this.decorEl.append(node('div','world-ring outer'));
   }
-  setData(branches,tasks,mode='deadline',displayName=this.displayName,collapsedBranchIds=this.collapsedBranchIds,projectIds=[...this.projectIds]){
+  setData(branches,tasks,mode='deadline',displayName=this.displayName,collapsedBranchIds=this.collapsedBranchIds,projectIds=[...this.projectIds],routines=this.routines){
     const focus=this.focusedNode;
-    this.branches=branches;this.tasks=tasks;this.mode=mode;
+    this.branches=branches;this.tasks=tasks;this.mode=mode;this.routines=routines||{};
     const known=new Set(branches.map(branch=>branch.id));
     this.projectIds=new Set((Array.isArray(projectIds)?projectIds:[]).filter(id=>known.has(id)));
     this.displayName=String(displayName||'My space').trim().slice(0,100)||'My space';
@@ -437,15 +437,19 @@ export class Constellation {
     return el;
   }
   buildTaskRow(task){
+    const daily=this.routines?.[task.id]?getDailyOccurrence(task,this.routines):null;
     const row=node('div','task-row');row.dataset.taskId=task.id;row.tabIndex=0;row.setAttribute('role','button');
     row.setAttribute('aria-expanded',String(task.id===this.expandedTaskId));
     row.setAttribute('aria-label',`${task.title}. ${dueLabel(task.dueDate)}. Urgency ${task.urgency}/5. Tap or press Enter to reveal details.`);
     row.style.setProperty('--task-color',taskColor(task,this.mode));
-    if(task.status==='completed')row.classList.add('completed');
+    if(task.status==='completed'&&!daily)row.classList.add('completed');
     if(dueLabel(task.dueDate).includes('overdue')&&task.status!=='completed')row.classList.add('overdue');
     if(task.id===this.expandedTaskId)row.classList.add('is-expanded');
     const line=node('div','task-primary');line.append(node('span','task-text',task.title));
-    const meta=node('span','task-inline-meta',this.mode==='urgency'?`U${task.urgency}`:dueLabel(task.dueDate));line.append(meta);row.append(line);
+    const meta=node('span','task-inline-meta',this.mode==='urgency'?`U${task.urgency}`:dueLabel(task.dueDate));line.append(meta);
+    if(daily){row.classList.toggle('routine-done-today',daily.completed);
+      line.append(node('span','task-routine-badge',daily.completed?'✓ today':'Daily'));}
+    row.append(line);
     const reveal=node('div','task-reveal');const content=node('div','task-reveal-content');
     const view=node('div','task-detail-view');
     const done=node('p','detail-criteria',task.criteria||'No completion criteria yet.');
@@ -483,7 +487,8 @@ export class Constellation {
     const actions=node('div','task-actions');
     const act=(label,callback)=>{const button=node('button','task-action',label);button.type='button';button.addEventListener('click',e=>{e.stopPropagation();callback();});actions.append(button);};
     act('Edit',()=>this.openTaskEditor(row,task));
-    act(task.status==='completed'?'Reopen':'Complete',()=>this.onTaskUpdate?.(task.id,{status:task.status==='completed'?'ready':'completed',completedAt:task.status==='completed'?'':new Date().toISOString()}));
+    if(daily)act(daily.completed?'Undo today':'Done today',()=>this.onTaskUpdate?.(task.id,{routineCompleted:!daily.completed}));
+    else act(task.status==='completed'?'Reopen':'Complete',()=>this.onTaskUpdate?.(task.id,{status:task.status==='completed'?'ready':'completed',completedAt:task.status==='completed'?'':new Date().toISOString()}));
     act('Remove',()=>this.onTaskDelete?.(task.id));
     view.append(actions);content.append(view);reveal.append(content);row.append(reveal);
     // Hover expands *inside* the list: later tasks are pushed down, never overlaid.
@@ -525,6 +530,14 @@ export class Constellation {
     const pair=node('div','inline-edit-pair');
     const due=node('label','inline-field');due.append(node('span','inline-field-title','Deadline'));const date=node('input','inline-input');date.type='date';date.name='dueDate';date.value=task.dueDate;due.append(date);pair.append(due);
     const urg=node('label','inline-field');urg.append(node('span','inline-field-title','Urgency'));const urgency=node('select','inline-input');urgency.name='urgency';for(let i=1;i<=5;i++){const op=node('option','',`U${i}`);op.value=String(i);urgency.append(op);}urgency.value=String(task.urgency);urg.append(urgency);pair.append(urg);form.append(pair);
+    const repeat=node('label','inline-field task-repeat-field');
+    const repeatCheckbox=node('input');repeatCheckbox.type='checkbox';repeatCheckbox.name='repeatDaily';
+    repeatCheckbox.checked=Boolean(this.routines?.[task.id]);
+    // Removing a rule with completed days would silently discard history.
+    repeatCheckbox.disabled=Boolean(this.routines?.[task.id]?.completedDates?.length);
+    repeat.append(repeatCheckbox,node('span','','Repeat every day'));form.append(repeat);
+    if(repeatCheckbox.disabled)
+      form.append(node('p','task-routine-note','Completion history is preserved; stopping an established routine requires an archive workflow.'));
     const extras=node('details','task-editor-more');
     const extrasSummary=node('summary','', 'Additional fields');
     extras.append(extrasSummary);form.append(extras);
@@ -554,6 +567,7 @@ export class Constellation {
     form.addEventListener('click',e=>e.stopPropagation());form.addEventListener('pointerdown',e=>e.stopPropagation());
     form.addEventListener('submit',e=>{e.preventDefault();e.stopPropagation();const data=new FormData(form);const patch=Object.fromEntries(data.entries());
       patch.urgency=Number(patch.urgency)||1;patch.effortMinutes=Number(patch.effortMinutes)||0;
+      patch.repeatDaily=repeatCheckbox.checked;
       try{
         patch.links=parseTaskLinks(String(patch.extraLinks||''));
         patch.checklist=parseTaskChecklist(String(patch.checklistText||''));

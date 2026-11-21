@@ -1,4 +1,4 @@
-import { daysUntil, dueLabel, taskColor } from './model.js';
+import { daysUntil, dueLabel, taskColor, getDailyOccurrence } from './model.js';
 import { branchPath } from './data.js';
 import { civilTimestamp, todayKey, dateLabel, DAY_MS } from './dates.js';
 
@@ -24,34 +24,42 @@ export class ScrapWidgets {
     this.scroll=document.getElementById('timeline-scroll');
     this.surface=document.getElementById('timeline-surface');
     this.pxPerDay=5.3;this.scrolledInitially=false;
-    this.milestones=[];this.journalEntries=[];this.tasks=[];this.branches=[];this.mode='deadline';
+    this.milestones=[];this.journalEntries=[];this.tasks=[];this.branches=[];this.mode='deadline';this.routines={};this.routineFocusTask=null;
     this.timelineStart=0;
     this.initTimeline();
+    this.routineSummary=el('button','timeline-routine-summary');this.routineSummary.type='button';
+    this.routineSummary.hidden=true;
+    this.routineSummary.addEventListener('click',()=>{if(this.routineFocusTask)this.onFocus(this.routineFocusTask);});
+    document.querySelector('.timeline-footnote')?.append(this.routineSummary);
   }
-  setData(branches,tasks,mode,milestones=[]){
+  setData(branches,tasks,mode,milestones=[],routines={}){
     const activeTop=this.activeEl.scrollTop,doneTop=this.completedEl.scrollTop;
-    this.branches=branches;this.tasks=tasks;this.mode=mode;this.milestones=milestones;
+    this.branches=branches;this.tasks=tasks;this.mode=mode;this.milestones=milestones;this.routines=routines||{};
     this.renderLists();this.activeEl.scrollTop=activeTop;this.completedEl.scrollTop=doneTop;
     this.renderTimeline();
   }
   setJournalEntries(entries){this.journalEntries=Array.isArray(entries)?entries:[];this.renderTimeline();}
   renderLists(){
-    const active=byMode(this.tasks.filter(t=>t.status!=='completed'),this.mode);
-    const done=[...this.tasks.filter(t=>t.status==='completed')].sort((a,b)=>String(b.completedAt||'').localeCompare(String(a.completedAt||'')));
+    const active=byMode(this.tasks.filter(t=>t.status!=='completed'||Object.hasOwn(this.routines,t.id)),this.mode);
+    const done=[...this.tasks.filter(t=>t.status==='completed'&&!Object.hasOwn(this.routines,t.id))].sort((a,b)=>String(b.completedAt||'').localeCompare(String(a.completedAt||'')));
     document.getElementById('active-count').textContent=active.length;
     document.getElementById('completed-count').textContent=done.length;
     this.activeEl.replaceChildren();this.completedEl.replaceChildren();
     if(!active.length)this.activeEl.append(el('p','rail-empty','Nothing waiting here. Enjoy the space.'));
     for(const task of active){
-      const item=el('div','rail-task');item.style.setProperty('--task-color',taskColor(task,this.mode));
+      const daily=getDailyOccurrence(task,this.routines);
+      const item=el('div','rail-task');
+      item.classList.toggle('is-daily-complete',Boolean(daily?.completed));item.style.setProperty('--task-color',taskColor(task,this.mode));
       const focus=addButton(task.title,()=>this.onFocus(task),'rail-task-name');focus.setAttribute('aria-label',`Find ${task.title} in constellation`);
       item.append(focus);
       const info=el('div','rail-task-info');
       info.append(el('span','rail-category',branchPath(task.projectId,this.branches)||'Unsorted'));
       const due=el('span','rail-due',this.mode==='urgency'?`U${task.urgency} · ${dueLabel(task.dueDate)}`:dueLabel(task.dueDate));
       if(daysUntil(task.dueDate)!==null&&daysUntil(task.dueDate)<0)due.classList.add('is-late');
-      info.append(due);item.append(info);
-      const check=addButton('✓',()=>this.onComplete(task.id),'rail-check');check.title=`Complete ${task.title}`;check.setAttribute('aria-label',`Complete ${task.title}`);item.append(check);
+      info.append(due);if(daily?.active)info.append(el('span','rail-routine-label',daily.completed?'Daily · done today':'Daily · today'));item.append(info);
+      const check=addButton(daily?.completed?'↶':'✓',()=>daily?.completed?this.onRestore(task.id):this.onComplete(task.id),'rail-check');
+      check.title=daily?(daily.completed?`Undo today for ${task.title}`:`Complete today: ${task.title}`):`Complete ${task.title}`;
+      check.setAttribute('aria-label',check.title);item.append(check);
       this.activeEl.append(item);
     }
     if(!done.length)this.completedEl.append(el('p','rail-empty','Completed tasks will appear here, not on the map.'));
@@ -91,6 +99,13 @@ export class ScrapWidgets {
   }
   renderTimeline(){
     if(!this.surface)return;
+    const todayRoutines=this.tasks.map(task=>({task,occurrence:getDailyOccurrence(task,this.routines)}))
+      .filter(item=>item.occurrence?.active);
+    const done=todayRoutines.filter(item=>item.occurrence.completed).length;
+    this.routineFocusTask=(todayRoutines.find(item=>!item.occurrence.completed)||todayRoutines[0])?.task||null;
+    if(this.routineSummary){this.routineSummary.hidden=!todayRoutines.length;
+      this.routineSummary.textContent=`Daily today: ${done} / ${todayRoutines.length} complete`;
+    }
     const now=midnight(new Date());const dates=[...this.tasks.map(t=>utcDate(t.dueDate)),
       ...this.milestones.map(m=>utcDate(m.date)),...this.journalEntries.map(j=>utcDate(j.date?.slice(0,10)))].filter(Number.isFinite);
     const earliest=Math.min(now-120*UTC_DAY,...dates),latest=Math.max(now+300*UTC_DAY,...dates);
