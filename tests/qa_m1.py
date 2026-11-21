@@ -429,6 +429,14 @@ def viewport_flow(browser, label, size):
         focus(page,'space')
         before=page.evaluate('''() => ({camera:{scale:window.orbitDebug.board.scale,
           pan:{...window.orbitDebug.board.pan}},layout:window.orbitDebug.board.getLayout()})''')
+        # FB-223: no duplicate Space snapshot export or misplaced Projects control.
+        assert page.locator('#open-projects').count()==0
+        assert page.locator('#backup-json').count()==0
+        page.locator('.space-more-tools > summary').click()
+        expect(page.locator('#export-kind')).to_be_visible()
+        assert 'no image files' in page.locator('#export-kind option[value="space"]').inner_text()
+        expect(page.locator('#export-csv')).to_have_text('Download selected format')
+        page.locator('.space-more-tools > summary').click()
         page.locator('.space-manage > summary').click()
         page.locator('#bp08-focus-picker').select_option('journal')
         expect(page.locator('#bp08-focus-exit')).to_be_visible()
