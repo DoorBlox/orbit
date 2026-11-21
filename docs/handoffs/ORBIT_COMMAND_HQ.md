@@ -1,5 +1,19 @@
 # ORBIT — Command HQ continuity and integration checkpoint
 
+## 22 November 2026 — C1H accelerated Production gate 2/3 live checkpoint (latest)
+
+**Owner decision:** Signed-in private-data gate #1 reported VERIFIED by owner; continue protected stage/same-build Production delivery, not new feature scope. Preserve independent evidence boundaries.
+
+- **SOURCE main at start of this continuation:** `dc59a571e2699a54ea73609b4378c388ca3c17dc` (docs PR #276); source-only, **NOT Production**.
+- **Production baseline independently reverified on Vercel:** deployment `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4`, Git `4e57aca785259192b92010c5d0e1634a4c1efe14` (ORBIT 2.4), READY. Alias `orbit.starscene.com` remains assigned to this rollback candidate. SSO protection is enabled for Preview/raw Production URLs.
+- **Pre-existing unpromoted Production-format stage:** READY `dpl_CDp74eS1CqCYC5jkjt6oL6WF9HhN`, protected raw URL `https://orbit-g4iy8x66o-doorbloxs-projects.vercel.app`, exact `dc59a571e2699a54ea73609b4378c388ca3c17dc`, target `production`. It predates crash-recovery patch and **MUST NOT be promoted** as the final candidate. No live alias was moved in this continuation.
+- **#171 crash recovery:** W1/W6 [PR #277](https://github.com/DoorBlox/orbit/pull/277) introduces same-owner encrypted IndexedDB AES-GCM draft persistence, cloud-revision CAS guard, explicit owner recovery, and browser crash/reload tests; no hosted Auth/RLS/SQL/Storage changes. Original head `48242e03b0828d70739deb140e84dc9ca914d974` failed static-quality because the old BP-09 100 synchronous edit burst test forbade *any* early snapshot; other three checks passed. Browser crash recovery itself passed in this run, and 673/673 Node tests passed. A focused correction on PR #277 head `9dc335cdc4226fd5895608a95b169210b1b39e2c` permits **at most one** coalesced encrypted snapshot while retaining one cloud CAS write. Fresh four exact-head checks are required. This checkpoint does **not** claim final green or merge.
+- **Gate #3 next:** After #277 independently passes four checks and source merges, verify current main, run exact-main no-deploy preflight, create a **NEW** protected Production-format stage of that exact main **without domain assignment**, verify RAW staged smoke, rollback, and separate release authorization. Promote that SAME stage only after real acceptance evidence. Do not rebuild or promote previous Preview or `dc59a571` stage.
+- **Tooling boundary:** Vercel read access through the connected project/team succeeded. The GitHub connector does not expose `workflow_dispatch`, and Vercel's connected deployment creation action lacks the reviewed workflow's `--skip-domain` guarantee. Avoid an ad hoc Production-target build that could unexpectedly assign live aliases. Use the existing reviewed guarded `.github/workflows/bp05-stage-reviewed.yml` once approved.
+- **Status contract:** Gate #1 owner verified, #171 patch under exact-head CI, stage infrastructure READY but **final candidate NOT STAGED / NOT PROMOTED**. Issue #225 stays OPEN; no Production release claimed.
+
+---
+
 ## 22 November 2026 — C1G completed source and protected-Preview handoff (latest; supersedes older C1F statuses)
 
 **Current verified SOURCE main:** `27f3ef4441422ba8414fe746d3b9eda40500cd52` from [PR #274](https://github.com/DoorBlox/orbit/pull/274). This is source delivery and protected Preview, **NOT a Production release or full owner-signed-in acceptance**.
