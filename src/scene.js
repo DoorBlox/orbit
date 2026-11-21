@@ -49,7 +49,7 @@ export function normalizeScene(scene){
 export function normalizeExtensions(raw={}){
   if(raw===undefined||raw===null)raw={};
   if(!object(raw)||JSON.stringify(raw).length>900000)throw Error('Invalid or oversized workspace extensions.');
-  const notes=raw.notes??[],taskLinks=raw.taskLinks??{},journalScenes=raw.journalScenes??{},journalImages=raw.journalImages??{},journalModes=raw.journalModes??{},journalPaperStyles=raw.journalPaperStyles??{};
+  const notes=raw.notes??[],taskLinks=raw.taskLinks??{},journalScenes=raw.journalScenes??{},journalImages=raw.journalImages??{},journalModes=raw.journalModes??{},journalPaperStyles=raw.journalPaperStyles??{},journalCanvasLocks=raw.journalCanvasLocks??{};
   const taskChecklists=raw.taskChecklists??{};
   // #212 additive owner-private extension; omitted for legacy one-off workspaces.
   const taskRoutines=normalizeTaskRoutines(raw.taskRoutines??{});
@@ -65,6 +65,7 @@ export function normalizeExtensions(raw={}){
      !object(journalScenes)||Object.keys(journalScenes).length>600||!object(journalImages)||Object.keys(journalImages).length>600||
      !object(journalModes)||Object.keys(journalModes).length>600||
      !object(journalPaperStyles)||Object.keys(journalPaperStyles).length>600||
+     !object(journalCanvasLocks)||Object.keys(journalCanvasLocks).length>600||
      !object(taskChecklists)||Object.keys(taskChecklists).length>10000)throw Error('Invalid workspace extensions.');
   const ids=new Set();
   const cleanNotes=notes.map(n=>{
@@ -111,6 +112,13 @@ export function normalizeExtensions(raw={}){
     if(!validId(id)||!['plain','grid'].includes(style))throw Error('Invalid journal paper texture.');
     pagePaper[id]=style;
   }
+  // A page lock stores only its intended ratio; the drawing scene and its
+  // private image references remain entirely independent of viewport geometry.
+  const pageLocks={};
+  for(const [id,locked] of Object.entries(journalCanvasLocks)){
+    if(!validId(id)||locked!==true)throw Error('Invalid journal Canvas frame lock.');
+    pageLocks[id]=true;
+  }
   const images={};
   for(const [id,path] of Object.entries(journalImages)){
     if(!validId(id))throw Error('Invalid journal image ID.');
@@ -119,7 +127,8 @@ export function normalizeExtensions(raw={}){
   return {notes:cleanNotes,taskLinks:links,taskChecklists:checklists,
     ...(Object.keys(taskRoutines).length?{taskRoutines}:{}),journalScenes:scenes,journalImages:images,
     ...(Object.keys(pageModes).length?{journalModes:pageModes}:{}),
-    ...(Object.keys(pagePaper).length?{journalPaperStyles:pagePaper}:{}),spatialWidgets,projects,appearance};
+    ...(Object.keys(pagePaper).length?{journalPaperStyles:pagePaper}:{}),
+    ...(Object.keys(pageLocks).length?{journalCanvasLocks:pageLocks}:{}),spatialWidgets,projects,appearance};
 }
 /** Fit the entire retained drawing, not an arbitrary 800×460 crop. No mutation. */
 export function scenePreviewBounds(scene){
