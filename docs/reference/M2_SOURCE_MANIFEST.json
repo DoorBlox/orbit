@@ -8,8 +8,8 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "index.html": {
-      "sha256": "d9b7b5d348b2d15288be74ccac242121d3fbc85f3a86a07b215aca6034dcf6fd",
-      "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service; FB-218 discoverable task entry with existing save/branch behavior."
+      "sha256": "c6156592c99c37947925bec67da5295f62c67add3fb452820a766758875d4234",
+      "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service; FB-218 discoverable task entry with existing save/branch behavior.; #224 colored milestones and compact journal lanes."
     },
     "src/app.js": {
       "sha256": "6dc38fb1c23bac6d6b49e4312b13eb2d33236af7d32d5e29f76bda8fddb611e4",
@@ -28,8 +28,8 @@
       "reason": "BP-07: reviewed inline Edit/Preview and responsive spatial UI changes; preserve private drawings and source provenance."
     },
     "src/backup.js": {
-      "sha256": "c5c84b0aa4b77f7f82f76c2c4a1d850af2f0c1ef272febc91fbe5f98655e422a",
-      "reason": "Normalize imported core widget dimensions into supported database-safe integers."
+      "sha256": "684aed5fc909a6ddb870f1baad05fee94d401028bc66411b7df4a61c46702b14",
+      "reason": "Normalize imported core widget dimensions into supported database-safe integers.; #224 colored milestones and compact journal lanes."
     },
     "src/board.js": {
       "sha256": "821df7cfecc7ec7c4682fb834d1e648e66608bbc74e98e9277f9d0aeeaf102da",
@@ -144,16 +144,16 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "47faaf37631ceddc1e55fdcb78bb507809bc83b154298140352f95782d452cd0",
-      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #210 ambient OFF and reduced-motion fix after Journal source.; #216 foreground Journal pointer/resize affordance and saved dimensions.; #223 AA contrast for Sakura active controls."
+      "sha256": "b7944af09e40cbec2851f533881fea7841b0884d0410b955f74a528f490c46c6",
+      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #210 ambient OFF and reduced-motion fix after Journal source.; #216 foreground Journal pointer/resize affordance and saved dimensions.; #224 colored milestones and compact journal lanes.; #223 ten-theme contrast Sakura AA correction."
     },
     "src/widget-registry.js": {
       "sha256": "097767f8dd9c6c1e94504ec571c29ca2f1d0684955d2f8c87231d15db1a427f0",
       "reason": "Increase Journal maximum resize to existing database-supported 4000px."
     },
     "src/widgets.js": {
-      "sha256": "aee68a4ce8a37edbb2de2fa1b0a2fc4589fcaf28a00603db2b148c6875a8ec58",
-      "reason": "Preserve task/timeline projection over canonical owner snapshots and read-only controls."
+      "sha256": "059c26d42ab09e79be250f0f242d3f6897b22282b223f316ccd09c3ea38f5d00",
+      "reason": "Preserve task/timeline projection over canonical owner snapshots and read-only controls.; #224 colored milestones and compact journal lanes."
     },
     "src/quick-jump.js": {
       "sha256": "52d9592e71edeb700b70bec3b79d792620d36a172af14f80ad79935c95f7a23e",
