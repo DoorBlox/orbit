@@ -290,7 +290,16 @@ def owner_case(browser,size,source):
         assert not page.evaluate("document.body.classList.contains('cloud-connected')"), 'No viewport height is reserved for the removed dock'
         expect(page.locator('#active-task-list')).to_contain_text(OWNER_SECRET)
         assert page.evaluate('window.orbitDebug.state.tasks')==1
-        assert_pointer_reachable(page,'#board-zoom-in')
+        if size[0]<=700:
+            # The mobile map intentionally collapses; exercise its real disclosure,
+            # verify zoom is reachable when opened, then close before task entry.
+            assert_pointer_reachable(page,'#space-nav-toggle')
+            page.locator('#space-nav-toggle').click()
+            assert_pointer_reachable(page,'#board-zoom-in')
+            page.locator('#space-nav-toggle').click()
+            expect(page.locator('.space-navigator .world-nav')).to_be_hidden()
+        else:
+            assert_pointer_reachable(page,'#board-zoom-in')
         assert_no_local_leak(page)
         calls=page.evaluate('window.__m2Fixture.calls')
         assert not any(call.get('name')=='save_owner_snapshot' for call in calls),'Hydration must not auto-upload local/demo state'
