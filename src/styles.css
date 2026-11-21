@@ -2558,3 +2558,12 @@ body.map-immersive .orbit-quickbar{opacity:.15;pointer-events:none}
   :root #space-widget .space-more-tools>summary>span{text-align:left;margin-left:0;flex-basis:100%}
   :root #space-widget .space-manage .space-manage-actions{grid-template-columns:1fr}
 }
+/* FB-223 actual touch target after 0.6–0.7× spatial zoom, not only CSS size. */
+:root #space-widget .space-manage>summary,
+:root #space-widget .space-appearance>summary,
+:root #space-widget .space-more-tools>summary{min-height:64px}
+@media(max-width:700px){
+  :root #space-widget .space-manage>summary,
+  :root #space-widget .space-appearance>summary,
+  :root #space-widget .space-more-tools>summary{min-height:76px}
+}
