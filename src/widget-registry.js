@@ -4,12 +4,12 @@
  * the legacy defaults or introducing untrusted executable plugins.
  */
 const CORE = [
-  {id:'timeline',position:{x:445,y:105},limits:{minW:520,minH:520,maxW:3200,maxH:1200},icon:'─'},
-  {id:'constellation',position:{x:410,y:670},limits:{minW:650,minH:550,maxW:3000,maxH:2000},icon:'✳'},
-  {id:'active',position:{x:1895,y:760},limits:{minW:300,minH:280,maxW:1400,maxH:2000},icon:'◉'},
-  {id:'completed',position:{x:1980,y:1370},limits:{minW:300,minH:235,maxW:1400,maxH:2000},icon:'✓'},
-  {id:'space',position:{x:280,y:1725},limits:{minW:300,minH:210,maxW:1050,maxH:950},icon:'·'},
-  {id:'journal',position:{x:930,y:1780},limits:{minW:420,minH:720,maxW:4000,maxH:4000},icon:'✎'},
+  {id:'timeline',position:{x:445,y:105},limits:{minW:520,minH:520,maxW:5000,maxH:5000},icon:'─'},
+  {id:'constellation',position:{x:410,y:670},limits:{minW:650,minH:550,maxW:5000,maxH:5000},icon:'✳'},
+  {id:'active',position:{x:1895,y:760},limits:{minW:300,minH:280,maxW:5000,maxH:5000},icon:'◉'},
+  {id:'completed',position:{x:1980,y:1370},limits:{minW:300,minH:235,maxW:5000,maxH:5000},icon:'✓'},
+  {id:'space',position:{x:280,y:1725},limits:{minW:300,minH:210,maxW:5000,maxH:5000},icon:'·'},
+  {id:'journal',position:{x:930,y:1780},limits:{minW:420,minH:720,maxW:5000,maxH:5000},icon:'✎'},
 ];
 const safeId = value => typeof value==='string' && /^[a-z][a-z0-9-]{1,39}$/.test(value) &&
   !['constructor','prototype','__proto__'].includes(value);
