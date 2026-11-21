@@ -1189,7 +1189,7 @@ body.cloud-space-mounted .app-shell{height:100dvh!important}
   50%{transform:translate3d(3vw,2vw,0) scale(1.03)}
   100%{transform:translate3d(-1vw,3vw,0) scale(1)}}
 :root[data-motion="off"] .ambient-orb{animation:none!important}
-@media(prefers-reduced-motion:reduce){:root .ambient-orb{animation:none!important;will-change:auto}}
+@media(prefers-reduced-motion:reduce){:root[data-ambient] .ambient-orb{animation:none!important;will-change:auto}}
 @media(prefers-reduced-transparency:reduce){
   :root .world-header .brand,:root .world-header .header-right,
   :root .world-nav,:root .space-navigator{background:var(--orbit-solid-chrome)!important;
