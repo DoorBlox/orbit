@@ -2351,13 +2351,16 @@ body.cloud-space-mounted #space-widget .cloud-sync-state{position:absolute!impor
 body.cloud-space-mounted .orbit-quickbar{
   bottom:calc(17px + var(--cloud-dock-height,0px) + env(safe-area-inset-bottom,0px))}
 @media(max-width:760px){
-  /* The Constellation capture field sits near the bottom at 320x700.
-     Dock global actions above the minimized places map instead of obscuring
-     private task entry; the shared 44px targets remain horizontally scrollable. */
+  /* Reserve a real 80px command strip outside the transformed spatial world.
+     A fixed overlay blocked task capture near the bottom and Journal actions
+     near the top on 320px and 390px phones. Pan/focus uses the smaller viewport. */
+  :root .spatial-viewport{bottom:calc(80px + env(safe-area-inset-bottom,0px))}
   :root .orbit-quickbar{left:12px;right:12px;max-width:none;width:auto;
-    top:calc(137px + env(safe-area-inset-top,0px));bottom:auto;
+    top:auto;bottom:calc(9px + env(safe-area-inset-bottom,0px));
     min-height:54px;border-radius:16px}
+  body.cloud-space-mounted .spatial-viewport{
+    bottom:calc(80px + var(--cloud-dock-height,0px) + env(safe-area-inset-bottom,0px))}
   body.cloud-space-mounted .orbit-quickbar{
-    top:calc(137px + env(safe-area-inset-top,0px));bottom:auto}
+    top:auto;bottom:calc(9px + var(--cloud-dock-height,0px) + env(safe-area-inset-bottom,0px))}
 }
 body.map-immersive .orbit-quickbar{opacity:.15;pointer-events:none}
