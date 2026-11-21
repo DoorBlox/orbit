@@ -187,6 +187,60 @@ def navigator_grab_continuity(page):
     }""")
     assert result['noTouchSnap'] and result['directMapTap'] and result['canceledSafely'] and result['hybridOffMap'],result
 
+def sticky_canvas_surface(page):
+    """#214: Canvas edit must own the note sheet, without a visible preview placeholder.
+    Exercise the private mock owner, actual lazy Excalidraw, save payload and remount.
+    """
+    page.evaluate("window.orbitDebug.board.focus('space',{initial:true})")
+    page.locator('#new-sticky').click()
+    expect(page.locator('.sticky-note')).to_have_count(1)
+    page.evaluate("window.orbitDebug.board.focus('space',{initial:true})")
+    pin=page.locator('.space-point-sticky').first
+    if pin.is_hidden():
+        page.get_by_role('button',name='Open places map').click()
+    pin.click()
+    note=page.locator('.sticky-note').first
+    note_id=note.get_attribute('data-note-id')
+    saved_note_height=note.evaluate('e=>parseInt(e.style.height,10)')
+    note.get_by_role('button',name='Edit sticky note').click()
+    note.get_by_role('button',name='Canvas',exact=True).click()
+    expect(note.locator('.sticky-inline-canvas .excalidraw')).to_be_visible(timeout=30000)
+    dead_preview=note.locator(':scope > .sticky-drawing')
+    assert dead_preview.count()==0 or dead_preview.is_hidden(), \
+        'Read-only empty canvas preview still occupies the editable Excalidraw sheet'
+    geometry=note.evaluate("""e=>{
+      const host=e.querySelector(':scope > .sticky-inline-canvas');
+      const editor=host?.querySelector('.excalidraw');
+      const bounds=host?.getBoundingClientRect(),canvas=editor?.getBoundingClientRect();
+      return {noteHeight:e.getBoundingClientRect().height,hostHeight:bounds?.height||0,
+        hostWidth:bounds?.width||0,editorHeight:canvas?.height||0,editorWidth:canvas?.width||0};
+    }""")
+    assert geometry['noteHeight'] >= 500 and geometry['hostHeight'] >= 300 and geometry['hostWidth'] >= 180,geometry
+    assert geometry['editorHeight'] >= geometry['hostHeight']*.9,geometry
+    assert geometry['editorWidth'] >= geometry['hostWidth']*.9,geometry
+    width=page.viewport_size['width']
+    page.screenshot(path=str(qa.OUT/f'm25-sticky-canvas-{width}.png'))
+    note.get_by_role('button',name='Preview sticky note').click()
+    assert note.evaluate('e=>parseInt(e.style.height,10)') == saved_note_height, 'Editing Canvas must not silently change saved note height'
+    page.screenshot(path=str(qa.OUT/f'm25-sticky-canvas-preview-{width}.png'))
+    qa.wait_until(page,"window.__m2Fixture.calls.some(c=>c.name==='save_owner_snapshot' && c.args?.p_snapshot?.extensions?.notes?.some(n=>n.scene?.type==='excalidraw'))",timeout=15000)
+    saved=page.evaluate("window.__m2Fixture.snapshot")
+    assert any(n['id']==note_id and n.get('mode')=='canvas' and n.get('scene',{}).get('type')=='excalidraw'
+      for n in saved['extensions']['notes']), 'The private owner scene did not persist on Preview'
+    reopened_ctx,reopened,errors=qa.cloud_context(
+      page.context.browser,(page.viewport_size['width'],page.viewport_size['height']),
+      'owner',snapshot=saved)
+    try:
+        reopened_note=reopened.locator(f'.sticky-note[data-note-id="{note_id}"]')
+        expect(reopened_note).to_have_count(1)
+        expect(reopened_note).to_have_attribute('data-note-mode','canvas')
+        reopened.screenshot(path=str(qa.OUT/f'm25-sticky-canvas-reopen-{width}.png'))
+        assert not errors,errors
+        qa.assert_no_local_leak(reopened)
+    finally:
+        qa.close_context(reopened_ctx,reopened)
+
+
 def teardown(page):
     page.evaluate('''()=>{
       const {board:b,scene:s}=window.orbitDebug;
@@ -226,7 +280,9 @@ def main():
             try:
                 expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
                 page.emulate_media(reduced_motion='no-preference')
-                for name, run in [('interruption',interruption),('reduced-motion',reduced_motion),('spring-settling',spring_settling),('touch-continuity',touch_continuity),('navigator-grab',navigator_grab_continuity),('teardown',teardown)]:
+                cases=[('interruption',interruption),('reduced-motion',reduced_motion),('spring-settling',spring_settling),('touch-continuity',touch_continuity),('navigator-grab',navigator_grab_continuity)]
+                cases.append(('teardown',teardown))
+                for name, run in cases:
                     started = time.monotonic()
                     try:
                         page.emulate_media(reduced_motion='no-preference')
@@ -246,6 +302,27 @@ def main():
                     print(json.dumps(result), flush=True)
             finally:
                 qa.close_context(ctx, page)
+            # New owner-save acceptance must not pollute the read-only motion
+            # assertions or the sign-out teardown of the established suite.
+            if label in ('desktop','phone'):
+                ctx, page, errors = qa.cloud_context(browser, size, 'owner', source=args.source)
+                started = time.monotonic()
+                try:
+                    expect(page.locator('.cloud-mode')).to_have_text('Private workspace')
+                    sticky_canvas_surface(page)
+                    qa.assert_no_local_leak(page)
+                    assert not errors, errors
+                    result = {'case':f'sticky-canvas-surface-{label}','status':'PASS'}
+                except Exception:
+                    result = {'case':f'sticky-canvas-surface-{label}',
+                              'status':'FAIL','traceback':traceback.format_exc()}
+                    try: page.screenshot(path=str(qa.OUT/f'm25-sticky-canvas-failure-{label}.png'))
+                    except Exception: pass
+                finally:
+                    qa.close_context(ctx,page)
+                result['seconds']=round(time.monotonic()-started,2)
+                results.append(result)
+                print(json.dumps(result),flush=True)
         browser.close()
     (qa.OUT/'m25-results.json').write_text(json.dumps(results,indent=2)+'\n')
     raise SystemExit(1 if any(r['status']=='FAIL' for r in results) else 0)

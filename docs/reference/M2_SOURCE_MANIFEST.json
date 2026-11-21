@@ -136,8 +136,8 @@
       "reason": "W1 #212: additive owner-private extension normalization preserves validated daily routine history through cloud snapshots and portable backup without changing old one-off schemas."
     },
     "src/stickies.js": {
-      "sha256": "8c6472cbcc0b9ae05ab954e8d1bddc37597da9395238f8e77fbab34477b284cb",
-      "reason": "BP-10: owner-private image previews have explicit lease/teardown lifetimes; idle Blob URLs have count/byte caps; no hosted media deletion."
+      "sha256": "f24265a8cbae8fc278ee230088a83a012c72e9c231e3c962dd62e912d17490f8",
+      "reason": "W3 #214: hide preview in Canvas edit; temporary full-height Excalidraw desk without silently changing saved note dimensions; resize starts from visible size."
     },
     "src/storage.js": {
       "sha256": "ce630445a0191678fc845349efaeb34b7c057fb791b841c17c32914afd6d1838",
