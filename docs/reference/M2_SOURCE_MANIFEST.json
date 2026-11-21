@@ -9,11 +9,11 @@
     },
     "index.html": {
       "sha256": "4fca9c345a336e35de407ef769918695612440c23654a03da4a76af1faaf53a6",
-      "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service; FB-218 discoverable task entry with existing save/branch behavior.; #224 colored milestones and compact journal lanes.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; #220 responsive HUD integrated after #262 expanded windows.; #223 de-duplicate Space JSON export and remove Projects shortcut, clarify safe backup labels.; #222 keyboard/touch zoom/home integrated with the minimap on mobile after #223 cleanup.; FB-219 accessible HUD guided-help dialog, non-persistent spotlight and browser regression.; #223 semantic Control Panel hierarchy, readable controls and responsive labels."
+      "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service; FB-218 discoverable task entry with existing save/branch behavior.; #224 colored milestones and compact journal lanes.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; #220 responsive HUD integrated after #262 expanded windows.; #223 de-duplicate Space JSON export and remove Projects shortcut, clarify safe backup labels.; #222 keyboard/touch zoom/home integrated with the minimap on mobile after #223 cleanup.; FB-219 accessible HUD guided-help dialog, non-persistent spotlight and browser regression.; #223 exact-main responsive Control Panel hierarchy and touch target geometry integrated after #213 Money."
     },
     "src/app.js": {
-      "sha256": "b70f417c84d191eb90cbaac55de60c967a979138f0338fac3185ceac8291f40b",
-      "reason": "W3 BP-09 opt-in deferred owner snapshot producer with legacy eager onSnapshotChange semantics preserved; FO-01 retained.; #217 task-aware leaf branch disclosure and connector suppression while retaining deferred sync; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; #220 responsive HUD integrated after #262 expanded windows.; #223 de-duplicate Space JSON export and remove Projects shortcut, clarify safe backup labels.; FB-219 accessible HUD guided-help dialog, non-persistent spotlight and browser regression.; C1F source integration of #221 adaptive minimap and #212 daily routine UI over #219 Help."
+      "sha256": "2f4ddba94ac8c1fddf56e032858b565de2ab2fce603449b151169dabf64d6dc2",
+      "reason": "W3 BP-09 opt-in deferred owner snapshot producer with legacy eager onSnapshotChange semantics preserved; FO-01 retained.; #217 task-aware leaf branch disclosure and connector suppression while retaining deferred sync; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; #220 responsive HUD integrated after #262 expanded windows.; #223 de-duplicate Space JSON export and remove Projects shortcut, clarify safe backup labels.; FB-219 accessible HUD guided-help dialog, non-persistent spotlight and browser regression.; C1F source integration of #221 adaptive minimap and #212 daily routine UI over #219 Help.; FB-213 owner-private manual financial ledger and optional first-party Money UI."
     },
     "src/auth/controller.js": {
       "sha256": "af8cde170ef58e61df8c464ee34249df4267812991392a95dae5c4d69f47ba20",
@@ -132,8 +132,8 @@
       "reason": "Null local default; only build-generated allowlisted public configuration activates cloud."
     },
     "src/scene.js": {
-      "sha256": "d5def8716aa14d2b6692ee162e6e1afa4f64f314283631657d4329816417d98e",
-      "reason": "W1 #212: additive owner-private extension normalization preserves validated daily routine history through cloud snapshots and portable backup without changing old one-off schemas.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge."
+      "sha256": "1a4bb0045f120014b372672348db96a84c2da9b89577fdaff69d364470f83ae1",
+      "reason": "W1 #212: additive owner-private extension normalization preserves validated daily routine history through cloud snapshots and portable backup without changing old one-off schemas.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; FB-213 owner-private manual financial ledger and optional first-party Money UI."
     },
     "src/stickies.js": {
       "sha256": "f24265a8cbae8fc278ee230088a83a012c72e9c231e3c962dd62e912d17490f8",
@@ -144,8 +144,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "a108d590ff0f17f7e3e08dedfb55410bf4abffd9b02a5ac4c6ee252b7356a118",
-      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #210 ambient OFF and reduced-motion fix after Journal source.; #216 foreground Journal pointer/resize affordance and saved dimensions.; #224 colored milestones and compact journal lanes.; #223 ten-theme contrast Sakura AA correction.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; #220 responsive HUD integrated after #262 expanded windows.; #223 de-duplicate Space JSON export and remove Projects shortcut, clarify safe backup labels.; #222 keyboard/touch zoom/home integrated with the minimap on mobile after #223 cleanup.; #222 mobile collapsed minimap exposes zoom through explicit disclosure, no Journal/task overlap.; FB-219 accessible HUD guided-help dialog, non-persistent spotlight and browser regression.; C1F source integration of #221 adaptive minimap and #212 daily routine UI over #219 Help.; #223 exact-main integration of all-ten readable unclipped theme gallery.; #223 semantic Control Panel hierarchy, readable controls and responsive labels.; #223 physical 44px targets corrected for scaled phone/landscape view."
+      "sha256": "5a6b28ad02e54571f750bc4197a07df2c83a6b9f9f67db84ebde878b504f65e1",
+      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior.; #216 atomic new-page transition from Canvas or Preview.; #210 ambient OFF and reduced-motion fix after Journal source.; #216 foreground Journal pointer/resize affordance and saved dimensions.; #224 colored milestones and compact journal lanes.; #223 ten-theme contrast Sakura AA correction.; #216 optional 4:3 per-page Canvas frame after #223/#224 merge.; #220 responsive HUD integrated after #262 expanded windows.; #223 de-duplicate Space JSON export and remove Projects shortcut, clarify safe backup labels.; #222 keyboard/touch zoom/home integrated with the minimap on mobile after #223 cleanup.; #222 mobile collapsed minimap exposes zoom through explicit disclosure, no Journal/task overlap.; FB-219 accessible HUD guided-help dialog, non-persistent spotlight and browser regression.; C1F source integration of #221 adaptive minimap and #212 daily routine UI over #219 Help.; #223 exact-main integration of all-ten readable unclipped theme gallery.; FB-213 owner-private manual financial ledger and optional first-party Money UI.; #223 exact-main responsive Control Panel hierarchy and touch target geometry integrated after #213 Money."
     },
     "src/widget-registry.js": {
       "sha256": "c5667d4c63980884aefb7df69684ba84ff5350b017c6d40d6c487fab78c44a5c",
@@ -158,6 +158,14 @@
     "src/quick-jump.js": {
       "sha256": "52d9592e71edeb700b70bec3b79d792620d36a172af14f80ad79935c95f7a23e",
       "reason": "BR-01: locally indexed, keyboard-accessible private spatial Jump controller; no network, DOM injection or persisted search cache."
+    },
+    "src/money.js": {
+      "sha256": "6e7be2f5cc8f8437a3f4cf8a5266a2188b0522b49c31bf896b8b7dc0ffcd1311",
+      "reason": "FB-213 first-party Money source, bounded owner-private financial data; no hosted migration or external API."
+    },
+    "src/money-widget.js": {
+      "sha256": "61951ca9dd1a799406f087dc50d88209f1dc1984f9875ff8ebc4247ecb9b248a",
+      "reason": "FB-213 first-party Money source, bounded owner-private financial data; no hosted migration or external API."
     }
   }
 }

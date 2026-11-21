@@ -1012,6 +1012,50 @@ def preferences_and_dates(browser):
 
 
 
+def money_widget_flow(browser):
+    """FB-213: private money ledger UI, reload, undo, and legacy layout invariant."""
+    context,page,errors=open_page(browser,(1000,850))
+    try:
+        focus(page,'space')
+        page.locator('#open-money').click()
+        money=page.locator('#money-widget')
+        expect(money).to_be_visible()
+        assert page.evaluate("() => window.orbitDebug.board.widgets.size")==9
+        assert len(page.evaluate("() => Object.keys(window.orbitDebug.board.getLayout())"))==6
+        month=money.locator('#money-month').input_value()
+        money.locator('#money-entry-date').fill(month+'-15')
+        money.locator('#money-entry-kind').select_option('income')
+        money.locator('#money-entry-category').select_option('Salary')
+        money.locator('#money-entry-amount').fill('250000')
+        money.locator('#money-entry-save').click()
+        money.locator('#money-entry-kind').select_option('expense')
+        money.locator('#money-entry-category').select_option('Food')
+        money.locator('#money-entry-amount').fill('50000')
+        money.locator('#money-entry-save').click()
+        money.locator('#money-budget-input').fill('100000')
+        money.locator('#money-budget-form').get_by_role('button',name='Set budget').click()
+        assert '250' in money.locator('#money-month-income').inner_text()
+        assert '50' in money.locator('#money-month-expense').inner_text()
+        assert '200' in money.locator('#money-total-balance').inner_text()
+        assert '50' in money.locator('#money-budget-remaining').inner_text()
+        expect(money.locator('.money-entry')).to_have_count(2)
+        ledger=page.evaluate("""() => JSON.parse(localStorage.getItem('orbit.v8.extensions')).moneyLedger""")
+        assert ledger['currency']=='IDR' and ledger['budgetMinor']==100000
+        assert len(ledger['transactions'])==2
+        reload_page(page)
+        focus(page,'space')
+        page.locator('#open-money').click()
+        money=page.locator('#money-widget')
+        expect(money.locator('.money-entry')).to_have_count(2)
+        money.locator('.money-entry .money-remove').first.click()
+        expect(money.locator('.money-entry')).to_have_count(1)
+        page.locator('#toast .toast-action').click()
+        expect(money.locator('.money-entry')).to_have_count(2)
+        assert not errors,errors
+    finally:
+        context.close()
+
+
 def daily_routine_flow(browser):
     """#212: actual local UI save, today's idempotent completion and reload."""
     context,page,errors=open_page(browser,(1000,900))
@@ -1095,6 +1139,8 @@ def main():
             fn(browser);results[name]='PASS';print('PASS',name,flush=True)
         daily_routine_flow(browser)
         results['daily_routine_ui']='PASS'
+        money_widget_flow(browser)
+        results['money_widget_ui']='PASS'
         results['density_load_ms']=density(browser)
         from qa_spatial_baseline import run_baseline
         results['bp06_spatial_baseline']=run_baseline(browser,open_page,focus,reload_page,OUT)
