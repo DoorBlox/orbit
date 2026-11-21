@@ -1176,14 +1176,18 @@ body.cloud-space-mounted .app-shell{height:100dvh!important}
 :root .space-nav-cursor{border-color:var(--orbit-accent)!important;box-shadow:0 0 0 2px color-mix(in srgb,var(--orbit-accent) 23%,transparent)!important}
 :root .space-nav-top{font-size:11px!important;text-transform:none!important;letter-spacing:0!important}
 :root .space-nav-caption{font-size:11px!important;text-transform:none!important;letter-spacing:0!important}
-:root[data-ambient="on"] .ambient-orb{animation:orbit-ambient-drift 30s ease-in-out infinite alternate!important;
+/* FB-210: the visible on/off switch controls ALL four ambient orbs.
+   Legacy orb-wander rules otherwise keep animating when the switch is OFF. */
+:root[data-ambient="off"] .ambient-orb{animation:none!important;will-change:auto}
+:root[data-ambient="on"] .ambient-orb{animation:orbit-ambient-drift 16s ease-in-out infinite alternate!important;
   will-change:transform}
-:root[data-ambient="on"] .orb-coral{animation-duration:38s!important;animation-delay:-14s!important}
-:root[data-ambient="on"] .orb-cyan{animation-duration:33s!important;animation-delay:-9s!important}
-:root[data-ambient="on"] .orb-gold{animation-duration:42s!important;animation-delay:-21s!important}
-@keyframes orbit-ambient-drift{0%{transform:translate3d(-12px,-8px,0) scale(.98);opacity:.12}
-  50%{transform:translate3d(18px,13px,0) scale(1.04);opacity:.22}
-  100%{transform:translate3d(-9px,19px,0) scale(1);opacity:.15}}
+:root[data-ambient="on"] .orb-coral{animation-duration:21s!important;animation-delay:-9s!important}
+:root[data-ambient="on"] .orb-cyan{animation-duration:19s!important;animation-delay:-6s!important}
+:root[data-ambient="on"] .orb-gold{animation-duration:24s!important;animation-delay:-12s!important}
+/* Animate transform only, with discernible yet gentle motion. */
+@keyframes orbit-ambient-drift{0%{transform:translate3d(-3vw,-2vw,0) scale(.97)}
+  50%{transform:translate3d(3vw,2vw,0) scale(1.03)}
+  100%{transform:translate3d(-1vw,3vw,0) scale(1)}}
 :root[data-motion="off"] .ambient-orb{animation:none!important}
 @media(prefers-reduced-motion:reduce){:root .ambient-orb{animation:none!important;will-change:auto}}
 @media(prefers-reduced-transparency:reduce){
