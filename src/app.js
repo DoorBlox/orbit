@@ -579,6 +579,11 @@ function initTools(){
   $('cancel-space-name').addEventListener('click',()=>{closeName();rename.focus();});
   capture.addEventListener('submit',quickCapture);
   $('capture-mode').addEventListener('click',()=>switchCaptureMode(state.captureMode==='capture'?'find':'capture'));
+  $('constellation-new-task').addEventListener('click',()=>{
+    if(disposed||readOnly)return;
+    if(state.captureMode!=='capture')switchCaptureMode('capture');
+    else input.focus();
+  });
   input.addEventListener('input',()=>{if(state.captureMode==='find'){state.searchDraft=input.value;updateSearch();}else state.captureDraft=input.value;});
   input.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.captureMode==='find'){e.preventDefault();switchCaptureMode('capture');}});
   $('color-mode').addEventListener('click',()=>{state.preferences.colorMode=state.preferences.colorMode==='deadline'?'urgency':'deadline';const preferencesOk=readOnly||!persistLocally?true:savePreferences(state.preferences);sync();lastSaveOk=lastSaveOk&&preferencesOk;if(preferencesOk)pendingWrites.delete(STORAGE_KEYS.preferences);else pendingWrites.add(STORAGE_KEYS.preferences);message(`Sorted and colored by ${state.preferences.colorMode}.`);});
@@ -918,7 +923,7 @@ if(persistLocally){const status=$('global-save-status');status.textContent='Stor
 else setCloudStatus(cloudStatus);
 hydrating=false;
 $('app').dataset.readOnly=String(readOnly);
-if(readOnly){for(const id of ['capture-name','capture-mode','capture-submit','import-csv','clear-demo','csv-file','rename-space','expand-all-branches','collapse-all-branches','new-sticky','journal-draw','journal-image'])$(id).disabled=true;}
+if(readOnly){for(const id of ['capture-name','capture-mode','capture-submit','constellation-new-task','import-csv','clear-demo','csv-file','rename-space','expand-all-branches','collapse-all-branches','new-sticky','journal-draw','journal-image'])$(id).disabled=true;}
 $('journal-image').disabled=readOnly||!media;
 window.orbitDebug={get state(){return {tasks:state.tasks.length,notes:stickies.notes.length,branches:state.branches.length,collapsedBranches:state.collapsedBranchIds.length,selectedBranchId:state.selectedBranchId,camera:scene.getCamera(),boardScale:board.scale,boardPan:{...board.pan},mode:state.preferences.colorMode,milestones:milestones.length,journalPages:journal.entries.length,widgetSizes:structuredClone(board.sizes)};},fit:()=>scene.fitAll(),focusWidget:id=>board.focus(id),board,scene,journal,focusTimer:focusWidget.clock};
 // SpatialBoard establishes the initial camera position.

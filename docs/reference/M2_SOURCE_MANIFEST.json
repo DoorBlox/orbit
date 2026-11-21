@@ -8,12 +8,12 @@
       "reason": "Unchanged from reviewed M1; retained and integrity checked."
     },
     "index.html": {
-      "sha256": "aa20efc08231455e8ef53d7f7ea689ca27bf8bc3d8dacfd26774234107b68707",
-      "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service."
+      "sha256": "d9b7b5d348b2d15288be74ccac242121d3fbc85f3a86a07b215aca6034dcf6fd",
+      "reason": "BP-14: reviewed client-side RFC 5545 calendar export with timezone-stable all-day dates and no external service; FB-218 discoverable task entry with existing save/branch behavior."
     },
     "src/app.js": {
-      "sha256": "3f363ff2e947131d93df1beda841554bd3a34575cdc9ae27ee2ca46053471a78",
-      "reason": "W3 BP-09 opt-in deferred owner snapshot producer with legacy eager onSnapshotChange semantics preserved; FO-01 retained.; #217 task-aware leaf branch disclosure and connector suppression while retaining deferred sync."
+      "sha256": "c70411f9260950893d136ff775b8e955b239c6e2d4f2cfcfadedee6aa88705b2",
+      "reason": "W3 BP-09 opt-in deferred owner snapshot producer with legacy eager onSnapshotChange semantics preserved; FO-01 retained.; #217 task-aware leaf branch disclosure and connector suppression while retaining deferred sync; FB-218 discoverable task entry with existing save/branch behavior."
     },
     "src/auth/controller.js": {
       "sha256": "af8cde170ef58e61df8c464ee34249df4267812991392a95dae5c4d69f47ba20",
@@ -144,8 +144,8 @@
       "reason": "2.2: Google-first authentication and tenant-private creative workspace integration"
     },
     "src/styles.css": {
-      "sha256": "e744ca5303b287c7568203f4393b62dc403abbb90af09e0328f156737ef441bb",
-      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip."
+      "sha256": "22b328bf49e7d07bc30fc8e0ded824080887a907dcec30d078cc0409f227185e",
+      "reason": "W3 FO-01 Focus theme/reduced motion, preserving main #215 transparent Sticky action strip; FB-218 discoverable task entry with existing save/branch behavior."
     },
     "src/widget-registry.js": {
       "sha256": "097767f8dd9c6c1e94504ec571c29ca2f1d0684955d2f8c87231d15db1a427f0",

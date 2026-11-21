@@ -1542,6 +1542,16 @@ body.cloud-space-mounted #space-widget>.cloud-toolbar[data-sync-state="conflict"
   :root .sticky-color-trigger,:root .sticky-more-menu>summary{padding:7px}
 }
 
+/* FB-218: plainly discoverable task creation with existing capture + branch target. */
+.constellation-new-task{flex:none;min-height:43px;padding:9px 14px;border:1px solid transparent;
+  border-radius:13px;background:var(--orbit-choice-active,#315a50);color:var(--orbit-choice-text,#fff);
+  font:700 13px/1.25 var(--orbit-font-ui,system-ui);white-space:nowrap;cursor:pointer}
+.constellation-new-task:focus-visible{outline:3px solid var(--orbit-accent,#507ab7);outline-offset:3px}
+.constellation-new-task:disabled{opacity:.48;cursor:not-allowed}
+@media(max-width:700px){.constellation-heading{flex-wrap:wrap!important}
+  .constellation-new-task{order:2;min-height:42px}
+  .constellation-heading .utility-bar{order:3}}
+
 /* BP-06: long task forms belong in the viewport, not inside transformed nodes. */
 .orbit-task-dialog{
   box-sizing:border-box;width:min(570px,calc(100% - 18px));
