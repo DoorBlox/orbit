@@ -593,14 +593,21 @@ def normal_flows(browser):
     page.locator('.space-appearance summary').click()
     page.locator('input[name="space-theme"][value="garden"]').check()
     assert page.evaluate('document.documentElement.dataset.theme') == 'garden'
+    page.emulate_media(reduced_motion='no-preference')
     page.locator('#appearance-ambient').check()
     assert page.evaluate('document.documentElement.dataset.ambient') == 'on'
+    assert page.locator('.ambient-orb').first.evaluate('e=>getComputedStyle(e).animationName') != 'none', 'ON should visibly animate when motion is allowed'
     reload_page(page)
     assert page.evaluate('document.documentElement.dataset.theme') == 'garden'
     assert page.evaluate('document.documentElement.dataset.ambient') == 'on'
     focus(page,'space')
     page.locator('.space-appearance summary').click()
     page.locator('input[name="space-theme"][value="parchment"]').check()
+    page.locator('#appearance-ambient').uncheck()
+    assert page.locator('.ambient-orb').first.evaluate('e=>getComputedStyle(e).animationName') == 'none', 'OFF should stop background motion (#210)'
+    page.locator('#appearance-ambient').check()
+    page.emulate_media(reduced_motion='reduce')
+    assert page.locator('.ambient-orb').first.evaluate('e=>getComputedStyle(e).animationName') == 'none', 'System reduced motion must override ON (#210)'
     page.locator('#appearance-ambient').uncheck()
     page.locator('.space-more-tools summary').click()
     expect(page.locator('#import-csv')).to_be_visible()
