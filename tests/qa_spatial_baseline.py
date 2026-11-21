@@ -67,6 +67,30 @@ def run_baseline(browser, open_page, focus, reload_page, out):
             is_mobile=width < 700,has_touch=width < 700)
         try:
             original=_core_assertions(page)
+
+            # FB-221: a small sticky shows a small note-shaped focus rectangle,
+            # not the fixed 31px viewport cursor; changing focus is camera-only.
+            geometry=page.evaluate("""() => {
+              const board=window.orbitDebug.board;
+              board.setStickyNotes([{id:'synthetic-focal-note',title:'Synthetic',
+                x:1000,y:1000,width:96,height:80}]);
+              board.focus('journal',{initial:true});board.drawNavigatorCursor();
+              const element=document.getElementById('space-nav-target');
+              const journal={width:parseFloat(element.style.width),
+                height:parseFloat(element.style.height),kind:element.dataset.kind};
+              board.focusCoordinate(1048,1040,{noteId:'synthetic-focal-note'});
+              board.drawNavigatorCursor();
+              const note={width:parseFloat(element.style.width),
+                height:parseFloat(element.style.height),radius:element.style.borderRadius,
+                kind:element.dataset.kind};
+              board.setStickyNotes([]);
+              return {journal,note,hidden:document.getElementById('space-nav-target').hidden};
+            }""")
+            assert geometry['journal']['kind']=='widget'
+            assert geometry['note']['kind']=='sticky'
+            assert geometry['note']['width'] < geometry['journal']['width'],geometry
+            assert geometry['note']['height'] < geometry['journal']['height'],geometry
+            assert geometry['note']['radius']=='5px' and geometry['hidden'],geometry
             recovery=[_focus_recovery(page,wid,focus,width,height) for wid in CORE_WIDGETS]
             assert page.evaluate('() => window.orbitDebug.board.getLayout()') == original, (
                 label, 'Navigation unexpectedly changed persisted widget positions')
