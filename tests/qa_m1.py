@@ -406,9 +406,10 @@ def viewport_flow(browser, label, size):
         assert controls.count()==1
         assert page.locator('body > .world-nav').count()==0
         if size[0]<=700:
+            # Collapsed map leaves real widget controls unobstructed. Open it to use zoom.
+            expect(controls).to_be_hidden()
+            expect(navigator.locator('#space-nav-toggle')).to_be_visible()
             navigator.locator('#space-nav-toggle').click()
-            # Collapsed minimap still leaves the three zoom/home controls reachable.
-            expect(controls).to_be_visible()
         expect(controls).to_be_visible()
         assert controls.locator('button').count()==3
         assert page.evaluate("""() => {
@@ -421,6 +422,7 @@ def viewport_flow(browser, label, size):
         }"""), 'Zoom/home controls must be inside navigator and above map (#222)'
         if size[0]<=700:
             navigator.locator('#space-nav-toggle').click()
+            expect(controls).to_be_hidden()
         # FB-220 universal HUD is reachable without visiting the Space or map widget.
         hud=page.locator('#orbit-quickbar')
         expect(hud).to_be_visible()

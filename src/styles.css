@@ -2393,31 +2393,3 @@ body.map-immersive .orbit-quickbar{opacity:.15;pointer-events:none}
     grid-template-rows:17px 48px minmax(70px,1fr) 16px;gap:5px;padding:10px}
   :root .space-navigator.is-open .space-nav-top{padding-right:30px}
 }
-
-/* On touch phones the minimap reduces to a single compact navigation toolbar.
-   Do NOT hide zoom/home along with the map: the owner can navigate before expanding. */
-@media(max-width:700px){
-  :root .space-navigator:not(.is-open){
-    width:223px;height:50px;display:flex;flex-direction:row-reverse;
-    align-items:center;gap:1px;padding:3px;
-  }
-  :root .space-navigator:not(.is-open) .world-nav{
-    display:flex!important;min-height:44px;flex:1;gap:0;width:auto;
-    padding:0;margin:0;visibility:visible
-  }
-  :root .space-navigator:not(.is-open) .world-nav button{
-    width:44px;min-width:44px;height:44px;min-height:44px
-  }
-  :root .space-navigator:not(.is-open) .space-nav-toggle{
-    flex:0 0 44px;width:44px;height:44px;order:0
-  }
-}
-
-/* Keep the compact control group away from the active Journal's top actions.
-   The mobile HUD owns the footer strip; place navigation just above it. */
-@media(max-width:700px){
-  :root .space-navigator{
-    top:auto!important;
-    bottom:calc(95px + var(--cloud-dock-height,0px) + env(safe-area-inset-bottom,0px))!important;
-  }
-}
