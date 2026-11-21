@@ -469,6 +469,17 @@ def viewport_flow(browser, label, size):
         focus(page,'space')
         before=page.evaluate('''() => ({camera:{scale:window.orbitDebug.board.scale,
           pan:{...window.orbitDebug.board.pan}},layout:window.orbitDebug.board.getLayout()})''')
+        # FB-223: control-panel heading and categories are scannable, keyboard-sized,
+        # with no horizontal clipping on desktop, tablet, phone or landscape.
+        panel=page.locator('#space-widget')
+        expect(panel.locator('#space-settings-title')).to_have_text('Your space.')
+        expect(panel.locator('.space-panel-lede')).to_contain_text('private backups')
+        assert panel.evaluate("e=>e.scrollWidth<=e.clientWidth+2"), 'Space panel overflows horizontally'
+        for section in ('.space-manage','.space-appearance','.space-more-tools'):
+            summary=panel.locator(section+'>summary')
+            assert summary.evaluate("e=>e.getBoundingClientRect().height>=44"), section
+
+
         # FB-223: full ten-theme gallery uses one scroll container and readable labels.
         focus(page,'space')
         appearance=page.locator('.space-appearance')
