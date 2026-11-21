@@ -1,15 +1,12 @@
-# ORBIT — one owner-approved GitHub progress Project (SETUP PENDING)
+# ORBIT — existing GitHub Project #2 (not setup pending)
 
-**Decision:** On 12 November 2026 Command HQ [reported the owner's explicit approval](https://github.com/DoorBlox/orbit/pull/164#issuecomment-6828784329) for a **single GitHub Project with Table and Board** views. This is a *mirror* of [PROGRESS.md](PROGRESS.md) and the [ONE master roadmap](../plans/ORBIT_POST_2_4_EXECUTION.md), not a second independent backlog. **No Project has been created/verified by W5** because available connected GitHub tools do not support Projects v2 creation or item/field mutation.
+**Verified 19 November 2026:** [ORBIT — Master Progress](https://github.com/users/DoorBlox/projects/2) already exists, with [Table](https://github.com/users/DoorBlox/projects/2/views/1) and [Board](https://github.com/users/DoorBlox/projects/2/views/2). Read-only Settings show default repository `DoorBlox/orbit`, seven enabled workflows, and existing Status, Sub-issues progress, Work ID, Worker, Priority, Delivery, Acceptance, Next gate, Evidence, Target release fields. **Do not create another project or re-add these fields.** Current item membership and status values remain **NOT VERIFIED** (connected GitHub API cannot read Projects-v2 items; browser Settings is not the item view).
 
-## Owner GitHub UI setup (one-time)
+## Verify the existing board, don't duplicate feedback
 
-1. Open your **GitHub profile → Projects → New project**. Choose a blank **Table**, name it **ORBIT — Master Progress**; add the repository `DoorBlox/orbit` in the Project settings/description as appropriate.
-2. Keep the main `All work • Table` view, add `Kanban • Board` view grouped by Status, and optionally `Needs owner` filtered to owner-acceptance or approval blockers.
-3. Use project-only fields: **Work ID** (BP-00…BP-16, EX/PJ/etc.), **Worker** (W1–W6/HQ), **Status** (PROPOSED, READY, IN PROGRESS, BLOCKED, SOURCE MERGED, RELEASED, VERIFIED, DEFERRED), **Delivery** (source/Preview/Production), **Acceptance** (not run/synthetic passed/owner pending/verified), **Priority**, **Next gate**, **Evidence**, and optional **Target release**. Preserve status distinctions; do not map a green PR to RELEASED.
-4. Link existing repository issues and PRs (#26/#29/#32/#115 and currently open PRs) without duplicating them. If a row for every BP is desired, add project-only **draft items**, not 17 new GitHub repository issues. Put the canonical roadmap and dashboard URLs in Project description.
-5. Share the resulting **actual GitHub Project URL** with W5/Command HQ so the verified link can be added to README and PROGRESS. Do not claim a board exists before that verification.
+1. On the existing [Project Table](https://github.com/users/DoorBlox/projects/2/views/1), search each original issue number **#211–#225**, match full `DoorBlox/orbit/issues/N` URL, and ensure exactly one original issue card, no parallel draft.
+2. Compare Work ID `FB-211`…`FB-224` / `REL-225`, worker ownership, HQ priority, Status, Delivery, Acceptance, Next gate and Evidence to the [sole roadmap](../plans/ORBIT_POST_2_4_EXECUTION.md) and [PROGRESS](PROGRESS.md). Never call a source merge (e.g., #215) owner Accepted or Production Released.
+3. Check the seven workflows for unintended duplicate auto-add or auto-Done/Released behavior; do not change their settings blindly. Keep owner/private data off this public board.
+4. Write actual missing/duplicate IDs and field discrepancies into [the Project audit](feedback/PROJECT_2_AUDIT.md) *only after* the Table/Board items become readable. Existing connected tools cannot mutate Projects-v2 rows; current record is a partial read-only audit, not completion.
 
-**Optional Milestones:** create only if useful for cross-issue release objectives such as `Integrated acceptance` and `Protected release readiness`. GitHub Milestones are grouping labels, not acceptance or deployment authority.
-
-[Current progress](PROGRESS.md) · [Source of truth](../plans/ORBIT_POST_2_4_EXECUTION.md) · [Branch hygiene](REPO_HYGIENE_POLICY.md).
+[Progress](PROGRESS.md) · [One master roadmap](../plans/ORBIT_POST_2_4_EXECUTION.md) · [Project audit](feedback/PROJECT_2_AUDIT.md) · [Branch stewardship](REPO_HYGIENE_POLICY.md).

@@ -1,5 +1,27 @@
 # ORBIT GitHub Project #2 — verified configuration and remaining UI tasks
 
+## 19 November 2026 — updated Project #2 audit (partial, do not infer item completeness)
+
+**Verified using the owner's read-only authenticated GitHub Settings tab:** [ORBIT — Master Progress Project #2](https://github.com/users/DoorBlox/projects/2) already exists and is public; default repository `DoorBlox/orbit`, **seven enabled workflows**, and fields `Status`, `Sub-issues progress`, `Work ID`, `Worker`, `Priority`, `Delivery`, `Acceptance`, `Next gate`, `Evidence`, `Target release` are present. The project description links the only roadmap, PROGRESS and intake. **Older 13 Nov instructions to add these fields or create the Project are superseded.**
+
+**NOT VERIFIED:** The current connected browser tab is Settings, **not** the current Table/Board items; GitHub connector lacks Projects-v2 item/field listing and mutation. An older 13 Nov snapshot of 16 linked rows is historical and cannot prove today's membership. Therefore **do not claim which issues are missing, duplicated, correctly assigned, or labeled Done/Released**. No Project item was created, updated or deleted by W5.
+
+**One-card-per-original-issue checklist:** inspect [Table](https://github.com/users/DoorBlox/projects/2/views/1) and [Board](https://github.com/users/DoorBlox/projects/2/views/2) for exactly one linked original GitHub issue **#211–#224** (`Work ID=FB-###`) and **#225** (`REL-225`); do NOT create a new draft/duplicate for any matching report. Use the [canonical roadmap FB ledger](../../plans/ORBIT_POST_2_4_EXECUTION.md) and [PROGRESS](../PROGRESS.md) to check each primary Worker, HQ Priority, source-only Status, Delivery, Acceptance, Next gate, evidence link and *planned* release wave. Specifically, #215 is **SOURCE MERGED** but not Released, #211 partial source with draft #234, #212 W1 core is source merged (#230) but UI is pending; #214/#217 have drafts only, and all other new issues are Ready/Proposed until actual source evidence appears. The owner flagged #211/#223/#224 Critical but HQ priority is P1/P1/P2 respectively; preserve both rather than silently treating all as security incidents.
+
+| Project #2 target | Verified state at this turn |
+| --- | --- |
+| Project created, default repository and fields | **CONFIRMED** (Settings) |
+| Seven workflows enabled | **CONFIRMED count; rule behavior UNVERIFIED** |
+| #211–#224 original cards exactly once (14) | **NOT VERIFIED — current item rows unavailable** |
+| #225 original release tracker card exactly once (1) | **NOT VERIFIED** |
+| Missing / duplicate cards or stale statuses | **NOT VERIFIED, no changes made** |
+| Work ID, Worker, Priority, Delivery, Acceptance, Next gate, Evidence, Target release values | **Field names verified, current row values NOT VERIFIED** |
+| Auto-add and auto-Done/Released side effects | **NOT VERIFIED: inspect workflows before any automation edits** |
+
+**Safe next UI/API audit:** Read complete item table, match `content.url` to original issue numbers, classify duplicates/missing with evidence. **Only then** add genuinely missing original issues once or correct an existing row; no Projects-v2 write access through this connector today. Never use a PR merge to mark owner feedback Released. No secrets or private screenshots on this public board. All implementation priority remains exclusively in the single master roadmap.
+
+---
+
 **Live project:** https://github.com/users/DoorBlox/projects/2 — **ORBIT — Master Progress**. Owner created it; there is no need to create another project.
 
 **Read-only verification: 13 Nov 2026.** An authenticated GitHub browser tab displayed [All work • Table](https://github.com/users/DoorBlox/projects/2/views/1) and [Kanban • Board](https://github.com/users/DoorBlox/projects/2/views/2), **16 linked issue/PR rows** and **seven workflows enabled**. Visible Table columns were Title, Assignees, Status, Linked pull requests and Sub-issues progress. Existing repository items include #2, #4, #22, #26, #29, #32, #115, #169, #171 and PRs #175/#176/#204/#205/#206/#207/#208. Note that the last four PRs #204/#206/#207/#208 were already merged yet marked Done, while #26 appeared In Progress and #29/#32/#115/#169/#171 were still Todo. This snapshot does not verify a correct owner review, accurate statuses, all target fields, automatic intake or final board configuration.
