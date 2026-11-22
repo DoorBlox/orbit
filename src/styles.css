@@ -2628,3 +2628,20 @@ body.map-immersive .orbit-quickbar{opacity:.15;pointer-events:none}
   :root #space-widget .space-appearance>summary,
   :root #space-widget .space-more-tools>summary{min-height:76px}
 }
+
+/* FB-224: host-independent, theme-safe colored event band through the axis.
+   The marker remains a real button; the band never intercepts interaction. */
+:root .timeline-milestone-band{position:absolute;top:146px;z-index:1;
+  width:14px;margin-left:-7px;pointer-events:none;border-radius:8px;
+  border-left:3px solid var(--milestone-accent,#6578c4);
+  border-right:1px solid var(--milestone-accent,#6578c4);
+  background:color-mix(in srgb,var(--milestone-accent,#6578c4) 14%,transparent)}
+:root .timeline-milestone{z-index:4;box-sizing:border-box;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+:root .timeline-milestone::after{display:none}
+:root .timeline-journal{z-index:4}
+:root .spatial-world>.timeline-widget .timeline-scroll.has-vertical-stacks{
+  overflow-y:auto;overscroll-behavior:contain}
+@media(prefers-reduced-transparency:reduce){
+  :root .timeline-milestone-band{background:transparent;border-right:0}
+}
