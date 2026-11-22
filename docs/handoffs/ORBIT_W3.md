@@ -1,5 +1,19 @@
 # ORBIT Worker W3 — Product Experience
 
+## 22 November 2026 — W3 FB-224 Timeline layout source MERGED (latest)
+
+**Exact source work:** [PR #283](https://github.com/DoorBlox/orbit/pull/283), head `501925e12127c1f568a4f6db4618099abeda474e`, passed 4/4 exact-head required CI, including Node unit + bundled Chromium quality. Squash merge `239a8d94b5178e184111d28cc652e87f8277e399`, GitHub main `239a8d94b5178e184111d28cc652e87f8277e399` at this checkpoint. Files: `src/widgets.js` pure exported `layoutTimelineAnnotations`, `src/styles.css` accessible milestone bands and crowded scroll, `tests/timeline_layout_224.test.mjs` focused TDD tests, and reviewed `docs/reference/M2_SOURCE_MANIFEST.json` hashes. V6/M1 historical manifests untouched.
+
+**Behavior:** dates, branch/task data, milestone labels and per-entry accent colors, journal entry identity and undo callbacks are not modified by layout. Replaces one global deepest-milestone offset with per-date journal collision avoidance, prevents overlapping dense milestone/page labels through vertically expandable scroll instead of 3-lane recycling, and displays a non-interactive accent rail crossing the main time axis. User-facing work is SOURCE MERGED, **not Production**, physical mobile/assistive, or owner visual acceptance.
+
+**Do not duplicate prior #216:** per-page optional 4:3 Canvas lock already exists in `src/scene.js` normalization, `src/app.js` checkbox handler, `index.html`, CSS and `tests/qa_orbit_owner_216_canvas_frame.test.mjs`. Previous handoff descriptions of its absence are outdated; validate on owner production device as required, do not reimplement.
+
+**Safety and release:** Vercel live custom-domain still exact READY `dpl_Ay2zbe9CgskF7VwyXzY3XWMVxSCr` (`c7a9ad6b`), old ORBIT 2.4 READY deployment `dpl_8B3xvG3J5rhPFDfxkeUXXHu9K2N4` retained for rollback. No release or hosted permission/data mutation in PR #283. #224 remains OPEN for W6 screenshots at sparse/dense 390px/desktop, timeline zoom extremes, custom accents, pointer/keyboard focus, themes and reduced-motion. The owner's earlier `verified` refers to existing live Production release prior to this source merge, not #224. Separate reviewed stage/release path remains required.
+
+**Next file-level action:** W6 independent real-browser capture for #224 with synthetic dates/counts; inspect timeline overflow and milestone date-local line at 1.5/5.3/30px/day; if a collision regression is observed, W3 patch `src/widgets.js` and test without touching sync/repository or private fields. Coordinate with HQ; keep historic RED drafts untouched.
+
+---
+
 **Startup state: NOT STARTED.** Read [parallel command protocol](../ORBIT_PARALLEL_COMMAND_PROTOCOL.md), [master BP roadmap](../../plans/ORBIT_POST_2_4_EXECUTION.md), current handoff and latest PR state. The owner expressly **wants ambitious, high-craft UX and architecture innovation**, not repetitive conservative fixes. Question poor layouts and assumptions, research references, compare concepts, implement reversible alternatives and judge them against usability, performance, privacy and beauty. Preserve ORBIT's extensible freeform spatial world; no generic dashboard replacement or silent data loss.
 
 **Mission:** Remaining BP-06, BP-07, BP-08, BP-11, BP-13, BR-01, PJ-03, TOUCH-01, FO-01 and AUTH-MASCOT, including meaningful accessibility, Excalidraw editing ergonomics, nested spatial navigation, project milestones/links, optional focus timer and physical touch acceptance.
