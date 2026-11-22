@@ -15,6 +15,46 @@ const byMode=(tasks,mode)=>[...tasks].sort((a,b)=>{
 });
 const addButton=(text,fn,css='')=>{const b=el('button',css,text);b.type='button';b.addEventListener('click',e=>{e.stopPropagation();fn();});return b;};
 
+/** FB-224: readable positions are local to the visible date, not the deepest
+ * milestone anywhere on the timeline. This is presentation-only geometry:
+ * input dates, titles, colors, source arrays, and owner snapshots are untouched.
+ * Dense rows expand the scroll surface rather than reusing occupied lanes. */
+export function layoutTimelineAnnotations(milestones=[],journals=[]){
+  const gap=8,milestoneHeight=36,journalHeight=29,slotEnds=[];
+  const eventMarkers=milestones.map(item=>{
+    const width=item.width,left=item.x-width/2,right=item.x+width/2;
+    let lane=slotEnds.findIndex(end=>left>=end+gap);
+    if(lane<0){lane=slotEnds.length;slotEnds.push(-Infinity);}
+    slotEnds[lane]=right;
+    const top=164+lane*44;
+    return {...item,left,right,top,bottom:top+milestoneHeight};
+  });
+  // Only rectangles near this journal's date can push it down.
+  // Existing journal rectangles become obstacles to later close dates.
+  const obstacles=[...eventMarkers];
+  const pageMarkers=journals.map(item=>{
+    const width=item.width,left=item.x-width/2,right=item.x+width/2;
+    let top=213;
+    for(let attempt=0;attempt<=obstacles.length;attempt++){
+      let next=top;
+      for(const block of obstacles){
+        if(left>=block.right+gap||right<=block.left-gap)continue;
+        if(top<block.bottom+gap && top+journalHeight>block.top-gap)
+          next=Math.max(next,block.bottom+gap);
+      }
+      if(next===top)break;
+      top=next;
+    }
+    const placed={...item,left,right,top,bottom:top+journalHeight};
+    obstacles.push(placed);
+    return placed;
+  });
+  const requiredHeight=Math.max(350,...eventMarkers.map(e=>e.bottom+36),
+    ...pageMarkers.map(e=>e.bottom+36));
+  return {milestones:eventMarkers,journals:pageMarkers,requiredHeight:Math.ceil(requiredHeight)};
+}
+
+
 export class ScrapWidgets {
   constructor({onFocus,onComplete,onRestore,onChangeMilestones,onOpenJournal,notify=()=>{}}){
     Object.assign(this,{onFocus,onComplete,onRestore,onChangeMilestones,onOpenJournal});
@@ -143,50 +183,65 @@ export class ScrapWidgets {
       if(task.status==='completed')marker.classList.add('timeline-completed');
       marker.addEventListener('click',()=>this.onFocus(task));this.surface.append(marker);
     }
-    const milestoneEnds=Array(3).fill(-Infinity),miniMilestones=this.pxPerDay<3.3;
-    let deepestMilestoneLane=-1;
-    const orderedMilestones=[...this.milestones].filter(m=>Number.isFinite(utcDate(m.date))).sort((a,b)=>a.date.localeCompare(b.date));
-    for(const entry of orderedMilestones){
-      const ts=utcDate(entry.date);if(ts<start||ts>start+days*UTC_DAY)continue;
-      const x=(ts-start)/UTC_DAY*this.pxPerDay+65,needed=miniMilestones?24:Math.min(205,Math.max(75,entry.title.length*6.8+22));
-      let lane=milestoneEnds.findIndex(end=>x-end>needed+9);
-      if(lane<0)lane=milestoneEnds.indexOf(Math.min(...milestoneEnds));
-      milestoneEnds[lane]=x;deepestMilestoneLane=Math.max(deepestMilestoneLane,lane);
-      const marker=el('button','timeline-milestone',miniMilestones?'◆':entry.title);marker.type='button';
-      marker.style.left=`${x}px`;marker.style.top=`${170+lane*27}px`;
-      marker.style.setProperty('--milestone-accent',/^#[0-9a-fA-F]{6}$/.test(entry.color??'')?entry.color:'#6578c4');
+    // Collision-free date-local milestone rows and journal links.
+    const miniMilestones=this.pxPerDay<3.3,miniJournals=this.pxPerDay<3.2;
+    const orderedMilestones=[...this.milestones].filter(m=>Number.isFinite(utcDate(m.date)))
+      .sort((a,b)=>a.date.localeCompare(b.date));
+    const milestoneSpecs=orderedMilestones.map(entry=>({
+      entry,x:(utcDate(entry.date)-start)/UTC_DAY*this.pxPerDay+65,
+      width:miniMilestones?27:Math.min(205,Math.max(75,entry.title.length*6.8+22)),
+    })).filter(item=>item.x>=65&&item.x<=width-100);
+    // One visible page link per date. Multiple pages on the same date retain
+    // their count and open the most recently edited one; do not alter any pages.
+    const pagesByDay=new Map();
+    for(const entry of this.journalEntries){
+      const key=entry.date?.slice(0,10);
+      if(!Number.isFinite(utcDate(key)))continue;
+      if(!String(entry.title||'').trim()&&!String(entry.html||'').replace(/<[^>]*>/g,'').trim())continue;
+      const group=pagesByDay.get(key)||[];group.push(entry);pagesByDay.set(key,group);
+    }
+    const pageSpecs=[...pagesByDay.entries()].sort((a,b)=>a[0].localeCompare(b[0]))
+      .map(([date,entries])=>({
+        date,entries,x:(utcDate(date)-start)/UTC_DAY*this.pxPerDay+65,
+        width:miniJournals?30:116,
+      }));
+    const positions=layoutTimelineAnnotations(milestoneSpecs,pageSpecs);
+    for(const {entry,x,width:markerWidth,top,bottom} of positions.milestones){
+      const color=/^#[0-9a-fA-F]{6}$/.test(entry.color??'')?entry.color:'#6578c4';
+      // A full colored rail crosses the time axis and visually anchors the
+      // event even when several milestones share a civil date.
+      const rail=el('div','timeline-milestone-band');
+      rail.setAttribute('aria-hidden','true');
+      rail.style.left=`${x}px`;rail.style.height=`${bottom-146}px`;
+      rail.style.setProperty('--milestone-accent',color);
+      this.surface.append(rail);
+      const marker=el('button','timeline-milestone',miniMilestones?'◆':entry.title);
+      marker.type='button';marker.style.left=`${x}px`;marker.style.top=`${top}px`;
+      marker.style.width=`${markerWidth}px`;
+      marker.style.setProperty('--milestone-accent',color);
       if(miniMilestones)marker.classList.add('is-condensed');
       marker.title=`Milestone: ${entry.title}, ${entry.date}. Activate for removal options.`;
       marker.setAttribute('aria-label',marker.title);
       marker.addEventListener('click',()=>this.confirmMilestoneRemoval(entry));
       this.surface.append(marker);
     }
-    // One visible page marker per date. Multiple pages on the same date are
-    // represented by a count and opened at their newest page.
-    const pagesByDay=new Map();
-    for(const entry of this.journalEntries){const key=entry.date?.slice(0,10);if(!Number.isFinite(utcDate(key)))continue;
-      if(!String(entry.title||'').trim()&&!String(entry.html||'').replace(/<[^>]*>/g,'').trim())continue;
-      const group=pagesByDay.get(key)||[];group.push(entry);pagesByDay.set(key,group);}
-    const journalEnds=Array(3).fill(-Infinity);
-    for(const [date,entries] of [...pagesByDay.entries()].sort((a,b)=>a[0].localeCompare(b[0]))){
-      const x=(utcDate(date)-start)/UTC_DAY*this.pxPerDay+65;
-      const mini=this.pxPerDay<3.2;
-      const needed=mini?30:82;
-      let lane=journalEnds.findIndex(end=>x-end>needed+6);
-      if(lane<0)lane=journalEnds.indexOf(Math.min(...journalEnds));journalEnds[lane]=x;
+    for(const {date,entries,x,top} of positions.journals){
       const latest=[...entries].sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')))[0];
       const marker=el('button','timeline-journal');marker.type='button';
       const glyph=el('span','journal-page-glyph');glyph.setAttribute('aria-hidden','true');marker.append(glyph);
-      if(!mini)marker.append(el('span','journal-chip-label',`${monthLabel(new Date(utcDate(date)))}${entries.length>1?` · ${entries.length}`:''}`));
-      // Pages sit just below the occupied milestone lanes, not in a fixed
-      // empty band far from the main timeline.
-      const pageTop=218+Math.max(0,deepestMilestoneLane)*27;
-      marker.style.left=`${x}px`;marker.style.top=`${pageTop+lane*27}px`;
-      if(mini)marker.classList.add('is-condensed');
+      if(!miniJournals)marker.append(el('span','journal-chip-label',
+        `${monthLabel(new Date(utcDate(date)))}${entries.length>1?` · ${entries.length}`:''}`));
+      marker.style.left=`${x}px`;marker.style.top=`${top}px`;
+      if(miniJournals)marker.classList.add('is-condensed');
       marker.title=`Journal, ${date}: ${entries.length} ${entries.length===1?'page':'pages'}${latest.title?` · ${latest.title}`:''}`;
       marker.setAttribute('aria-label',`Open journal page for ${date}${entries.length>1?`, ${entries.length} pages`:''}`);
       marker.addEventListener('click',()=>this.onOpenJournal?.(latest.id));this.surface.append(marker);
     }
+    // A busy period may legitimately need more than three rows. Keep all
+    // interactive markers reachable via vertical scroll, not clipped or hidden.
+    this.surface.style.height=positions.requiredHeight>355?`${positions.requiredHeight}px`:'100%';
+    this.surface.style.minHeight=`${positions.requiredHeight}px`;
+    this.scroll.classList.toggle('has-vertical-stacks',positions.requiredHeight>355);
     if(offsetChange){this.scroll.scrollLeft+=offsetChange;}
     if(!this.scrolledInitially){this.scrolledInitially=true;requestAnimationFrame(()=>this.centerToday());}
   }
